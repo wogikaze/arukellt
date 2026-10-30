@@ -78,7 +78,7 @@ fn closure_split_packed(packed: String) -> Vec<String> {
             // synthetic function does not declare (#872).
             let piece = packed.slice(start, i)
             if piece.len() > 0 {
-                push(out, piece)
+                out.push(piece)
             }
             start = i + 1
         }
@@ -259,7 +259,7 @@ fn closure_trampoline_push_params(mut ctx: LowerCtx, mf: MirFunction, count: i32
             ctx_api_local_types::ctx_set_local_type(ctx, li, pt.clone())
         }
         ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(pname, pvt, pt))
-        push(param_lis, li)
+        param_lis.push(li)
         i = i + 1
     }
     param_lis
@@ -378,8 +378,8 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
         // The shim itself is synthesized by
         // closure_flush_pending_fn_thunks once every body is pushed.
         ctx_call_edges::ctx_edge_record_name(ctx, fn_name.clone())
-        push(ctx.closure_thunk_names, fn_name.clone())
-        push(ctx.pending_fn_thunks, fn_name)
+        ctx.closure_thunk_names.push(fn_name.clone())
+        ctx.pending_fn_thunks.push(fn_name)
         return thunk
     }
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -388,7 +388,7 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
     // The thunk's call edge is dropped by edge-frame bookkeeping; keep the
     // named function reachable from the coercing frame explicitly.
     ctx_call_edges::ctx_edge_record_name(ctx, fn_name.clone())
-    push(ctx.closure_thunk_names, fn_name)
+    ctx.closure_thunk_names.push(fn_name)
     out
 }
 

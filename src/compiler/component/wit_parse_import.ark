@@ -18,14 +18,14 @@ fn wit_import_serialized_records(text: String) -> Vec<String> {
     while i < n {
         if text.byte_at(i) == 59 {
             if i > start {
-                push(records, text.slice(start, i))
+                records.push(text.slice(start, i))
             }
             start = i + 1
         }
         i = i + 1
     }
     if start < n {
-        push(records, text.slice(start, n))
+        records.push(text.slice(start, n))
     }
     records
 }
@@ -37,12 +37,12 @@ fn wit_import_serialized_fields(record: String) -> Vec<String> {
     let n = record.len()
     while i < n {
         if record.byte_at(i) == 124 {
-            push(fields, record.slice(start, i))
+            fields.push(record.slice(start, i))
             start = i + 1
         }
         i = i + 1
     }
-    push(fields, record.slice(start, n))
+    fields.push(record.slice(start, n))
     fields
 }
 
@@ -56,12 +56,12 @@ fn wit_import_serialized_list(text: String) -> Vec<String> {
     let n = text.len()
     while i < n {
         if text.byte_at(i) == 126 {
-            push(values, text.slice(start, i))
+            values.push(text.slice(start, i))
             start = i + 1
         }
         i = i + 1
     }
-    push(values, text.slice(start, n))
+    values.push(text.slice(start, n))
     values
 }
 
@@ -88,7 +88,7 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
             if kind.eq("func") && fields.len() >= 4 {
                 let params = wit_import_serialized_list(get_unchecked(fields, 2))
                 let result = get_unchecked(fields, 3)
-                push(funcs, wit_parse_text::WitParsedFunc_new(
+                funcs.push(wit_parse_text::WitParsedFunc_new(
                         name.clone(),
                         wit_names_import::wit_import_func_name(name),
                         params,
@@ -97,7 +97,7 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
             } else if kind.eq("record") && fields.len() >= 4 {
                 let field_names = wit_import_serialized_list(get_unchecked(fields, 2))
                 let field_types = wit_import_serialized_list(get_unchecked(fields, 3))
-                push(records_out, wit_parse_text::WitParsedRecord_new(
+                records_out.push(wit_parse_text::WitParsedRecord_new(
                         name.clone(),
                         wit_names_import::wit_record_type_name(name),
                         field_names,
@@ -107,9 +107,9 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                 let variant_names = wit_import_serialized_list(get_unchecked(fields, 2))
                 let mut variant_ark_names = Vec::new<String>()
                 for vi in 0..variant_names.len() {
-                    push(variant_ark_names, wit_names_import::wit_enum_variant_name(get_unchecked(variant_names, vi)))
+                    variant_ark_names.push(wit_names_import::wit_enum_variant_name(get_unchecked(variant_names, vi)))
                 }
-                push(enums, wit_parse_text::WitParsedEnum_new(
+                enums.push(wit_parse_text::WitParsedEnum_new(
                         name.clone(),
                         wit_names_import::wit_enum_type_name(name),
                         variant_names,
@@ -120,9 +120,9 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                 let payload_types = wit_import_serialized_list(get_unchecked(fields, 3))
                 let mut case_ark_names = Vec::new<String>()
                 for ci in 0..case_names.len() {
-                    push(case_ark_names, wit_names_import::wit_enum_variant_name(get_unchecked(case_names, ci)))
+                    case_ark_names.push(wit_names_import::wit_enum_variant_name(get_unchecked(case_names, ci)))
                 }
-                push(variants, wit_parse_text::WitParsedVariant_new(
+                variants.push(wit_parse_text::WitParsedVariant_new(
                         name.clone(),
                         wit_names_import::wit_enum_type_name(name),
                         case_names,

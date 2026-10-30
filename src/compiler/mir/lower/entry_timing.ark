@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio::Stdio
-use std::prelude::{get_unchecked, push, set}
+use std::prelude::{get_unchecked}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override is disabled; --time / report_flag remains the supported
@@ -89,8 +89,8 @@ fn mir_lower_wall_record(
     if timing == 0 {
         return
     }
-    push(wall_ms, mir_lower_phase_ms(t_start, Clock::monotonic_now()))
-    push(wall_name, name)
+    wall_ms.push(mir_lower_phase_ms(t_start, Clock::monotonic_now()))
+    wall_name.push(name)
 }
 
 fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<String>) {
@@ -118,7 +118,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
         if best < 0 {
             return
         }
-        set(wall_ms, best, -1)
+        wall_ms.set(best, -1)
         Stdio::eprintln(
             "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(get_unchecked(wall_name, best).clone().concat(" ".concat(best_ms.to_string().concat("ms"))))))
         )

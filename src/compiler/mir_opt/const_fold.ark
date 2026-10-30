@@ -41,11 +41,11 @@ fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInstDraft> {
                 } else {
                     av * bv
                 }
-                push(out, inst_const_i32::MirInst_const_i32(folded_val, dest))
+                out.push(inst_const_i32::MirInst_const_i32(folded_val, dest))
                 continue
             }
         }
-        push(out, block_inst_access::MirInst_as_draft(inst))
+        out.push(block_inst_access::MirInst_as_draft(inst))
     }
     out
 }

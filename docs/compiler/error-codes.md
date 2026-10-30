@@ -774,8 +774,8 @@ A shared parameter or receiver is a call-scoped borrow (ADR-088 §2/§3). The
 callee may read it and pass it to another shared parameter, but it must not
 assign to a place rooted at it, including the parameter itself. Declare the
 parameter `mut p` or the receiver `mut self` to mutate; callers must then
-supply a mutable place (E0223). A mutating call such as `push(p, x)` through a
-shared parameter is reported at the call site as E0223.
+supply a mutable place (E0223). A mutating receiver call such as `p.push(x)`
+through a shared parameter is reported at the call site as E0223.
 
 <!-- skip-doc-check kind="invalid-example" reason="E0226 rejects assignment through a shared parameter" -->
 ```arukellt
@@ -1040,10 +1040,10 @@ which may lead to unexpected shared mutation.
 
 ```arukellt
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
-    push(v, 1)
+    let mut v: Vec<i32> = Vec::new<i32>()
+    v.push(1)
     let alias = v
-    push(v, 2)
+    v.push(2)
 }
 ```
 

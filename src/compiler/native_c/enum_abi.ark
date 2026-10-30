@@ -22,7 +22,7 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
     let mut flags = Vec::new<i32>()
     let mut type_index = 0
     while type_index < type_count {
-        push(flags, 0)
+        flags.push(0)
         type_index = type_index + 1
     }
 
@@ -109,7 +109,7 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
         native_c_type_name_is_open_payload_enum(basename.clone())
         let in_product = native_c_string_list_contains(product_struct_names, basename.clone())
         if in_payload || in_product {
-            set(flags, type_index, 1)
+            flags.set(type_index, 1)
         }
         type_index = type_index + 1
     }
@@ -194,7 +194,7 @@ fn native_c_push_unique_string(mut values: Vec<String>, value: String) {
     if native_c_string_list_contains(values, value.clone()) {
         return
     }
-    push(values, value)
+    values.push(value)
 }
 
 fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {

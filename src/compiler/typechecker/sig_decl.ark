@@ -60,8 +60,8 @@ fn fn_sig_from_fn_decl_with_params(
                 let type_node = ast_access::node_type_ann_at(param, 0)
                 pty = types::resolve_type_ann_node_generic(type_node, type_params)
             }
-            push(param_types, pty)
-            push(param_modes, ast_access::node_is_mut(param))
+            param_types.push(pty)
+            param_modes.push(ast_access::node_is_mut(param))
             p = p + 1
         }
     }
@@ -140,7 +140,7 @@ fn merge_type_param_bounds(
     let impl_count = impl_bounds.len()
     let mut i = 0
     while i < impl_count {
-        push(merged, get_unchecked(impl_bounds, i))
+        merged.push(get_unchecked(impl_bounds, i))
         i = i + 1
     }
     let method_count = method_bounds.len()
@@ -151,7 +151,7 @@ fn merge_type_param_bounds(
             impl_params.clone(),
             contract_type_param_bounds::TypeParamBounds_name(info)
         ) {
-            push(merged, info)
+            merged.push(info)
         }
         j = j + 1
     }
@@ -188,7 +188,7 @@ fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Ve
             j = j + 1
         }
         if !found {
-            push(merged, mp)
+            merged.push(mp)
         }
         k = k + 1
     }

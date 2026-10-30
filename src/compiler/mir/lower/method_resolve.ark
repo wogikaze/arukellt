@@ -672,7 +672,7 @@ fn mir_mono_arg_segments(args: String) -> Vec<String> {
         if i == n || args.clone().byte_at(i) == 95 {
             let seg = args.clone().slice(seg_start, i)
             if seg.len() > 0 {
-                push(segs, seg)
+                segs.push(seg)
             }
             seg_start = i + 1
         }

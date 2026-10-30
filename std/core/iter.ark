@@ -110,7 +110,7 @@ fn collect_iterator<T: Iterator>(mut it: T) -> Vec<T::Item> {
     let mut result: Vec<T::Item> = Vec::new<T::Item>()
     while true {
         match it.next() {
-            Some(v) => push(result, v),
+            Some(v) => result.push(v),
             None => { break },
         }
     }
@@ -770,7 +770,7 @@ impl<I> Iterator for TakeIter<I> {
         let mut out: Vec<I::Item> = Vec::new<I::Item>()
         while true {
             match self.next() {
-                Some(value) => push(out, value),
+                Some(value) => out.push(value),
                 None => { break },
             }
         }
@@ -842,7 +842,7 @@ impl<I> Iterator for SkipIter<I> {
         let mut out: Vec<I::Item> = Vec::new<I::Item>()
         while true {
             match self.next() {
-                Some(value) => push(out, value),
+                Some(value) => out.push(value),
                 None => { break },
             }
         }
@@ -990,7 +990,7 @@ impl<I> Iterator for ChainIter<I> {
     fn collect(self: ChainIter<I>) -> Vec<I::Item> {
         let mut out: Vec<I::Item> = Vec::new<I::Item>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1036,7 +1036,7 @@ impl<I> Iterator for EnumerateIter<I> {
     fn collect(self: EnumerateIter<I>) -> Vec<Pair<i32, I::Item>> {
         let mut out: Vec<Pair<i32, I::Item>> = Vec::new<Pair<i32, I::Item>>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1083,7 +1083,7 @@ impl<A, B> Iterator for ZipIter<A, B> {
     fn collect(self: ZipIter<A, B>) -> Vec<Pair<A::Item, B::Item>> {
         let mut out: Vec<Pair<A::Item, B::Item>> = Vec::new<Pair<A::Item, B::Item>>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1142,7 +1142,7 @@ impl<T> Iterator for FlatMapIter<T> {
                 self.index = self.index + 1
                 let produced: Vec<T> = (self.f)(outer)
                 for item in produced {
-                    push(self.inner, item)
+                    self.inner.push(item)
                 }
             } else {
                 done = true
@@ -1154,7 +1154,7 @@ impl<T> Iterator for FlatMapIter<T> {
     fn collect(self: FlatMapIter<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1193,7 +1193,7 @@ impl<T> PeekIter<T> {
     /// drains it.
     fn peek(mut self: PeekIter<T>) -> Option<T> {
         if self.peeked.len() == 0 && self.index < self.length {
-            push(self.peeked, get_unchecked(self.vec, self.index))
+            self.peeked.push(get_unchecked(self.vec, self.index))
             self.index = self.index + 1
         }
         if self.peeked.len() > 0 {
@@ -1229,7 +1229,7 @@ impl<T> Iterator for PeekIter<T> {
     fn collect(self: PeekIter<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1281,7 +1281,7 @@ impl<T> Iterator for StepByIter<T> {
     fn collect(self: StepByIter<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1344,7 +1344,7 @@ impl<T> Iterator for ScanIter<T> {
     fn collect(self: ScanIter<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }
@@ -1395,7 +1395,7 @@ impl Iterator for UniqueIter {
             let val: i32 = get_unchecked(self.vec, self.index)
             self.index = self.index + 1
             if !unique_seen_contains(self.seen, val) {
-                push(self.seen, val)
+                self.seen.push(val)
                 return Some(val)
             }
         }

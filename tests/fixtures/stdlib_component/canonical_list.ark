@@ -4,9 +4,9 @@ use std::core::error
 fn main() {
     let mut scratch = Component::scratch_new()
     let mut vals = Vec::new<i32>()
-    push(vals, 1)
-    push(vals, 2)
-    push(vals, 3)
+    vals.push(1)
+    vals.push(2)
+    vals.push(3)
     match Component::lower_list_i32(scratch, vals) {
         Result::Ok(slice) => {
             Stdio::println((slice.len).to_string())

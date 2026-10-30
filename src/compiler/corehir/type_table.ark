@@ -108,11 +108,11 @@ fn TypeTable_intern(mut table: TypeTable, kind: i32, name: String, type_param_id
     let id = TypeId_new(table.next_id)
     table.next_id = table.next_id + 1
     let entry_index = table.entries.len()
-    push(table.next_same_name, name_index::name_index_get(table.name_head, name.clone()))
+    table.next_same_name.push(name_index::name_index_get(table.name_head, name.clone()))
     name_index::name_index_set(table.name_head, name.clone(), entry_index)
     // The entry owns a copy; `id` is returned below, so it must stay live.
     let entry = TypeEntry { id: id.clone(), kind: kind, name: name, type_param_ids: type_param_ids }
-    push(table.entries, entry)
+    table.entries.push(entry)
     id
 }
 

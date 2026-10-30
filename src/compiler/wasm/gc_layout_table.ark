@@ -177,14 +177,14 @@ fn gc_layout_table_entry_index_by_key(table: GcLayoutTable, key: GcLayoutKey) ->
 fn gc_layout_table_link_entry(mut table: GcLayoutTable, key: GcLayoutKey, entry_index: i32) {
     let raw = type_id::TypeId_raw(key.type_id)
     if raw < 0 {
-        push(table.next_same_type_id, gc_layout_table_no_entry())
+        table.next_same_type_id.push(gc_layout_table_no_entry())
         return
     }
     while table.head_by_type_id.len() <= raw {
-        push(table.head_by_type_id, gc_layout_table_no_entry())
+        table.head_by_type_id.push(gc_layout_table_no_entry())
     }
-    push(table.next_same_type_id, get_unchecked(table.head_by_type_id, raw))
-    set(table.head_by_type_id, raw, entry_index)
+    table.next_same_type_id.push(get_unchecked(table.head_by_type_id, raw))
+    table.head_by_type_id.set(raw, entry_index)
 }
 
 fn gc_layout_table_observe_typed_lookup(mut table: GcLayoutTable) {
@@ -228,7 +228,7 @@ fn gc_layout_table_register_key(
         struct_type_idx: struct_type_idx,
         field_layouts: Vec::new<FieldLayout>()
     }
-    push(table.entries, entry)
+    table.entries.push(entry)
     gc_layout_table_link_entry(table, key, entry_index)
     id
 }

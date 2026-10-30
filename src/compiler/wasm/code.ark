@@ -223,9 +223,9 @@ fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
         }
         let body = get_unchecked(ctx.body_bytes, fi)
         if ctx_reloc::reloc_kind_is_sleb(kind) {
-            set(ctx.body_bytes, fi, ctx_reloc::reloc_splice_i32(body, off, value))
+            ctx.body_bytes.set(fi, ctx_reloc::reloc_splice_i32(body, off, value))
         } else {
-            set(ctx.body_bytes, fi, ctx_reloc::reloc_splice_u32(body, off, value))
+            ctx.body_bytes.set(fi, ctx_reloc::reloc_splice_u32(body, off, value))
         }
         i = i - 1
     }
@@ -291,7 +291,7 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         let mut oi = 0
         while oi < map.len() {
             if get_unchecked(map, oi) >= 0 {
-                push(bodies, get_unchecked(art.body_bytes, oi))
+                bodies.push(get_unchecked(art.body_bytes, oi))
             }
             oi = oi + 1
         }
@@ -308,14 +308,14 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         while ri < art.reloc_func.len() {
             let mapped = get_unchecked(map, get_unchecked(art.reloc_func, ri))
             if mapped >= 0 {
-                push(rfunc, mapped)
-                push(roff, get_unchecked(art.reloc_off, ri))
-                push(rkind, get_unchecked(art.reloc_kind, ri))
-                push(ri1, get_unchecked(art.reloc_ikey, ri))
-                push(ri2, get_unchecked(art.reloc_ikey2, ri))
-                push(ri3, get_unchecked(art.reloc_ikey3, ri))
-                push(rs1, get_unchecked(art.reloc_skey, ri).clone())
-                push(rs2, get_unchecked(art.reloc_skey2, ri).clone())
+                rfunc.push(mapped)
+                roff.push(get_unchecked(art.reloc_off, ri))
+                rkind.push(get_unchecked(art.reloc_kind, ri))
+                ri1.push(get_unchecked(art.reloc_ikey, ri))
+                ri2.push(get_unchecked(art.reloc_ikey2, ri))
+                ri3.push(get_unchecked(art.reloc_ikey3, ri))
+                rs1.push(get_unchecked(art.reloc_skey, ri).clone())
+                rs2.push(get_unchecked(art.reloc_skey2, ri).clone())
             }
             ri = ri + 1
         }
@@ -335,10 +335,10 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         while cii < art.call_reloc_funcs.len() {
             let mapped = get_unchecked(map, get_unchecked(art.call_reloc_funcs, cii))
             if mapped >= 0 {
-                push(coffs, get_unchecked(art.call_reloc_offs, cii))
-                push(cfids, get_unchecked(art.call_reloc_fids, cii))
-                push(cfuncs, mapped)
-                push(cnames, get_unchecked(art.call_reloc_names, cii).clone())
+                coffs.push(get_unchecked(art.call_reloc_offs, cii))
+                cfids.push(get_unchecked(art.call_reloc_fids, cii))
+                cfuncs.push(mapped)
+                cnames.push(get_unchecked(art.call_reloc_names, cii).clone())
             }
             cii = cii + 1
         }
@@ -523,7 +523,7 @@ fn emit_code_section(
                 module_wit_imports::wit_import_count(bindings)
             )
             code_body::emit_function_body(body_w, f, ctx, bindings)
-            push(ctx.body_bytes, writer_core::writer_bytes(body_w))
+            ctx.body_bytes.push(writer_core::writer_bytes(body_w))
             if slow_notes < 32 {
                 if emit_slow_fn_note(report_timing, ci, f, t_fn) {
                     slow_notes = slow_notes + 1
@@ -543,7 +543,7 @@ fn emit_code_section(
     code_apply_pending_relocs(ctx, wit_import_count)
     let mut bi2 = 0
     while bi2 < fn_count {
-        push(offsets, writer_core::writer_size(code_sec))
+        offsets.push(writer_core::writer_size(code_sec))
         let size_off = emit_sized_code_body_begin(code_sec)
         writer_core::emit_bytes(code_sec, get_unchecked(ctx.body_bytes, bi2))
         emit_sized_code_body_end(code_sec, size_off)

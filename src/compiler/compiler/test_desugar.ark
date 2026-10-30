@@ -32,7 +32,7 @@ pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
     let extra_count = extra.len()
     let mut j = 0
     while j < extra_count {
-        push(out, get_unchecked(extra, j))
+        out.push(get_unchecked(extra, j))
         j = j + 1
     }
     out
@@ -52,12 +52,12 @@ fn desugar_test_node(node: AstNode, mut out: Vec<AstNode>, mut names: Vec<String
         return
     }
     if kind != kinds::NK_TEST_DECL() {
-        push(out, node)
+        out.push(node)
         return
     }
     let index = names.len()
-    push(names, test_display_name(prefix, ast::ast_node_text(node)))
-    push(out, synthesize_test_fn(node, index))
+    names.push(test_display_name(prefix, ast::ast_node_text(node)))
+    out.push(synthesize_test_fn(node, index))
 }
 
 fn test_display_name(prefix: String, name: String) -> String {

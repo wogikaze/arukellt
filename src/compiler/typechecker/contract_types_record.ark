@@ -37,7 +37,7 @@ fn type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
 }
 
 fn type_info_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
-    push(ty.type_args, arg)
+    ty.type_args.push(arg)
 }
 
 fn type_info_param_mode_count(ty: TypeInfo) -> i32 {
@@ -52,5 +52,5 @@ fn type_info_param_is_mut(ty: TypeInfo, index: i32) -> bool {
 }
 
 fn type_info_push_param_mode(mut ty: TypeInfo, is_mut: bool) {
-    push(ty.param_modes, is_mut)
+    ty.param_modes.push(is_mut)
 }

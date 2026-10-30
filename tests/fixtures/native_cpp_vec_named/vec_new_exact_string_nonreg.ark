@@ -3,6 +3,6 @@ use std::host::stdio::Stdio
 
 fn main() {
     let mut items = Vec::new<String>()
-    items = push(items, String_from("exact"))
+    items = items.push(String_from("exact"))
     Stdio::println(get_unchecked(items, 0))
 }

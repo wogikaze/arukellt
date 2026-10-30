@@ -17,16 +17,16 @@ fn __core_i64_digit_ascii(digit: i64) -> i32 {
 fn __core_format_bool_impl(value: bool) -> String {
     let mut bytes = RawArray::new<i32>(5)
     if value {
-        push(bytes, 116)
-        push(bytes, 114)
-        push(bytes, 117)
-        push(bytes, 101)
+        bytes.push(116)
+        bytes.push(114)
+        bytes.push(117)
+        bytes.push(101)
     } else {
-        push(bytes, 102)
-        push(bytes, 97)
-        push(bytes, 108)
-        push(bytes, 115)
-        push(bytes, 101)
+        bytes.push(102)
+        bytes.push(97)
+        bytes.push(108)
+        bytes.push(115)
+        bytes.push(101)
     }
     RawString::from_bytes(bytes)
 }
@@ -51,19 +51,19 @@ fn __core_char_to_string_impl(value: i32) -> String {
     }
     let mut bytes = RawArray::new<i32>(width)
     if width == 1 {
-        push(bytes, codepoint)
+        bytes.push(codepoint)
     } else if width == 2 {
-        push(bytes, 192 + codepoint / 64)
-        push(bytes, 128 + codepoint % 64)
+        bytes.push(192 + codepoint / 64)
+        bytes.push(128 + codepoint % 64)
     } else if width == 3 {
-        push(bytes, 224 + codepoint / 4096)
-        push(bytes, 128 + codepoint / 64 % 64)
-        push(bytes, 128 + codepoint % 64)
+        bytes.push(224 + codepoint / 4096)
+        bytes.push(128 + codepoint / 64 % 64)
+        bytes.push(128 + codepoint % 64)
     } else {
-        push(bytes, 240 + codepoint / 262144)
-        push(bytes, 128 + codepoint / 4096 % 64)
-        push(bytes, 128 + codepoint / 64 % 64)
-        push(bytes, 128 + codepoint % 64)
+        bytes.push(240 + codepoint / 262144)
+        bytes.push(128 + codepoint / 4096 % 64)
+        bytes.push(128 + codepoint / 64 % 64)
+        bytes.push(128 + codepoint % 64)
     }
     RawString::from_bytes(bytes)
 }
@@ -112,18 +112,18 @@ fn __core_format_i32_impl(value: i32) -> String {
     }
     while remaining <= 0 - 10 {
         let quotient = remaining / 10
-        push(reversed, 48 + (0 - (remaining - quotient * 10)))
+        reversed.push(48 + (0 - (remaining - quotient * 10)))
         remaining = quotient
     }
-    push(reversed, 48 + (0 - remaining))
+    reversed.push(48 + (0 - remaining))
 
     let mut bytes = RawArray::new<i32>(reversed.len() + 1)
     if value < 0 {
-        push(bytes, 45)
+        bytes.push(45)
     }
     let mut index = reversed.len()
     while index > 0 {
-        push(bytes, get_unchecked(reversed, index - 1))
+        bytes.push(get_unchecked(reversed, index - 1))
         index = index - 1
     }
     RawString::from_bytes(bytes)
@@ -137,18 +137,18 @@ fn __core_format_i64_impl(value: i64) -> String {
     }
     while remaining <= 0_i64 - 10_i64 {
         let quotient = remaining / 10_i64
-        push(reversed, __core_i64_digit_ascii(0_i64 - (remaining - quotient * 10_i64)))
+        reversed.push(__core_i64_digit_ascii(0_i64 - (remaining - quotient * 10_i64)))
         remaining = quotient
     }
-    push(reversed, __core_i64_digit_ascii(0_i64 - remaining))
+    reversed.push(__core_i64_digit_ascii(0_i64 - remaining))
 
     let mut bytes = RawArray::new<i32>(reversed.len() + 1)
     if value < 0_i64 {
-        push(bytes, 45)
+        bytes.push(45)
     }
     let mut index = reversed.len()
     while index > 0 {
-        push(bytes, get_unchecked(reversed, index - 1))
+        bytes.push(get_unchecked(reversed, index - 1))
         index = index - 1
     }
     RawString::from_bytes(bytes)

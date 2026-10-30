@@ -428,12 +428,12 @@ fn hashmap_from_iter_candidate(
         return String_new()
     }
     let mut owners: Vec<String> = Vec::new<String>()
-    push(owners, String_from("HashMap_i32_i32"))
-    push(owners, String_from("HashMap_String_i32"))
-    push(owners, String_from("HashMap_i32_String"))
-    push(owners, String_from("HashMap_String_String"))
-    push(owners, String_from("HashMap_i32_fnref"))
-    push(owners, String_from("HashMap_String_fnref"))
+    owners.push(String_from("HashMap_i32_i32"))
+    owners.push(String_from("HashMap_String_i32"))
+    owners.push(String_from("HashMap_i32_String"))
+    owners.push(String_from("HashMap_String_String"))
+    owners.push(String_from("HashMap_i32_fnref"))
+    owners.push(String_from("HashMap_String_fnref"))
     let mut index: i32 = 0
     while index < owners.len() {
         let owner = get_unchecked(owners, index)

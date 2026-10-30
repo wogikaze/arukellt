@@ -52,7 +52,7 @@ fn main() {
     while i < 5000 {
         let lvl: LogLevel = classify(i)
         let rec: LogRecord = LogRecord { level: lvl, code: i + 100, value: i * 3 + 7 }
-        push(records, rec)
+        records.push(rec)
         i = i + 1
     }
 

@@ -11,13 +11,13 @@ fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, m
         if i < module_stdlib_flags.len() {
             is_stdlib = get_unchecked(module_stdlib_flags, i)
         }
-        push(infos, raw_dto::CoreHirModuleInfo_new(get_unchecked(module_names, i), is_stdlib, decl_offset, decl_count))
+        infos.push(raw_dto::CoreHirModuleInfo_new(get_unchecked(module_names, i), is_stdlib, decl_offset, decl_count))
         decl_offset = decl_offset + decl_count
         i = i + 1
     }
     let main_decl_count = total_decl_count - decl_offset
     if main_decl_count > 0 {
-        push(infos, raw_dto::CoreHirModuleInfo_new("<main>", false, decl_offset, main_decl_count))
+        infos.push(raw_dto::CoreHirModuleInfo_new("<main>", false, decl_offset, main_decl_count))
     }
     infos
 }

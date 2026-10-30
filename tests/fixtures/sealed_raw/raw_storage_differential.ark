@@ -1,8 +1,8 @@
 use std::host::stdio::Stdio
 fn main() {
     let mut bytes = Vec::with_capacity<i32>(2)
-    push(bytes, 79)
-    push(bytes, 75)
+    bytes.push(79)
+    bytes.push(75)
     let text = __intrinsic_string_from_bytes(bytes)
     Stdio::print(text.clone().byte_at(0))
     Stdio::print(text.clone().len())

@@ -3,7 +3,7 @@
 use resolver::wit_import_bind
 fn issue654_assert_wit_emit_sources() -> String {
     let mut bindings = Vec::new<WitImportBinding>()
-    push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", "host::add"))
+    bindings.push(WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", "host::add"))
     if bindings.len() != 1 {
         return "binding table empty"
     }

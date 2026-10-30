@@ -8,9 +8,9 @@ fn push_import_decl_paths(mut paths: Vec<String>, decl: AstNode) {
     if num_children > 0 {
         let parent_path = paths::use_module_parent_path(decl_path.clone())
         if parent_path.clone().len() > 0 {
-            push(paths, parent_path)
+            paths.push(parent_path)
         } else {
-            push(paths, decl_path)
+            paths.push(decl_path)
         }
         // Destructure children may name submodules ("use std::text::{string}").
         // Push each child path too: module children resolve to real files while
@@ -21,7 +21,7 @@ fn push_import_decl_paths(mut paths: Vec<String>, decl: AstNode) {
         while ci < num_children {
             let child = ast_access::node_child_at(decl, ci)
             if ast_decl_predicates::node_is_use(child) {
-                push(paths, ast_access::node_text(child))
+                paths.push(ast_access::node_text(child))
             }
             ci = ci + 1
         }
@@ -31,10 +31,10 @@ fn push_import_decl_paths(mut paths: Vec<String>, decl: AstNode) {
     // module, so loading it directly fails silently and its defining module
     // never loads. Load the parent module as well; the full path stays for
     // real module imports, which resolve first.
-    push(paths, decl_path.clone())
+    paths.push(decl_path.clone())
     let import_parent_path = paths::use_module_parent_path(decl_path.clone())
     if import_parent_path.clone().len() > 0 && module_paths::is_stdlib_path(import_parent_path.clone()) {
-        push(paths, import_parent_path)
+        paths.push(import_parent_path)
     }
 }
 
@@ -48,7 +48,7 @@ pub fn collect_import_paths(decls: Vec<AstNode>) -> Vec<String> {
             push_import_decl_paths(paths, d)
         } else {
             if ast_decl_predicates::node_is_import(d) {
-                push(paths, ast_access::node_text(d))
+                paths.push(ast_access::node_text(d))
             }
         }
         i = i + 1

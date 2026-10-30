@@ -59,7 +59,7 @@ fn try_emit_ok_payload_extract(mut ctx: LowerCtx, inner_idx: i32, is_gc: bool, r
     }
     if is_gc {
         let mut payload_vts = Vec::new<i32>()
-        push(payload_vts, ok_vt)
+        payload_vts.push(ok_vt)
         let mut ok_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, "Ok", payload_vts, ok_type_name.clone())
         if ok_slot < 0 {
             ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Ok")

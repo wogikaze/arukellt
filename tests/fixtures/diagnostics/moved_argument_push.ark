@@ -6,6 +6,6 @@ use std::host::stdio::Stdio
 fn main() {
     let v1 = Vec::new<i32>()
     let v2 = v1
-    push(v1, 1)
+    v1.push(1)
     Stdio::println(v2.len())
 }

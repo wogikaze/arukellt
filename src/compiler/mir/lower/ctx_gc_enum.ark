@@ -19,15 +19,15 @@ fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: St
             let existing = get_unchecked(ctx.gc_enum_variant_names, i).clone()
             let existing_canon = ctx_gc_enum_normalize_variant_name(existing.clone())
             if existing_canon.eq(canon.clone()) || existing.eq(variant_name.clone()) {
-                push(ctx.gc_enum_variant_alias_names, variant_name)
-                push(ctx.gc_enum_variant_alias_slots, i)
+                ctx.gc_enum_variant_alias_names.push(variant_name)
+                ctx.gc_enum_variant_alias_slots.push(i)
                 return i
             }
         }
         i = i + 1
     }
-    push(ctx.gc_enum_variant_names, variant_name)
-    push(ctx.gc_enum_variant_sigs, sig)
+    ctx.gc_enum_variant_names.push(variant_name)
+    ctx.gc_enum_variant_sigs.push(sig)
     // Post-seal registration is "late": record it so the type section emits
     // it after the sealed types in registration order. Packed as
     // slot*2+1 (kind 1 = enum variant). #851 Phase 3.

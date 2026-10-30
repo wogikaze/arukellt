@@ -43,9 +43,9 @@ fn collect_paths(node: AstNode, mut paths: Vec<String>, mut starts: Vec<i32>, mu
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
         if is_module_style_qualified_path(path.clone()) {
-            push(paths, path)
-            push(starts, ast_access::node_span_start(node))
-            push(ends, ast_access::node_span_end(node))
+            paths.push(path)
+            starts.push(ast_access::node_span_start(node))
+            ends.push(ast_access::node_span_end(node))
         }
         return
     }
@@ -105,7 +105,7 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         if uses >= threshold {
             let msg = "qualified path `".concat(path.clone()).concat("` used repeatedly; prefer `use` and call the short name")
             let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
-            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
+            warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }
         i = i + 1
     }

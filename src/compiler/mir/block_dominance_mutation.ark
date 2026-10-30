@@ -17,7 +17,7 @@ fn MirBlock_reset_dom_set(mut block: MirBlock) {
 }
 
 fn MirBlock_push_dom_set(mut block: MirBlock, block_id: i32) {
-    push(block.dom_set, block_id)
+    block.dom_set.push(block_id)
 }
 
 fn MirBlock_reset_dom_frontier(mut block: MirBlock) {
@@ -33,5 +33,5 @@ fn MirBlock_push_dom_frontier_unique(mut block: MirBlock, block_id: i32) {
         }
         i = i + 1
     }
-    push(block.dom_frontier, block_id)
+    block.dom_frontier.push(block_id)
 }

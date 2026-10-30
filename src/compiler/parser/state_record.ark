@@ -49,7 +49,7 @@ fn parser_set_position(mut p: Parser, pos: i32) {
 }
 
 fn parser_set_current_token(mut p: Parser, tok: Token) {
-    set(p.tokens, p.pos, tok)
+    p.tokens.set(p.pos, tok)
 }
 
 fn parser_errors(p: Parser) -> Vec<Diagnostic> {

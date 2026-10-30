@@ -1,5 +1,4 @@
 use std::host::stdio::Stdio
-use std::prelude as prelude
 
 // ADR-088 §7: the shared-to-`mut` direction is accepted at every function
 // type boundary. A read-only function is safe behind a mutable borrow, so it
@@ -9,6 +8,11 @@ struct Point {
 }
 
 fn read(p: Point) -> i32 {
+    p.x
+}
+
+fn bump(mut p: Point) -> i32 {
+    p.x = p.x + 1
     p.x
 }
 
@@ -27,8 +31,8 @@ fn main() {
     let reader = pick_reader()
     Stdio::println(reader(point).to_string())
 
-    // The qualified path is recovered for the same direction check. Calling a
-    // function value that points at a std prelude function is a separate
-    // emitter limitation, so this fixture only pins the annotation boundary.
-    let _push_fn: fn(mut Vec<i32>, i32) = prelude::push
+    // The same shared-to-mut direction check through a function value. The
+    // binding is unused; it pins the annotation boundary only (the retired
+    // prelude `push` free is no longer a usable function value).
+    let _bump_fn: fn(mut Point) -> i32 = bump
 }

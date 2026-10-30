@@ -175,20 +175,20 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
     let rebind_use = is_mutable_use && is_rebind
     let existing = capture_name_index(summary, name.clone())
     if existing < 0 {
-        push(summary.names, name.clone())
-        push(summary.modes, mode)
-        push(summary.nodes, node)
+        summary.names.push(name.clone())
+        summary.modes.push(mode)
+        summary.nodes.push(node)
         if rebind_use {
-            push(summary.rebinds, 1)
+            summary.rebinds.push(1)
         } else {
-            push(summary.rebinds, 0)
+            summary.rebinds.push(0)
         }
         return
     }
     if rebind_use {
-        set(summary.modes, existing, rebind_mode)
-        set(summary.nodes, existing, node)
-        set(summary.rebinds, existing, 1)
+        summary.modes.set(existing, rebind_mode)
+        summary.nodes.set(existing, node)
+        summary.rebinds.set(existing, 1)
         return
     }
     if get_unchecked(summary.rebinds, existing) == 1 {
@@ -196,8 +196,8 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
     }
     let previous = get_unchecked(summary.modes, existing)
     if mode > previous {
-        set(summary.modes, existing, mode)
-        set(summary.nodes, existing, node)
+        summary.modes.set(existing, mode)
+        summary.nodes.set(existing, node)
     }
 }
 
@@ -453,8 +453,8 @@ fn closure_capture_escape(mut env: TypeEnv, scope: LocalScope, node: AstNode) {
         message
     )
     env.error_count = env.error_count + 1
-    push(env.errors, message)
-    push(env.diagnostics, diag)
+    env.errors.push(message)
+    env.diagnostics.push(diag)
 }
 
 fn capture_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> CaptureEscape {
@@ -552,6 +552,6 @@ fn report_capture_conflict(mut env: TypeEnv, node: AstNode, name: String, reason
         message
     )
     env.error_count = env.error_count + 1
-    push(env.errors, message)
-    push(env.diagnostics, diag)
+    env.errors.push(message)
+    env.diagnostics.push(diag)
 }

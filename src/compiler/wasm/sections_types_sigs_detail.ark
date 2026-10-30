@@ -321,7 +321,7 @@ fn p2_enum_has_variants(type_name: String, mir: MirModule) -> bool {
 
 fn p2_merge_enum_payload(mut payload: Vec<String>, field: String) {
     if payload.len() == 0 {
-        push(payload, field.clone())
+        payload.push(field.clone())
         return
     }
     let current = get_unchecked(payload, 0)
@@ -331,7 +331,7 @@ fn p2_merge_enum_payload(mut payload: Vec<String>, field: String) {
     if field.clone().eq(String_from("f64")) ||
     field.clone().eq(String_from("i64")) ||
     current.clone().eq(String_from("i32")) {
-        set(payload, 0, field.clone())
+        payload.set(0, field.clone())
     }
 }
 

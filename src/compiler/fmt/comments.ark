@@ -16,9 +16,9 @@ fn fmt_preserve_comment_lines(lines: Vec<String>) -> Vec<String> {
         let raw = get_unchecked(lines, i)
         let trimmed = whitespace::fmt_normalize_line(raw)
         if fmt_is_full_line_comment(trimmed.clone()) || fmt_line_starts_block_comment(trimmed.clone()) {
-            push(out, trimmed)
+            out.push(trimmed)
         } else {
-            push(out, raw)
+            out.push(raw)
         }
         i = i + 1
     }

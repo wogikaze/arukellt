@@ -104,18 +104,18 @@ fn mir_gc_layout_plan_bind(
     let existing = mir_gc_layout_plan_find_type(plan, type_id_value)
     let binding = MirGcLayoutBinding_new(type_id_value, source_kind, source_value)
     if existing >= 0 {
-        set(plan.bindings, existing, binding)
+        plan.bindings.set(existing, binding)
         mir_gc_layout_plan_validate_binding(plan, existing)
         return
     }
     let raw = type_id::TypeId_raw(type_id_value)
     if raw >= 0 {
         while plan.index_by_raw.len() <= raw {
-            push(plan.index_by_raw, 0 - 1)
+            plan.index_by_raw.push(0 - 1)
         }
-        set(plan.index_by_raw, raw, plan.bindings.len())
+        plan.index_by_raw.set(raw, plan.bindings.len())
     }
-    push(plan.bindings, binding)
+    plan.bindings.push(binding)
 }
 
 // Field-level sanity for one binding plus the index-consistency check

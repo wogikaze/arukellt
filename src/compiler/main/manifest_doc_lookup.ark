@@ -26,7 +26,7 @@ fn doc_find_by_name(table: DocManifestTable, name: String) -> Vec<i32> {
     while i < n {
         let e = manifest_doc_record::DocManifestTable_function_at(table, i)
         if doc_fn_matches_name(e, name.clone()) {
-            push(out, i)
+            out.push(i)
         }
         i = i + 1
     }
@@ -40,7 +40,7 @@ fn doc_find_by_module_name(table: DocManifestTable, module: String, name: String
     while i < n {
         let e = manifest_doc_record::DocManifestTable_function_at(table, i)
         if doc_fn_matches_module_name(e, module.clone(), name.clone()) {
-            push(out, i)
+            out.push(i)
         }
         i = i + 1
     }

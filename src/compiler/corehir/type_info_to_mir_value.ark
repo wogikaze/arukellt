@@ -135,7 +135,7 @@ fn type_name_is_scalar_primitive(type_name: String) -> bool {
 
 fn mir_value_type_vec_single(mut table: TypeTable, ty: TypeInfo) -> Vec<MirValueType> {
     let mut result = Vec::new<MirValueType>()
-    push(result, type_info_to_mir_value(table, ty))
+    result.push(type_info_to_mir_value(table, ty))
     result
 }
 

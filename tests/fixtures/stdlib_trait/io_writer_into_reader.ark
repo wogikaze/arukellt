@@ -7,9 +7,9 @@ use std::io
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 88)
-    push(data, 89)
-    push(data, 90)
+    data.push(88)
+    data.push(89)
+    data.push(90)
     let mut writer: io::Writer = io::Writer::new()
     match writer.write(data) {
         Result::Ok(n) => assert(n == 3),

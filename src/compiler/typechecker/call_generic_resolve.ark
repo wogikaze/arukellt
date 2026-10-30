@@ -9,7 +9,7 @@ fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeIn
     for rv in 0..var_types.len() {
         let tv_raw = get_unchecked(var_types, rv)
         let resolved_tv = unify::resolve_type_deep(infer_env, tv_raw)
-        push(resolved_type_args, resolved_tv)
+        resolved_type_args.push(resolved_tv)
     }
     resolved_type_args
 }

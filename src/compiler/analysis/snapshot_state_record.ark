@@ -13,7 +13,7 @@ fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
 }
 
 fn snapshot_push(mut snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {
-    push(snap.diagnostics, diag)
+    snap.diagnostics.push(diag)
     snap.diagnostic_count = snap.diagnostic_count + 1
 }
 

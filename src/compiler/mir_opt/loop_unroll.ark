@@ -37,7 +37,7 @@ fn loop_unroll_extend_drafts(mut dst: Vec<MirInstDraft>, src: Vec<MirInstDraft>)
     let n = src.len()
     let mut i = 0
     while i < n {
-        push(dst, get_unchecked(src, i))
+        dst.push(get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -96,18 +96,15 @@ fn loop_unroll_replace_counter_gets(body: Vec<MirInst>, counter: i32, trip: i32)
         let inst = get_unchecked(body, bi)
         if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
             if inst_accessors_operands::MirInst_arg0(inst) == counter {
-                push(
-                    out,
-                    inst_const_i32::MirInst_const_i32(
+                out.push(inst_const_i32::MirInst_const_i32(
                         trip,
                         inst_accessors_operands::MirInst_dest(inst)
-                    )
-                )
+                    ))
                 bi = bi + 1
                 continue
             }
         }
-        push(out, block_inst_access::MirInst_as_draft(inst))
+        out.push(block_inst_access::MirInst_as_draft(inst))
         bi = bi + 1
     }
     out
@@ -123,7 +120,7 @@ fn loop_unroll_expand_body(
     let mut body = Vec::new<MirInst>()
     let mut i = body_start
     while i < body_end {
-        push(body, get_unchecked(insts, i))
+        body.push(get_unchecked(insts, i))
         i = i + 1
     }
     let mut out = Vec::new<MirInstDraft>()
@@ -156,13 +153,13 @@ fn loop_unroll_try_region(
     let mut out = Vec::new<MirInstDraft>()
     let mut i = 0
     while i < start {
-        push(out, block_inst_access::MirInst_as_draft(get_unchecked(insts, i)))
+        out.push(block_inst_access::MirInst_as_draft(get_unchecked(insts, i)))
         i = i + 1
     }
     loop_unroll_extend_drafts(out, expanded)
     i = end + 1
     while i < insts.len() {
-        push(out, block_inst_access::MirInst_as_draft(get_unchecked(insts, i)))
+        out.push(block_inst_access::MirInst_as_draft(get_unchecked(insts, i)))
         i = i + 1
     }
 
@@ -207,7 +204,7 @@ fn loop_unroll_optimize_function(mut f: MirFunction) -> OptimizationSummary {
         block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
         total = total + result.unrolled
         validation_failures = validation_failures + result.validation_failures
-        push(updated_blocks, block)
+        updated_blocks.push(block)
         bi = bi + 1
     }
     function_block_mutation::MirFunction_set_blocks(f, updated_blocks)

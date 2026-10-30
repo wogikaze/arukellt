@@ -5,18 +5,18 @@ fn main() {
     let a: f64 = 3.5
     let b: f64 = 1.2
     let c: f64 = 2.8
-    push(v, a)
-    push(v, b)
-    push(v, c)
+    v.push(a)
+    v.push(b)
+    v.push(c)
     let mut sort_index = 1
     while sort_index < v.len() {
         let sort_value = get_unchecked(v, sort_index)
         let mut sort_slot = sort_index
         while sort_slot > 0 && get_unchecked(v, sort_slot - 1) > sort_value {
-            set(v, sort_slot, get_unchecked(v, sort_slot - 1))
+            v.set(sort_slot, get_unchecked(v, sort_slot - 1))
             sort_slot = sort_slot - 1
         }
-        set(v, sort_slot, sort_value)
+        v.set(sort_slot, sort_value)
         sort_index = sort_index + 1
     }
     Test::assert_eq_f64(get_unchecked(v, 0), 1.2)

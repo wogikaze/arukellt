@@ -3,8 +3,8 @@ use std::test::Test
 use std::text
 fn main() {
     let mut fields = Vec::new<json::JsonField>()
-    push(fields, json::JsonField::new("name", json::JsonValue::string("alice")))
-    push(fields, json::JsonField::new("age", json::JsonValue::int(30)))
+    fields.push(json::JsonField::new("name", json::JsonValue::string("alice")))
+    fields.push(json::JsonField::new("age", json::JsonValue::int(30)))
     let s = json::JsonValue::object(fields).to_text()
     Test::assert_eq_string(s, "{\"name\":\"alice\",\"age\":30}")
     // Verify the constructed object parses back correctly

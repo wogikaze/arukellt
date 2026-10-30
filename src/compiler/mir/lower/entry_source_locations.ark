@@ -25,7 +25,7 @@ fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, s
         } else {
             source_location_record::SourceLocation_unmapped()
         }
-        push(locations, loc)
+        locations.push(loc)
         fi = fi + 1
     }
     locations

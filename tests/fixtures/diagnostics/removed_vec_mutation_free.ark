@@ -1,0 +1,8 @@
+// E0100: the prelude Vec mutation frees were retired; the receiver methods
+// own the surface and each hint names the replacement.
+fn main() {
+    let mut values: Vec<i32> = Vec::new<i32>()
+    push(values, 1)
+    let _last = pop(values)
+    set(values, 0, 2)
+}

@@ -20,14 +20,14 @@ use mir::lower::ctx_current_storage
 // name never matches the parent's cells.
 
 fn ctx_register_env_cell(mut ctx: LowerCtx, fn_name: String, local_idx: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
-    push(ctx.cell_fn_names, fn_name)
-    push(ctx.cell_local_indices, local_idx)
-    push(ctx.cell_env_locals, env_local)
-    push(ctx.cell_env_names, env_name)
-    push(ctx.cell_offsets, offset)
-    push(ctx.cell_field_indices, field_idx)
-    push(ctx.cell_totals, total)
-    push(ctx.cell_vts, vt)
+    ctx.cell_fn_names.push(fn_name)
+    ctx.cell_local_indices.push(local_idx)
+    ctx.cell_env_locals.push(env_local)
+    ctx.cell_env_names.push(env_name)
+    ctx.cell_offsets.push(offset)
+    ctx.cell_field_indices.push(field_idx)
+    ctx.cell_totals.push(total)
+    ctx.cell_vts.push(vt)
 }
 
 // Struct stores writing every cell local back to its env field now live in
@@ -107,14 +107,14 @@ fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
 // a direct name(...) call in the same frame; the write-back runs there
 // once per rebind capture.
 fn ctx_register_env_writeback(mut ctx: LowerCtx, synth: String, src_li: i32, env_local: i32, env_name: String, offset: i32, field_idx: i32, total: i32, vt: i32) {
-    push(ctx.wb_synths, synth)
-    push(ctx.wb_src_lis, src_li)
-    push(ctx.wb_env_lis, env_local)
-    push(ctx.wb_env_names, env_name)
-    push(ctx.wb_offsets, offset)
-    push(ctx.wb_field_indices, field_idx)
-    push(ctx.wb_totals, total)
-    push(ctx.wb_vts, vt)
+    ctx.wb_synths.push(synth)
+    ctx.wb_src_lis.push(src_li)
+    ctx.wb_env_lis.push(env_local)
+    ctx.wb_env_names.push(env_name)
+    ctx.wb_offsets.push(offset)
+    ctx.wb_field_indices.push(field_idx)
+    ctx.wb_totals.push(total)
+    ctx.wb_vts.push(vt)
 }
 
 // Emit `src_li := env.field` for each write-back pair registered on

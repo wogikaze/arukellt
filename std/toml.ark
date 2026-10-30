@@ -154,7 +154,7 @@ fn toml_text_parse_string_array(raw: String) -> Vec<String> {
         i = i + 1
         let start = i
         while i < raw_len && raw.byte_at(i) != 34 { i = i + 1 }
-        push(result, raw.slice(start, i))
+        result.push(raw.slice(start, i))
         if i < raw_len { i = i + 1 }
     }
     result

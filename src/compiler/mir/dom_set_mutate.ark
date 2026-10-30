@@ -7,7 +7,7 @@ fn mir_push_unique_i32(mut ids: Vec<i32>, block_id: i32) {
         }
         i = i + 1
     }
-    push(ids, block_id)
+    ids.push(block_id)
 }
 
 test mod "dom_set_mutate" {

@@ -47,7 +47,7 @@ fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
                 // Promoted borrow cells pass the cell ref as the cap
                 // argument (#891).
                 pvt = closure_env_layout::closure_env_ref_vt(ctx)
-                push(cap_vts, pvt)
+                cap_vts.push(pvt)
                 cvi = cvi + 1
                 continue
             }
@@ -63,7 +63,7 @@ fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
                 pvt = value_types::VT_GC_REF()
             }
         }
-        push(cap_vts, pvt)
+        cap_vts.push(pvt)
         cvi = cvi + 1
     }
     cap_vts
@@ -79,12 +79,12 @@ fn core_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<Strin
         if cli >= 0 && closure_pcells::ctx_pcell_is_cell(ctx, cli) {
             // Promoted cap params declare the cell ref type so direct
             // calls and the env trampoline pass the shared cell (#891).
-            push(cap_types, closure_pcells::ctx_pcell_cell_spelling(ctx, cli))
+            cap_types.push(closure_pcells::ctx_pcell_cell_spelling(ctx, cli))
             cvi = cvi + 1
             continue
         }
         let cap_type = core_closure_lookup_capture_type(ctx, cli)
-        push(cap_types, cap_type)
+        cap_types.push(cap_type)
         cvi = cvi + 1
     }
     cap_types

@@ -4,9 +4,9 @@ use std::test::Test
 
 fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
-    push(xs, 256)
-    push(xs, 257)
-    push(xs, 255)
+    xs.push(256)
+    xs.push(257)
+    xs.push(255)
     let b: Vec<i32> = Bytes::from_array(xs)
     Test::assert_eq_i32(b.get_unchecked(0), 0)
     Test::assert_eq_i32(b.get_unchecked(1), 1)

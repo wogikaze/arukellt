@@ -2,7 +2,7 @@
 // parameter, so a shared parameter is not a valid mutable place.
 
 fn add(v: Vec<i32>) {
-    push(v, 1)
+    v.push(1)
 }
 
 fn main() {

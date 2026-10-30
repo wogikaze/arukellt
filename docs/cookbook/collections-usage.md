@@ -12,12 +12,12 @@ Patterns for HashMap, Deque, Vec sorting, and collection algorithms.
 let counts = HashMap::new<String, i32>()
 
 let words = Vec_new_String()
-push(words, "apple")
-push(words, "banana")
-push(words, "apple")
-push(words, "cherry")
-push(words, "banana")
-push(words, "apple")
+words.push("apple")
+words.push("banana")
+words.push("apple")
+words.push("cherry")
+words.push("banana")
+words.push("apple")
 
 let n = len(words)
 let mut i = 0
@@ -84,7 +84,7 @@ fn mul_i32(a: i32, b: i32) -> i32 {
 }
 
 let v = Vec_new_i32()
-push(v, 5)  push(v, 2)  push(v, 8)  push(v, 1)  push(v, 3)
+v.push(5)  v.push(2)  v.push(8)  v.push(1)  v.push(3)
 
 v.sort_by(ascending)
 // v is now [1, 2, 3, 5, 8]
@@ -108,7 +108,7 @@ println(to_string(v.iter().fold(1, mul_i32)))      // 240
 use std::core::iter
 
 let nums = Vec_new_i32()
-push(nums, 1)  push(nums, 2)  push(nums, 3)  push(nums, 4)  push(nums, 5)
+nums.push(1)  nums.push(2)  nums.push(3)  nums.push(4)  nums.push(5)
 
 // Double each value
 let doubled = nums.iter().map(fn(x: i32) -> i32 { x * 2 }).collect()
@@ -132,11 +132,11 @@ assert(has_big)
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let stack = Vec_new_i32()
-push(stack, 10)
-push(stack, 20)
-push(stack, 30)
+stack.push(10)
+stack.push(20)
+stack.push(30)
 
-pop(stack)  // removes 30
+stack.pop()  // removes 30
 let top = get(stack, len(stack) - 1)
 println(to_string(top)) // 20
 ```

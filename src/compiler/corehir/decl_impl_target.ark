@@ -92,12 +92,9 @@ fn binder_impl_param_names(decl: AstNode) -> Vec<String> {
             let param_count = decl_ann_children::decl_ann_child_count(ann)
             let mut j = 0
             while j < param_count {
-                push(
-                    names,
-                    decl_ann_name::decl_ann_name(
+                names.push(decl_ann_name::decl_ann_name(
                         decl_ann_children::decl_ann_child_at(ann, j)
-                    )
-                )
+                    ))
                 j = j + 1
             }
         }
@@ -152,7 +149,7 @@ fn collect_undefined_head_type_names(
         !string_vec_contains(known, name.clone()) &&
         !string_vec_contains(declared, name.clone()) &&
         !string_vec_contains(names, name.clone()) {
-            push(names, name.clone())
+            names.push(name.clone())
         }
     }
     let count = type_ann_node::type_ann_child_count(node)
@@ -195,7 +192,7 @@ fn effective_impl_param_names(decl: AstNode, known_type_names: Vec<String>) -> V
     while i < count {
         let name = get_unchecked(implicit, i)
         if !string_vec_contains(names, name.clone()) {
-            push(names, name.clone())
+            names.push(name.clone())
         }
         i = i + 1
     }

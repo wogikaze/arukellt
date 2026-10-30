@@ -19,8 +19,8 @@ fn ctx_variant_push_tag(mut ctx: LowerCtx, name: String, tag: i32) {
     if best < 0 || name.len() > get_unchecked(ctx.variant_names, best).len() {
         name_index::name_index_set(ctx.variant_key_best, key, index)
     }
-    push(ctx.variant_names, name)
-    push(ctx.variant_tags, tag)
+    ctx.variant_names.push(name)
+    ctx.variant_tags.push(tag)
 }
 
 // Exact-name index, else the index of the longest registered name sharing the
@@ -73,5 +73,5 @@ fn ctx_payload_variant_name_at(ctx: LowerCtx, index: i32) -> String {
 }
 
 fn ctx_payload_variant_push(mut ctx: LowerCtx, name: String) {
-    push(ctx.payload_variants, name)
+    ctx.payload_variants.push(name)
 }

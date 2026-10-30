@@ -47,12 +47,12 @@ fn ctx_edge_ensure_header(mut ctx: LowerCtx) {
     if ctx.fn_indices.len() > 0 {
         return
     }
-    push(ctx.fn_indices, 0)
-    push(ctx.fn_indices, 0)
+    ctx.fn_indices.push(0)
+    ctx.fn_indices.push(0)
     let slots = ctx_edge_stack_slots()
     let mut i = 0
     while i < slots {
-        push(ctx.fn_indices, 0)
+        ctx.fn_indices.push(0)
         i = i + 1
     }
 }
@@ -61,11 +61,11 @@ fn ctx_edge_begin_function(mut ctx: LowerCtx) {
     ctx_edge_ensure_header(ctx)
     let depth = get_unchecked(ctx.fn_indices, 0)
     if depth >= 0 && depth < ctx_edge_stack_slots() {
-        set(ctx.fn_indices, 2 + depth, ctx.gc_type_base)
-        set(ctx.fn_indices, 0, depth + 1)
+        ctx.fn_indices.set(2 + depth, ctx.gc_type_base)
+        ctx.fn_indices.set(0, depth + 1)
     }
     let next_id = get_unchecked(ctx.fn_indices, 1) + 1
-    set(ctx.fn_indices, 1, next_id)
+    ctx.fn_indices.set(1, next_id)
     ctx.gc_type_base = next_id
 }
 
@@ -74,12 +74,12 @@ fn ctx_edge_restore_parent(mut ctx: LowerCtx) {
         return
     }
     let child_frame = ctx.gc_type_base
-    push(ctx.fn_indices, ctx_edge_map_mark())
-    push(ctx.fn_indices, child_frame)
+    ctx.fn_indices.push(ctx_edge_map_mark())
+    ctx.fn_indices.push(child_frame)
     let depth = get_unchecked(ctx.fn_indices, 0)
     if depth > 0 {
         ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
-        set(ctx.fn_indices, 0, depth - 1)
+        ctx.fn_indices.set(0, depth - 1)
     }
 }
 
@@ -87,20 +87,20 @@ fn ctx_edge_pop_frame(mut ctx: LowerCtx) {
     let depth = get_unchecked(ctx.fn_indices, 0)
     if depth > 0 {
         ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
-        set(ctx.fn_indices, 0, depth - 1)
+        ctx.fn_indices.set(0, depth - 1)
     }
 }
 
 fn ctx_edge_finish_current_map(mut ctx: LowerCtx, mir_index: i32) {
     ctx_edge_ensure_header(ctx)
-    push(ctx.fn_indices, ctx_edge_map_mark())
-    push(ctx.fn_indices, ctx.gc_type_base)
-    push(ctx.fn_indices, mir_index)
+    ctx.fn_indices.push(ctx_edge_map_mark())
+    ctx.fn_indices.push(ctx.gc_type_base)
+    ctx.fn_indices.push(mir_index)
     ctx_edge_pop_frame(ctx)
 }
 
 fn ctx_edge_complete_pending_map(mut ctx: LowerCtx, mir_index: i32) {
-    push(ctx.fn_indices, mir_index)
+    ctx.fn_indices.push(mir_index)
 }
 
 fn ctx_edge_pending_map_open(ctx: LowerCtx) -> bool {
@@ -113,8 +113,8 @@ fn ctx_edge_pending_map_open(ctx: LowerCtx) -> bool {
 
 fn ctx_edge_record_callee(mut ctx: LowerCtx, payload: i32) {
     ctx_edge_ensure_header(ctx)
-    push(ctx.fn_indices, ctx.gc_type_base)
-    push(ctx.fn_indices, payload)
+    ctx.fn_indices.push(ctx.gc_type_base)
+    ctx.fn_indices.push(payload)
 }
 
 fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
@@ -134,12 +134,12 @@ fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
             return
         }
         let overflow = ctx.edge_names.len()
-        push(ctx.edge_names, alias)
+        ctx.edge_names.push(alias)
         ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
         return
     }
     let overflow = ctx.edge_names.len()
-    push(ctx.edge_names, name)
+    ctx.edge_names.push(name)
     ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
 }
 

@@ -6,7 +6,7 @@ fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     // Insert in reverse order
     for i in 0..50 {
-        push(v, 49 - i)
+        v.push(49 - i)
     }
 
     v.sort()

@@ -26,7 +26,7 @@ fn pending_push_unique(mut pending: Vec<String>, path: String) -> Vec<String> {
     if path.len() == 0 || pending_contains(pending, path.clone()) {
         return pending
     }
-    push(pending, path)
+    pending.push(path)
     pending
 }
 
@@ -108,7 +108,7 @@ pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir
         if !import_path.clone().contains(String_from("std::")) {
             let file_path = resolve_import_to_path(import_path.clone(), base_dir.clone(), root_dir.clone(), project_root.clone())
             if file_path.len() > 0 {
-                push(out, file_path)
+                out.push(file_path)
             }
         }
         i = i + 1

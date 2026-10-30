@@ -36,9 +36,9 @@ fn register_wit_imports(mut ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<
                     scope_error::resolve_duplicate_symbol(ctx, "WIT package `".concat(package_id.clone().concat("`")), span_start, span_end)
                 } else {
                     if alias.len() > 0 {
-                        push(seen_aliases, alias.clone())
+                        seen_aliases.push(alias.clone())
                     }
-                    push(seen_packages, package_id.clone())
+                    seen_packages.push(package_id.clone())
                     register_one_wit_import(ctx, wit_paths, package_id, alias, span_start, span_end)
                 }
             }

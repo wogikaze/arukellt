@@ -185,7 +185,7 @@ fn writer_set_memory64(mut w: WasmWriter, memory64: bool) {
 }
 
 fn emit_byte(mut w: WasmWriter, b: i32) {
-    push(w.bytes, b % 256)
+    w.bytes.push(b % 256)
 }
 
 fn emit_u32_le(mut w: WasmWriter, v: i32) {
@@ -217,7 +217,7 @@ fn writer_set_byte_at(mut w: WasmWriter, idx: i32, b: i32) {
     if idx < 0 || idx >= w.bytes.len() {
         return
     }
-    set(w.bytes, idx, b % 256)
+    w.bytes.set(idx, b % 256)
 }
 
 fn leb128_u_fixed_width() -> i32 {

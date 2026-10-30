@@ -10,8 +10,8 @@ use std::text
 
 fn churn(tag: String) -> i32 {
     let mut parts: Vec<String> = Vec::new<String>()
-    push(parts, tag)
-    push(parts, String_from("-junk"))
+    parts.push(tag)
+    parts.push(String_from("-junk"))
     parts.len()
 }
 
@@ -21,7 +21,7 @@ fn main() {
     while i < 20000 {
         let _n = churn(String_from("k-").concat(i.to_string()))
         if i % 5000 == 0 {
-            push(keep, String_from("alive-").concat(i.to_string()))
+            keep.push(String_from("alive-").concat(i.to_string()))
         }
         i = i + 1
     }

@@ -52,10 +52,10 @@ const ASTC_MAX_NODES: i32 = 500
 // ── Byte buffer helpers ──────────────────────────────────────────────
 
 fn buf_push_i32(mut buf: Vec<i32>, val: i32) {
-    push(buf, val & 255)
-    push(buf, (val >> 8) & 255)
-    push(buf, (val >> 16) & 255)
-    push(buf, (val >> 24) & 255)
+    buf.push(val & 255)
+    buf.push((val >> 8) & 255)
+    buf.push((val >> 16) & 255)
+    buf.push((val >> 24) & 255)
 }
 
 fn buf_push_string(mut buf: Vec<i32>, s: String) {
@@ -63,13 +63,13 @@ fn buf_push_string(mut buf: Vec<i32>, s: String) {
     buf_push_i32(buf, n)
     let mut i = 0
     while i < n {
-        push(buf, s.byte_at(i) & 255)
+        buf.push(s.byte_at(i) & 255)
         i = i + 1
     }
 }
 
 fn buf_push_byte(mut buf: Vec<i32>, val: i32) {
-    push(buf, val & 255)
+    buf.push(val & 255)
 }
 
 fn fnv1a_bytes(bytes: Vec<i32>) -> i32 {
@@ -97,10 +97,10 @@ pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
         i = i + 1
     }
     let mut buf: Vec<i32> = Vec::new<i32>()
-    push(buf, 65)  // 'A'
-    push(buf, 83)  // 'S'
-    push(buf, 84)  // 'T'
-    push(buf, 67)  // 'C'
+    buf.push(65)  // 'A'
+    buf.push(83)  // 'S'
+    buf.push(84)  // 'T'
+    buf.push(67)  // 'C'
     buf_push_i32(buf, ASTC_FORMAT_VERSION)
     buf_push_i32(buf, n)
     buf_push_i32(buf, payload.len())
@@ -108,7 +108,7 @@ pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
     let pn = payload.len()
     let mut j = 0
     while j < pn {
-        push(buf, get_unchecked(payload, j))
+        buf.push(get_unchecked(payload, j))
         j = j + 1
     }
     buf
@@ -226,9 +226,9 @@ fn astc_test_forest() -> Vec<AstNode> {
         is_component_export: true,
         is_move: false,
     }
-    push(root.children, astc_test_leaf())
+    root.children.push(astc_test_leaf())
     let mut nodes: Vec<AstNode> = Vec::new<AstNode>()
-    push(nodes, root)
+    nodes.push(root)
     nodes
 }
 
@@ -263,21 +263,21 @@ test mod "astc_codec" {
     test "rejects_corrupt_header_fields" {
         // version byte -> Err
         let mut v1 = serialize_ast_nodes(astc_test_forest())
-        set(v1, 4, 1)
+        v1.set(4, 1)
         match astc_test_deserialize(v1) {
             Result::Err(_) => { assert(true) }
             Result::Ok(_) => { assert(false) }
         }
         // magic byte -> Err
         let mut v2 = serialize_ast_nodes(astc_test_forest())
-        set(v2, 0, 90)
+        v2.set(0, 90)
         match astc_test_deserialize(v2) {
             Result::Err(_) => { assert(true) }
             Result::Ok(_) => { assert(false) }
         }
         // payload byte -> checksum Err
         let mut v3 = serialize_ast_nodes(astc_test_forest())
-        set(v3, 25, 255)
+        v3.set(25, 255)
         match astc_test_deserialize(v3) {
             Result::Err(_) => { assert(true) }
             Result::Ok(_) => { assert(false) }
@@ -291,10 +291,10 @@ test mod "astc_codec" {
             Result::Ok(_) => { assert(false) }
         }
         let mut trunc: Vec<i32> = Vec::new<i32>()
-        push(trunc, 65)
-        push(trunc, 83)
-        push(trunc, 84)
-        push(trunc, 67)
+        trunc.push(65)
+        trunc.push(83)
+        trunc.push(84)
+        trunc.push(67)
         match astc_test_deserialize(trunc) {
             Result::Err(_) => { assert(true) }
             Result::Ok(_) => { assert(false) }

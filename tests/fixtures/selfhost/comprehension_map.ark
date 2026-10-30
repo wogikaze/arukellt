@@ -4,9 +4,9 @@ use std::core::iter
 
 fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
-    push(xs, 10)
-    push(xs, 20)
-    push(xs, 30)
+    xs.push(10)
+    xs.push(20)
+    xs.push(30)
     let doubled = [x * 2 for x in xs]
     let mut sum = 0
     for v in (doubled) {

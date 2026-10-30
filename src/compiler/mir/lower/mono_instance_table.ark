@@ -38,7 +38,7 @@ fn mono_instance_table_entry_count(table: MonoInstanceTable) -> i32 {
 }
 
 fn mono_instance_table_register(mut table: MonoInstanceTable, entry: MonoInstanceEntry) -> MonoInstanceId {
-    push(table.entries, entry)
+    table.entries.push(entry)
     let id = MonoInstanceId { raw: table.next_id }
     table.next_id = table.next_id + 1
     id

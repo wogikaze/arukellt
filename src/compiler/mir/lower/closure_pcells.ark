@@ -110,10 +110,10 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
         i = i + 1
     }
     let cell_name = "__cell_".concat(ctx.pcell_reg_cells.len().to_string())
-    push(ctx.pcell_reg_keys, key)
-    push(ctx.pcell_reg_cells, cell_name.clone())
-    push(ctx.pcell_reg_vts, payload_vt)
-    push(ctx.pcell_reg_types, payload_type.clone())
+    ctx.pcell_reg_keys.push(key)
+    ctx.pcell_reg_cells.push(cell_name.clone())
+    ctx.pcell_reg_vts.push(payload_vt)
+    ctx.pcell_reg_types.push(payload_type.clone())
     if ctx.is_gc_target {
         let mut field_sig = "_f0_".concat(ctx_pcell_vt_sig(payload_vt))
         if payload_type.len() > 0 {
@@ -181,13 +181,13 @@ fn ctx_promote_capture_cell(mut ctx: LowerCtx, name: String) -> i32 {
             slot_width,
             payload_vt
         ))
-    push(ctx.pcell_fn_names, fn_name)
-    push(ctx.pcell_lis, src_li)
-    push(ctx.pcell_cell_lis, ref_li)
-    push(ctx.pcell_cell_names, cell_name)
-    push(ctx.pcell_vts, payload_vt)
-    push(ctx.pcell_types, payload_type)
-    push(ctx.pcell_ref_names, ref_name)
+    ctx.pcell_fn_names.push(fn_name)
+    ctx.pcell_lis.push(src_li)
+    ctx.pcell_cell_lis.push(ref_li)
+    ctx.pcell_cell_names.push(cell_name)
+    ctx.pcell_vts.push(payload_vt)
+    ctx.pcell_types.push(payload_type)
+    ctx.pcell_ref_names.push(ref_name)
     src_li
 }
 
@@ -227,13 +227,13 @@ fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, 
     if payload_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, shadow, payload_type)
     }
-    push(ctx.pcell_fn_names, ctx_pcell_fn_name(ctx))
-    push(ctx.pcell_lis, shadow)
-    push(ctx.pcell_cell_lis, param_li)
-    push(ctx.pcell_cell_names, cell_name)
-    push(ctx.pcell_vts, payload_vt)
-    push(ctx.pcell_types, get_unchecked(ctx.pcell_reg_types, reg).clone())
-    push(ctx.pcell_ref_names, ctx_pcell_cap_param_name(cap_type.clone(), cname))
+    ctx.pcell_fn_names.push(ctx_pcell_fn_name(ctx))
+    ctx.pcell_lis.push(shadow)
+    ctx.pcell_cell_lis.push(param_li)
+    ctx.pcell_cell_names.push(cell_name)
+    ctx.pcell_vts.push(payload_vt)
+    ctx.pcell_types.push(get_unchecked(ctx.pcell_reg_types, reg).clone())
+    ctx.pcell_ref_names.push(ctx_pcell_cap_param_name(cap_type.clone(), cname))
 }
 
 fn ctx_pcell_mat_lookup(ctx: LowerCtx, fn_name: String, value_li: i32) -> i32 {
@@ -253,7 +253,7 @@ fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) 
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
         get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
-            set(ctx.pcell_mat_lis, i, 0 - 1)
+            ctx.pcell_mat_lis.set(i, 0 - 1)
         }
         i = i - 1
     }
@@ -265,7 +265,7 @@ fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
     let mut i = ctx.pcell_mat_fns.len() - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
-            set(ctx.pcell_mat_lis, i, 0 - 1)
+            ctx.pcell_mat_lis.set(i, 0 - 1)
         }
         i = i - 1
     }
@@ -312,7 +312,7 @@ fn ctx_pcell_materialize(mut ctx: LowerCtx, idx: i32, mut out: Vec<MirInstDraft>
         return cached
     }
     let tmp = ctx_pcell_fresh_payload_tmp(ctx, idx)
-    push(out, inst_struct_get::MirInst_struct_get_field_idx(
+    out.push(inst_struct_get::MirInst_struct_get_field_idx(
             get_unchecked(ctx.pcell_cell_lis, idx),
             get_unchecked(ctx.pcell_cell_names, idx).clone(),
             0,
@@ -321,9 +321,9 @@ fn ctx_pcell_materialize(mut ctx: LowerCtx, idx: i32, mut out: Vec<MirInstDraft>
             get_unchecked(ctx.pcell_vts, idx),
             tmp
         ))
-    push(ctx.pcell_mat_fns, fn_name)
-    push(ctx.pcell_mat_lis, value_li)
-    push(ctx.pcell_mat_tmps, tmp)
+    ctx.pcell_mat_fns.push(fn_name)
+    ctx.pcell_mat_lis.push(value_li)
+    ctx.pcell_mat_tmps.push(tmp)
     tmp
 }
 
@@ -415,25 +415,25 @@ fn ctx_pcell_rewrite_local_set(mut ctx: LowerCtx, fn_name: String, inst: MirInst
         scell = ctx_pcell_find(ctx, fn_name.clone(), src)
     }
     if dcell < 0 && scell < 0 {
-        push(out, inst)
+        out.push(inst)
         return out
     }
     if scell >= 0 {
         let stmp = ctx_pcell_materialize(ctx, scell, out)
         if dcell >= 0 {
-            push(out, ctx_pcell_store_inst(ctx, dcell, stmp))
+            out.push(ctx_pcell_store_inst(ctx, dcell, stmp))
             ctx_pcell_clear_mat_entry(ctx, fn_name, dest)
             return out
         }
-        push(out, inst_local_set::MirInst_local_set_from(dest, stmp))
+        out.push(inst_local_set::MirInst_local_set_from(dest, stmp))
         return out
     }
     if src >= 0 {
-        push(out, ctx_pcell_store_inst(ctx, dcell, src))
+        out.push(ctx_pcell_store_inst(ctx, dcell, src))
     } else {
         let tmp = ctx_pcell_fresh_payload_tmp(ctx, dcell)
-        push(out, inst_local_set::MirInst_local_set(tmp))
-        push(out, ctx_pcell_store_inst(ctx, dcell, tmp))
+        out.push(inst_local_set::MirInst_local_set(tmp))
+        out.push(ctx_pcell_store_inst(ctx, dcell, tmp))
     }
     ctx_pcell_clear_mat_entry(ctx, fn_name, dest)
     out
@@ -446,12 +446,12 @@ fn ctx_pcell_rewrite_local_set(mut ctx: LowerCtx, fn_name: String, inst: MirInst
 fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDraft> {
     let mut out = Vec::new<MirInstDraft>()
     if ctx.pcell_lis.len() == 0 {
-        push(out, inst)
+        out.push(inst)
         return out
     }
     let fn_name = ctx_pcell_fn_name(ctx)
     if !ctx_pcell_fn_has_cells(ctx, fn_name.clone()) {
-        push(out, inst)
+        out.push(inst)
         return out
     }
     let op = inst_draft::MirInstDraft_op(inst)
@@ -462,14 +462,14 @@ fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDr
         let arg0 = inst_draft::MirInstDraft_arg0(inst)
         let idx = ctx_pcell_find(ctx, fn_name.clone(), arg0)
         if idx < 0 {
-            push(out, inst)
+            out.push(inst)
             return out
         }
         let tmp = ctx_pcell_materialize(ctx, idx, out)
         // The trailing verbatim local.get keeps emit-side adjacency: a
         // following consumer sees prev LOCAL_GET of the same payload temp
         // instead of a second deref that would strand a value on the stack.
-        push(out, inst_local_get::MirInst_local_get_to(tmp, tmp))
+        out.push(inst_local_get::MirInst_local_get_to(tmp, tmp))
         return out
     }
     if op == opcodes::MIR_LOCAL_SET() {
@@ -502,17 +502,17 @@ fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDr
     }
     if write_cell >= 0 {
         let tmp = ctx_pcell_fresh_payload_tmp(ctx, write_cell)
-        push(out, inst_draft::MirInstDraft_copy_with_locals(inst, tmp, warg0, warg1))
-        push(out, ctx_pcell_store_inst(ctx, write_cell, tmp))
+        out.push(inst_draft::MirInstDraft_copy_with_locals(inst, tmp, warg0, warg1))
+        out.push(ctx_pcell_store_inst(ctx, write_cell, tmp))
         ctx_pcell_clear_mat_entry(ctx, fn_name, wdest)
         return out
     }
     if wdest != inst_draft::MirInstDraft_dest(inst) ||
     warg0 != inst_draft::MirInstDraft_arg0(inst) ||
     warg1 != inst_draft::MirInstDraft_arg1(inst) {
-        push(out, inst_draft::MirInstDraft_copy_with_locals(inst, wdest, warg0, warg1))
+        out.push(inst_draft::MirInstDraft_copy_with_locals(inst, wdest, warg0, warg1))
         return out
     }
-    push(out, inst)
+    out.push(inst)
     out
 }

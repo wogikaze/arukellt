@@ -10,14 +10,14 @@ fn RefIndex_new() -> RefIndex {
 }
 
 fn ref_index_push_decl(mut index: RefIndex, decl_index: i32, start: i32, end: i32, name: String) {
-    push(index.decl_sites, ref_record::DeclSite_new(decl_index, start, end, name))
+    index.decl_sites.push(ref_record::DeclSite_new(decl_index, start, end, name))
 }
 
 fn ref_index_push_use(mut index: RefIndex, decl_index: i32, start: i32, end: i32) {
     if decl_index < 0 {
         return
     }
-    push(index.use_sites, ref_record::UseSite_new(decl_index, start, end))
+    index.use_sites.push(ref_record::UseSite_new(decl_index, start, end))
 }
 
 fn decl_site_count(index: RefIndex) -> i32 {

@@ -73,7 +73,7 @@ fn load_state_zero_slots(size: i32) -> Vec<i32> {
     let mut slots = Vec::new<i32>()
     let mut i = 0
     while i < size {
-        push(slots, 0)
+        slots.push(0)
         i = i + 1
     }
     slots
@@ -88,7 +88,7 @@ fn load_state_clone_names(src: Vec<String>) -> Vec<String> {
     let mut out: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < src.len() {
-        push(out, get_unchecked(src, i).clone())
+        out.push(get_unchecked(src, i).clone())
         i = i + 1
     }
     out
@@ -98,7 +98,7 @@ fn load_state_clone_slots(src: Vec<i32>) -> Vec<i32> {
     let mut out: Vec<i32> = Vec::new<i32>()
     let mut i = 0
     while i < src.len() {
-        push(out, get_unchecked(src, i))
+        out.push(get_unchecked(src, i))
         i = i + 1
     }
     out
@@ -109,7 +109,7 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut i = 0
     while i < keys.len() {
         let slot = load_state_probe(load_state_clone_names(keys), slots, get_unchecked(keys, i).clone())
-        set(slots, slot, i + 1)
+        slots.set(slot, i + 1)
         i = i + 1
     }
     slots
@@ -141,13 +141,13 @@ fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
 }
 
 fn LoadState_push_loaded(mut state: LoadState, name: String) {
-    push(state.loaded_names, name)
+    state.loaded_names.push(name)
     LoadState_ensure_loaded_index(state)
     let slot = load_state_probe(load_state_clone_names(state.loaded_names), load_state_clone_slots(state.loaded_slots), name.clone())
     if slot < 0 {
         return
     }
-    set(state.loaded_slots, slot, state.loaded_names.len())
+    state.loaded_slots.set(slot, state.loaded_names.len())
 }
 
 fn stack_scan(state: LoadState, site: i32) -> i32 {
@@ -169,7 +169,7 @@ fn stack_scan(state: LoadState, site: i32) -> i32 {
 
 fn churn_big(slots: i32) -> i32 {
     let mut junk: Vec<i32> = Vec::with_capacity<i32>(slots)
-    push(junk, slots)
+    junk.push(slots)
     junk.len()
 }
 
@@ -177,7 +177,7 @@ fn churn_small(iters: i32) {
     let mut j = 0
     while j < iters {
         let mut v: Vec<i32> = Vec::new<i32>()
-        push(v, j * 26544357 + 1)
+        v.push(j * 26544357 + 1)
         j = j + 1
     }
 }
@@ -188,9 +188,9 @@ fn main() {
     while i < 64 {
         let _pad = String_from("pad").concat(i.to_string())
         let mut v: Vec<i32> = Vec::with_capacity<i32>(16)
-        push(v, i * 7 + 3)
-        push(v, i * 13 + 5)
-        push(keep, v)
+        v.push(i * 7 + 3)
+        v.push(i * 13 + 5)
+        keep.push(v)
         i = i + 1
     }
     churn_small(2000000)
@@ -206,7 +206,7 @@ fn main() {
     let mut keep_empty: Vec<String> = Vec::new<String>()
     i = 0
     while i < 512 {
-        push(keep_empty, String_from("").concat(String_from("")))
+        keep_empty.push(String_from("").concat(String_from("")))
         i = i + 1
     }
     churn_small(1500000)
@@ -230,9 +230,9 @@ fn main() {
         if LoadState_has_loaded(state, path.clone()) == false {
             LoadState_push_loaded(state, path.clone())
         }
-        push(state.loading_stack, path.clone())
+        state.loading_stack.push(path.clone())
         Test::assert_eq_i32(stack_scan(state, 1), 0 - 1)
-        pop(state.loading_stack)
+        state.loading_stack.pop()
         let _n = churn_big(524288)
         i = i + 1
     }

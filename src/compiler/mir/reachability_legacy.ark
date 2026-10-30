@@ -26,7 +26,7 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Ve
         let f = get_unchecked(functions, i)
         if function_identity::MirFunction_name(f).eq(name.clone()) {
             if get_unchecked(reachable, i) == 0 {
-                set(reachable, i, 1)
+                reachable.set(i, 1)
                 return true
             }
             return false
@@ -43,7 +43,7 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Ve
         let f = get_unchecked(functions, j)
         if function_identity::MirFunction_name(f).eq(short.clone()) {
             if get_unchecked(reachable, j) == 0 {
-                set(reachable, j, 1)
+                reachable.set(j, 1)
                 changed = true
             }
         }
@@ -146,7 +146,7 @@ fn mir_prune_unreachable_legacy_fixpoint(mut m: MirModule, extra_roots: Vec<Stri
     let mut reachable = Vec::new<i32>()
     let mut i = 0
     while i < fn_count {
-        push(reachable, 0)
+        reachable.push(0)
         i = i + 1
     }
     let root_count = mir_legacy_mark_roots(functions, reachable, extra_roots)

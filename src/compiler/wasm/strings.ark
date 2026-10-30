@@ -64,7 +64,7 @@ fn emit_string_layout_existing_constants(mir: MirModule, str_count: i32, mut str
         // #851 Phase 3: offsets are final at intern (append-only packed
         // layout); the module-maintained rel table is the single source so
         // in-loop emit can resolve string operands before the plan exists.
-        push(string_offsets, constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, si))
+        string_offsets.push(constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, si))
         si = si + 1
     }
     constants::DATA_START() + module_strings::MirModule_string_data_next(mir)
@@ -124,19 +124,19 @@ fn append_missing_string_layout_bool_literals(mut mir: MirModule, mut string_off
     if true_idx < 0 {
         true_idx = module_strings::MirModule_string_constant_count(mir)
         module_strings::MirModule_push_string_constant(mir, "true")
-        push(string_offsets, constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, true_idx))
+        string_offsets.push(constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, true_idx))
         data_offset = constants::DATA_START() + module_strings::MirModule_string_data_next(mir)
     }
     if false_idx < 0 {
         false_idx = module_strings::MirModule_string_constant_count(mir)
         module_strings::MirModule_push_string_constant(mir, "false")
-        push(string_offsets, constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, false_idx))
+        string_offsets.push(constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, false_idx))
         data_offset = constants::DATA_START() + module_strings::MirModule_string_data_next(mir)
     }
     if assert_idx < 0 {
         assert_idx = module_strings::MirModule_string_constant_count(mir)
         module_strings::MirModule_push_string_constant(mir, "assertion failed")
-        push(string_offsets, constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, assert_idx))
+        string_offsets.push(constants::DATA_START() + module_strings::MirModule_string_data_rel_at(mir, assert_idx))
         data_offset = constants::DATA_START() + module_strings::MirModule_string_data_next(mir)
     }
     EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx, assert_idx)

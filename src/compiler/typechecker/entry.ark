@@ -67,9 +67,9 @@ fn push_sig_index_key(
 ) {
     if ast_decl_predicates::node_is_fn_decl(decl) || ast_decl_predicates::node_is_const_decl(decl) {
         if module_name.len() == 0 {
-            push(keys, String_new())
+            keys.push(String_new())
         } else {
-            push(keys, module_name.concat(String_from("::").concat(ast_access::node_text(decl))))
+            keys.push(module_name.concat(String_from("::").concat(ast_access::node_text(decl))))
         }
         return
     }
@@ -80,10 +80,7 @@ fn push_sig_index_key(
         while ci < child_count {
             let child = ast_access::node_child_at(decl, ci)
             if ast_decl_predicates::node_is_fn_decl(child) {
-                push(
-                    keys,
-                    owner_name.clone().concat(String_from("::").concat(ast_access::node_text(child)))
-                )
+                keys.push(owner_name.clone().concat(String_from("::").concat(ast_access::node_text(child))))
             }
             ci = ci + 1
         }

@@ -22,7 +22,7 @@ fn HirModule_new() -> HirModule {
 }
 
 fn HirModule_push_function(mut module: HirModule, func: HirFunction) {
-    push(module.functions, func)
+    module.functions.push(func)
 }
 
 fn HirModule_function_count(module: HirModule) -> i32 {
@@ -34,21 +34,21 @@ fn HirModule_function_at(module: HirModule, index: i32) -> HirFunction {
 }
 
 fn HirModule_push_struct(mut module: HirModule, defn: HirStructDef) {
-    push(module.structs, defn)
+    module.structs.push(defn)
 }
 
 fn HirModule_push_enum(mut module: HirModule, defn: HirEnumDef) {
-    push(module.enums, defn)
+    module.enums.push(defn)
 }
 
 fn HirModule_push_trait(mut module: HirModule, decl: HirTraitDecl) {
-    push(module.traits, decl)
+    module.traits.push(decl)
 }
 
 fn HirModule_push_impl(mut module: HirModule, block: HirImplBlock) {
-    push(module.impls, block)
+    module.impls.push(block)
 }
 
 fn HirModule_push_import(mut module: HirModule, import_path: String) {
-    push(module.imports, import_path)
+    module.imports.push(import_path)
 }

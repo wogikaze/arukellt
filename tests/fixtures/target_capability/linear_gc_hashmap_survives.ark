@@ -9,7 +9,7 @@ use std::test::Test
 use std::text
 fn churn(slots: i32) -> i32 {
     let mut junk: Vec<i32> = Vec::with_capacity<i32>(slots)
-    push(junk, slots)
+    junk.push(slots)
     junk.len()
 }
 

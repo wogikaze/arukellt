@@ -3,11 +3,11 @@ use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 1)
-    push(data, 2)
-    push(data, 3)
-    push(data, 4)
-    push(data, 5)
+    data.push(1)
+    data.push(2)
+    data.push(3)
+    data.push(4)
+    data.push(5)
     let mut r: io::Reader = io::Reader::from_bytes(data)
 
     match r.position() {

@@ -19,14 +19,14 @@ fn corehir_build_assign_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 
             return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
         }
         let target_index = corehir_build_expr(table, target)
-        push(children, target_index)
+        children.push(target_index)
         let target_expr = corehir_body_expr_at(table, target_index)
         if expr_predicates::expr_is_unsupported(target_expr) {
             return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
         }
     }
     let value_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))
-    push(children, value_index)
+    children.push(value_index)
     let value_expr = corehir_body_expr_at(table, value_index)
     if expr_predicates::expr_is_unsupported(value_expr) {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))

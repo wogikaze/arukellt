@@ -86,7 +86,7 @@ fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, mut acc: Vec<
         j = j - 1
     }
     if !dup {
-        push(acc, n)
+        acc.push(n)
     }
 }
 
@@ -100,7 +100,7 @@ fn closure_collect_rebind_flags(clos: AstNode, caps: Vec<String>) -> Vec<i32> {
     let mut flags = Vec::new<i32>()
     let mut i = 0
     while i < caps.len() {
-        push(flags, 0)
+        flags.push(0)
         i = i + 1
     }
     let child_count = ast_node::node_child_count(clos)
@@ -135,7 +135,7 @@ fn closure_mark_rebind(node: AstNode, caps: Vec<String>, mut flags: Vec<i32>, sh
                 let mut ci = 0
                 while ci < caps.len() {
                     if get_unchecked(caps, ci).eq(name.clone()) {
-                        set(flags, ci, 1)
+                        flags.set(ci, 1)
                         ci = caps.len()
                     }
                     ci = ci + 1
@@ -157,14 +157,14 @@ fn closure_rebind_extend_shadowed(node: AstNode, shadowed: Vec<String>, child_co
     let mut inner = Vec::new<String>()
     let mut i = 0
     while i < shadowed.len() {
-        push(inner, get_unchecked(shadowed, i).clone())
+        inner.push(get_unchecked(shadowed, i).clone())
         i = i + 1
     }
     let mut pi = 0
     while pi < child_count - 1 {
         let param = ast_node::node_child_at(node, pi)
         if ast_node::node_kind_is(param, lower_kinds::NK_IDENT()) {
-            push(inner, ast_node::node_text(param))
+            inner.push(ast_node::node_text(param))
         }
         pi = pi + 1
     }

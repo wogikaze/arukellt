@@ -22,7 +22,7 @@ pub fn NameIndex_new(expected_entries: i32) -> NameIndex {
     let values = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
-        push(buckets, 0)
+        buckets.push(0)
         i = i + 1
     }
     NameIndex {
@@ -117,7 +117,7 @@ fn name_index_grow_if_needed(mut index: NameIndex) {
     let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
-        push(buckets, 0)
+        buckets.push(0)
         i = i + 1
     }
     index.capacity = capacity
@@ -126,15 +126,15 @@ fn name_index_grow_if_needed(mut index: NameIndex) {
     let mut ki = 0
     while ki < key_count {
         let slot = name_index_find_slot(index, get_unchecked(index.keys, ki).clone())
-        set(index.buckets, slot, ki + 1)
+        index.buckets.set(slot, ki + 1)
         ki = ki + 1
     }
 }
 
 fn name_index_push_entry(mut index: NameIndex, slot: i32, name: String, value: i32) {
-    push(index.keys, name)
-    push(index.values, value)
-    set(index.buckets, slot, index.keys.len())
+    index.keys.push(name)
+    index.values.push(value)
+    index.buckets.set(slot, index.keys.len())
 }
 
 pub fn name_index_insert_first(mut index: NameIndex, name: String, value: i32) {
@@ -157,7 +157,7 @@ pub fn name_index_set(mut index: NameIndex, name: String, value: i32) {
         name_index_push_entry(index, slot, name, value)
         return
     }
-    set(index.values, bucket - 1, value)
+    index.values.set(bucket - 1, value)
 }
 
 pub fn name_index_increment(mut index: NameIndex, name: String) {
@@ -172,5 +172,5 @@ pub fn name_index_increment(mut index: NameIndex, name: String) {
         return
     }
     let current = get_unchecked(index.values, bucket - 1)
-    set(index.values, bucket - 1, current + 1)
+    index.values.set(bucket - 1, current + 1)
 }

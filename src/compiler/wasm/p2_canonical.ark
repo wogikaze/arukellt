@@ -85,7 +85,7 @@ fn emit_wrapper_local_decls(
     let mut local_refs = Vec::new<i32>()
     append_ref_markers(local_refs, canonical_param_count, 0 - 1)
     for i in 0..ref_markers.len() {
-        push(local_refs, get_unchecked(ref_markers, i))
+        local_refs.push(get_unchecked(ref_markers, i))
     }
     append_ref_markers(local_refs, 3, 0 - 1)
     writer_core::writer_begin_function_locals(w, local_refs)
@@ -121,7 +121,7 @@ fn emit_ref_decl_groups(mut w: WasmWriter, ref_markers: Vec<i32>) {
 fn append_ref_markers(mut local_refs: Vec<i32>, count: i32, value: i32) {
     let mut i = 0
     while i < count {
-        push(local_refs, value)
+        local_refs.push(value)
         i = i + 1
     }
 }
@@ -382,10 +382,7 @@ fn p2_struct_fields(ctx: SelfEmitCtx, type_name: String, mir: MirModule) -> Vec<
         let mut fields = Vec::new<String>()
         let mut i = 0
         while sections_types_sigs_detail::p2_type_argument(type_name.clone(), i).len() > 0 {
-            push(
-                fields,
-                p2_field_storage_sig(sections_types_sigs_detail::p2_type_argument(type_name.clone(), i))
-            )
+            fields.push(p2_field_storage_sig(sections_types_sigs_detail::p2_type_argument(type_name.clone(), i)))
             i = i + 1
         }
         return fields
@@ -543,17 +540,17 @@ fn wrapper_ref_markers(f: MirFunction, ctx: SelfEmitCtx, mir: MirModule) -> Vec<
         let value_type = local_access::MirLocal_val_type(param)
         let kind = p2_type_kind(type_name.clone(), value_type, mir)
         if kind != p2_kind_scalar() {
-            push(markers, p2_raw_type_idx(ctx, type_name.clone(), value_type, mir))
+            markers.push(p2_raw_type_idx(ctx, type_name.clone(), value_type, mir))
             if kind == p2_kind_list() {
-                push(markers, p2_vec_array_type(ctx, type_name.clone()))
+                markers.push(p2_vec_array_type(ctx, type_name.clone()))
             } else if return_has_string_payload_name(type_name.clone(), mir) {
-                push(markers, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+                markers.push(ctx_gc_type::SelfEmitCtx_string_type(ctx))
             } else if kind == p2_kind_tuple() || kind == p2_kind_record() {
                 let fields = p2_struct_fields(ctx, type_name.clone(), mir)
                 let mut fi = 0
                 while fi < fields.len() {
                     if get_unchecked(fields, fi).clone().eq(String_from("ref0")) {
-                        push(markers, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+                        markers.push(ctx_gc_type::SelfEmitCtx_string_type(ctx))
                     }
                     fi = fi + 1
                 }
@@ -564,9 +561,9 @@ fn wrapper_ref_markers(f: MirFunction, ctx: SelfEmitCtx, mir: MirModule) -> Vec<
     if return_is_ref(f, mir) {
         let return_name = function_return_view::MirFunction_return_type_name(f)
         let return_type = function_return_view::MirFunction_return_type(f)
-        push(markers, p2_raw_type_idx(ctx, return_name.clone(), return_type, mir))
+        markers.push(p2_raw_type_idx(ctx, return_name.clone(), return_type, mir))
         if return_has_string_payload(f, mir) {
-            push(markers, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+            markers.push(ctx_gc_type::SelfEmitCtx_string_type(ctx))
         }
     }
     markers

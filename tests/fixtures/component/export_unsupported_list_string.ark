@@ -4,7 +4,7 @@
 export fn names(flag: bool) -> Vec<String> {
     let mut out: Vec<String> = Vec::new<String>()
     if flag {
-        push(out, String_from("alpha"))
+        out.push(String_from("alpha"))
     }
     out
 }

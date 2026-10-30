@@ -14,43 +14,43 @@ use mir::opcodes as mir_opcodes
 fn append_wit_type_sigs(mut type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let mut i = 0
     while i < module_wit_imports::wit_import_count(bindings) {
-        push(type_sigs, module_wit_imports::wit_import_type_sig(bindings, i))
+        type_sigs.push(module_wit_imports::wit_import_type_sig(bindings, i))
         i = i + 1
     }
 }
 
 fn append_wasi_type_sigs(mut type_sigs: Vec<String>, wasi_version: String) {
-    push(type_sigs, "i32_i32_i32_i32_1i32")
-    push(type_sigs, "i32_i32_1i32")
-    push(type_sigs, "i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32")
-    push(type_sigs, "i32_1i32")
-    push(type_sigs, "i32_0")
+    type_sigs.push("i32_i32_i32_i32_1i32")
+    type_sigs.push("i32_i32_1i32")
+    type_sigs.push("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32")
+    type_sigs.push("i32_1i32")
+    type_sigs.push("i32_0")
     if emit_target::is_minimal_p1_wasi(wasi_version.clone()) {
-        push(type_sigs, "i32_i64_i32_1i32")
+        type_sigs.push("i32_i64_i32_1i32")
     } else if emit_target::is_p2_wasi(wasi_version.clone()) {
-        push(type_sigs, "1i64")
+        type_sigs.push("1i64")
         // Official P2 signatures, in the same order as the host type map.
-        push(type_sigs, "i32_0")
-        push(type_sigs, "1i32")
-        push(type_sigs, "i32_i32_i32_i32_0")
-        push(type_sigs, "i32_i64_i32_0")
-        push(type_sigs, "i32_i64_i64_i32_0")
-        push(type_sigs, "i32_i32_i32_i64_i32_0")
-        push(type_sigs, "i32_i32_i32_i32_i32_i32_i32_0")
+        type_sigs.push("i32_0")
+        type_sigs.push("1i32")
+        type_sigs.push("i32_i32_i32_i32_0")
+        type_sigs.push("i32_i64_i32_0")
+        type_sigs.push("i32_i64_i64_i32_0")
+        type_sigs.push("i32_i32_i32_i64_i32_0")
+        type_sigs.push("i32_i32_i32_i32_i32_i32_i32_0")
     } else {
-        push(type_sigs, "i32_i64_i32_1i32")
+        type_sigs.push("i32_i64_i32_1i32")
     }
     // Memory64 GC callbacks use widened scalar parameters. Keep these
     // function types before user function signatures so typed funcref params
     // can reference them without a forward type index.
-    push(type_sigs, "i64_1i64")
-    push(type_sigs, "i64_i64_1i64")
+    type_sigs.push("i64_1i64")
+    type_sigs.push("i64_i64_1i64")
 }
 
 fn append_t2_type_sigs(mut type_sigs: Vec<String>) {
-    push(type_sigs, "i32_i32_0")
-    push(type_sigs, "0")
-    push(type_sigs, "i32_i32_1i32")
+    type_sigs.push("i32_i32_0")
+    type_sigs.push("0")
+    type_sigs.push("i32_i32_1i32")
 }
 
 fn gc_typed_callback_type_sig_count() -> i32 {
@@ -61,9 +61,9 @@ fn append_gc_typed_callback_type_sigs(mut type_sigs: Vec<String>) {
     // These signatures are placed after the fixed GC layouts and before user
     // functions. Struct fields may refer to them, while the type-section
     // planner still treats the complete range as pre-function types.
-    push(type_sigs, "gcref0_1gcref0")
-    push(type_sigs, "gcref0_1i32")
-    push(type_sigs, "gcref0_1i64")
+    type_sigs.push("gcref0_1gcref0")
+    type_sigs.push("gcref0_1i32")
+    type_sigs.push("gcref0_1i64")
 }
 
 fn append_function_type_sigs(
@@ -78,10 +78,7 @@ fn append_function_type_sigs(
     let mut ui = 0
     while ui < fn_count {
         let uf = get_unchecked(functions, ui)
-        push(
-            type_sigs,
-            sections_types_sigs_detail::build_function_type_sig(uf, target.clone(), wasi_version.clone(), memory64, mir)
-        )
+        type_sigs.push(sections_types_sigs_detail::build_function_type_sig(uf, target.clone(), wasi_version.clone(), memory64, mir))
         ui = ui + 1
     }
 }
@@ -131,7 +128,7 @@ fn collect_pair_call_type_sigs(
                             si = si + 1
                         }
                         if !seen {
-                            push(sigs, sig.clone())
+                            sigs.push(sig.clone())
                         }
                     }
                 }
@@ -172,11 +169,11 @@ fn pair_call_sigs_for_emit(
 fn append_wrapper_type_sig(mut type_sigs: Vec<String>, needs_wrapper: i32, wasi_version: String) {
     if needs_wrapper == 1 {
         if emit_target::is_p2_wasi(wasi_version.clone()) {
-            push(type_sigs, "1i32")
+            type_sigs.push("1i32")
             // P2 command post-return for the unit result of wasi:cli/run.
-            push(type_sigs, "i32_0")
+            type_sigs.push("i32_0")
         } else {
-            push(type_sigs, "0")
+            type_sigs.push("0")
         }
     }
 }
@@ -201,10 +198,7 @@ fn append_p2_library_post_type_sigs(
                 memory64,
                 mir
             )
-            push(
-                type_sigs,
-                sections_types_sigs_detail::p2_post_type_sig_for_function(f, function_sig)
-            )
+            type_sigs.push(sections_types_sigs_detail::p2_post_type_sig_for_function(f, function_sig))
         }
         i = i + 1
     }
@@ -228,7 +222,7 @@ fn append_p2_library_wrapper_type_sigs(
             wasi_version.clone(),
             mir
         ) {
-            push(type_sigs, sections_types_sigs_detail::p2_canonical_function_type_sig(f, mir))
+            type_sigs.push(sections_types_sigs_detail::p2_canonical_function_type_sig(f, mir))
         }
         i = i + 1
     }
@@ -241,20 +235,20 @@ fn append_p2_runtime_type_sigs(mut type_sigs: Vec<String>, wasi_version: String)
     // These are the standard32 component runtime exports consumed by
     // `wasm-tools component new`. The realloc body is intentionally supplied
     // by the component linker when --realloc-via-memory-grow is selected.
-    push(type_sigs, "i32_i32_i32_i32_1i32")
-    push(type_sigs, "0")
+    type_sigs.push("i32_i32_i32_i32_1i32")
+    type_sigs.push("0")
 }
 
 fn append_linear_gc_type_sigs(mut type_sigs: Vec<String>, target: String) {
     if !emit_target::is_linear_memory_target(target.clone()) {
         return
     }
-    push(type_sigs, "1i32")
-    push(type_sigs, "i32_1i32")
-    push(type_sigs, "i32_i32_0")
-    push(type_sigs, "i32_0")
-    push(type_sigs, "i32_0")
-    push(type_sigs, "i32_1i32")
-    push(type_sigs, "0")
-    push(type_sigs, "i32_1i32")
+    type_sigs.push("1i32")
+    type_sigs.push("i32_1i32")
+    type_sigs.push("i32_i32_0")
+    type_sigs.push("i32_0")
+    type_sigs.push("i32_0")
+    type_sigs.push("i32_1i32")
+    type_sigs.push("0")
+    type_sigs.push("i32_1i32")
 }

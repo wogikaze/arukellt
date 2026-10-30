@@ -272,7 +272,7 @@ impl JsonValue {
         while !finished {
             match self.get_index(index) {
                 Option::Some(elem) => {
-                    push(array_items, elem)
+                    array_items.push(elem)
                     index = index + 1
                 },
                 None => {
@@ -700,7 +700,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             }
             let step = parse_value_at(s, i)
             match step.value {
-                Result::Ok(v) => push(arr, v),
+                Result::Ok(v) => arr.push(v),
                 Result::Err(e) => return JsonParseStep::err(e, i),
             }
             i = json::JsonText::skip_ws(s, step.next)
@@ -746,7 +746,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             }
             let step = parse_value_at(s, json::JsonText::skip_ws(s, i + 1))
             match step.value {
-                Result::Ok(v) => push(fields, JsonField { key: key, value: v }),
+                Result::Ok(v) => fields.push(JsonField { key: key, value: v }),
                 Result::Err(e) => return JsonParseStep::err(e, i),
             }
             i = json::JsonText::skip_ws(s, step.next)

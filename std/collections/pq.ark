@@ -37,8 +37,8 @@ fn pq_sift_up<T: Ord>(mut items: Vec<T>, mut index: i32) {
         if !is_less {
             return
         }
-        set(items, index, parent_value)
-        set(items, parent, child)
+        items.set(index, parent_value)
+        items.set(parent, child)
         index = parent
     }
 }
@@ -78,8 +78,8 @@ fn pq_sift_down<T: Ord>(mut items: Vec<T>, mut index: i32) {
             continue_down = false
         } else {
             let displaced: T = get_unchecked(items, index)
-            set(items, index, get_unchecked(items, smallest))
-            set(items, smallest, displaced)
+            items.set(index, get_unchecked(items, smallest))
+            items.set(smallest, displaced)
             index = smallest
         }
     }
@@ -87,7 +87,7 @@ fn pq_sift_down<T: Ord>(mut items: Vec<T>, mut index: i32) {
 
 fn pq_clear_items<T>(mut items: Vec<T>) {
     while items.len() > 0 {
-        match pop(items) {
+        match items.pop() {
             Option::Some(_) => {},
             Option::None => { break },
         }
@@ -102,7 +102,7 @@ impl<T: Ord> PriorityQueue<T> {
 
     /// Inserts `value`, keeping the minimum at the root.
     fn push(mut self: PriorityQueue<T>, value: T) {
-        push(self.items, value)
+        self.items.push(value)
         pq_sift_up(self.items, self.items.len() - 1)
     }
 
@@ -114,8 +114,8 @@ impl<T: Ord> PriorityQueue<T> {
         }
         let result: T = get_unchecked(self.items, 0)
         let last: T = get_unchecked(self.items, count - 1)
-        set(self.items, 0, last)
-        let _: Option<T> = pop(self.items)
+        self.items.set(0, last)
+        let _: Option<T> = self.items.pop()
         pq_sift_down(self.items, 0)
         Option::Some(result)
     }

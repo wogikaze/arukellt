@@ -33,5 +33,5 @@ fn match_coverage_mark_result_err(mut coverage: MatchCoverage) {
 }
 
 fn match_coverage_push_variant(mut coverage: MatchCoverage, variant: String) {
-    push(coverage.covered_variants, variant)
+    coverage.covered_variants.push(variant)
 }

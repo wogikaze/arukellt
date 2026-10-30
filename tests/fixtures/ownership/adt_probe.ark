@@ -8,13 +8,13 @@ fn main() {
     Stdio::println(value.to_string())
 
     let mut values: Vec<i32> = Vec::new<i32>()
-    push(values, 7)
+    values.push(7)
     let view = as_slice(values, 0, 1)
     Stdio::println((slice_len(view)).to_string())
     Stdio::println((values.len()).to_string())
 
     let mut values_again: Vec<i32> = Vec::new<i32>()
-    push(values_again, 8)
+    values_again.push(8)
     let view_again = as_slice(values_again, 0, 1)
     let viewed = slice_get(view_again, 0)
     Stdio::println(viewed.to_string())

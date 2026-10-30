@@ -142,19 +142,13 @@ fn native_c_register_function_id_from_mir(
     let parameter_count = function_param_view::MirFunction_param_count(function)
     while param_index < parameter_count {
         let param_vt = function_param_view::MirFunction_param_val_type(function, param_index)
-        push(
-            params,
-            type_info_to_mir_value::vt_to_mir_value(table, param_vt, String_new())
-        )
+        params.push(type_info_to_mir_value::vt_to_mir_value(table, param_vt, String_new()))
         param_index = param_index + 1
     }
     let mut returns = Vec_new_MirValueType()
     let return_vt = function_return_view::MirFunction_return_type(function)
     if return_vt != value_types::VT_VOID() && return_vt != 0 {
-        push(
-            returns,
-            type_info_to_mir_value::vt_to_mir_value(table, return_vt, String_new())
-        )
+        returns.push(type_info_to_mir_value::vt_to_mir_value(table, return_vt, String_new()))
     }
     let receiver = mir_value_type::MirValueType_new(
         type_id::TYPE_ID_INVALID(),
@@ -276,7 +270,7 @@ fn native_c_append_bytes(mut output: Vec<i32>, fragment: String) {
     let length = fragment.len()
     let mut index = 0
     while index < length {
-        push(output, fragment.byte_at(index))
+        output.push(fragment.byte_at(index))
         index = index + 1
     }
 }

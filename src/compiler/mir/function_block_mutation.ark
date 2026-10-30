@@ -11,7 +11,7 @@ fn MirFunction_increment_next_block(mut f: MirFunction) {
 }
 
 fn MirFunction_push_block(mut f: MirFunction, block: MirBlock) {
-    push(f.blocks, block)
+    f.blocks.push(block)
 }
 
 fn MirFunction_set_blocks(mut f: MirFunction, blocks: Vec<MirBlock>) {

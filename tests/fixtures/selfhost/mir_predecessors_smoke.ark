@@ -22,7 +22,7 @@ fn add_pred(mut block: Block, pred_id: i32) {
         }
         i = i + 1
     }
-    push(block.preds, pred_id)
+    block.preds.push(pred_id)
 }
 
 fn add_pred_edge(blocks: Vec<Block>, pred_id: i32, succ_id: i32) {
@@ -71,10 +71,10 @@ fn format_preds(preds: Vec<i32>) -> String {
 
 fn main() {
     let mut blocks = Vec::new<Block>()
-    push(blocks, Block_new())
-    push(blocks, Block_new())
-    push(blocks, Block_new())
-    push(blocks, Block_new())
+    blocks.push(Block_new())
+    blocks.push(Block_new())
+    blocks.push(Block_new())
+    blocks.push(Block_new())
     let mut entry = get_unchecked(blocks, 0)
     entry.succ0 = 1
     entry.succ1 = 2

@@ -42,7 +42,7 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
             // Ambiguous bare name: same rule as linear lookup (no unique match).
             name_index::name_index_set(by_bare, bare, 0 - 2)
         }
-        push(ret_type_names, function_return_view::MirFunction_return_type_name(f))
+        ret_type_names.push(function_return_view::MirFunction_return_type_name(f))
         // The lower pipeline records each function's return-variant slot at
         // body completion (MirModule.return_variant_slots, #851). Modules
         // built outside that path report 'unrecorded' and keep the original
@@ -51,7 +51,7 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
         if ret_slot == module_functions::mir_return_variant_slot_unrecorded() {
             ret_slot = function_return_view::mir_function_return_variant_slot(f)
         }
-        push(ret_variant_slots, ret_slot)
+        ret_variant_slots.push(ret_slot)
         fi = fi + 1
     }
     let disc_names_list = module_functions::MirModule_discovery_fn_names(m)
@@ -83,8 +83,8 @@ fn callee_prop_cache_add_fn(mut cache: CalleePropCache, fi: i32, fname: String, 
     } else if existing_bare != fi {
         name_index::name_index_set(cache.by_bare, bare, 0 - 2)
     }
-    push(cache.ret_type_names, ret_name)
-    push(cache.ret_variant_slots, ret_slot)
+    cache.ret_type_names.push(ret_name)
+    cache.ret_variant_slots.push(ret_slot)
 }
 
 fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {

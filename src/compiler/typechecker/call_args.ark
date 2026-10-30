@@ -8,7 +8,7 @@ fn infer_call_args(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
     let mut a = 0
     while a < count {
         let arg_node = ast_access::node_child_at(node, start + a)
-        push(arg_types, infer_expr(env, scope, fn_sigs, enum_defs, arg_node))
+        arg_types.push(infer_expr(env, scope, fn_sigs, enum_defs, arg_node))
         a = a + 1
     }
     arg_types

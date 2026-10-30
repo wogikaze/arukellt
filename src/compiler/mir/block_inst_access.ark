@@ -60,14 +60,11 @@ fn mir_block_export_packed_result(block: MirBlock, idx: i32) -> Vec<MirValueType
         return Vec::new<MirValueType>()
     }
     let mut result = Vec::new<MirValueType>()
-    push(
-        result,
-        mir_value_type::MirValueType_new(
+    result.push(mir_value_type::MirValueType_new(
             type_id::TypeId_new(stored),
             get_unchecked(block.type_reprs, idx),
             get_unchecked(block.type_nulls, idx)
-        )
-    )
+        ))
     result
 }
 
@@ -95,7 +92,7 @@ fn MirBlock_export_drafts(block: MirBlock) -> Vec<MirInstDraft> {
     let n = MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
-        push(out, MirBlock_export_draft(block, i))
+        out.push(MirBlock_export_draft(block, i))
         i = i + 1
     }
     out
@@ -106,7 +103,7 @@ fn MirBlock_instructions(block: MirBlock) -> Vec<MirInst> {
     let n = MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
-        push(out, inst_record::MirInst_ref(block, i))
+        out.push(inst_record::MirInst_ref(block, i))
         i = i + 1
     }
     out
@@ -121,7 +118,7 @@ fn MirBlock_drafts_from_refs(refs: Vec<MirInst>) -> Vec<MirInstDraft> {
     let n = refs.len()
     let mut i = 0
     while i < n {
-        push(out, MirInst_as_draft(get_unchecked(refs, i)))
+        out.push(MirInst_as_draft(get_unchecked(refs, i)))
         i = i + 1
     }
     out

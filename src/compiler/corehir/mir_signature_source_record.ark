@@ -28,14 +28,14 @@ fn fn_info_decl_slots(fn_infos: Vec<CoreHirFnInfo>) -> Vec<i32> {
     let mut slots = Vec::new<i32>()
     let mut s = 0
     while s <= max_decl {
-        push(slots, 0)
+        slots.push(0)
         s = s + 1
     }
     i = 0
     while i < count {
         let decl_index = get_unchecked(fn_infos, i).decl_index
         if decl_index >= 0 {
-            set(slots, decl_index, i + 1)
+            slots.set(decl_index, i + 1)
         }
         i = i + 1
     }

@@ -14,13 +14,13 @@ fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
     let mut remap = Vec::new<i32>()
     let mut ri = 0
     while ri < count {
-        push(remap, 0)
+        remap.push(0)
         ri = ri + 1
     }
     let mut new_i = 0
     while new_i < count {
         let old_i = get_unchecked(order, new_i)
-        set(remap, old_i, new_i)
+        remap.set(old_i, new_i)
         new_i = new_i + 1
     }
     let mut new_names = Vec::new<String>()
@@ -28,8 +28,8 @@ fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
     new_i = 0
     while new_i < count {
         let old_i = get_unchecked(order, new_i)
-        push(new_names, get_unchecked(ctx.gc_struct_names, old_i).clone())
-        push(new_sigs, gc_struct_rewrite_gcsref_slots(get_unchecked(ctx.gc_struct_sigs, old_i).clone(), remap))
+        new_names.push(get_unchecked(ctx.gc_struct_names, old_i).clone())
+        new_sigs.push(gc_struct_rewrite_gcsref_slots(get_unchecked(ctx.gc_struct_sigs, old_i).clone(), remap))
         new_i = new_i + 1
     }
     ctx.gc_struct_names = new_names
@@ -38,7 +38,7 @@ fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
     let mut ei = 0
     while ei < enum_count {
         let rewritten = gc_struct_rewrite_gcsref_slots(get_unchecked(ctx.gc_enum_variant_sigs, ei).clone(), remap)
-        set(ctx.gc_enum_variant_sigs, ei, rewritten)
+        ctx.gc_enum_variant_sigs.set(ei, rewritten)
         ei = ei + 1
     }
 }
@@ -48,7 +48,7 @@ fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
     let mut placed = Vec::new<i32>()
     let mut pi = 0
     while pi < count {
-        push(placed, 0)
+        placed.push(0)
         pi = pi + 1
     }
     let mut order = Vec::new<i32>()
@@ -58,8 +58,8 @@ fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
         while i < count {
             if get_unchecked(placed, i) == 0 {
                 if gc_struct_sig_deps_placed(get_unchecked(sigs, i).clone(), placed, i) {
-                    push(order, i)
-                    set(placed, i, 1)
+                    order.push(i)
+                    placed.set(i, 1)
                     progress = true
                 }
             }
@@ -69,8 +69,8 @@ fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
             let mut rest = 0
             while rest < count {
                 if get_unchecked(placed, rest) == 0 {
-                    push(order, rest)
-                    set(placed, rest, 1)
+                    order.push(rest)
+                    placed.set(rest, 1)
                 }
                 rest = rest + 1
             }
@@ -148,11 +148,11 @@ fn gc_struct_parse_gcsref_slot(sig: String, start: i32) -> Vec<i32> {
     }
     let mut out = Vec::new<i32>()
     if has_digit {
-        push(out, slot)
-        push(out, j)
+        out.push(slot)
+        out.push(j)
     } else {
-        push(out, 0 - 1)
-        push(out, start)
+        out.push(0 - 1)
+        out.push(start)
     }
     out
 }

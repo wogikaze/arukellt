@@ -24,8 +24,8 @@ fn scope_symbol_at(scope: Scope, index: i32) -> Symbol {
 }
 
 fn scope_push_symbol(mut scope: Scope, sym: Symbol) {
-    push(scope.names, symbol_record::symbol_name(sym))
-    push(scope.symbols, sym)
+    scope.names.push(symbol_record::symbol_name(sym))
+    scope.symbols.push(sym)
     scope_hash_set(scope, get_unchecked(scope.names, scope.names.len() - 1))
 }
 
@@ -35,7 +35,7 @@ fn scope_clear_symbols(mut scope: Scope) {
     let capacity = scope.name_buckets.len()
     let mut i = 0
     while i < capacity {
-        set(scope.name_buckets, i, 0)
+        scope.name_buckets.set(i, 0)
         i = i + 1
     }
 }
@@ -61,7 +61,7 @@ fn scope_hash_set(mut scope: Scope, name: String) {
             return
         }
     }
-    set(scope.name_buckets, slot, scope.names.len())
+    scope.name_buckets.set(slot, scope.names.len())
 }
 
 fn scope_hash_grow(mut scope: Scope) {
@@ -76,7 +76,7 @@ fn scope_hash_grow(mut scope: Scope) {
     while i < count {
         let slot = scope_hash_probe_slot(scope, get_unchecked(scope.names, i))
         if slot >= 0 {
-            set(scope.name_buckets, slot, i + 1)
+            scope.name_buckets.set(slot, i + 1)
         }
         i = i + 1
     }
@@ -86,7 +86,7 @@ fn scope_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
     let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
-        push(buckets, 0)
+        buckets.push(0)
         i = i + 1
     }
     buckets

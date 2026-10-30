@@ -81,9 +81,9 @@ assert_eq_str(to_string(n), "42")
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let v = Vec_new_i32()
-push(v, 10)
-push(v, 20)
-push(v, 30)
+v.push(10)
+v.push(20)
+v.push(30)
 
 assert_eq(len(v), 3)
 assert_eq(get(v, 0), 10)
@@ -99,7 +99,7 @@ fn ascending(a: i32, b: i32) -> Ordering {
 }
 
 let unsorted = Vec_new_i32()
-push(unsorted, 3)  push(unsorted, 1)  push(unsorted, 2)
+unsorted.push(3)  unsorted.push(1)  unsorted.push(2)
 unsorted.sort_by(ascending)
 assert_eq(get(unsorted, 0), 1)
 assert_eq(get(unsorted, 1), 2)

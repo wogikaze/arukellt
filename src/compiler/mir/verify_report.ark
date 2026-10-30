@@ -90,7 +90,7 @@ fn mir_verify_report_add_w010(mut report: MirVerifyReport) {
 
 fn mir_verify_report_push_detail(mut report: MirVerifyReport, message: String) {
     if report.detail_messages.len() < 32 {
-        push(report.detail_messages, message)
+        report.detail_messages.push(message)
     }
 }
 

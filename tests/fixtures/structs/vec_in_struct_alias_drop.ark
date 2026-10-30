@@ -8,7 +8,7 @@ struct Holder {
 
 fn main() {
     let mut h = Holder { name: String_from("test"), items: Vec::new<String>() }
-    h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
+    h = Holder { name: h.name, items: h.items.push(String_from("alpha")) }
     let local_ref = h.items
     Stdio::println(get_unchecked(local_ref, 0))
 }

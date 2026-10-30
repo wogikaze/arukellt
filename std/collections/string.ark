@@ -316,13 +316,13 @@ fn __core_string_push_range(mut bytes: Vec<i32>, s: String, start: i32, end: i32
     let mut index = start
     while index < end {
         // Concrete i32 push CoreOp body (generic Vec<T> push is unreachable on LM).
-        push(bytes, RawString::byte_at_unchecked(s, index))
+        bytes.push(RawString::byte_at_unchecked(s, index))
         index = index + 1
     }
 }
 
 fn __core_string_push_byte(mut bytes: Vec<i32>, byte: i32) {
-    push(bytes, byte)
+    bytes.push(byte)
 }
 
 fn __core_string_slice_impl(s: String, start: i32, end: i32) -> String {
@@ -356,7 +356,7 @@ fn __core_string_ascii_case_impl(s: String, to_lowercase: bool) -> String {
         if !to_lowercase && byte >= 97 && byte <= 122 {
             byte = byte - 32
         }
-        push(bytes, byte)
+        bytes.push(byte)
         index = index + 1
     }
     RawString::from_bytes(bytes)
@@ -621,14 +621,14 @@ impl String {
         while index < byte_len {
             let width = __core_string_utf8_width_vec_impl(bytes, index)
             if width == 0 {
-                push(result, 239)
-                push(result, 191)
-                push(result, 189)
+                result.push(239)
+                result.push(191)
+                result.push(189)
                 index = index + 1
             } else {
                 let mut offset = 0
                 while offset < width {
-                    push(result, get_unchecked(bytes, index + offset))
+                    result.push(get_unchecked(bytes, index + offset))
                     offset = offset + 1
                 }
                 index = index + width
@@ -649,7 +649,7 @@ impl String {
             }
             let mut offset = 0
             while offset < width {
-                push(result, get_unchecked(bytes, index + offset))
+                result.push(get_unchecked(bytes, index + offset))
                 offset = offset + 1
             }
             index = index + width
@@ -814,7 +814,7 @@ impl String {
         let byte_len = __core_string_len_bytes_impl(self)
         let mut index = 0
         while index < byte_len {
-            push(result, __core_string_char_at_impl(self, index))
+            result.push(__core_string_char_at_impl(self, index))
             index = index + 1
         }
         result

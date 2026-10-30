@@ -15,7 +15,7 @@ fn relax(mut queue: Deque<i32>, mut dist: Vec<i32>, to: i32, candidate: i32, wei
     if candidate >= get_unchecked(dist, to) {
         return
     }
-    set(dist, to, candidate)
+    dist.set(to, candidate)
     if weight == 0 {
         queue.push_front(to)
     } else {
@@ -28,12 +28,12 @@ fn main() {
     let mut dist: Vec<i32> = Vec::with_capacity<i32>(count)
     let mut i: i32 = 0
     while i < count {
-        push(dist, INF)
+        dist.push(INF)
         i = i + 1
     }
     let mut queue: Deque<i32> = Deque::with_capacity<i32>(count)
     assert(queue.capacity() == count)
-    set(dist, 0, 0)
+    dist.set(0, 0)
     queue.push_back(0)
     let mut visits: i32 = 0
     let mut total: i32 = 0

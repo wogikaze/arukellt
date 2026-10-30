@@ -64,7 +64,7 @@ pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<Module
                 let decls = session_parse::session_parse_decls(text.clone())
                 let stem = ark_stem_from_path(symbol_index_paths::uri_to_file_path(uri.clone()))
                 if stem.len() > 0 {
-                    push(out, resolver::ModuleDecls_new(stem, decls))
+                    out.push(resolver::ModuleDecls_new(stem, decls))
                 }
             }
         }
@@ -80,13 +80,13 @@ pub fn build_resolve_modules_with_prelude(state: LspState, current_uri: String) 
     let pn = prelude_modules.len()
     let mut pi = 0
     while pi < pn {
-        push(combined, get_unchecked(prelude_modules, pi))
+        combined.push(get_unchecked(prelude_modules, pi))
         pi = pi + 1
     }
     let mn = project_modules.len()
     let mut mi = 0
     while mi < mn {
-        push(combined, get_unchecked(project_modules, mi))
+        combined.push(get_unchecked(project_modules, mi))
         mi = mi + 1
     }
     combined

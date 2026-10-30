@@ -33,8 +33,13 @@ fn build_checked_program_bundle(
     while mi < module_count {
         let md = get_unchecked(modules, mi)
         let decl_count = module_state_modules::ModuleDecls_decl_count(md)
-        push(module_names, md.name)
-        push(module_decl_counts, decl_count)
+        // Hoist the String field into a local: the pinned compiler's linear
+        // method-argument staging materializes a field-access argument before
+        // `push` reads it, which makes the pin-built s2 invalid. Delete the
+        // local when the pin is refreshed past that staging bug.
+        let module_name = md.name
+        module_names.push(module_name)
+        module_decl_counts.push(decl_count)
         mi = mi + 1
     }
     frontend_bundle::FrontendBundle_new(

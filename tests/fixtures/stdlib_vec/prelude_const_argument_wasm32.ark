@@ -1,0 +1,26 @@
+use std::host::stdio::Stdio
+use std::test::Test
+
+// The retired free calls staged their arguments, so a module constant was
+// always passed by local. Receiver methods must also reload a constant
+// accessor result before the call on both targets.
+const BASE: i32 = 10
+const SHIFT: i32 = 2
+const ZERO: i32 = 0
+
+fn main() {
+    let mut values: Vec<i32> = Vec::new<i32>()
+    values.push(BASE)
+    values.push(SHIFT)
+    Test::assert_eq_i32(values.len(), 2)
+    values.set(ZERO, BASE + SHIFT)
+    Test::assert_eq_i32(values.get_unchecked(ZERO), 12)
+    values.set(1, BASE)
+    Test::assert_eq_i32(values.get_unchecked(1), 10)
+    match values.pop() {
+        Option::Some(last) => Test::assert_eq_i32(last, 10),
+        Option::None => Std::panic("expected Some(10)"),
+    }
+    Test::assert_eq_i32(values.len(), 1)
+    Stdio::println("prelude const argument ok")
+}

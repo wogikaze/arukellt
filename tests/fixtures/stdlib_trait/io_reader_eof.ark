@@ -3,8 +3,8 @@ use std::test::Test
 
 fn main() {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 1)
-    push(data, 2)
+    data.push(1)
+    data.push(2)
     let mut reader: io::Reader = io::Reader::from_bytes(data)
 
     Test::assert_false(reader.is_eof())

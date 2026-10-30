@@ -5,11 +5,11 @@ use std::test::Test
 
 fn main() {
     let mut values: Vec<i32> = Vec::new<i32>()
-    push(values, 1)
-    push(values, 2)
-    push(values, 3)
-    push(values, 4)
-    push(values, 5)
+    values.push(1)
+    values.push(2)
+    values.push(3)
+    values.push(4)
+    values.push(5)
 
     let first_two = values.iter().take(2).collect()
     Test::assert_eq_i32(first_two.len(), 2)

@@ -28,7 +28,7 @@ impl<I> Iterator for EnumI<I> {
     fn collect(self: EnumI<I>) -> Vec<Pair<i32, I::Item>> {
         let mut out: Vec<Pair<i32, I::Item>> = Vec::new<Pair<i32, I::Item>>()
         for item in self {
-            push(out, item)
+            out.push(item)
         }
         out
     }

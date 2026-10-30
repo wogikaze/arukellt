@@ -10,7 +10,7 @@ fn corehir_build_array_lit_expr(mut table: CoreHirBodyTable, node: AstNode) -> i
     let mut unsupported = false
     while i < child_count {
         let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, i))
-        push(children, child_index)
+        children.push(child_index)
         let child_expr = corehir_body_expr_at(table, child_index)
         if expr_predicates::expr_is_unsupported(child_expr) {
             unsupported = true
@@ -26,11 +26,11 @@ fn corehir_build_array_lit_expr(mut table: CoreHirBodyTable, node: AstNode) -> i
 fn corehir_build_array_repeat_expr(mut table: CoreHirBodyTable, node: AstNode) -> i32 {
     let mut children = Vec::new<i32>()
     let val_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
-    push(children, val_index)
+    children.push(val_index)
     let val_expr = corehir_body_expr_at(table, val_index)
     let val_unsupported = expr_predicates::expr_is_unsupported(val_expr)
     let count_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))
-    push(children, count_index)
+    children.push(count_index)
     let count_expr = corehir_body_expr_at(table, count_index)
     let count_unsupported = expr_predicates::expr_is_unsupported(count_expr)
     if val_unsupported || count_unsupported {

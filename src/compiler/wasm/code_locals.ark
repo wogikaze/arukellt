@@ -68,7 +68,7 @@ fn emit_local_decls(mut body: WasmWriter, f: MirFunction, local_count: i32, para
         if pi < param_ref_types.len() {
             param_ref = get_unchecked(param_ref_types, pi)
         }
-        push(local_ref_types, param_ref)
+        local_ref_types.push(param_ref)
         pi = pi + 1
     }
     // get_unchecked(...).field dests: the field use carries the concrete
@@ -88,7 +88,7 @@ fn emit_local_decls(mut body: WasmWriter, f: MirFunction, local_count: i32, para
         } else {
             emit_local_val_type(body, f, li, local_access::MirLocal_val_type(loc), ctx)
         }
-        push(local_ref_types, writer_core::writer_ref_null_type_at(body, val_type_pos))
+        local_ref_types.push(writer_core::writer_ref_null_type_at(body, val_type_pos))
         li = li + 1
     }
     code_scratch_locals::emit_scratch_local_decls(body, ctx)

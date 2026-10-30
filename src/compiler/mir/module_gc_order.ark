@@ -25,5 +25,5 @@ fn MirModule_late_gc_order(m: MirModule) -> Vec<i32> {
 }
 
 fn MirModule_push_late_gc_order(mut m: MirModule, packed_slot_kind: i32) {
-    push(m.late_gc_order, packed_slot_kind)
+    m.late_gc_order.push(packed_slot_kind)
 }

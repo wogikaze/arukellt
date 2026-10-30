@@ -52,11 +52,11 @@ use std::core::hash
 fn hashmap_new() -> Vec<i32> {
     let cap: i32 = 16
     let mut m: Vec<i32> = Vec::new<i32>()
-    push(m, cap)
-    push(m, 0)
+    m.push(cap)
+    m.push(0)
     let mut i: i32 = 0
     while i < cap * 3 {
-        push(m, 0)
+        m.push(0)
         i = i + 1
     }
     m
@@ -129,7 +129,7 @@ fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
 fn hashmap_ensure_storage_len(mut m: Vec<i32>, cap: i32) {
     let need: i32 = hashmap_required_vec_len(cap)
     while m.len() < need {
-        push(m, 0)
+        m.push(0)
     }
 }
 
@@ -140,14 +140,14 @@ fn hashmap_set_no_resize(mut m: Vec<i32>, key: i32, value: i32) -> bool {
     if idx >= 0 {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, idx))
         if flag == 0 {
-            set(m, hashmap_key_index(idx), key)
-            set(m, hashmap_value_index(cap, idx), value)
-            set(m, hashmap_flag_index(cap, idx), 1)
+            m.set(hashmap_key_index(idx), key)
+            m.set(hashmap_value_index(cap, idx), value)
+            m.set(hashmap_flag_index(cap, idx), 1)
             let sz: i32 = get_unchecked(m, 1) + 1
-            set(m, 1, sz)
+            m.set(1, sz)
             done = true
         } else {
-            set(m, hashmap_value_index(cap, idx), value)
+            m.set(hashmap_value_index(cap, idx), value)
             done = true
         }
     }
@@ -174,13 +174,13 @@ fn hashmap_rehash_to_capacity(mut m: Vec<i32>, new_cap: i32) {
         target_cap = 1
     }
     hashmap_ensure_storage_len(m, target_cap)
-    set(m, 0, target_cap)
-    set(m, 1, 0)
+    m.set(0, target_cap)
+    m.set(1, 0)
     let mut i: i32 = 0
     while i < target_cap {
-        set(m, hashmap_key_index(i), 0)
-        set(m, hashmap_value_index(target_cap, i), 0)
-        set(m, hashmap_flag_index(target_cap, i), 0)
+        m.set(hashmap_key_index(i), 0)
+        m.set(hashmap_value_index(target_cap, i), 0)
+        m.set(hashmap_flag_index(target_cap, i), 0)
         i = i + 1
     }
     let n: i32 = old_keys.len()
@@ -234,11 +234,11 @@ fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
         actual_cap = 1
     }
     let mut m: Vec<i32> = Vec::new<i32>()
-    push(m, actual_cap)
-    push(m, 0)
+    m.push(actual_cap)
+    m.push(0)
     let mut i: i32 = 0
     while i < actual_cap * 3 {
-        push(m, 0)
+        m.push(0)
         i = i + 1
     }
     m
@@ -291,10 +291,10 @@ fn hashmap_is_empty(m: Vec<i32>) -> bool {
 /// Remove all entries from the map, resetting size to 0.
 fn hashmap_clear(mut m: Vec<i32>) {
     let cap: i32 = get_unchecked(m, 0)
-    set(m, 1, 0)
+    m.set(1, 0)
     let mut i: i32 = 0
     while i < cap {
-        set(m, hashmap_flag_index(cap, i), 0)
+        m.set(hashmap_flag_index(cap, i), 0)
         i = i + 1
     }
 }
@@ -307,7 +307,7 @@ fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
         if flag == 1 {
-            push(result, get_unchecked(m, hashmap_key_index(i)))
+            result.push(get_unchecked(m, hashmap_key_index(i)))
         }
         i = i + 1
     }
@@ -322,7 +322,7 @@ fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
         if flag == 1 {
-            push(result, get_unchecked(m, hashmap_value_index(cap, i)))
+            result.push(get_unchecked(m, hashmap_value_index(cap, i)))
         }
         i = i + 1
     }
@@ -338,8 +338,8 @@ fn hashmap_entries(m: Vec<i32>) -> Vec<i32> {
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
         if flag == 1 {
-            push(result, get_unchecked(m, hashmap_key_index(i)))
-            push(result, get_unchecked(m, hashmap_value_index(cap, i)))
+            result.push(get_unchecked(m, hashmap_key_index(i)))
+            result.push(get_unchecked(m, hashmap_value_index(cap, i)))
         }
         i = i + 1
     }
@@ -359,10 +359,7 @@ fn hashmap_entry_pairs(m: Vec<i32>) -> Vec<(i32, i32)> {
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
         if flag == 1 {
-            push(
-                result,
-                (get_unchecked(m, hashmap_key_index(i)), get_unchecked(m, hashmap_value_index(cap, i)))
-            )
+            result.push((get_unchecked(m, hashmap_key_index(i)), get_unchecked(m, hashmap_value_index(cap, i))))
         }
         i = i + 1
     }
@@ -574,7 +571,7 @@ fn hashmap_retain(mut map: Vec<i32>, keep: fn((i32, i32)) -> bool) {
         let key: i32 = get_unchecked(keys, index)
         let value: i32 = get_unchecked(values, index)
         if keep((key, value)) == false {
-            push(drop_indices, index)
+            drop_indices.push(index)
         }
         index = index + 1
     }

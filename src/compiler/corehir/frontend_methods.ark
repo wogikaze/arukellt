@@ -17,14 +17,11 @@ fn build_method_params(
     let mut params = Vec::new<CoreHirParam>()
     let mut i = 0
     while i < param_count {
-        push(
-            params,
-            param_shape::method_param_from_node(
+        params.push(param_shape::method_param_from_node(
                 decl_member_collections::decl_method_at(method, i),
                 type_params.clone(),
                 nominal_types
-            )
-        )
+            ))
         i = i + 1
     }
     params
@@ -78,9 +75,7 @@ fn build_method_infos(
                     method,
                     known_type_names.clone()
                 )
-                push(
-                    infos,
-                    method_info::CoreHirMethodInfo_new(
+                infos.push(method_info::CoreHirMethodInfo_new(
                         i,
                         mi,
                         owner_name.clone(),
@@ -94,8 +89,7 @@ fn build_method_infos(
                         return_vt,
                         return_type_name,
                         trait_id
-                    )
-                )
+                    ))
                 mi = mi + 1
             }
         }

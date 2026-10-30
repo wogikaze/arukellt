@@ -59,21 +59,21 @@ fn mono_index_mangled_base_at(idx: MonoIndex, offset: i32) -> String {
 }
 
 fn mono_index_push_name(mut idx: MonoIndex, fn_name: String, mangled_name: String) {
-    push(idx.names, fn_name)
-    push(idx.counts, 1)
-    push(idx.mangled_names, mangled_name.clone())
-    push(idx.mangled_bases, fn_name)
-    push(idx.mangled_next, 0 - 1)
+    idx.names.push(fn_name)
+    idx.counts.push(1)
+    idx.mangled_names.push(mangled_name.clone())
+    idx.mangled_bases.push(fn_name)
+    idx.mangled_next.push(0 - 1)
     mono_index_name_insert(idx, fn_name.clone())
     mono_index_base_chain_push(idx, fn_name.clone(), idx.mangled_names.len() - 1)
 }
 
 fn mono_index_increment_name(mut idx: MonoIndex, index: i32, mangled_name: String) {
     let cur = mono_index_count_at(idx, index)
-    set(idx.counts, index, cur + 1)
-    push(idx.mangled_names, mangled_name.clone())
-    push(idx.mangled_bases, mono_index_name_at(idx, index).clone())
-    push(idx.mangled_next, 0 - 1)
+    idx.counts.set(index, cur + 1)
+    idx.mangled_names.push(mangled_name.clone())
+    idx.mangled_bases.push(mono_index_name_at(idx, index).clone())
+    idx.mangled_next.push(0 - 1)
     mono_index_base_chain_push(idx, mono_index_name_at(idx, index), idx.mangled_names.len() - 1)
 }
 
@@ -127,7 +127,7 @@ fn mono_index_zero_slots(size: i32) -> Vec<i32> {
     let mut slots = Vec::new<i32>()
     let mut i = 0
     while i < size {
-        push(slots, 0)
+        slots.push(0)
         i = i + 1
     }
     slots
@@ -138,7 +138,7 @@ fn mono_index_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut i = 0
     while i < keys.len() {
         let slot = mono_index_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
-        set(slots, slot, i + 1)
+        slots.set(slot, i + 1)
         i = i + 1
     }
     slots
@@ -170,8 +170,8 @@ fn mono_index_name_insert(mut idx: MonoIndex, fn_name: String) {
     if get_unchecked(idx.name_slots, slot) != 0 {
         return
     }
-    push(idx.name_keys, fn_name)
-    set(idx.name_slots, slot, idx.name_keys.len())
+    idx.name_keys.push(fn_name)
+    idx.name_slots.set(slot, idx.name_keys.len())
 }
 
 fn mono_index_name_pos(idx: MonoIndex, fn_name: String) -> i32 {
@@ -220,19 +220,19 @@ fn mono_index_base_chain_push(mut idx: MonoIndex, base: String, mangled_pos: i32
     }
     let mut base_pos = get_unchecked(idx.base_slots, slot) - 1
     if base_pos < 0 {
-        push(idx.base_keys, base)
-        push(idx.base_heads, 0 - 1)
-        push(idx.base_tails, 0 - 1)
+        idx.base_keys.push(base)
+        idx.base_heads.push(0 - 1)
+        idx.base_tails.push(0 - 1)
         base_pos = idx.base_keys.len() - 1
-        set(idx.base_slots, slot, base_pos + 1)
+        idx.base_slots.set(slot, base_pos + 1)
     }
     let tail = get_unchecked(idx.base_tails, base_pos)
     if tail < 0 {
-        set(idx.base_heads, base_pos, mangled_pos)
+        idx.base_heads.set(base_pos, mangled_pos)
     } else {
-        set(idx.mangled_next, tail, mangled_pos)
+        idx.mangled_next.set(tail, mangled_pos)
     }
-    set(idx.base_tails, base_pos, mangled_pos)
+    idx.base_tails.set(base_pos, mangled_pos)
 }
 
 fn mono_index_base_has_mangled(idx: MonoIndex, base: String, mangled: String) -> bool {

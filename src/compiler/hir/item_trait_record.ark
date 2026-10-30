@@ -24,7 +24,7 @@ fn hir_trait_name(decl: HirTraitDecl) -> String {
 }
 
 fn hir_trait_push_method(mut decl: HirTraitDecl, method: HirFunction) {
-    push(decl.methods, method)
+    decl.methods.push(method)
 }
 
 fn hir_trait_method_count(decl: HirTraitDecl) -> i32 {
@@ -48,7 +48,7 @@ fn hir_impl_block_self_type(block: HirImplBlock) -> HirType {
 }
 
 fn hir_impl_block_push_method(mut block: HirImplBlock, method: HirFunction) {
-    push(block.methods, method)
+    block.methods.push(method)
 }
 
 fn hir_impl_block_method_count(block: HirImplBlock) -> i32 {

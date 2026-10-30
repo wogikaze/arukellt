@@ -87,10 +87,10 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     // is a failing test (fail-fast runner).
     config_record::config_set_test_mode(config, true)
     let mut allows = args_record::cli_lint_allow(opts)
-    push(allows, "W0003")
-    push(allows, "W0005")
-    push(allows, "W0006")
-    push(allows, "W0007")
+    allows.push("W0003")
+    allows.push("W0005")
+    allows.push("W0006")
+    allows.push("W0007")
     config_record::config_set_lint_allow(config, allows)
     config_record::config_set_lint_deny(config, args_record::cli_lint_deny(opts))
     config

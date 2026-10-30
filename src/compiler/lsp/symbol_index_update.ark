@@ -32,7 +32,7 @@ pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
         let mut j = 0
         while j < un {
             if j != uri_idx {
-                push(rebuilt, get_unchecked(indexed_uris, j))
+                rebuilt.push(get_unchecked(indexed_uris, j))
             }
             j = j + 1
         }

@@ -28,16 +28,13 @@ fn type_env_record_resolved_call_owner(mut env: TypeEnv, span_start: i32, callee
         }
         i = i + 1
     }
-    push(
-        env.resolved_call_owners,
-        contract_resolved_call::ResolvedCallOwner_new(
+    env.resolved_call_owners.push(contract_resolved_call::ResolvedCallOwner_new(
             env.current_decl_index,
             env.current_body_child_index,
             span_start,
             callee_name,
             owner_name
-        )
-    )
+        ))
 }
 
 fn type_env_deferred_len_receiver_count(env: TypeEnv) -> i32 {
@@ -49,7 +46,7 @@ fn type_env_deferred_len_receiver_at(env: TypeEnv, index: i32) -> DeferredLenRec
 }
 
 fn type_env_push_deferred_len_receiver(mut env: TypeEnv, receiver: DeferredLenReceiver) {
-    push(env.deferred_len_receivers, receiver)
+    env.deferred_len_receivers.push(receiver)
 }
 
 fn type_env_clear_deferred_len_receivers(mut env: TypeEnv) {

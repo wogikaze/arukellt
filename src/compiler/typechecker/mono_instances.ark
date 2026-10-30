@@ -100,7 +100,7 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
         }
         s = s + 1
     }
-    push(env.mono_template_sites, MonoTemplateSite {
+    env.mono_template_sites.push(MonoTemplateSite {
             fn_name: fn_name,
             mangled_name: mangled_name,
             type_args: resolved_types,
@@ -140,8 +140,8 @@ fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeIn
         s = s + 1
     }
     let mut site_args = Vec::new<TypeInfo>()
-    push(site_args, recv_ty.clone())
-    push(env.mono_template_sites, MonoTemplateSite {
+    site_args.push(recv_ty.clone())
+    env.mono_template_sites.push(MonoTemplateSite {
             fn_name: method_name,
             mangled_name: mangled,
             type_args: site_args,
@@ -269,9 +269,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                 let mut bound_args = Vec::new<TypeInfo>()
                 let mut b = 0
                 while b < site_args.len() {
-                    push(
-                        bound_args,
-                        associated_types::normalize_projection_ty(
+                    bound_args.push(associated_types::normalize_projection_ty(
                             env,
                             site_vars.clone(),
                             resolved_types.clone(),
@@ -280,8 +278,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                                 site_vars.clone(),
                                 resolved_types.clone()
                             )
-                        )
-                    )
+                        ))
                     b = b + 1
                 }
                 let mut _rebound = String_new()
@@ -527,14 +524,11 @@ fn propagated_trait_bound(
     let mut concrete_args = Vec::new<TypeInfo>()
     let mut i = 0
     while i < arg_count {
-        push(
-            concrete_args,
-            instantiate::instantiate_type(
+        concrete_args.push(instantiate::instantiate_type(
                 get_unchecked(arg_patterns, i),
                 var_names.clone(),
                 var_types.clone()
-            )
-        )
+            ))
         i = i + 1
     }
     contract_types_record::TypeInfo_new(

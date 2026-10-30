@@ -32,9 +32,9 @@ fn mono_instance_table_register_from_instances(
         if ai < keys.len() {
             type_name = get_unchecked(keys, ai)
         }
-        push(subst_names, var_name.clone())
+        subst_names.push(var_name.clone())
         let kind = mono_subst_kind_for_type_name(type_name.clone())
-        push(subst_ids, type_table::TypeTable_intern(type_table, kind, type_name, Vec::new<TypeId>()))
+        subst_ids.push(type_table::TypeTable_intern(type_table, kind, type_name, Vec::new<TypeId>()))
         ai = ai + 1
     }
     let entry = mono_instance_table::MonoInstanceEntry_new(

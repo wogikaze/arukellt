@@ -21,7 +21,7 @@ fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
 }
 
 fn mir_phi_add_arg(mut phi: MirPhi, pred_block: i32, local: i32) {
-    push(phi.args, MirPhiArg_new(pred_block, local))
+    phi.args.push(MirPhiArg_new(pred_block, local))
 }
 
 fn mir_phi_op(phi: MirPhi) -> i32 {

@@ -76,9 +76,9 @@ impl<T> LinkedList<T> {
     fn push_front(mut self: LinkedList<T>, value: T) {
         let node: i32 = self.allocate_node(value)
         let old_head: i32 = self.head
-        set(self.next_links, node, old_head)
+        self.next_links.set(node, old_head)
         if old_head != NIL {
-            set(self.prev_links, old_head, node)
+            self.prev_links.set(old_head, node)
         } else {
             self.tail = node
         }
@@ -90,9 +90,9 @@ impl<T> LinkedList<T> {
     fn push_back(mut self: LinkedList<T>, value: T) {
         let node: i32 = self.allocate_node(value)
         let old_tail: i32 = self.tail
-        set(self.prev_links, node, old_tail)
+        self.prev_links.set(node, old_tail)
         if old_tail != NIL {
-            set(self.next_links, old_tail, node)
+            self.next_links.set(old_tail, node)
         } else {
             self.head = node
         }
@@ -110,7 +110,7 @@ impl<T> LinkedList<T> {
         let next: i32 = get_unchecked(self.next_links, node)
         self.head = next
         if next != NIL {
-            set(self.prev_links, next, NIL)
+            self.prev_links.set(next, NIL)
         } else {
             self.tail = NIL
         }
@@ -129,7 +129,7 @@ impl<T> LinkedList<T> {
         let prev: i32 = get_unchecked(self.prev_links, node)
         self.tail = prev
         if prev != NIL {
-            set(self.next_links, prev, NIL)
+            self.next_links.set(prev, NIL)
         } else {
             self.head = NIL
         }
@@ -206,25 +206,25 @@ impl<T> LinkedList<T> {
     // write below is safe for every T.
     fn allocate_node(mut self: LinkedList<T>, value: T) -> i32 {
         let value_index: i32 = self.values.len()
-        push(self.values, value)
+        self.values.push(value)
         if self.free_head != NIL {
             let node: i32 = self.free_head
             self.free_head = get_unchecked(self.next_links, node)
-            set(self.prev_links, node, NIL)
-            set(self.next_links, node, NIL)
-            set(self.node_values, node, value_index)
+            self.prev_links.set(node, NIL)
+            self.next_links.set(node, NIL)
+            self.node_values.set(node, value_index)
             return node
         }
         let node: i32 = self.node_values.len()
-        push(self.node_values, value_index)
-        push(self.prev_links, NIL)
-        push(self.next_links, NIL)
+        self.node_values.push(value_index)
+        self.prev_links.push(NIL)
+        self.next_links.push(NIL)
         node
     }
 
     fn recycle_node(mut self: LinkedList<T>, node: i32) {
-        set(self.prev_links, node, NIL)
-        set(self.next_links, node, self.free_head)
+        self.prev_links.set(node, NIL)
+        self.next_links.set(node, self.free_head)
         self.free_head = node
     }
 }
@@ -235,7 +235,7 @@ fn linked_list_value_at<T>(list: LinkedList<T>, node: i32) -> T {
 
 fn drop_values<T>(mut values: Vec<T>) {
     while values.len() > 0 {
-        match pop(values) {
+        match values.pop() {
             Option::Some(_) => {},
             Option::None => { break },
         }
@@ -265,7 +265,7 @@ impl<T> Iterator for LinkedListIter<T> {
     fn collect(mut self: LinkedListIter<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
         while self.remaining > 0 {
-            push(out, linked_list_value_at(self.list, self.node))
+            out.push(linked_list_value_at(self.list, self.node))
             self.node = get_unchecked(self.list.next_links, self.node)
             self.remaining = self.remaining - 1
         }
@@ -320,7 +320,7 @@ impl<T> Iterator for LinkedListIterMut<T> {
     fn collect(mut self: LinkedListIterMut<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
         while self.remaining > 0 {
-            push(out, linked_list_value_at(self.list, self.node))
+            out.push(linked_list_value_at(self.list, self.node))
             self.node = get_unchecked(self.list.next_links, self.node)
             self.remaining = self.remaining - 1
         }
@@ -345,7 +345,7 @@ impl<T> LinkedListIterMut<T> {
             return Option::None
         }
         let old: T = linked_list_value_at(self.list, self.current)
-        set(self.list.values, self.current, value)
+        self.list.values.set(self.current, value)
         Option::Some(old)
     }
 }
@@ -375,7 +375,7 @@ impl<T> Iterator for LinkedListIntoIter<T> {
         let mut out: Vec<T> = Vec::new<T>()
         while self.list.length > 0 {
             match self.list.pop_front() {
-                Option::Some(value) => push(out, value),
+                Option::Some(value) => out.push(value),
                 Option::None => { break },
             }
         }
@@ -480,13 +480,13 @@ impl<T> FromIterator<VecIter<T>> for LinkedList<T> {
         // from indices keeps this path free of element movement.
         let mut index: i32 = 0
         while index < count {
-            push(node_values, index)
-            push(prev_links, index - 1)
-            push(next_links, index + 1)
+            node_values.push(index)
+            prev_links.push(index - 1)
+            next_links.push(index + 1)
             index = index + 1
         }
         if count > 0 {
-            set(next_links, count - 1, NIL)
+            next_links.set(count - 1, NIL)
         }
         let head: i32 = if count > 0 { 0 } else { NIL }
         LinkedList {

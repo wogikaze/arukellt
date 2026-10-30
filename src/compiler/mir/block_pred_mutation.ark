@@ -13,5 +13,5 @@ fn MirBlock_push_pred_unique(mut block: MirBlock, pred_id: i32) {
         }
         i = i + 1
     }
-    push(block.preds, pred_id)
+    block.preds.push(pred_id)
 }

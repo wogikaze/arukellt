@@ -9,9 +9,9 @@ use std::test::Test
 
 fn push_in_branch(mut vv: Vec<Vec<i32>>, mut v: Vec<i32>, c: i32) -> i32 {
     if c > 0 {
-        push(vv, v)
+        vv.push(v)
     } else {
-        push(v, 1)
+        v.push(1)
     }
     0
 }
@@ -19,7 +19,7 @@ fn push_in_branch(mut vv: Vec<Vec<i32>>, mut v: Vec<i32>, c: i32) -> i32 {
 fn main() {
     let mut vv = Vec::new<Vec<i32>>()
     let mut v = Vec::new<i32>()
-    push(v, 7)
+    v.push(7)
     push_in_branch(vv, v, 1)
     Test::assert_eq_i32(vv.len(), 1)
 }

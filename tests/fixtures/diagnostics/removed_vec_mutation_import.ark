@@ -1,0 +1,6 @@
+// E0100: a selective import of a retired Vec mutation free is rejected with
+// the receiver-method hint instead of resurrecting a bare symbol.
+use std::prelude::{push, pop, set}
+
+fn main() {
+}

@@ -42,9 +42,9 @@
 use std::test::Test
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
-    push(v, 10)
-    push(v, 20)
-    push(v, 30)
+    v.push(10)
+    v.push(20)
+    v.push(30)
     Test::assert_eq_i32(v.len(), 3)
 }
 ```
@@ -57,8 +57,8 @@ fn main() {
 use std::test::Test
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
-    push(v, 10)
-    push(v, 20)
+    v.push(10)
+    v.push(20)
     match get(v, 1) {
         Option::Some(val) => Test::assert_eq_i32(val, 20),
         None => Std::panic("expected Some, got None"),
@@ -80,9 +80,9 @@ fn main() {
 use std::test::Test
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 10)
-    push(v, 20)
-    let last: Option<i32> = pop(v)
+    v.push(10)
+    v.push(20)
+    let last: Option<i32> = v.pop()
     match last {
         Option::Some(val) => Test::assert_eq_i32(val, 20),
         None => Std::panic("expected Some, got None"),
@@ -98,7 +98,7 @@ fn main() {
 use std::host::stdio::Stdio
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
-    push(v, 42)
+    v.push(42)
     let x: i32 = get_unchecked(v, 0)
     Stdio::println(to_string(x))
 }
@@ -120,11 +120,11 @@ fn add(acc: i32, x: i32) -> i32 { acc + x }
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 1)
-    push(v, 2)
-    push(v, 3)
-    push(v, 4)
-    push(v, 5)
+    v.push(1)
+    v.push(2)
+    v.push(3)
+    v.push(4)
+    v.push(5)
 
     let doubled: Vec<i32> = v.iter().map(double).collect()
     let evens: Vec<i32> = doubled.iter().filter(is_even).collect()
@@ -155,9 +155,9 @@ fn is_even(x: i32) -> bool { x % 2 == 0 }
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 30)
-    push(v, 10)
-    push(v, 20)
+    v.push(30)
+    v.push(10)
+    v.push(20)
 
     v.sort_by(ascending)                 // [10, 20, 30]
     v = v.iter().rev().collect()         // [30, 20, 10]
@@ -187,10 +187,10 @@ use std::core::iter
 use std::host::stdio::Stdio
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 10)
-    push(v, 20)
-    push(v, 30)
-    push(v, 40)
+    v.push(10)
+    v.push(20)
+    v.push(30)
+    v.push(40)
 
     Stdio::println((v.iter().sum()).to_string())  // 100
 
@@ -803,16 +803,16 @@ fn ascending(a: i32, b: i32) -> Ordering {
 
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
-    push(v, 5)
-    push(v, 3)
-    push(v, 8)
-    push(v, 1)
+    v.push(5)
+    v.push(3)
+    v.push(8)
+    v.push(1)
     v.sort_by(ascending)
 
     let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < v.len() {
-        push(parts, get_unchecked(v, i).to_string())
+        parts.push(get_unchecked(v, i).to_string())
         i = i + 1
     }
     Stdio::println(join(parts, String_from(" ")))  // 1 3 5 8

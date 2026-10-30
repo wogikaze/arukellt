@@ -69,14 +69,19 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         } else {
             0 - 1
         }
+        // A bare local/constant source is not lowered, so no value is on the
+        // operand stack for the staged copy to consume.
+        let mut arg_source_on_stack = true
         // Spine i64 lookup only for int-lit shaped args (avoid per-arg cost on large programs).
         if staged_ident_local >= 0 {
             // Staging already copies a local with local.set.  Do not first
             // emit local.get here: that temporary stack value is reversed
             // with the next argument before the staged call is emitted.
             arg_idx = staged_ident_local
+            arg_source_on_stack = false
         } else if needs_print_convert {
             arg_idx = ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(arg))
+            arg_source_on_stack = false
         } else if ast_node::node_kind_is(arg, lower_kinds::NK_INT_LIT()) && call_arg_i64::mir_should_force_int_lit_i64(ctx, callee_name.clone(), param_idx) {
             arg_idx = literals::lower_int_literal_forced_i64(ctx, arg)
         } else if ast_node::node_kind_is(arg, lower_kinds::NK_UNARY()) && ast_node::node_op(arg) == lower_kinds::UOP_NEG() {
@@ -100,6 +105,12 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
                 if !stage_call_args && method::mir_method_arg_leaves_no_stack(ctx, arg_idx) {
                     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
                 }
+                let arg_name = ast_node::node_text(arg)
+                if ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) &&
+                ctx_api_local_alloc::ctx_lookup_local(ctx, arg_name.clone()) < 0 &&
+                ctx_fn_index::ctx_is_const_name(ctx, arg_name) {
+                    arg_source_on_stack = false
+                }
             }
             if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, callee_name.clone(), param_idx) {
                 arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
@@ -120,8 +131,12 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
                 receiver_writeback = arg_idx
             }
             if stage_call_args && arg_idx >= 0 {
-                arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
-                push(arg_widen_i64, if needs_i64_arg_widen { 1 } else { 0 })
+                if arg_source_on_stack {
+                    arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
+                } else {
+                    arg_idx = call_args::mir_stage_call_arg_from_local(ctx, staged_arg_locals, arg_idx)
+                }
+                arg_widen_i64.push(if needs_i64_arg_widen { 1 } else { 0 })
             }
             if a == 1 {
                 first_arg_idx = arg_idx

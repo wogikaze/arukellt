@@ -208,7 +208,7 @@ fn enum_scrutinee_type_args(enum_info: EnumInfo, scrutinee_ty: TypeInfo) -> Vec<
     }
     let mut i = 0
     while i < arg_count {
-        push(args, contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, i))
+        args.push(contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, i))
         i = i + 1
     }
     args

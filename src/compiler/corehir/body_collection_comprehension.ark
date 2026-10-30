@@ -13,7 +13,7 @@ fn corehir_build_comprehension_expr(mut table: CoreHirBodyTable, node: AstNode) 
     let mut unsupported = false
     while i < child_count {
         let child_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, i))
-        push(children, child_index)
+        children.push(child_index)
         let child_expr = corehir_body_expr_at(table, child_index)
         if expr_predicates::expr_is_unsupported(child_expr) {
             unsupported = true

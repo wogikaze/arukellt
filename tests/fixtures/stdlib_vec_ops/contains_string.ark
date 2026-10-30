@@ -13,8 +13,8 @@ fn vec_contains_string(values: Vec<String>, needle: String) -> bool {
 
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
-    push(v, String_from("hello"))
-    push(v, String_from("world"))
+    v.push(String_from("hello"))
+    v.push(String_from("world"))
     let a: bool = vec_contains_string(v, String_from("world"))
     Stdio::println(a)
     let b: bool = vec_contains_string(v, String_from("foo"))

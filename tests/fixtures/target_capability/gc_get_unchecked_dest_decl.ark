@@ -25,9 +25,9 @@ fn pick(bag: Bag, i: i32) -> i32 {
 fn main() {
     let mut bodies = Vec::new<Vec<i32>>()
     let mut row = Vec::new<i32>()
-    push(row, 40)
-    push(row, 2)
-    push(bodies, row)
+    row.push(40)
+    row.push(2)
+    bodies.push(row)
     let bag = Bag { bodies: bodies, tag: 1 }
     Test::assert_eq_i32(pick(bag, 0), 3)
 }

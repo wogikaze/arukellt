@@ -8,10 +8,10 @@ use wasm::inst_ctx
 use wasm::writer_core
 
 fn SelfEmitCtx_push_call_reloc(mut ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
-    push(ctx.call_reloc_offs, off)
-    push(ctx.call_reloc_fids, fid_raw)
-    push(ctx.call_reloc_funcs, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    push(ctx.call_reloc_names, String_new())
+    ctx.call_reloc_offs.push(off)
+    ctx.call_reloc_fids.push(fid_raw)
+    ctx.call_reloc_funcs.push(ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    ctx.call_reloc_names.push(String_new())
 }
 
 // #851 Phase 3 fused emit: a resolved call whose callee has no FunctionId
@@ -20,10 +20,10 @@ fn SelfEmitCtx_push_call_reloc(mut ctx: SelfEmitCtx, off: i32, fid_raw: i32) {
 // time on the post-prune index — identical result to the legacy immediate
 // patch.
 fn SelfEmitCtx_push_call_reloc_name(mut ctx: SelfEmitCtx, off: i32, name: String) {
-    push(ctx.call_reloc_offs, off)
-    push(ctx.call_reloc_fids, 0 - 1)
-    push(ctx.call_reloc_funcs, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    push(ctx.call_reloc_names, name)
+    ctx.call_reloc_offs.push(off)
+    ctx.call_reloc_fids.push(0 - 1)
+    ctx.call_reloc_funcs.push(ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    ctx.call_reloc_names.push(name)
 }
 
 fn SelfEmitCtx_apply_call_relocs(

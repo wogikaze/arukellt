@@ -34,10 +34,7 @@ fn check_call_parameter_modes(
     let mut requires_mutable = Vec::new<bool>()
     let mut index = 0
     while index < param_count {
-        push(
-            requires_mutable,
-            param_requires_mutable_place(env, sig, index, first_arg, receiver_ty)
-        )
+        requires_mutable.push(param_requires_mutable_place(env, sig, index, first_arg, receiver_ty))
         index = index + 1
     }
     check_mutable_parameter_places(env, scope, node, first_arg, requires_mutable)
@@ -64,10 +61,7 @@ fn check_fn_value_parameter_modes(mut env: TypeEnv, scope: LocalScope, fn_ty: Ty
     let mut requires_mutable = Vec::new<bool>()
     let mut index = 0
     while index < param_count {
-        push(
-            requires_mutable,
-            fn_value_param_requires_mutable_place(env, fn_ty, index)
-        )
+        requires_mutable.push(fn_value_param_requires_mutable_place(env, fn_ty, index))
         index = index + 1
     }
     check_mutable_parameter_places(env, scope, node, first_arg, requires_mutable)

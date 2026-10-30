@@ -70,7 +70,12 @@ impl<T> Vec<T> {
 
     /// Appends `x` to the end of the vector.
     fn push(mut self, x: T) {
-        push(self, x)
+        // Sealed raw body, matching std/prelude.ark's private signature anchor:
+        // a `self.push(x)` receiver call would be the same method and only work
+        // while every call site is rewritten to the CoreOp.
+        let count: i32 = RawArray::len(self)
+        let mut grown: Vec<T> = RawArray::grow(self, count + 1)
+        RawArray::set_unchecked(grown, count, x)
     }
 
     /// Removes and returns the last element, or None when empty.
@@ -125,10 +130,10 @@ impl<T> Vec<T> {
             let mut window: Vec<T> = Vec::with_capacity<T>(width)
             let mut offset: i32 = 0
             while offset < width {
-                push(window, get_unchecked(self, start + offset))
+                window.push(get_unchecked(self, start + offset))
                 offset = offset + 1
             }
-            push(windows, window)
+            windows.push(window)
             start = start + 1
         }
         windows
@@ -153,10 +158,10 @@ impl<T> Vec<T> {
             let mut chunk: Vec<T> = Vec::with_capacity<T>(stop - start)
             let mut index: i32 = start
             while index < stop {
-                push(chunk, get_unchecked(self, index))
+                chunk.push(get_unchecked(self, index))
                 index = index + 1
             }
-            push(chunks, chunk)
+            chunks.push(chunk)
             start = stop
         }
         chunks
@@ -177,10 +182,10 @@ impl<T> Vec<T> {
             let mut chunk: Vec<T> = Vec::with_capacity<T>(width)
             let mut index: i32 = start
             while index < start + width {
-                push(chunk, get_unchecked(self, index))
+                chunk.push(get_unchecked(self, index))
                 index = index + 1
             }
-            push(chunks, chunk)
+            chunks.push(chunk)
             start = start + width
         }
         chunks
@@ -232,7 +237,7 @@ impl<T> Vec<T> {
         let count: i32 = vec_len(other)
         let mut i: i32 = 0
         while i < count {
-            push(self, get_unchecked(other, i))
+            self.push(get_unchecked(other, i))
             i = i + 1
         }
         while vec_len(other) > 0 {
@@ -259,7 +264,7 @@ impl<T> Vec<T> {
         let mut removed: Vec<T> = Vec::with_capacity<T>(to - from)
         let mut i: i32 = from
         while i < to {
-            push(removed, get_unchecked(self, i))
+            removed.push(get_unchecked(self, i))
             i = i + 1
         }
         let mut read: i32 = to
@@ -295,7 +300,7 @@ impl<T> Vec<T> {
         let inserted: i32 = vec_len(replacement)
         let mut i: i32 = 0
         while i < inserted {
-            push(self, get_unchecked(replacement, i))
+            self.push(get_unchecked(replacement, i))
             i = i + 1
         }
         let total: i32 = vec_len(self)
@@ -328,7 +333,7 @@ impl<T> Vec<T> {
         // 埋める（drain と同じく、複製したハンドルは GC 管理なので安全）。
         let mut scratch: Vec<T> = Vec::with_capacity<T>(count)
         for _i in 0..count {
-            push(scratch, get_unchecked(self, 0))
+            scratch.push(get_unchecked(self, 0))
         }
         let mut width: i32 = 1
         while width < count {
@@ -512,9 +517,9 @@ impl<T> Vec<T> {
             self.truncate(target)
             return
         }
-        push(self, value)
+        self.push(value)
         while vec_len(self) < target {
-            push(self, get_unchecked(self, old_len))
+            self.push(get_unchecked(self, old_len))
         }
     }
 
@@ -524,7 +529,7 @@ impl<T> Vec<T> {
         let count: i32 = vec_len(other)
         let mut index: i32 = 0
         while index < count {
-            push(self, get_unchecked(other, index))
+            self.push(get_unchecked(other, index))
             index = index + 1
         }
     }
@@ -665,8 +670,8 @@ impl<T> Vec<T> {
 fn partition_ord<T: Ord>(mut values: Vec<T>, lo: i32, hi: i32) -> i32 {
     let mid: i32 = lo + (hi - lo) / 2
     let pivot = get_unchecked(values, mid)
-    set(values, mid, get_unchecked(values, hi))
-    set(values, hi, pivot)
+    values.set(mid, get_unchecked(values, hi))
+    values.set(hi, pivot)
     let mut boundary: i32 = lo - 1
     let mut scan: i32 = lo
     while scan < hi {
@@ -681,15 +686,15 @@ fn partition_ord<T: Ord>(mut values: Vec<T>, lo: i32, hi: i32) -> i32 {
         if !greater {
             boundary = boundary + 1
             let displaced = get_unchecked(values, boundary)
-            set(values, boundary, current)
-            set(values, scan, displaced)
+            values.set(boundary, current)
+            values.set(scan, displaced)
         }
         scan = scan + 1
     }
     boundary = boundary + 1
     let displaced = get_unchecked(values, boundary)
-    set(values, boundary, pivot)
-    set(values, hi, displaced)
+    values.set(boundary, pivot)
+    values.set(hi, displaced)
     boundary
 }
 
@@ -705,7 +710,7 @@ impl<T: Ord> Vec<T> {
         let mut scratch: Vec<T> = Vec::with_capacity<T>(count)
         let mut fill: i32 = 0
         while fill < count {
-            push(scratch, self.get_unchecked(0))
+            scratch.push(self.get_unchecked(0))
             fill = fill + 1
         }
         let mut width: i32 = 1

@@ -73,7 +73,7 @@ fn core_closure_collect_rebind_flags(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr,
     let mut flags = Vec::new<i32>()
     let mut i = 0
     while i < caps.len() {
-        push(flags, 0)
+        flags.push(0)
         i = i + 1
     }
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
@@ -111,7 +111,7 @@ fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Ve
             let mut ci = 0
             while ci < caps.len() {
                 if get_unchecked(caps, ci).eq(name.clone()) {
-                    set(flags, ci, 1)
+                    flags.set(ci, 1)
                     ci = caps.len()
                 }
                 ci = ci + 1
@@ -138,14 +138,14 @@ fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shad
     let mut inner = Vec::new<String>()
     let mut i = 0
     while i < shadowed.len() {
-        push(inner, get_unchecked(shadowed, i).clone())
+        inner.push(get_unchecked(shadowed, i).clone())
         i = i + 1
     }
     let mut pi = 0
     while pi < child_count - 1 {
         let param = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, pi))
         if core_expr_shape_atoms::mir_core_expr_is_ident(param) {
-            push(inner, core_expr_shape_accessors::mir_core_expr_text(param))
+            inner.push(core_expr_shape_accessors::mir_core_expr_text(param))
         }
         pi = pi + 1
     }

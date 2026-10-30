@@ -127,9 +127,9 @@ fn ctx_record_fn_pair_refs(m: MirModule, func: MirFunction, mir_index: i32) {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             if op == opcodes::MIR_CALL_REF() {
-                push(art.pair_ref_fn, mir_index)
-                push(art.pair_ref_hint, inst_accessors_literals::MirInst_str_val(inst))
-                push(art.pair_ref_vt, inst_accessors_shape::MirInst_val_type(inst))
+                art.pair_ref_fn.push(mir_index)
+                art.pair_ref_hint.push(inst_accessors_literals::MirInst_str_val(inst))
+                art.pair_ref_vt.push(inst_accessors_shape::MirInst_val_type(inst))
             }
             if op == opcodes::MIR_CALL_REF() || op == opcodes::MIR_CALL_INDIRECT() || op == opcodes::MIR_REF_FUNC() {
                 art.saw_funcref_values = true

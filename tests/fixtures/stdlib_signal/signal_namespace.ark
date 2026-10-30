@@ -22,11 +22,11 @@ fn main() {
         Std::panic("cos(pi) must be -1")
     }
     let mut real = Vec::new<f64>()
-    push(real, 3.0)
-    push(real, 0.0)
+    real.push(3.0)
+    real.push(0.0)
     let mut imag = Vec::new<f64>()
-    push(imag, 4.0)
-    push(imag, 0.0)
+    imag.push(4.0)
+    imag.push(0.0)
     let mags = Signal::magnitude(real, imag)
     if !Signal::approx_eq(get_unchecked(mags, 0), 5.0, 0.0001) {
         Std::panic("magnitude(3+4i) must be 5")

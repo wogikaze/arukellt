@@ -55,7 +55,7 @@ impl Signal {
         let mut out = Vec::with_capacity<f64>(n)
         let mut i = 0
         while i < n {
-            push(out, get_unchecked(src, i))
+            out.push(get_unchecked(src, i))
             i = i + 1
         }
         out
@@ -66,7 +66,7 @@ impl Signal {
         let mut out = Vec::with_capacity<f64>(n)
         let mut i = 0
         while i < n {
-            push(out, 0.0)
+            out.push(0.0)
             i = i + 1
         }
         out
@@ -95,7 +95,7 @@ impl Signal {
         while i < n {
             let r = get_unchecked(real, i)
             let im = get_unchecked(imag, i)
-            push(out, __intrinsic_sqrt(r * r + im * im))
+            out.push(__intrinsic_sqrt(r * r + im * im))
             i = i + 1
         }
         out
@@ -182,7 +182,7 @@ fn write_back_f64(mut dst: Vec<f64>, src: Vec<f64>) {
     let n = dst.len()
     let mut i = 0
     while i < n {
-        set(dst, i, get_unchecked(src, i))
+        dst.set(i, get_unchecked(src, i))
         i = i + 1
     }
 }
@@ -193,13 +193,13 @@ fn reorder_bit_reversed(src: Vec<f64>) -> Vec<f64> {
     let mut out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
-        push(out, 0.0)
+        out.push(0.0)
         i = i + 1
     }
     i = 0
     while i < n {
         let j = bit_reverse(i, bits)
-        set(out, j, get_unchecked(src, i))
+        out.set(j, get_unchecked(src, i))
         i = i + 1
     }
     out
@@ -235,10 +235,10 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
                 let t_i: f64 = wr * odd_i + wi * odd_r
                 let even_r: f64 = get_unchecked(real, even)
                 let even_i: f64 = get_unchecked(imag, even)
-                set(real, even, even_r + t_r)
-                set(imag, even, even_i + t_i)
-                set(real, odd, even_r - t_r)
-                set(imag, odd, even_i - t_i)
+                real.set(even, even_r + t_r)
+                imag.set(even, even_i + t_i)
+                real.set(odd, even_r - t_r)
+                imag.set(odd, even_i - t_i)
                 j = j + 1
             }
             start = start + size
@@ -249,8 +249,8 @@ fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, V
         let scale: f64 = 1.0 / i32_to_f64(n)
         let mut i = 0
         while i < n {
-            set(real, i, get_unchecked(real, i) * scale)
-            set(imag, i, get_unchecked(imag, i) * scale)
+            real.set(i, get_unchecked(real, i) * scale)
+            imag.set(i, get_unchecked(imag, i) * scale)
             i = i + 1
         }
     }

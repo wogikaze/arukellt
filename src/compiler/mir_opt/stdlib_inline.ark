@@ -62,7 +62,7 @@ fn stdlib_inline_rewrite_block(m: MirModule, mut caller: MirFunction, mut block:
                 }
             }
         }
-        push(output, block_inst_access::MirInst_as_draft(inst))
+        output.push(block_inst_access::MirInst_as_draft(inst))
         index = index + 1
     }
     if inlined > 0 {
@@ -235,14 +235,14 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, mut block: Mir
                         resolved_inst,
                         signature_entry::signature_entry_return_types(fallback_entry)
                     )
-                    push(output, resolved_inst)
+                    output.push(resolved_inst)
                     resolved = resolved + 1
                     index = index + 1
                     continue
                 }
             }
         }
-        push(output, block_inst_access::MirBlock_export_draft(block, index))
+        output.push(block_inst_access::MirBlock_export_draft(block, index))
         index = index + 1
     }
     if resolved > 0 {

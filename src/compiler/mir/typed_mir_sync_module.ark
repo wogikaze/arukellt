@@ -147,11 +147,11 @@ fn mir_local_with_value_type_synced(
 
 fn mir_function_set_param_at(mut f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
     // In-place: per-element Vec rebuild is Θ(L²) across a full sync (#823).
-    set(f.params, idx, local)
+    f.params.set(idx, local)
     f
 }
 
 fn mir_function_set_local_at(mut f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
-    set(f.locals, idx, local)
+    f.locals.set(idx, local)
     f
 }

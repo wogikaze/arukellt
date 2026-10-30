@@ -83,8 +83,8 @@ impl Bimap {
             bimap_remove_pair(self.entries, old_value_pair)
         }
 
-        push(self.entries, key)
-        push(self.entries, value)
+        self.entries.push(key)
+        self.entries.push(value)
     }
 
     /// Returns the value associated with `key`, or `Option::None`.

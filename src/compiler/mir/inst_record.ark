@@ -43,14 +43,11 @@ fn mir_inst_result_types(inst: MirInst) -> Vec<MirValueType> {
         return Vec::new<MirValueType>()
     }
     let mut result = Vec::new<MirValueType>()
-    push(
-        result,
-        mir_value_type::MirValueType_new(
+    result.push(mir_value_type::MirValueType_new(
             type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index)),
             get_unchecked(inst.home.type_reprs, inst.index),
             get_unchecked(inst.home.type_nulls, inst.index)
-        )
-    )
+        ))
     result
 }
 
@@ -81,19 +78,15 @@ fn mir_inst_result_type_at(inst: MirInst, _index: i32) -> MirValueType {
 
 fn mir_inst_set_result_types(mut inst: MirInst, result_types: Vec<MirValueType>) {
     if result_types.len() == 0 {
-        set(inst.home.type_ids, inst.index, 0 - 1)
-        set(inst.home.type_reprs, inst.index, 0)
-        set(inst.home.type_nulls, inst.index, 0)
+        inst.home.type_ids.set(inst.index, 0 - 1)
+        inst.home.type_reprs.set(inst.index, 0)
+        inst.home.type_nulls.set(inst.index, 0)
         return
     }
     let first = get_unchecked(result_types, 0)
-    set(
-        inst.home.type_ids,
-        inst.index,
-        type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(first))
-    )
-    set(inst.home.type_reprs, inst.index, mir_value_type::mir_value_type_repr(first))
-    set(inst.home.type_nulls, inst.index, mir_value_type::mir_value_type_nullability(first))
+    inst.home.type_ids.set(inst.index, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(first)))
+    inst.home.type_reprs.set(inst.index, mir_value_type::mir_value_type_repr(first))
+    inst.home.type_nulls.set(inst.index, mir_value_type::mir_value_type_nullability(first))
 }
 
 fn mir_inst_op(inst: MirInst) -> i32 {
@@ -132,15 +125,15 @@ fn mir_inst_str_val(inst: MirInst) -> String {
 }
 
 fn mir_inst_set_arg0(mut inst: MirInst, arg0: i32) {
-    set(inst.home.arg0s, inst.index, arg0)
+    inst.home.arg0s.set(inst.index, arg0)
 }
 
 fn mir_inst_set_arg1(mut inst: MirInst, arg1: i32) {
-    set(inst.home.arg1s, inst.index, arg1)
+    inst.home.arg1s.set(inst.index, arg1)
 }
 
 fn mir_inst_set_dest(mut inst: MirInst, dest: i32) {
-    set(inst.home.dests, inst.index, dest)
+    inst.home.dests.set(inst.index, dest)
 }
 
 fn mir_inst_func_id_raw(inst: MirInst) -> i32 {
@@ -148,21 +141,21 @@ fn mir_inst_func_id_raw(inst: MirInst) -> i32 {
 }
 
 fn mir_inst_with_func_id_raw(mut inst: MirInst, func_id_raw: i32) -> MirInst {
-    set(inst.home.func_ids, inst.index, func_id_raw)
+    inst.home.func_ids.set(inst.index, func_id_raw)
     inst
 }
 
 fn mir_inst_with_call_target(mut inst: MirInst, callee: String, func_id_raw: i32) -> MirInst {
     let pool_index = inst.home.str_pool.len()
-    push(inst.home.str_pool, callee)
-    set(inst.home.str_ids, inst.index, pool_index)
-    set(inst.home.func_ids, inst.index, func_id_raw)
+    inst.home.str_pool.push(callee)
+    inst.home.str_ids.set(inst.index, pool_index)
+    inst.home.func_ids.set(inst.index, func_id_raw)
     inst
 }
 
 fn mir_inst_copy_with_locals(mut inst: MirInst, dest: i32, arg0: i32, arg1: i32) -> MirInst {
-    set(inst.home.dests, inst.index, dest)
-    set(inst.home.arg0s, inst.index, arg0)
-    set(inst.home.arg1s, inst.index, arg1)
+    inst.home.dests.set(inst.index, dest)
+    inst.home.arg0s.set(inst.index, arg0)
+    inst.home.arg1s.set(inst.index, arg1)
     inst
 }

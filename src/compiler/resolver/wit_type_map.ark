@@ -43,7 +43,7 @@ fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> 
     let mut names = Vec::new<String>()
     for ri in 0..records.len() {
         let rec = get_unchecked(records, ri)
-        push(names, rec.wit_name.clone())
+        names.push(rec.wit_name.clone())
     }
     names
 }
@@ -53,7 +53,7 @@ fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> 
     let mut names = Vec::new<String>()
     for ri in 0..records.len() {
         let rec = get_unchecked(records, ri)
-        push(names, rec.ark_name.clone())
+        names.push(rec.ark_name.clone())
     }
     names
 }
@@ -63,7 +63,7 @@ fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let mut names = Vec::new<String>()
     for ei in 0..enums.len() {
         let en = get_unchecked(enums, ei)
-        push(names, en.wit_name.clone())
+        names.push(en.wit_name.clone())
     }
     names
 }
@@ -73,7 +73,7 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let mut names = Vec::new<String>()
     for ei in 0..enums.len() {
         let en = get_unchecked(enums, ei)
-        push(names, en.ark_name.clone())
+        names.push(en.ark_name.clone())
     }
     names
 }
@@ -83,7 +83,7 @@ fn wit_variant_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String>
     let mut names = Vec::new<String>()
     for vi in 0..variants.len() {
         let variant = get_unchecked(variants, vi)
-        push(names, variant.wit_name.clone())
+        names.push(variant.wit_name.clone())
     }
     names
 }
@@ -93,7 +93,7 @@ fn wit_variant_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String>
     let mut names = Vec::new<String>()
     for vi in 0..variants.len() {
         let variant = get_unchecked(variants, vi)
-        push(names, variant.ark_name.clone())
+        names.push(variant.ark_name.clone())
     }
     names
 }
@@ -114,12 +114,12 @@ fn wit_generic_args(t: String) -> Vec<String> {
         if ch == 60 { depth = depth + 1 }
         if ch == 62 { depth = depth - 1 }
         if ch == 44 && depth == 0 {
-            push(args, wit_trim_type(inner.slice(start, i)))
+            args.push(wit_trim_type(inner.slice(start, i)))
             start = i + 1
         }
         i = i + 1
     }
-    if start < inner.len() { push(args, wit_trim_type(inner.slice(start, inner.len()))) }
+    if start < inner.len() { args.push(wit_trim_type(inner.slice(start, inner.len()))) }
     args
 }
 

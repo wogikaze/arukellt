@@ -7,7 +7,6 @@
 // record and either printed the Err arm or dereferenced garbage.
 // Verified identical on wasm32-gc and wasm32 linear core.
 use std::host::stdio::Stdio
-use std::prelude::{push}
 use std::text
 
 struct KeyStep {
@@ -17,7 +16,7 @@ struct KeyStep {
 
 fn step(key: String) -> KeyStep {
     let mut v = Vec::new<String>()
-    push(v, key)
+    v.push(key)
     KeyStep { parts: Result::Ok(v), next: 1 }
 }
 

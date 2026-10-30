@@ -6,9 +6,9 @@
 
 > **Canonical API note**: The canonical surface is methods and associated
 > functions (`Vec::new<i32>()`, `v.push(x)`, `x.to_string()`); see ADR-044 / ADR-046.
-> Some free-function forms (`push(v, x)`, `to_string(x)`, monomorphic
-> constructors like `Vec_new_i32()`) remain available as a compatibility
-> surface while they are retired under #917.
+> Free-function compatibility spellings (`push(v, x)`, `pop(v)`, `set(v, i, x)`,
+> `to_string(x)`, monomorphic constructors like `Vec_new_i32()`) are retired or
+> being retired under #917 and fail with E0100 once removed.
 > See [../stdlib/migration-guidance.md](../stdlib/migration-guidance.md) for migration status.
 
 This guide covers the **stable, implemented** features of the Arukellt programming language,

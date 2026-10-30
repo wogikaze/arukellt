@@ -45,10 +45,7 @@ stable_functions = [
     "char_to_string",
 ]
 intrinsic_compatibility_functions = [
-    "push",
-    "pop",
     "get",
-    "set",
     "get_unchecked",
 ]
 
@@ -267,35 +264,6 @@ doc_category = "conversion"
 doc = "Encode a Unicode scalar as canonical UTF-8."
 
 [[functions]]
-name = "push"
-kind = "builtin"
-params = ["Vec<T>", "T"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::push"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-doc = "Append an element to the end of a Vec, mutating it in place."
-availability = { t1 = true, t3 = true }
-examples = [{code = "let v = Vec::new<i32>()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
-
-[[functions]]
-name = "pop"
-kind = "builtin"
-params = ["Vec<T>"]
-returns = "Option<T>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::pop"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-doc = "Remove and return the last element of a Vec. Returns None if the Vec is empty."
-availability = { t1 = true, t3 = true }
-
-[[functions]]
 name = "get"
 kind = "builtin"
 params = ["Vec<T>", "i32"]
@@ -315,18 +283,6 @@ returns = "T"
 prelude = true
 stability = "deprecated"
 deprecated_by = "Vec::get_unchecked"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "set"
-kind = "builtin"
-params = ["Vec<T>", "i32", "T"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::set"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
 doc_category = "collections"

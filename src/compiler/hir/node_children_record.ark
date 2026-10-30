@@ -9,5 +9,5 @@ fn hir_node_child_at(node: HirNode, index: i32) -> HirNode {
 }
 
 fn hir_node_push_child(mut node: HirNode, child: HirNode) {
-    push(node.children, child)
+    node.children.push(child)
 }

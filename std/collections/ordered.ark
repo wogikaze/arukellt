@@ -20,7 +20,7 @@
 
 fn ordered_map_new_store() -> Vec<i32> {
     let mut entries: Vec<i32> = Vec::new<i32>()
-    push(entries, 0)
+    entries.push(0)
     entries
 }
 
@@ -75,26 +75,26 @@ fn ordered_map_insert(mut entries: Vec<i32>, key: i32, value: i32) {
     if idx < count {
         let found_key: i32 = get_unchecked(entries, 1 + idx * 2)
         if found_key == key {
-            set(entries, 1 + idx * 2 + 1, value)
+            entries.set(1 + idx * 2 + 1, value)
         } else {
-            push(entries, 0)
-            push(entries, 0)
+            entries.push(0)
+            entries.push(0)
             let mut i: i32 = count - 1
             while i >= idx {
                 let src: i32 = 1 + i * 2
                 let dst: i32 = 1 + (i + 1) * 2
-                set(entries, dst, get_unchecked(entries, src))
-                set(entries, dst + 1, get_unchecked(entries, src + 1))
+                entries.set(dst, get_unchecked(entries, src))
+                entries.set(dst + 1, get_unchecked(entries, src + 1))
                 i = i - 1
             }
-            set(entries, 1 + idx * 2, key)
-            set(entries, 1 + idx * 2 + 1, value)
-            set(entries, 0, count + 1)
+            entries.set(1 + idx * 2, key)
+            entries.set(1 + idx * 2 + 1, value)
+            entries.set(0, count + 1)
         }
     } else {
-        push(entries, key)
-        push(entries, value)
-        set(entries, 0, count + 1)
+        entries.push(key)
+        entries.push(value)
+        entries.set(0, count + 1)
     }
 }
 
@@ -108,13 +108,13 @@ fn ordered_map_remove(mut entries: Vec<i32>, key: i32) {
             while i < count - 1 {
                 let src: i32 = 1 + (i + 1) * 2
                 let dst: i32 = 1 + i * 2
-                set(entries, dst, get_unchecked(entries, src))
-                set(entries, dst + 1, get_unchecked(entries, src + 1))
+                entries.set(dst, get_unchecked(entries, src))
+                entries.set(dst + 1, get_unchecked(entries, src + 1))
                 i = i + 1
             }
-            let _: Option<i32> = pop(entries)
-            let _: Option<i32> = pop(entries)
-            set(entries, 0, count - 1)
+            let _: Option<i32> = entries.pop()
+            let _: Option<i32> = entries.pop()
+            entries.set(0, count - 1)
         }
     }
 }
@@ -124,7 +124,7 @@ fn ordered_map_keys(entries: Vec<i32>) -> Vec<i32> {
     let mut keys: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
-        push(keys, get_unchecked(entries, 1 + i * 2))
+        keys.push(get_unchecked(entries, 1 + i * 2))
         i = i + 1
     }
     keys
@@ -138,7 +138,7 @@ fn ordered_map_range(entries: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
         let key: i32 = get_unchecked(entries, 1 + i * 2)
         if key >= start {
             if key < end {
-                push(result, key)
+                result.push(key)
             }
         }
         i = i + 1
@@ -243,7 +243,7 @@ impl BTreeMap {
 
 fn ordered_set_new_store() -> Vec<i32> {
     let mut entries: Vec<i32> = Vec::new<i32>()
-    push(entries, 0)
+    entries.push(0)
     entries
 }
 
@@ -271,19 +271,19 @@ fn ordered_set_insert(mut entries: Vec<i32>, value: i32) -> bool {
         if found_value == value {
             false
         } else {
-            push(entries, 0)
+            entries.push(0)
             let mut i: i32 = count - 1
             while i >= idx {
-                set(entries, 1 + i + 1, get_unchecked(entries, 1 + i))
+                entries.set(1 + i + 1, get_unchecked(entries, 1 + i))
                 i = i - 1
             }
-            set(entries, 1 + idx, value)
-            set(entries, 0, count + 1)
+            entries.set(1 + idx, value)
+            entries.set(0, count + 1)
             true
         }
     } else {
-        push(entries, value)
-        set(entries, 0, count + 1)
+        entries.push(value)
+        entries.set(0, count + 1)
         true
     }
 }
@@ -337,7 +337,7 @@ impl BTreeSet {
 
 fn index_map_new_store() -> Vec<i32> {
     let mut entries: Vec<i32> = Vec::new<i32>()
-    push(entries, 0)
+    entries.push(0)
     entries
 }
 
@@ -348,7 +348,7 @@ fn index_map_insert(mut entries: Vec<i32>, key: i32, value: i32) {
     while i < count {
         let existing_key: i32 = get_unchecked(entries, 1 + i * 2)
         if existing_key == key {
-            set(entries, 1 + i * 2 + 1, value)
+            entries.set(1 + i * 2 + 1, value)
             found = true
             i = count
         } else {
@@ -356,9 +356,9 @@ fn index_map_insert(mut entries: Vec<i32>, key: i32, value: i32) {
         }
     }
     if found == false {
-        push(entries, key)
-        push(entries, value)
-        set(entries, 0, count + 1)
+        entries.push(key)
+        entries.push(value)
+        entries.set(0, count + 1)
     }
 }
 
@@ -387,7 +387,7 @@ fn index_map_keys(entries: Vec<i32>) -> Vec<i32> {
     let mut keys: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
-        push(keys, get_unchecked(entries, 1 + i * 2))
+        keys.push(get_unchecked(entries, 1 + i * 2))
         i = i + 1
     }
     keys
@@ -433,7 +433,7 @@ impl IndexMap {
 
 fn index_set_new_store() -> Vec<i32> {
     let mut entries: Vec<i32> = Vec::new<i32>()
-    push(entries, 0)
+    entries.push(0)
     entries
 }
 
@@ -457,8 +457,8 @@ fn index_set_insert(mut entries: Vec<i32>, value: i32) -> bool {
     let already: bool = index_set_contains(entries, value)
     if already == false {
         let count: i32 = get_unchecked(entries, 0)
-        push(entries, value)
-        set(entries, 0, count + 1)
+        entries.push(value)
+        entries.set(0, count + 1)
         true
     } else {
         false
@@ -507,11 +507,11 @@ const BITSET_BITS_PER_WORD: i32 = 32
 
 fn bitset_store(capacity: i32) -> Vec<i32> {
     let mut store: Vec<i32> = Vec::new<i32>()
-    push(store, capacity)
+    store.push(capacity)
     let words: i32 = (capacity + BITSET_BITS_PER_WORD - 1) / BITSET_BITS_PER_WORD
     let mut i: i32 = 0
     while i < words {
-        push(store, 0)
+        store.push(0)
         i = i + 1
     }
     store
@@ -522,7 +522,7 @@ fn bitset_mark_store(mut store: Vec<i32>, bit: i32) {
     let offset: i32 = bit % BITSET_BITS_PER_WORD
     let old: i32 = get_unchecked(store, 1 + word)
     let mask: i32 = 1 << offset
-    set(store, 1 + word, old | mask)
+    store.set(1 + word, old | mask)
 }
 
 fn bitset_unmark_store(mut store: Vec<i32>, bit: i32) {
@@ -531,7 +531,7 @@ fn bitset_unmark_store(mut store: Vec<i32>, bit: i32) {
     let old: i32 = get_unchecked(store, 1 + word)
     let mask: i32 = 1 << offset
     let inverted: i32 = mask ^ 0 - 1
-    set(store, 1 + word, old & inverted)
+    store.set(1 + word, old & inverted)
 }
 
 fn bitset_test_store(store: Vec<i32>, bit: i32) -> bool {
@@ -580,7 +580,7 @@ fn bitset_union_store(left: Vec<i32>, right: Vec<i32>) -> Vec<i32> {
         if i < right_words {
             right_word = get_unchecked(right, 1 + i)
         }
-        set(result, 1 + i, left_word | right_word)
+        result.set(1 + i, left_word | right_word)
         i = i + 1
     }
     result
@@ -599,7 +599,7 @@ fn bitset_intersection_store(left: Vec<i32>, right: Vec<i32>) -> Vec<i32> {
     while i < words {
         let left_word: i32 = get_unchecked(left, 1 + i)
         let right_word: i32 = get_unchecked(right, 1 + i)
-        set(result, 1 + i, left_word & right_word)
+        result.set(1 + i, left_word & right_word)
         i = i + 1
     }
     result

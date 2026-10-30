@@ -50,11 +50,11 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
     while ci < cap_names.len() {
         let li = ctx_api_local_alloc::ctx_lookup_local(ctx, get_unchecked(cap_names, ci).clone())
         if li >= 0 {
-            push(cap_vts, ctx_api_local_types::ctx_local_vt(ctx, li))
-            push(cap_types, closure_capture_type::mir_closure_lookup_capture_type(ctx, li))
+            cap_vts.push(ctx_api_local_types::ctx_local_vt(ctx, li))
+            cap_types.push(closure_capture_type::mir_closure_lookup_capture_type(ctx, li))
         } else {
-            push(cap_vts, value_types::VT_I32())
-            push(cap_types, String_new())
+            cap_vts.push(value_types::VT_I32())
+            cap_types.push(String_new())
         }
         ci = ci + 1
     }

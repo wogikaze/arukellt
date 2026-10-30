@@ -48,14 +48,14 @@ fn split_param_list(inner: String) -> Vec<String> {
                 }
             } else {
                 if ch == 44 && depth == 0 {
-                    push(out, inner.slice(start, i))
+                    out.push(inner.slice(start, i))
                     start = i + 1
                 }
             }
         }
         i = i + 1
     }
-    push(out, inner.slice(start, n))
+    out.push(inner.slice(start, n))
     out
 }
 

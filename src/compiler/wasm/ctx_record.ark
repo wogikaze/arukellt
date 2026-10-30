@@ -160,7 +160,7 @@ fn SelfEmitCtx_new(
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(name_lengths, fname.clone().len())
+        name_lengths.push(fname.clone().len())
         name_index::name_index_insert_first(function_name_index, fname.clone(), fi)
         name_index::name_index_increment(function_name_counts, fname)
         fi = fi + 1
@@ -275,7 +275,7 @@ fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
     while ctx.fn_index_watermark < n {
         let fi = ctx.fn_index_watermark
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(ctx.function_name_lengths, fname.clone().len())
+        ctx.function_name_lengths.push(fname.clone().len())
         name_index::name_index_insert_first(
             ctx.function_name_index, fname.clone(), fi)
         name_index::name_index_increment(ctx.function_name_counts, fname)
@@ -289,7 +289,7 @@ fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
             if raw >= 0 {
                 if raw < ctx.fid_to_mir.len() {
                     if get_unchecked(ctx.fid_to_mir, raw) < 0 {
-                        set(ctx.fid_to_mir, raw, fi)
+                        ctx.fid_to_mir.set(raw, fi)
                     }
                 }
                 name_index::name_index_set(
@@ -508,14 +508,14 @@ fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(mut ctx: SelfEmitCtx) {
     let mut flags = Vec::new<i32>()
     let mut fi = 0
     while fi <= max_type_idx {
-        push(flags, 0)
+        flags.push(0)
         fi = fi + 1
     }
     i = 0
     while i < map.len() {
         let type_idx = get_unchecked(map, i)
         if type_idx >= 0 && type_idx < flags.len() {
-            set(flags, type_idx, 1)
+            flags.set(type_idx, 1)
         }
         i = i + 1
     }
@@ -817,9 +817,9 @@ fn SelfEmitCtx_mir_index_for_func_id(ctx: SelfEmitCtx, func_id_raw: i32) -> i32 
 
 fn SelfEmitCtx_note_emit_census(mut ctx: SelfEmitCtx, rung: i32) {
     while ctx.emit_census_rungs.len() <= rung {
-        push(ctx.emit_census_rungs, 0)
+        ctx.emit_census_rungs.push(0)
     }
-    set(ctx.emit_census_rungs, rung, get_unchecked(ctx.emit_census_rungs, rung) + 1)
+    ctx.emit_census_rungs.set(rung, get_unchecked(ctx.emit_census_rungs, rung) + 1)
 }
 
 fn SelfEmitCtx_emit_census_rungs(ctx: SelfEmitCtx) -> Vec<i32> {

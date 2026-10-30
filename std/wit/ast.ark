@@ -644,7 +644,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
 fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..fields.len() {
-        push(names, get_unchecked(fields, i).name.clone())
+        names.push(get_unchecked(fields, i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -667,7 +667,7 @@ fn wit_import_serialized_enum_variants(variants: Vec<String>) -> String {
 fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..cases.len() {
-        push(names, get_unchecked(cases, i).name.clone())
+        names.push(get_unchecked(cases, i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -969,7 +969,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
         i = p_skip_ws_comments(s, i + 1)
         while i < n && s.byte_at(i) != 62 {
             let (item, p6) = p_type(s, i)
-            push(items, item)
+            items.push(item)
             i = p_skip_ws_comments(s, p6)
             if i < n && s.byte_at(i) == 44 {
                 i = p_skip_ws_comments(s, i + 1)
@@ -1052,7 +1052,7 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
-        push(params, WitParam::new(pname, ty))
+        params.push(WitParam::new(pname, ty))
         i = p_skip_ws_comments(s, p2)
         if i < n && s.byte_at(i) == 44 {
             i = i + 1
@@ -1108,7 +1108,7 @@ fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
         }
         i = p_skip_ws_comments(s, i + 1)
         let (ty, p2) = p_type(s, i)
-        push(fields, types::WitField { name: fname, ty: ty })
+        fields.push(types::WitField { name: fname, ty: ty })
         i = p_skip_ws_comments(s, p2)
         if i < n && s.byte_at(i) == 44 {
             i = i + 1
@@ -1129,7 +1129,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
         }
         let (vname, p1) = p_word(s, i)
         if vname.len() > 0 {
-            push(variants, vname)
+            variants.push(vname)
         }
         i = p_skip_ws_comments(s, p1)
         if i < n && s.byte_at(i) == 44 {
@@ -1161,7 +1161,7 @@ fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
                 i = i + 1
             }
         }
-        push(cases, types::WitVariantCase { name: cname, ty: payload })
+        cases.push(types::WitVariantCase { name: cname, ty: payload })
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 44 {
             i = i + 1
@@ -1399,7 +1399,7 @@ fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
         }
         let (node, p1) = p_decl(s, i)
         if !node.kind().eq("error") {
-            push(items, node)
+            items.push(node)
         } else {
             // Check if it's just a closing brace marker
             if node.name().eq("}") {
@@ -1506,18 +1506,18 @@ fn parse_wit_document(source: String) -> WitNode {
             let (kw, _) = p_word(source, i)
             if kw.eq("world") {
                 let (node, p2) = p_world(source, i)
-                push(items, node)
+                items.push(node)
                 i = p2
             } else {
                 if kw.eq("interface") {
                     let (node, p2) = p_interface(source, i)
-                    push(items, node)
+                    items.push(node)
                     i = p2
                 } else {
                     // Try generic decl
                     let (node, p2) = p_decl(source, i)
                     if !node.kind().eq("error") {
-                        push(items, node)
+                        items.push(node)
                     }
                     i = p2
                 }

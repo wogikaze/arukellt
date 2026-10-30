@@ -76,7 +76,7 @@ fn local_feeds_return_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
     let mut flags = Vec::new<i32>()
     let mut li = 0
     while li < local_count {
-        push(flags, 0)
+        flags.push(0)
         li = li + 1
     }
     let block_count = f.blocks.len()
@@ -88,7 +88,7 @@ fn local_feeds_return_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
         while ii < inst_count {
             let ret_local = return_operand_local(block, ii)
             if ret_local >= 0 && ret_local < local_count {
-                set(flags, ret_local, 1)
+                flags.set(ret_local, 1)
             }
             ii = ii + 1
         }
@@ -441,9 +441,9 @@ fn build_local_producer_flags(
 ) {
     let mut li = 0
     while li < local_count {
-        push(scalar_vts, 0 - 1)
-        push(scalar_flags, 0)
-        push(strong_ref_flags, 0)
+        scalar_vts.push(0 - 1)
+        scalar_flags.push(0)
+        strong_ref_flags.push(0)
         li = li + 1
     }
     seed_scalar_producer_params(f, scalar_vts, scalar_flags)
@@ -460,15 +460,15 @@ fn build_local_producer_flags(
             if dest >= 0 && dest < local_count {
                 let producer_vt = inst_scalar_producer_vt(op, inst)
                 if producer_vt >= 0 {
-                    set(scalar_flags, dest, 1)
+                    scalar_flags.set(dest, 1)
                     if get_unchecked(scalar_vts, dest) < 0 {
-                        set(scalar_vts, dest, producer_vt)
+                        scalar_vts.set(dest, producer_vt)
                     }
                 } else if inst_op_is_scalar_producer(op, inst) {
-                    set(scalar_flags, dest, 1)
+                    scalar_flags.set(dest, 1)
                 }
                 if inst_is_strong_ref_producer(op, inst) {
-                    set(strong_ref_flags, dest, 1)
+                    strong_ref_flags.set(dest, 1)
                 }
             }
             ii = ii + 1
@@ -484,8 +484,8 @@ fn seed_scalar_producer_params(f: MirFunction, mut scalar_vts: Vec<i32>, mut sca
     while pi < param_count && pi < scalar_vts.len() {
         let param_vt = function_param_view::MirFunction_param_val_type(f, pi)
         if is_concrete_scalar_value_type(param_vt) {
-            set(scalar_vts, pi, param_vt)
-            set(scalar_flags, pi, 1)
+            scalar_vts.set(pi, param_vt)
+            scalar_flags.set(pi, 1)
         }
         pi = pi + 1
     }
@@ -537,12 +537,12 @@ fn propagate_scalar_producer_flags(
                     source >= 0 && source < scalar_flags.len() &&
                     get_unchecked(scalar_flags, source) != 0 {
                         if get_unchecked(scalar_flags, target) == 0 {
-                            set(scalar_flags, target, 1)
+                            scalar_flags.set(target, 1)
                             changed = 1
                         }
                         let source_vt = get_unchecked(scalar_vts, source)
                         if source_vt >= 0 && get_unchecked(scalar_vts, target) < 0 {
-                            set(scalar_vts, target, source_vt)
+                            scalar_vts.set(target, source_vt)
                             changed = 1
                         }
                     }
@@ -753,13 +753,13 @@ fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> 
             let dest = inst_accessors_operands::MirInst_dest(inst)
             if dest >= 0 && dest < local_count {
                 if inst_op_produces_ref_value(op) || inst_is_ref_result_call(op, inst) {
-                    set(blocked_by_ref, dest, 1)
+                    blocked_by_ref.set(dest, 1)
                 }
                 if inst_defines_scalar_i64_for_local(inst, dest) {
-                    set(has_i64_evidence, dest, 1)
+                    has_i64_evidence.set(dest, 1)
                 }
                 if call_dest_forwarded_to_numeric_compare(block, ii, inst_count, dest, numeric_compare) {
-                    set(has_i64_evidence, dest, 1)
+                    has_i64_evidence.set(dest, 1)
                 }
             }
             if op == opcodes::MIR_LOCAL_SET() {
@@ -768,7 +768,7 @@ fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> 
                     if ii > 0 && inst_op_produces_ref_value(inst_accessors_shape::MirInst_op(
                             block_inst_access::MirBlock_inst_at(block, ii - 1)
                         )) {
-                        set(blocked_by_ref, set_dst, 1)
+                        blocked_by_ref.set(set_dst, 1)
                     }
                     if local_set_receives_scalar_i64(
                         block,
@@ -778,7 +778,7 @@ fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> 
                         bi + 1,
                         numeric_compare
                     ) {
-                        set(has_i64_evidence, set_dst, 1)
+                        has_i64_evidence.set(set_dst, 1)
                     }
                 }
             }
@@ -790,7 +790,7 @@ fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> 
     let mut li = 0
     while li < local_count {
         if get_unchecked(blocked_by_ref, li) == 1 {
-            set(has_i64_evidence, li, 0)
+            has_i64_evidence.set(li, 0)
         }
         li = li + 1
     }
@@ -801,7 +801,7 @@ fn zero_local_flags(local_count: i32) -> Vec<i32> {
     let mut flags = Vec::new<i32>()
     let mut i = 0
     while i < local_count {
-        push(flags, 0)
+        flags.push(0)
         i = i + 1
     }
     flags
@@ -809,7 +809,7 @@ fn zero_local_flags(local_count: i32) -> Vec<i32> {
 
 fn mark_local_flag(mut flags: Vec<i32>, local_idx: i32) {
     if local_idx >= 0 && local_idx < flags.len() {
-        set(flags, local_idx, 1)
+        flags.set(local_idx, 1)
     }
 }
 
@@ -932,7 +932,7 @@ fn stamp_scalar_i64_defs_in_block(block: MirBlock, inst_count: i32, mut stamp: V
         let inst = block_inst_access::MirBlock_inst_at(block, ii)
         let dest = inst_accessors_operands::MirInst_dest(inst)
         if dest >= 0 && dest < stamp.len() && inst_defines_scalar_i64_for_local(inst, dest) {
-            set(stamp, dest, block_stamp)
+            stamp.set(dest, block_stamp)
         }
         ii = ii + 1
     }

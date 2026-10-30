@@ -105,14 +105,11 @@ fn SelfEmitCtx_fn_sig_param_ref_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i
     let struct_canon_idxs = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let mut i = 0
     while i < segs.len() {
-        push(
-            out,
-            sections_types_emit::sig_ref_null_type_index(
+        out.push(sections_types_emit::sig_ref_null_type_index(
                 get_unchecked(segs, i),
                 gc_type_base,
                 struct_canon_idxs
-            )
-        )
+            ))
         i = i + 1
     }
     out

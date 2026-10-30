@@ -31,7 +31,7 @@ fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
 }
 
 fn trait_info_push_associated_type(mut info: TraitInfo, name: String) {
-    push(info.associated_type_names, name)
+    info.associated_type_names.push(name)
 }
 
 fn trait_info_supertrait_count(info: TraitInfo) -> i32 {
@@ -43,5 +43,5 @@ fn trait_info_supertrait_at(info: TraitInfo, index: i32) -> String {
 }
 
 fn trait_info_push_supertrait(mut info: TraitInfo, name: String) {
-    push(info.supertrait_names, name)
+    info.supertrait_names.push(name)
 }

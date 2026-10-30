@@ -18,7 +18,7 @@ fn local_filter_allowed(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> 
             i = i + 1
             continue
         }
-        push(filtered, diag)
+        filtered.push(diag)
         i = i + 1
     }
     filtered
@@ -35,9 +35,9 @@ fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, mut 
         let diag = get_unchecked(warnings, i)
         let code = diag_record::diagnostic_code(diag)
         if lint_registry::should_deny(code.clone(), deny_codes) {
-            push(denied, local_escalate(diag))
+            denied.push(local_escalate(diag))
         } else {
-            push(kept, diag)
+            kept.push(diag)
         }
         i = i + 1
     }

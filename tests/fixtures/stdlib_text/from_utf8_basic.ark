@@ -4,15 +4,15 @@ use std::text
 fn main() {
     // Basic ASCII bytes to string
     let mut bytes = Vec::new<i32>()
-    push(bytes, 72)
-    push(bytes, 105)
+    bytes.push(72)
+    bytes.push(105)
     let s = String::from_utf8_lossy(bytes)
     Test::assert_eq_string(s, "Hi")
     Test::assert_eq_i32(s.len(), 2)
 
     // Single byte
     let mut bytes2 = Vec::new<i32>()
-    push(bytes2, 65)
+    bytes2.push(65)
     let s2 = String::from_utf8_lossy(bytes2)
     Test::assert_eq_string(s2, "A")
 

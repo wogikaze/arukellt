@@ -24,15 +24,15 @@ impl Arena {
     /// Creates an empty arena.
     fn new() -> Arena {
         let mut entries: Vec<i32> = Vec::new<i32>()
-        push(entries, 0)
+        entries.push(0)
         Arena { entries: entries }
     }
 
     /// Allocates `value` and returns its stable `ArenaId`.
     fn alloc(mut self: Arena, value: i32) -> i32 {
         let idx: i32 = get_unchecked(self.entries, 0)
-        push(self.entries, value)
-        set(self.entries, 0, idx + 1)
+        self.entries.push(value)
+        self.entries.set(0, idx + 1)
         idx
     }
 
@@ -62,19 +62,19 @@ impl SlotMap {
     /// Creates an empty slot map.
     fn new() -> SlotMap {
         let mut slots: Vec<i32> = Vec::new<i32>()
-        push(slots, 0)
-        push(slots, 0)
+        slots.push(0)
+        slots.push(0)
         SlotMap { slots: slots }
     }
 
     /// Inserts `value` and returns its stable `SlotKey`.
     fn insert(mut self: SlotMap, value: i32) -> i32 {
         let key: i32 = get_unchecked(self.slots, 1)
-        push(self.slots, value)
-        push(self.slots, 1)
-        set(self.slots, 1, key + 1)
+        self.slots.push(value)
+        self.slots.push(1)
+        self.slots.set(1, key + 1)
         let count: i32 = get_unchecked(self.slots, 0)
-        set(self.slots, 0, count + 1)
+        self.slots.set(0, count + 1)
         key
     }
 
@@ -104,9 +104,9 @@ impl SlotMap {
             return None
         }
         let val: i32 = get_unchecked(self.slots, 2 + key * 2)
-        set(self.slots, 2 + key * 2 + 1, 0)
+        self.slots.set(2 + key * 2 + 1, 0)
         let count: i32 = get_unchecked(self.slots, 0)
-        set(self.slots, 0, count - 1)
+        self.slots.set(0, count - 1)
         Some(val)
     }
 
@@ -154,7 +154,7 @@ impl Interner {
             }
             idx = idx + 1
         }
-        push(self.values, value)
+        self.values.push(value)
         n
     }
 

@@ -339,10 +339,10 @@ fn gc_payload_promote_vt(mut ctx: LowerCtx, local_idx: i32, vt: i32, type_name: 
 
 fn gc_payload_vts_with_first(payload_vts: Vec<i32>, first_vt: i32) -> Vec<i32> {
     let mut result = Vec::new<i32>()
-    push(result, first_vt)
+    result.push(first_vt)
     let mut i = 1
     while i < payload_vts.len() {
-        push(result, get_unchecked(payload_vts, i))
+        result.push(get_unchecked(payload_vts, i))
         i = i + 1
     }
     result

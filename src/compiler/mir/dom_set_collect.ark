@@ -12,7 +12,7 @@ fn mir_collect_all_block_ids(f: MirFunction) -> Vec<i32> {
     let count = function_block_queries::MirFunction_block_count(f)
     let mut i = 0
     while i < count {
-        push(out, i)
+        out.push(i)
         i = i + 1
     }
     out

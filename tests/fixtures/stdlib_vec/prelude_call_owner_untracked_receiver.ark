@@ -3,25 +3,25 @@
 // bind the owner-qualified CoreOps from the checker's per-call resolution,
 // not from the receiver's local type spelling (#933 / #936).
 use std::host::stdio::Stdio
-use std::prelude::{get, pop, push}
+use std::prelude::{get}
 use std::test::Test
 
 fn main() {
     let mut first: Vec<i32> = Vec::new<i32>()
-    push(first, 1)
+    first.push(1)
     let mut second: Vec<i32> = Vec::new<i32>()
-    push(second, 2)
-    push(second, 3)
-    push(second, 4)
+    second.push(2)
+    second.push(3)
+    second.push(4)
     let mut values = if first.len() > 0 { second } else { first }
     Test::assert_eq_i32(values.len(), 3)
-    push(values, 9)
+    values.push(9)
     Test::assert_eq_i32(values.len(), 4)
     match get(values, 0) {
         Option::Some(value) => Test::assert_eq_i32(value, 2),
         None => Std::panic("expected Some, got None"),
     }
-    match pop(values) {
+    match values.pop() {
         Option::Some(value) => Test::assert_eq_i32(value, 9),
         None => Std::panic("expected Some, got None"),
     }

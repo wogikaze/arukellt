@@ -25,8 +25,8 @@ fn mir_register_struct_layout(mut ctx: LowerCtx, decl: CoreHirLayoutDecl) {
             joined = joined.concat(layout_decl_type_params::layout_decl_type_param_at(decl, pi))
             pi = pi + 1
         }
-        push(ctx.generic_struct_names, name.clone())
-        push(ctx.generic_struct_params, joined)
+        ctx.generic_struct_names.push(name.clone())
+        ctx.generic_struct_params.push(joined)
     }
     let mut fi = 0
     while fi < fc {

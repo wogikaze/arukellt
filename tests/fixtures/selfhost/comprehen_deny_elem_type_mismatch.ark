@@ -1,6 +1,6 @@
 // Error: element type mismatch
 fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
-    push(xs, 1)
+    xs.push(1)
     let ys: Vec<String> = [x * 2 for x in xs]
 }

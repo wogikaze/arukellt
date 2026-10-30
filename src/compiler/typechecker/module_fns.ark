@@ -16,7 +16,7 @@ fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
     while i < decl_count {
         let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) {
-            push(fn_sigs, sigs::fn_sig_from_fn_decl(node))
+            fn_sigs.push(sigs::fn_sig_from_fn_decl(node))
         }
         if ast_decl_predicates::node_is_const_decl(node) {
             let const_sig = sigs::fn_sig_from_const_decl(node)
@@ -28,7 +28,7 @@ fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
                 ast_access::node_text(node),
                 contract_fn_sig::FnSig_return_type(const_sig)
             )
-            push(fn_sigs, const_sig)
+            fn_sigs.push(const_sig)
         }
         if ast_decl_predicates::node_is_impl_decl(node) {
             collect_impl_method_sigs(fn_sigs, node, env)
@@ -44,7 +44,7 @@ fn collect_impl_method_sigs(mut fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv
     while ic < impl_child_count {
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
-            push(fn_sigs, impl_method_sig(env, node, meth))
+            fn_sigs.push(impl_method_sig(env, node, meth))
         }
         ic = ic + 1
     }
@@ -115,10 +115,10 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
         return sig
     }
     let mut params = Vec::new<TypeInfo>()
-    push(params, self_ty)
+    params.push(self_ty)
     let mut i = 1
     while i < contract_fn_sig::FnSig_param_count(sig) {
-        push(params, contract_fn_sig::FnSig_param_at(sig, i))
+        params.push(contract_fn_sig::FnSig_param_at(sig, i))
         i = i + 1
     }
     contract_fn_sig::FnSig_with_types(sig, params, contract_fn_sig::FnSig_return_type(sig))

@@ -120,40 +120,40 @@ fn edge_walk_state_clear(
     mut memo: EdgeTypeMemo
 ) {
     while env_names.len() > 0 {
-        pop(env_names)
+        env_names.pop()
     }
     while env_types.len() > 0 {
-        pop(env_types)
+        env_types.pop()
     }
     while segment.len() > 0 {
-        pop(segment)
+        segment.pop()
     }
     while memo.starts.len() > 0 {
-        pop(memo.starts)
+        memo.starts.pop()
     }
     while memo.ends.len() > 0 {
-        pop(memo.ends)
+        memo.ends.pop()
     }
     while memo.names.len() > 0 {
-        pop(memo.names)
+        memo.names.pop()
     }
     while memo.types.len() > 0 {
-        pop(memo.types)
+        memo.types.pop()
     }
 }
 
 fn edge_index_add(mut index: NameIndex, mut keys: Vec<String>, mut lists: Vec<Vec<String>>, key: String, val: String) {
     let ki = name_index::name_index_get(index, key.clone())
     if ki < 0 {
-        push(keys, key.clone())
+        keys.push(key.clone())
         let mut list = Vec::new<String>()
-        push(list, val)
-        push(lists, list)
+        list.push(val)
+        lists.push(list)
         name_index::name_index_set(index, key, keys.len() - 1)
         return
     }
     let mut list = get_unchecked(lists, ki)
-    push(list, val)
+    list.push(val)
 }
 
 // Emit names a bare call/method could target. `__` segments of mangled
@@ -204,9 +204,9 @@ fn edge_last_double_underscore(name: String) -> i32 {
 
 fn edge_bare_candidates_of(name: String, mut out: Vec<String>) {
     if name.clone().contains("::") {
-        push(out, edge_after_last(name.clone(), 58, 58))
+        out.push(edge_after_last(name.clone(), 58, 58))
     } else {
-        push(out, name.clone())
+        out.push(name.clone())
     }
     let first = edge_first_double_underscore(name.clone())
     if first >= 0 {
@@ -214,14 +214,14 @@ fn edge_bare_candidates_of(name: String, mut out: Vec<String>) {
         let rest = name.clone().slice(first + 2, name.clone().len())
         let second = edge_first_double_underscore(rest.clone())
         if second >= 0 {
-            push(out, rest.clone().slice(0, second))
+            out.push(rest.clone().slice(0, second))
         } else {
-            push(out, rest.clone())
+            out.push(rest.clone())
         }
         if head.clone().contains("::") {
-            push(out, edge_after_last(head, 58, 58))
+            out.push(edge_after_last(head, 58, 58))
         } else {
-            push(out, head)
+            out.push(head)
         }
     }
 }
@@ -282,7 +282,7 @@ fn edge_emit_names_for_fn_decl(
         is_generic = entry_fns_mono::mir_entry_decl_is_generic(entry_view, typed_index)
     }
     if !is_generic {
-        push(names, decl_name)
+        names.push(decl_name)
         return names
     }
     let bare_count = mono::mono_index_count(midx, decl_name.clone())
@@ -292,19 +292,19 @@ fn edge_emit_names_for_fn_decl(
         qualified_count = mono::mono_index_count(midx, qualified_name.clone())
     }
     if bare_count <= 0 && qualified_count <= 1 {
-        push(names, decl_name)
+        names.push(decl_name)
         return names
     }
     let mut bi = 0
     while bi < bare_count {
-        push(names, mono::mono_safe_name(mono::mono_index_mangled_at(midx, decl_name.clone(), bi)))
+        names.push(mono::mono_safe_name(mono::mono_index_mangled_at(midx, decl_name.clone(), bi)))
         bi = bi + 1
     }
     let mut qi = 0
     while qi < qualified_count {
         let mangled = mono::mono_safe_name(mono::mono_index_mangled_at(midx, qualified_name.clone(), qi))
         if !entry_fns_mono::string_vec_contains(names.clone(), mangled.clone()) {
-            push(names, mangled)
+            names.push(mangled)
         }
         qi = qi + 1
     }
@@ -318,12 +318,12 @@ fn edge_emit_names_for_method(mangled: String, midx: MonoIndex) -> Vec<String> {
     let mut names = Vec::new<String>()
     let inst_count = mono::mono_index_count(midx, mangled.clone())
     if inst_count <= 0 {
-        push(names, mangled)
+        names.push(mangled)
         return names
     }
     let mut i = 0
     while i < inst_count {
-        push(names, mono::mono_safe_name(mono::mono_index_mangled_at(midx, mangled.clone(), i)))
+        names.push(mono::mono_safe_name(mono::mono_index_mangled_at(midx, mangled.clone(), i)))
         i = i + 1
     }
     names
@@ -356,7 +356,7 @@ fn edge_mono_span_targets(ctx: LowerCtx, span_start: i32, raw: String, mut out: 
                     ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, i)
                 )
                 if target.len() > 0 && !entry_fns_mono::string_vec_contains(out.clone(), target.clone()) {
-                    push(out, target)
+                    out.push(target)
                 }
             }
         }
@@ -381,16 +381,16 @@ fn edge_add_callee_candidates(ctx: LowerCtx, mut out: Vec<String>, raw: String, 
             // compile hang).
             let mut pi = 0
             while pi < precise.len() {
-                push(out, get_unchecked(precise, pi).clone())
+                out.push(get_unchecked(precise, pi).clone())
                 pi = pi + 1
             }
             return
         }
     }
-    push(out, raw.clone())
+    out.push(raw.clone())
     let alias = hash_aliases::hashmap_builtin_alias(raw.clone())
     if !alias.clone().eq(raw.clone()) {
-        push(out, alias)
+        out.push(alias)
     }
 }
 
@@ -422,13 +422,13 @@ fn edge_env_set(mut names: Vec<String>, mut types: Vec<String>, name: String, ty
     let mut i = 0
     while i < names.len() {
         if get_unchecked(names, i).clone().eq(name.clone()) {
-            set(types, i, ty)
+            types.set(i, ty)
             return
         }
         i = i + 1
     }
-    push(names, name)
-    push(types, ty)
+    names.push(name)
+    types.push(ty)
 }
 
 // fn_index return type for a spelling, trying the after-last-`::` suffix
@@ -546,35 +546,35 @@ fn edge_push_typed_method_candidates(mut out: Vec<String>, recv_ty: String, meth
         if meth.len() > 0 {
             let target = call_rewrite_hashmap::hashmap_family_method_target(family.clone(), meth.clone())
             if target.len() > 0 {
-                push(out, target)
+                out.push(target)
             }
         }
         let pair_owner = method_resolve::mir_hashmap_impl_owner_name(owner_ty.clone())
         if pair_owner.len() > 0 {
-            push(out, pair_owner.clone().concat(String_from("::").concat(method.clone())))
+            out.push(pair_owner.clone().concat(String_from("::").concat(method.clone())))
         }
     }
     let hs_family = call_rewrite_hashset::hashset_family_for_type(owner_ty.clone())
     if hs_family.len() > 0 {
         let hs_target = call_rewrite_hashset::hashset_method_target_for_family(hs_family.clone(), method.clone())
         if hs_target.len() > 0 {
-            push(out, hs_target)
+            out.push(hs_target)
         }
         let hs_owner = method_resolve::mir_inst_owner_name(recv_ty.clone())
         if hs_owner.len() > 0 {
-            push(out, hs_owner.clone().concat(String_from("::").concat(method.clone())))
+            out.push(hs_owner.clone().concat(String_from("::").concat(method.clone())))
         }
     }
     let bare_owner = call_rewrite_method::mir_bare_receiver_type_name(owner_ty.clone())
     if bare_owner.len() > 0 {
-        push(out, bare_owner.clone().concat(String_from("::").concat(method.clone())))
+        out.push(bare_owner.clone().concat(String_from("::").concat(method.clone())))
     }
     // Per-instantiation impl owner (GenTakeIter<VecIter> ->
     // GenTakeIter_VecIter::m); differs from bare_owner only for generic
     // receivers the pair form did not already cover.
     let inst_owner = method_resolve::mir_inst_owner_name(recv_ty.clone())
     if inst_owner.len() > 0 && !inst_owner.clone().eq(bare_owner.clone()) {
-        push(out, inst_owner.clone().concat(String_from("::").concat(method.clone())))
+        out.push(inst_owner.clone().concat(String_from("::").concat(method.clone())))
     }
 }
 
@@ -592,7 +592,7 @@ fn edge_push_resolved_once(mut out: Vec<String>, resolved: String) {
         return
     }
     if !entry_fns_mono::string_vec_contains(out.clone(), resolved.clone()) {
-        push(out, resolved)
+        out.push(resolved)
     }
 }
 
@@ -642,12 +642,12 @@ fn edge_resolve_method_site(
     let mut owners = Vec::new<String>()
     let inst_owner = method_resolve::mir_inst_owner_name(owner_ty.clone())
     if inst_owner.len() > 0 {
-        push(owners, inst_owner.clone())
+        owners.push(inst_owner.clone())
     }
     let bare_owner = call_rewrite_method::mir_bare_receiver_type_name(owner_ty.clone())
     if bare_owner.len() > 0 &&
     !entry_fns_mono::string_vec_contains(owners.clone(), bare_owner.clone()) {
-        push(owners, bare_owner.clone())
+        owners.push(bare_owner.clone())
     }
     let mut oi = 0
     while oi < owners.len() {
@@ -716,10 +716,10 @@ fn edge_infer_expr_type(
             return get_unchecked(memo.types, memo_idx).clone()
         }
         let inferred = edge_infer_method_type(ctx, node, env_names, env_types, memo)
-        push(memo.starts, node_span_start)
-        push(memo.ends, node_span_end)
-        push(memo.names, frontend_ast_identity::corehir_node_text(node))
-        push(memo.types, inferred.clone())
+        memo.starts.push(node_span_start)
+        memo.ends.push(node_span_end)
+        memo.names.push(frontend_ast_identity::corehir_node_text(node))
+        memo.types.push(inferred.clone())
         return inferred
     }
     if kind == frontend_kind_map::nk_int_lit() {
@@ -921,7 +921,7 @@ fn edge_split_angle_args(inner: String, mut out: Vec<String>) {
             depth = depth - 1
         }
         if (ch == 44 && depth == 0) || at_end {
-            push(out, inner.clone().slice(seg_start, i))
+            out.push(inner.clone().slice(seg_start, i))
             seg_start = i + 1
         }
         i = i + 1
@@ -1070,7 +1070,7 @@ fn edge_env_substitute(mut env_types: Vec<String>, emit_name: String) {
     while i < env_types.len() {
         let ty = get_unchecked(env_types, i).clone()
         let substituted = edge_subst_param_type(ty, emit_name.clone())
-        set(env_types, i, substituted)
+        env_types.set(i, substituted)
         i = i + 1
     }
 }
@@ -1116,7 +1116,7 @@ fn edge_push_for_desugars(mut ctx: LowerCtx, mut out: Vec<String>, span_start: i
         work.clone()
     )
     if into_iter_callee.len() > 0 {
-        push(out, edge_precise_mark(into_iter_callee))
+        out.push(edge_precise_mark(into_iter_callee))
         pushed = pushed + 1
         let iterator_ty = ctx_fn_return_type::ctx_fn_return_type_name(ctx, into_iter_callee.clone())
         if iterator_ty.len() > 0 {
@@ -1126,14 +1126,14 @@ fn edge_push_for_desugars(mut ctx: LowerCtx, mut out: Vec<String>, span_start: i
                 iterator_ty
             )
             if next_callee.len() > 0 {
-                push(out, edge_precise_mark(next_callee))
+                out.push(edge_precise_mark(next_callee))
                 pushed = pushed + 1
             }
         }
     }
     let direct_next = for_iter_resolve::mir_for_next_callee(ctx, span_start, work)
     if direct_next.len() > 0 {
-        push(out, edge_precise_mark(direct_next))
+        out.push(edge_precise_mark(direct_next))
         pushed = pushed + 1
     }
     pushed
@@ -1199,7 +1199,7 @@ fn edge_collect_calls(
         if callee_text.clone().eq(String_from("HashMap::with_capacity")) {
             let typed = edge_ctor_spelling(callee)
             if typed.len() > 0 {
-                push(out, typed)
+                out.push(typed)
             }
         }
     }
@@ -1217,7 +1217,7 @@ fn edge_collect_calls(
                 site_resolved = true
                 let mut pi = 0
                 while pi < precise.len() {
-                    push(out, get_unchecked(precise, pi).clone())
+                    out.push(get_unchecked(precise, pi).clone())
                     pi = pi + 1
                 }
             }
@@ -1245,7 +1245,7 @@ fn edge_collect_calls(
                 // keep explosion on iterator chains, 2026-10-13).
                 let mut ri = 0
                 while ri < resolved.len() {
-                    push(out, edge_precise_mark(get_unchecked(resolved, ri).clone()))
+                    out.push(edge_precise_mark(get_unchecked(resolved, ri).clone()))
                     ri = ri + 1
                 }
             } else {
@@ -1391,7 +1391,7 @@ fn edge_collect_calls(
     if frontend_expr_kind::corehir_kind_is_expr_ident(kind) || frontend_expr_kind::corehir_kind_is_expr_path(kind) {
         let text = frontend_ast_identity::corehir_node_text(node)
         if ctx_fn_index::ctx_fn_index_find(ctx, text) >= 0 {
-            push(out, text.clone())
+            out.push(text.clone())
         }
     }
     let mut ci = 0
@@ -1416,17 +1416,17 @@ fn edge_push_caller_segment(mut table: AstEdgeTable, caller_names: Vec<String>, 
         let list_idx = name_index::name_index_get(table.caller_index, caller.clone())
         if list_idx < 0 {
             let mut list = Vec::new<i32>()
-            push(list, pos)
+            list.push(pos)
             name_index::name_index_set(table.caller_index, caller.clone(), table.caller_lists.len())
-            push(table.caller_lists, list)
+            table.caller_lists.push(list)
         } else {
-            push(get_unchecked(table.caller_lists, list_idx), pos)
+            get_unchecked(table.caller_lists, list_idx).push(pos)
         }
-        push(table.callers, caller)
-        push(table.offs, table.names.len())
+        table.callers.push(caller)
+        table.offs.push(table.names.len())
         let mut j = 0
         while j < segment.len() {
-            push(table.names, get_unchecked(segment, j).clone())
+            table.names.push(get_unchecked(segment, j).clone())
             j = j + 1
         }
         i = i + 1
@@ -1531,7 +1531,7 @@ fn mir_ast_edge_table_build(mut ctx: LowerCtx, mut body_source: MirLowerEntryBod
         }
         di = di + 1
     }
-    push(table.offs, table.names.len())
+    table.offs.push(table.names.len())
     table
 }
 
@@ -1546,57 +1546,57 @@ fn mir_ast_edge_table_build(mut ctx: LowerCtx, mut body_source: MirLowerEntryBod
 fn edge_rewrite_targets(name: String, mut out: Vec<String>) {
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
     if !alias.clone().eq(name.clone()) {
-        push(out, alias)
+        out.push(alias)
     }
     let ctor = call_rewrite_hashmap::mir_rewrite_hashmap_constructor(name.clone())
     if ctor.len() > 0 {
-        push(out, ctor)
+        out.push(ctor)
     }
     let meth = call_rewrite_hashmap::hashmap_method_name(name.clone())
     let fam = call_rewrite_hashmap::hashmap_family_for_callee(name.clone())
     if meth.len() > 0 && fam.len() > 0 {
         let target = call_rewrite_hashmap::hashmap_family_method_target(fam.clone(), meth.clone())
         if target.len() > 0 {
-            push(out, target)
+            out.push(target)
         }
     }
     let hs_ctor = call_rewrite_hashset::mir_rewrite_hashset_constructor(name.clone())
     if hs_ctor.len() > 0 {
-        push(out, hs_ctor)
+        out.push(hs_ctor)
     }
     let hs_meth = call_rewrite_hashset::mir_rewrite_hashset_method(name.clone())
     if hs_meth.len() > 0 {
-        push(out, hs_meth)
+        out.push(hs_meth)
     }
     let vec_coreop = method_resolve::mir_vec_method_prefer_coreop_name(name.clone())
     if vec_coreop.len() > 0 {
-        push(out, vec_coreop)
+        out.push(vec_coreop)
     }
     let intr = method_resolve::mir_builtin_method_to_intrinsic(
         name.clone(),
         method_resolve::mir_bare_method_name(name.clone())
     )
     if intr.len() > 0 {
-        push(out, intr)
+        out.push(intr)
     }
     // vec:/array: receivers lower access/len/set/pop to raw_array_* and
     // vec_* names (call_rewrite_vec*); the receiver type is unavailable
     // pre-lower, so the raw spellings ride alongside the impl name.
     if call_rewrite_vec::is_vec_get_unchecked_callee(name.clone()) {
-        push(out, String_from("raw_array_get_unchecked"))
+        out.push(String_from("raw_array_get_unchecked"))
     }
     if call_rewrite_vec::is_vec_get_callee(name.clone()) {
-        push(out, String_from("vec_get"))
+        out.push(String_from("vec_get"))
     }
     if call_rewrite_vec::is_vec_len_callee(name.clone()) ||
     call_rewrite_vec::is_vec_set_callee(name.clone()) {
-        push(out, String_from("raw_array_len"))
+        out.push(String_from("raw_array_len"))
     }
     if call_rewrite_vec::is_vec_set_callee(name.clone()) {
-        push(out, String_from("raw_array_set_unchecked"))
+        out.push(String_from("raw_array_set_unchecked"))
     }
     if call_rewrite_vec::is_vec_pop_callee(name.clone()) {
-        push(out, String_from("vec_pop"))
+        out.push(String_from("vec_pop"))
     }
 }
 
@@ -1610,7 +1610,7 @@ fn edge_resolve_push(ctx: LowerCtx, table: AstEdgeTable, name: String, mut seen:
         return
     }
     name_index::name_index_insert_first(seen, name.clone(), 1)
-    push(out, name.clone())
+    out.push(name.clone())
     let mut rewrites = Vec::new<String>()
     edge_rewrite_targets(name.clone(), rewrites)
     let mut i = 0
@@ -1817,12 +1817,12 @@ fn mir_ast_edge_table_resolve_caller(ctx: LowerCtx, table: AstEdgeTable, caller_
 fn mir_ast_edge_reachable_names(ctx: LowerCtx, table: AstEdgeTable, export_roots: Vec<String>) -> NameIndex {
     let mut keep = name_index::NameIndex_new(table.callers.len() + 16)
     let mut queue = Vec::new<String>()
-    push(queue, String_from("main"))
-    push(queue, String_from("_start"))
-    push(queue, String_from("__test_main"))
+    queue.push(String_from("main"))
+    queue.push(String_from("_start"))
+    queue.push(String_from("__test_main"))
     let mut ri = 0
     while ri < export_roots.len() {
-        push(queue, get_unchecked(export_roots, ri).clone())
+        queue.push(get_unchecked(export_roots, ri).clone())
         ri = ri + 1
     }
     // Mark names at push time, not pop time: queue entries are unique by
@@ -1850,7 +1850,7 @@ fn mir_ast_edge_reachable_names(ctx: LowerCtx, table: AstEdgeTable, export_roots
                 let callee = get_unchecked(names, ni)
                 if name_index::name_index_get(keep, callee.clone()) < 0 {
                     name_index::name_index_insert_first(keep, callee.clone(), 1)
-                    push(queue, callee)
+                    queue.push(callee)
                 }
                 ni = ni + 1
             }

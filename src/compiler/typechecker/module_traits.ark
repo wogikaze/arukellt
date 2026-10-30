@@ -16,7 +16,7 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
         if ast_decl_predicates::node_is_struct_decl(node) ||
         ast_decl_predicates::node_is_enum_decl(node) ||
         ast_decl_predicates::node_is_resource_decl(node) {
-            push(names, ast_access::node_text(node))
+            names.push(ast_access::node_text(node))
         }
         i = i + 1
     }

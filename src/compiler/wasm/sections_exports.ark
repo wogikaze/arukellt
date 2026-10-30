@@ -91,7 +91,7 @@ fn ExportNameCounts_new(expected: i32) -> ExportNameCounts {
     let mut buckets = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
-        push(buckets, 0)
+        buckets.push(0)
         i = i + 1
     }
     ExportNameCounts {
@@ -126,9 +126,9 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
     while probes < capacity {
         let bucket = get_unchecked(counts.buckets, slot)
         if bucket == 0 {
-            push(counts.keys, name)
-            push(counts.vals, 1)
-            set(counts.buckets, slot, counts.keys.len())
+            counts.keys.push(name)
+            counts.vals.push(1)
+            counts.buckets.set(slot, counts.keys.len())
             return 0
         }
         let key = get_unchecked(counts.keys, bucket - 1)
@@ -146,7 +146,7 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
         }
         if same {
             let prev = get_unchecked(counts.vals, bucket - 1)
-            set(counts.vals, bucket - 1, prev + 1)
+            counts.vals.set(bucket - 1, prev + 1)
             return prev
         }
         slot = (slot + 1) % capacity

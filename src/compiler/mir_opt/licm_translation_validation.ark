@@ -51,7 +51,7 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
         if found < 0 {
             return false
         }
-        push(selected, found)
+        selected.push(found)
         search_from = found + 1
         hi = hi + 1
     }

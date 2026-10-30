@@ -10,7 +10,7 @@ pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<
         let combined_dc = module_state_modules::ModuleDecls_decl_count(combined_md)
         let mut combined_dk = 0
         while combined_dk < combined_dc {
-            push(all_decls, module_state_modules::ModuleDecls_decl_at(combined_md, combined_dk))
+            all_decls.push(module_state_modules::ModuleDecls_decl_at(combined_md, combined_dk))
             combined_dk = combined_dk + 1
         }
         combined_mi = combined_mi + 1

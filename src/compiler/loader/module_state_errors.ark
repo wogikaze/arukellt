@@ -7,5 +7,5 @@ fn LoadState_errors(state: LoadState) -> Vec<String> {
 }
 
 fn LoadState_push_error(mut state: LoadState, error: String) {
-    push(state.errors, error)
+    state.errors.push(error)
 }

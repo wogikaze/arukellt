@@ -88,20 +88,20 @@ fn wit_push_bindings_for_import(mut bindings: Vec<WitImportBinding>, wit_paths: 
         return
     }
     if package_id.clone().eq("test:host/math") {
-        push(bindings, WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", alias.clone().concat("::add")))
+        bindings.push(WitImportBinding_new("i32_i32_1i32", "test:host/math", "test:host/math", "test:host/math", "add", alias.clone().concat("::add")))
         return
     }
     if package_id.clone().eq("test:doc/parse") {
-        push(bindings, WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", alias.clone().concat("::parse_markdown")))
+        bindings.push(WitImportBinding_new("String_1i32", "test:doc/parse", "test:doc/parse", "test:doc/parse", "parse-markdown", alias.clone().concat("::parse_markdown")))
         return
     }
     if package_id.clone().eq("test:host/host") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", alias.clone().concat("::set_perms")))
+        bindings.push(WitImportBinding_new("i32_0", "test:host/host", "test:host/host", "test:host/host", "set-perms", alias.clone().concat("::set_perms")))
         return
     }
     if package_id.clone().eq("test:host/handles") {
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", alias.clone().concat("::take")))
-        push(bindings, WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", alias.clone().concat("::peek")))
+        bindings.push(WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "take", alias.clone().concat("::take")))
+        bindings.push(WitImportBinding_new("i32_0", "test:host/handles", "test:host/handles", "test:host/handles", "peek", alias.clone().concat("::peek")))
     }
 }
 
@@ -112,7 +112,7 @@ fn wit_push_bindings_for_doc(mut bindings: Vec<WitImportBinding>, alias: String,
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
     for fi in 0..funcs.len() {
         let func = get_unchecked(funcs, fi)
-        push(bindings, WitImportBinding_new(
+        bindings.push(WitImportBinding_new(
                 wit_register::wit_binding_type_sig(func, doc),
                 interface_id.clone(),
                 component_interface_id.clone(),

@@ -18,7 +18,7 @@ fn CompileResult_ok(phase: i32) -> CompileResult {
 
 fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
     let mut msgs: Vec<String> = Vec::new<String>()
-    push(msgs, msg)
+    msgs.push(msg)
     CompileResult_new(false, phase, 1, msgs, Vec::new<Diagnostic>(), Vec::new<i32>())
 }
 
@@ -31,11 +31,11 @@ fn compile_result_set_error_count(mut result: CompileResult, error_count: i32) {
 }
 
 fn compile_result_push_error_message(mut result: CompileResult, message: String) {
-    push(result.error_messages, message)
+    result.error_messages.push(message)
 }
 
 fn compile_result_push_diagnostic(mut result: CompileResult, diagnostic: Diagnostic) {
-    push(result.diagnostics, diagnostic)
+    result.diagnostics.push(diagnostic)
 }
 
 fn compile_result_success(result: CompileResult) -> bool {

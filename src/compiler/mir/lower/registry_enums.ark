@@ -49,8 +49,8 @@ fn mir_register_generic_enum_params(mut ctx: LowerCtx, enum_name: String, decl: 
         joined = joined.concat(layout_decl_type_params::layout_decl_type_param_at(decl, pi))
         pi = pi + 1
     }
-    push(ctx.generic_enum_names, enum_name.clone())
-    push(ctx.generic_enum_params, joined)
+    ctx.generic_enum_names.push(enum_name.clone())
+    ctx.generic_enum_params.push(joined)
 }
 
 fn mir_register_enum_layout(mut ctx: LowerCtx, decl: CoreHirLayoutDecl) {

@@ -21,7 +21,7 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
     let mut i = 0
     while i < ctx.cell_fn_names.len() {
         if get_unchecked(ctx.cell_fn_names, i).eq(fn_name.clone()) {
-            push(out, inst_struct_set::MirInst_struct_set_named_idx(
+            out.push(inst_struct_set::MirInst_struct_set_named_idx(
                     get_unchecked(ctx.cell_env_locals, i),
                     get_unchecked(ctx.cell_local_indices, i),
                     get_unchecked(ctx.cell_env_names, i).clone(),

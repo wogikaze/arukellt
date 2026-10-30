@@ -14,9 +14,9 @@ fn key_self(x: String) -> String {
 
 fn main() {
     let mut s: Vec<String> = Vec::new<String>()
-    push(s, String_from("alpha"))
-    push(s, String_from("beta"))
-    push(s, String_from("gamma"))
+    s.push(String_from("alpha"))
+    s.push(String_from("beta"))
+    s.push(String_from("gamma"))
 
     Test::assert_eq_i32(s.binary_search(String_from("beta")), 1)
     Test::assert_eq_i32(s.binary_search(String_from("zed")), 0 - 1)

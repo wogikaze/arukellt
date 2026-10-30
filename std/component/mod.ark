@@ -30,16 +30,16 @@ fn scratch_bump(mut scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error>
     if nbytes < 0 || next > CANONICAL_SCRATCH_BASE + CANONICAL_SCRATCH_LIMIT {
         return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
     }
-    set(scratch, 0, next)
+    scratch.set(0, next)
     Ok(base)
 }
 
 fn scratch_write_byte(mut scratch: Vec<i32>, offset: i32, b: i32) {
     let idx = offset - CANONICAL_SCRATCH_BASE + 1
     while scratch.len() <= idx {
-        push(scratch, 0)
+        scratch.push(0)
     }
-    set(scratch, idx, b)
+    scratch.set(idx, b)
 }
 
 fn scratch_read_byte(scratch: Vec<i32>, offset: i32) -> i32 {
@@ -64,13 +64,13 @@ impl Component {
     /// Create the scratch vector with the canonical ABI base offset.
     fn scratch_new() -> Vec<i32> {
         let mut s = Vec::new<i32>()
-        push(s, CANONICAL_SCRATCH_BASE)
+        s.push(CANONICAL_SCRATCH_BASE)
         s
     }
 
     /// Lower `s` into scratch storage and return its pointer/length slice.
     fn lower_string(mut scratch: Vec<i32>, s: String) -> Result<CanonicalSlice, error::Error> {
-        set(scratch, 0, CANONICAL_SCRATCH_BASE)
+        scratch.set(0, CANONICAL_SCRATCH_BASE)
         let n = s.len()
         let ptr = scratch_bump(scratch, n)
         match ptr {
@@ -111,7 +111,7 @@ impl Component {
 
     /// Lower an i32 list into scratch storage and return its pointer/count slice.
     fn lower_list_i32(mut scratch: Vec<i32>, items: Vec<i32>) -> Result<CanonicalSlice, error::Error> {
-        set(scratch, 0, CANONICAL_SCRATCH_BASE)
+        scratch.set(0, CANONICAL_SCRATCH_BASE)
         let count = items.len()
         let bytes = count * 4
         let ptr = scratch_bump(scratch, bytes)
@@ -149,7 +149,7 @@ impl Component {
         let mut out = Vec::new<i32>()
         let mut i = 0
         while i < count {
-            push(out, scratch_read_byte(scratch, ptr + i * 4))
+            out.push(scratch_read_byte(scratch, ptr + i * 4))
             i = i + 1
         }
         Ok(out)

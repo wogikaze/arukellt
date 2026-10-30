@@ -112,7 +112,7 @@ fn emit_type_section(
     let mut pair_call_type_map = Vec::new<i32>()
     let mut pci = type_map.len() - pair_sig_count
     while pci < type_map.len() {
-        push(pair_call_type_map, get_unchecked(type_map, pci))
+        pair_call_type_map.push(get_unchecked(type_map, pci))
         pci = pci + 1
     }
     let mut plan = sections_type_plan::build_type_section_plan(
@@ -172,7 +172,7 @@ fn build_linear_gc_type_map(
     let count = 8
     let mut i = 0
     while i < count {
-        push(linear_map, get_unchecked(type_map, start + i))
+        linear_map.push(get_unchecked(type_map, start + i))
         i = i + 1
     }
     linear_map
@@ -249,7 +249,7 @@ fn build_type_sigs(
     // same (env, args...) -> ret signature.
     let mut psi = 0
     while psi < pair_sigs.len() {
-        push(type_sigs, get_unchecked(pair_sigs, psi))
+        type_sigs.push(get_unchecked(pair_sigs, psi))
         psi = psi + 1
     }
     type_sigs
@@ -265,7 +265,7 @@ fn canonicalize_type_sigs(mut mir: MirModule, type_sigs: Vec<String>) -> TypeCan
     let ts_count = type_sigs.len()
     let mut tsi = 0
     while tsi < ts_count {
-        push(type_map, module_canon::MirModule_canon_ensure(mir, get_unchecked(type_sigs, tsi).clone()))
+        type_map.push(module_canon::MirModule_canon_ensure(mir, get_unchecked(type_sigs, tsi).clone()))
         tsi = tsi + 1
     }
     TypeCanonPlan_new(module_canon::MirModule_canon_sigs(mir), type_map)

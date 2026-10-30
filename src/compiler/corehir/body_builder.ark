@@ -21,16 +21,16 @@ fn CoreHirBodyBuilder_new() -> CoreHirBodyTable {
 
 fn corehir_body_builder_push_expr(mut builder: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
     let index = builder.exprs.len()
-    push(builder.exprs, expr)
+    builder.exprs.push(expr)
     index
 }
 
 fn corehir_body_builder_push_fn_body_root(mut builder: CoreHirBodyTable, root: i32) {
-    push(builder.fn_body_roots, root)
+    builder.fn_body_roots.push(root)
 }
 
 fn corehir_body_builder_push_method_body_root(mut builder: CoreHirBodyTable, root: i32) {
-    push(builder.method_body_roots, root)
+    builder.method_body_roots.push(root)
 }
 
 fn corehir_body_builder_begin_fn_contracts(builder: CoreHirBodyTable) -> i32 {
@@ -43,14 +43,14 @@ fn corehir_body_builder_push_fn_contract(
     kind: String,
     result_name: String
 ) {
-    push(builder.contract_roots, root)
-    push(builder.contract_kinds, kind)
-    push(builder.contract_result_names, result_name)
+    builder.contract_roots.push(root)
+    builder.contract_kinds.push(kind)
+    builder.contract_result_names.push(result_name)
 }
 
 fn corehir_body_builder_end_fn_contracts(mut builder: CoreHirBodyTable, start: i32) {
-    push(builder.fn_contract_starts, start)
-    push(builder.fn_contract_counts, builder.contract_roots.len() - start)
+    builder.fn_contract_starts.push(start)
+    builder.fn_contract_counts.push(builder.contract_roots.len() - start)
 }
 
 // Explicit fail-closed handoff from construction capability to the frozen

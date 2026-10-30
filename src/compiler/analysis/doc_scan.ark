@@ -60,7 +60,7 @@ fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
         if !is_doc_line(trimmed) {
             break
         }
-        push(docs, doc_text_from_line(trimmed))
+        docs.push(doc_text_from_line(trimmed))
         if line_begin_cur == 0 { break }
         pos = line_begin_cur - 1
     }

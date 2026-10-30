@@ -64,7 +64,7 @@ fn ctx_fn_index_replace(
     let mut i = 0
     while i < count {
         let name = get_unchecked(fn_names, i).clone()
-        push(lengths, name.clone().len())
+        lengths.push(name.clone().len())
         name_index::name_index_insert_first(index, name, i)
         i = i + 1
     }
@@ -94,10 +94,10 @@ fn ctx_qualified_fn_index_replace(
 fn ctx_fn_index_push(mut ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
     let index = ctx.fn_names.len()
     name_index::name_index_insert_first(ctx.fn_name_index, name.clone(), index)
-    push(ctx.fn_name_lengths, name.clone().len())
-    push(ctx.fn_names, name)
-    push(ctx.fn_return_vts, return_vt)
-    push(ctx.fn_return_type_names, return_type_name)
+    ctx.fn_name_lengths.push(name.clone().len())
+    ctx.fn_names.push(name)
+    ctx.fn_return_vts.push(return_vt)
+    ctx.fn_return_type_names.push(return_type_name)
 }
 
 fn ctx_set_const_names(mut ctx: LowerCtx, decls: Vec<AstNode>) {
@@ -106,7 +106,7 @@ fn ctx_set_const_names(mut ctx: LowerCtx, decls: Vec<AstNode>) {
     while i < decls.len() {
         let decl = get_unchecked(decls, i)
         if frontend_decl_kind::corehir_kind_is_decl_const(frontend_ast_node::corehir_node_kind(decl)) {
-            push(ctx.const_names, frontend_ast_node::corehir_node_text(decl))
+            ctx.const_names.push(frontend_ast_node::corehir_node_text(decl))
         }
         i = i + 1
     }

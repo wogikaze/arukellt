@@ -277,15 +277,15 @@ fn collect_pub_use_edges(m: ModuleDecls, module_name: String, modules: Vec<Modul
         if !ast_decl_predicates::node_is_use(d) || !ast_access::node_is_pub(d) {
             continue
         }
-        push(edge_targets, module_name.clone())
-        push(edge_sources, pub_use_source_key(ast_access::node_text(d), modules))
+        edge_targets.push(module_name.clone())
+        edge_sources.push(pub_use_source_key(ast_access::node_text(d), modules))
         let child_count = ast_access::node_child_count(d)
         let mut ci = 0
         while ci < child_count {
             let child = ast_access::node_child_at(d, ci)
             if ast_decl_predicates::node_is_use(child) {
-                push(edge_targets, module_name.clone())
-                push(edge_sources, pub_use_source_key(ast_access::node_text(child), modules))
+                edge_targets.push(module_name.clone())
+                edge_sources.push(pub_use_source_key(ast_access::node_text(child), modules))
             }
             ci = ci + 1
         }

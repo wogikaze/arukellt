@@ -32,17 +32,8 @@ pub fn deprecated_call_message(name: String) -> String {
 
 // ── Deprecated qualified path calls (cmp::min → a.cmp(b)) ──────────────
 fn deprecated_vec_call_message(name: String) -> String {
-    if name.clone().eq("push") {
-        return "use the Vec method `v.push(x)` instead"
-    }
-    if name.clone().eq("pop") {
-        return "use the Vec method `v.pop()` instead"
-    }
     if name.clone().eq("get") {
         return "use the Vec method `v.get(idx)` instead"
-    }
-    if name.clone().eq("set") {
-        return "use the Vec method `v.set(idx, val)` instead"
     }
     if name.clone().eq("get_unchecked") {
         return "use the Vec method `v.get_unchecked(idx)` instead"
@@ -133,14 +124,18 @@ test mod "deprecated" {
         assert(deprecated_qualified_call_message("seq::max_by_key").len() == 0)
     }
     test "vec_frees_warn_w0009" {
-        assert(deprecated_call_message("push").len() > 0)
-        assert(deprecated_call_message("pop").len() > 0)
         assert(deprecated_call_message("get").len() > 0)
-        assert(deprecated_call_message("set").len() > 0)
         assert(deprecated_call_message("get_unchecked").len() > 0)
         assert(deprecated_call_message("as_slice").len() > 0)
         assert(deprecated_call_message("slice_len").len() > 0)
         assert(deprecated_call_message("slice_get").len() > 0)
+    }
+    test "retired vec mutation frees have no w0009 entry" {
+        // push / pop / set were deleted with E0100 hints
+        // (wave/vec-push-pop-set); resolver::removed_names owns them now.
+        assert(deprecated_call_message("push").len() == 0)
+        assert(deprecated_call_message("pop").len() == 0)
+        assert(deprecated_call_message("set").len() == 0)
     }
     test "retired len free has no w0009 entry" {
         assert(deprecated_call_message("len").len() == 0)

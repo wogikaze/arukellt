@@ -29,7 +29,7 @@ fn mir_edge_intern_bias() -> i32 {
 
 fn mir_edge_ensure_i32_len(mut values: Vec<i32>, min_len: i32, fill: i32) {
     while values.len() < min_len {
-        push(values, fill)
+        values.push(fill)
     }
 }
 
@@ -39,23 +39,23 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
     let mut counts = Vec::new<i32>()
     let mut fi = 0
     while fi < fn_count {
-        push(recorded, 0)
-        push(counts, 0)
+        recorded.push(0)
+        counts.push(0)
         fi = fi + 1
     }
     let n = edges.len()
     let header = mir_edge_header_len()
     let mut packed = Vec::new<i32>()
-    push(packed, fn_count)
+    packed.push(fn_count)
     if n <= header || fn_count <= 0 {
         fi = 0
         while fi < fn_count {
-            push(packed, 0)
+            packed.push(0)
             fi = fi + 1
         }
         fi = 0
         while fi <= fn_count {
-            push(packed, 0)
+            packed.push(0)
             fi = fi + 1
         }
         return packed
@@ -72,10 +72,10 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
                 let mir = get_unchecked(edges, i + 2)
                 if frame >= 0 {
                     mir_edge_ensure_i32_len(frame_to_mir, frame + 1, 0 - 1)
-                    set(frame_to_mir, frame, mir)
+                    frame_to_mir.set(frame, mir)
                 }
                 if mir >= 0 && mir < fn_count {
-                    set(recorded, mir, 1)
+                    recorded.set(mir, 1)
                 }
                 i = i + 3
             }
@@ -98,8 +98,8 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
             if frame >= 0 && frame < frame_to_mir.len() {
                 let mir = get_unchecked(frame_to_mir, frame)
                 if mir >= 0 && mir < fn_count {
-                    set(recorded, mir, 1)
-                    set(counts, mir, get_unchecked(counts, mir) + 1)
+                    recorded.set(mir, 1)
+                    counts.set(mir, get_unchecked(counts, mir) + 1)
                 }
             }
             i = i + 2
@@ -107,21 +107,21 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
     }
     fi = 0
     while fi < fn_count {
-        push(packed, get_unchecked(recorded, fi))
+        packed.push(get_unchecked(recorded, fi))
         fi = fi + 1
     }
     let mut running = 1 + fn_count + fn_count + 1
     fi = 0
     while fi < fn_count {
-        push(packed, running)
+        packed.push(running)
         running = running + get_unchecked(counts, fi)
         fi = fi + 1
     }
-    push(packed, running)
+    packed.push(running)
     let mut cursor = Vec::new<i32>()
     fi = 0
     while fi < fn_count {
-        push(cursor, get_unchecked(packed, 1 + fn_count + fi))
+        cursor.push(get_unchecked(packed, 1 + fn_count + fi))
         fi = fi + 1
     }
     i = header
@@ -142,8 +142,8 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
                 if mir >= 0 && mir < fn_count {
                     let at = get_unchecked(cursor, mir)
                     mir_edge_ensure_i32_len(packed, at + 1, 0)
-                    set(packed, at, fid)
-                    set(cursor, mir, at + 1)
+                    packed.set(at, fid)
+                    cursor.set(mir, at + 1)
                 }
             }
             i = i + 2

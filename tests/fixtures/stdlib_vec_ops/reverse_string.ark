@@ -2,9 +2,9 @@ use std::host::stdio::Stdio
 
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
-    push(v, String_from("a"))
-    push(v, String_from("b"))
-    push(v, String_from("c"))
+    v.push(String_from("a"))
+    v.push(String_from("b"))
+    v.push(String_from("c"))
     let mut reverse_lo = 0
     let mut reverse_hi = v.len() - 1
     while reverse_lo < reverse_hi {

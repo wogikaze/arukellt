@@ -1,0 +1,1 @@
+error[E0100|resolve]: removed prelude free function: pop; use `v.pop()` on the `Vec<T>` receiver instead

@@ -129,7 +129,7 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
         let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
-            if wit_decl::wit_func_is_export(f) { push(export_roots, wit_decl::wit_func_name(f)) }
+            if wit_decl::wit_func_is_export(f) { export_roots.push(wit_decl::wit_func_name(f)) }
         }
     }
     export_roots
@@ -137,7 +137,7 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 
 fn string_to_bytes(text: String) -> Vec<i32> {
     let mut bytes = Vec::new<i32>()
-    for i in 0..text.len() { push(bytes, text.byte_at(i)) }
+    for i in 0..text.len() { bytes.push(text.byte_at(i)) }
     bytes
 }
 

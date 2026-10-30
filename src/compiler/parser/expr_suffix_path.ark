@@ -99,7 +99,7 @@ fn parse_turbofish_type_args(mut p: Parser) -> Vec<AstNode> {
             return Vec::new<AstNode>()
         }
         let arg = types::parse_type(p)
-        push(args, arg)
+        args.push(arg)
     }
     args
 }

@@ -83,8 +83,8 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
                 // value must land in its local now; otherwise the linear
                 // store policy leaves it under the next producer.
                 ctx_emit(ctx, inst_local_set::MirInst_local_set(val_idx))
-                push(field_names, ast_node::node_text(field))
-                push(field_vals, val_idx)
+                field_names.push(ast_node::node_text(field))
+                field_vals.push(val_idx)
             }
         }
         f = f + 1

@@ -103,9 +103,9 @@ fn csv_impl_parse_row(line: String) -> Vec<String> {
                 i = i + 1
             }
         }
-        push(result, field)
+        result.push(field)
         if i == n && n > 0 && line.byte_at(n - 1) == 44 {
-            push(result, "")
+            result.push("")
         }
         if i >= n {
             break
@@ -191,7 +191,7 @@ fn csv_impl_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     while i < n {
         let line = get_unchecked(lines, i)
         if line.len() > 0 {
-            push(rows, csv_impl_parse_row(line))
+            rows.push(csv_impl_parse_row(line))
         }
         i = i + 1
     }

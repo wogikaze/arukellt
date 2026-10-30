@@ -27,7 +27,7 @@ fn lower_core_closure(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
         closure_pcells::ctx_promote_capture_cell(ctx, get_unchecked(caps, pi).clone()) >= 0 {
             eff = 0
         }
-        push(eff_rebinds, eff)
+        eff_rebinds.push(eff)
         pi = pi + 1
     }
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, synth.clone())

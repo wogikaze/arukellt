@@ -53,7 +53,7 @@ fn fmt_collect_import_entries(text: String, decls: Vec<AstNode>) -> Vec<FmtImpor
             }
             let line_end = fmt_import_line_end(text.clone(), line_begin)
             let group = fmt_import_sort_group(path.clone(), has_alias)
-            push(out, fmt_import_entry_new(line_begin, line_end, path, group, has_alias))
+            out.push(fmt_import_entry_new(line_begin, line_end, path, group, has_alias))
         }
         i = i + 1
     }

@@ -44,7 +44,7 @@ fn push_declared_type_name(mut names: Vec<String>, node: AstNode) {
     if ast_decl_predicates::node_is_struct_decl(node) ||
     ast_decl_predicates::node_is_enum_decl(node) ||
     ast_decl_predicates::node_is_resource_decl(node) {
-        push(names, ast_access::node_text(node))
+        names.push(ast_access::node_text(node))
     }
 }
 

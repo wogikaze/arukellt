@@ -19,16 +19,16 @@ pub fn handle_workspace_symbol(mut state: LspState, body: String) {
         let uri = symbol_index_record::indexed_symbol_uri(sym)
         let doc_text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
         if doc_text.len() > 0 {
-            push(source_texts, doc_text)
+            source_texts.push(doc_text)
         } else {
             let file_path = symbol_index_paths::uri_to_file_path(uri.clone())
             let read_result = Fs::read_to_string(file_path.clone())
             match read_result {
                 Result::Ok(text) => {
-                    push(source_texts, text)
+                    source_texts.push(text)
                 },
                 Result::Err(_) => {
-                    push(source_texts, String_new())
+                    source_texts.push(String_new())
                 },
             }
         }

@@ -19,11 +19,11 @@ struct ReadReport {
 
 fn payload() -> Vec<i32> {
     let mut data: Vec<i32> = Vec::new<i32>()
-    push(data, 104)
-    push(data, 101)
-    push(data, 108)
-    push(data, 108)
-    push(data, 111)
+    data.push(104)
+    data.push(101)
+    data.push(108)
+    data.push(108)
+    data.push(111)
     data
 }
 

@@ -54,8 +54,8 @@ fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, e
         // payload value is the field contents, not the enum variant itself.
         ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
-        push(payload_locals, save_local)
-        push(payload_vts, p_vt)
+        payload_locals.push(save_local)
+        payload_vts.push(p_vt)
         if p_vt == value_types::VT_F64() || p_vt == value_types::VT_I64() {
             total_bytes = total_bytes + 8
         } else {

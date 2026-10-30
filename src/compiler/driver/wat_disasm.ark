@@ -13,7 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{push, get_unchecked, String_from}
+use std::prelude::{get_unchecked, String_from}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -78,7 +78,7 @@ struct Out {
 }
 
 fn put(mut o: Out, depth: i32, text: String) {
-    push(o.lines, indent_of(depth).concat(text))
+    o.lines.push(indent_of(depth).concat(text))
 }
 
 fn put_gap(mut o: Out, depth: i32, message: String) {
@@ -271,7 +271,7 @@ fn quoted_bytes(mut r: Rd, count: i32) -> String {
     let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < count && r.p < r.n {
-        push(parts, escape_byte(read_byte(r)))
+        parts.push(escape_byte(read_byte(r)))
         i = i + 1
     }
     return "\"".concat(parts.join(String_from("")).concat("\""))
@@ -357,13 +357,13 @@ fn u64_hex(v: i64) -> String {
     let mut digits: Vec<String> = Vec::new<String>()
     let mut x: i64 = v
     while x > 0i64 {
-        push(digits, hex_digit(__intrinsic_i64_to_i32(x & 15i64)))
+        digits.push(hex_digit(__intrinsic_i64_to_i32(x & 15i64)))
         x = x >> 4i64
     }
     let mut reversed: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits.len() - 1
     while i >= 0 {
-        push(reversed, get_unchecked(digits, i))
+        reversed.push(get_unchecked(digits, i))
         i = i - 1
     }
     return reversed.join(String_from(""))
@@ -373,7 +373,7 @@ fn u64_hex_pad(v: i64, digits: i32) -> String {
     let mut out: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits - 1
     while i >= 0 {
-        push(out, hex_digit(__intrinsic_i64_to_i32((v >> __intrinsic_i32_to_i64(i * 4)) & 15i64)))
+        out.push(hex_digit(__intrinsic_i64_to_i32((v >> __intrinsic_i32_to_i64(i * 4)) & 15i64)))
         i = i - 1
     }
     return out.join(String_from(""))
@@ -689,7 +689,7 @@ fn const_expr_parts(mut r: Rd) -> Vec<String> {
             if text == "" {
                 done = true
             } else {
-                push(parts, text)
+                parts.push(text)
             }
         }
     }
@@ -1770,7 +1770,7 @@ fn read_function_section(mut r: Rd) -> Vec<i32> {
     let mut types: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count && r.p < r.n {
-        push(types, read_u32(r))
+        types.push(read_u32(r))
         i = i + 1
     }
     return types
@@ -1993,7 +1993,7 @@ fn locals_text(mut r: Rd) -> String {
         let vt: String = read_valtype_text(r)
         let mut j: i32 = 0
         while j < count && r.p < r.n {
-            push(parts, vt)
+            parts.push(vt)
             j = j + 1
         }
         i = i + 1

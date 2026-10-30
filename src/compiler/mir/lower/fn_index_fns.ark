@@ -35,9 +35,9 @@ fn mir_index_top_level_fn(
         false
     }
     if !skip_shadow_main && !skip_join_vec {
-        push(fn_names, decl_name.clone())
-        push(fn_return_vts, rvt)
-        push(fn_return_type_names, rtn.clone())
+        fn_names.push(decl_name.clone())
+        fn_return_vts.push(rvt)
+        fn_return_type_names.push(rtn.clone())
         // Mono variants belong to the generic decl only. A concrete decl
         // sharing the bare name with an entry-module generic (imported
         // std::collections::string::to_lower vs the program's to_lower<T>)

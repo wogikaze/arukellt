@@ -37,7 +37,7 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
 
 fn sig_reg_register_host_entry(mut table: TypeTable, mut registry: SignatureRegistry, name: String) {
     let mut returns = Vec::new<MirValueType>()
-    push(returns, sig_reg_host_return_mvt(table, name.clone()))
+    returns.push(sig_reg_host_return_mvt(table, name.clone()))
     let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
         type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>()),

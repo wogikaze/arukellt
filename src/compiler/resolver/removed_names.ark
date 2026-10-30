@@ -1603,11 +1603,24 @@ fn removed_gated_prelude_hint(name: String) -> String {
     "no longer auto-imported; add `use std::prelude::{".concat(name.concat("}`"))
 }
 
+// The three Vec mutation frees share their replacement text with the
+// explicit-import rejection in register_use, so the hint lives in one place.
+pub fn removed_vec_mutation_free_hint(name: String) -> String {
+    if name.clone().eq("push") { return String_from("use `v.push(x)` on the `Vec<T>` receiver instead") }
+    if name.clone().eq("pop") { return String_from("use `v.pop()` on the `Vec<T>` receiver instead") }
+    if name.clone().eq("set") { return String_from("use `v.set(idx, value)` on the `Vec<T>` receiver instead") }
+    String_new()
+}
+
 // Retired prelude free functions. Each hint names the exact receiver method
 // or namespace associated function so a bare old call fails with E0100 and a
 // usable migration target, not a request to import a name that no longer
 // exists.
 fn removed_prelude_free_hint(name: String) -> String {
+    let vec_mutation = removed_vec_mutation_free_hint(name.clone())
+    if vec_mutation.clone().len() > 0 {
+        return vec_mutation
+    }
     if name.clone().eq("abs") { return String_from("use `x.abs()` on the `i32` value instead") }
     if name.clone().eq("args") { return String_from("use `Env::args()` from `use std::host::env::Env` instead") }
     if name.clone().eq("byte_len") { return String_from("use `s.len_bytes()` on `String` instead") }
@@ -1893,6 +1906,11 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint("vec", "new_i32")) > 0)
         assert(len(removed_module_member_hint("std::collections::vec", "new_i32")) > 0)
         assert(len(removed_module_member_hint("vec", "unrelated")) == 0)
+    }
+    test "retired vec mutation frees have receiver method hints" {
+        assert(len(removed_name_hint("push")) > 0)
+        assert(len(removed_name_hint("pop")) > 0)
+        assert(len(removed_name_hint("set")) > 0)
     }
     test "hashmap builtins" {
         assert(len(removed_name_hint("HashMap_i32_i32_new")) > 0)

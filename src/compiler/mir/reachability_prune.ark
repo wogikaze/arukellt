@@ -21,13 +21,13 @@ fn mir_prune_unmarked_functions(mut m: MirModule, reachable: Vec<i32>) -> i32 {
     while i < fn_count {
         let f = module_functions::MirModule_function_at(m, i)
         if get_unchecked(reachable, i) != 0 {
-            push(kept, f)
-            push(old_to_new, kept.len() - 1)
+            kept.push(f)
+            old_to_new.push(kept.len() - 1)
             if keep_slots {
-                push(kept_slots, get_unchecked(slots, i))
+                kept_slots.push(get_unchecked(slots, i))
             }
         } else {
-            push(old_to_new, 0 - 1)
+            old_to_new.push(0 - 1)
             pruned = pruned + 1
         }
         i = i + 1

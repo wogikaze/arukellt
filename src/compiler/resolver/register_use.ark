@@ -66,6 +66,10 @@ fn retired_prelude_import_hint(name: String) -> String {
     if eq(name.clone(), "len") {
         return String_from("use `s.len()` on `String` or `v.len()` on `Vec<T>` instead")
     }
+    let vec_mutation = removed_names::removed_vec_mutation_free_hint(name.clone())
+    if vec_mutation.clone().len() > 0 {
+        return vec_mutation
+    }
     let numeric = removed_names::removed_numeric_conversion_hint(name.clone())
     if numeric.clone().len() > 0 {
         return numeric

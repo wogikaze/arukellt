@@ -16,6 +16,46 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — prelude free `push` / `pop` / `set` の退役 (ADR-046, ADR-087, ADR-088, #917, wave/vec-push-pop-set)
+
+- **Removed**: prelude の free `push(v, x)` / `pop(v)` / `set(v, i, x)`。
+  manifest entry と `std/prelude.ark` の `pub fn` 宣言を削除した。bare call
+  と `use std::prelude::{push|pop|set}` は **E0100** と receiver method hint
+  （`v.push(x)` / `v.pop()` / `v.set(i, x)`）で失敗する。宣言自体は
+  `Vec<T>` receiver method の signature anchor として private で残す
+  （String / struct / nested element の method 型付けに必要）。
+- **Migration**: compiler / std / fixtures / benchmarks の
+  free call 4,065 箇所を receiver method へ移行した。codemod は
+  `v.push(x)` / `v.pop()` / `v.set(i, x)` を生成し、`use std::prelude::{...}`
+  から 3 名を除去する。
+- **Root cause**: receiver method の call は引数を operand stack で渡すが、
+  module 定数は accessor call の結果が local に materialize されるため
+  stack に残らない。`v.set(0, K)` / `v.push(NIL)` は operand が 1 個不足し、
+  pin で build した s2 が invalid core Wasm を出していた。AST / typed CoreHIR
+  の両 method lowering で const 引数を reload し、CoreHIR direct call の
+  staged const も二重 copy しないようにした。linear `wasm32` の
+  `Stdio::println(x.to_string())` は printlike call の引数を stage して
+  修正した（wave/to-string-linear の fix を前提として取り込む）。
+- **Bootstrap**: pinned compiler は linear target で `Vec<String>` への
+  field-access 引数 push を materialize するため、compiler source の
+  `module_names.push(md.name)` は local へ hoist した。pin 更新時に戻す。
+- **Diagnostics / fixtures**: `resolver::removed_names` と
+  `resolver::register_use` に E0100 hint を追加し、W0009 行を削除した。
+  `stdlib_vec/prelude_const_argument{,_wasm32}` を追加し、const 引数の
+  `push` / `set` / `pop` を両 target で検証する。残差として
+  `docs/sample/parser.ark` は len 退役時点から型検査が通らない stale sample
+  のため、free `push` / `pop` 呼び出しを残す（sample 修復とは分離）。
+- **Scorecard**: real std surface 16 → **13**、`pub fn` declarations
+  16 → **13**、manifest public entries 16 → **13**、`must delete`
+  9 → **6**、vec intrinsic-compat rule 8 → **5**。
+- **Gates**: pin `56ff0808…` から build した s2 で `verify fixtures`
+  1956/1956 PASS（112 runtime、43/43 test、0 FAIL、runtime-contract
+  delegation 2）、`verify lane` PASS、`docs check` 6/6、
+  `selfhost diag-parity` PASS=273、ADR-029 fixpoint は
+  s2 == s3 = sha256 `6e0c6b60372cf82e2d17113c4bb529506fd2fefcaab614a6a77e213275198e6d`。
+  追加 fixture: `stdlib_vec/prelude_const_argument{,_wasm32}` と
+  `diagnostics/removed_vec_mutation_{free,import}`。
+
 ## 2026-10-30 — vec intrinsic-compat `len` free の退役 (ADR-046, ADR-087, ADR-091, #917, #936, wave/vec-intrinsic-len)
 
 - **Removed**: prelude の signature-only free `len(s: String) -> i32`。

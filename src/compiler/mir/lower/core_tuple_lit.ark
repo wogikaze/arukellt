@@ -27,8 +27,8 @@ fn lower_core_tuple(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExp
             ctx_api_local_types::ctx_local_mvt(ctx, child_idx)
         )
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, child_idx))
-        push(field_locals, save_local)
-        push(field_vts, child_vt)
+        field_locals.push(save_local)
+        field_vts.push(child_vt)
         if child_vt == value_types::VT_F64() {
             total_bytes = total_bytes + 8
         } else {

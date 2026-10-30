@@ -42,7 +42,7 @@ fn mir_opt_optimize_module(mut m: MirModule, opt_level: i32, target: String) -> 
             licm::run_licm(f)
         }
         gc_hint::run_gc_hint(f)
-        push(updated, f)
+        updated.push(f)
         fi = fi + 1
     }
     module_functions::MirModule_set_functions(m, updated)

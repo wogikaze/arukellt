@@ -280,7 +280,7 @@ through the `__intrinsic_*` conversion bridges (ADR-067).
 | `f64_bits_lo(x)` | `(x).to_bits_lo()` |
 | `f64_bits_hi(x)` | `(x).to_bits_hi()` |
 
-### Vec intrinsic-compat frees (10; `len` retired 2026-10-30)
+### Vec intrinsic-compat frees (`len`, `slice_len`, `push`, `pop`, `set` retired 2026-10-30)
 
 `len` retired in `wave/vec-intrinsic-len`. Bare calls and selective
 `use std::prelude::{len}` imports now fail with **E0100** and the
@@ -289,17 +289,26 @@ receiver-method hint; the same wave migrated 5,701 in-tree call sites
 served both `String` and `Vec` receivers; the checker selected the
 owner, so both are covered by one method name.
 
+`slice_len` retired in `wave/vec-intrinsics`. `push`, `pop` and `set`
+retired in `wave/vec-push-pop-set`; the same wave migrated 4,041 free
+calls in the compiler, std and fixtures to the receiver methods. The
+method-call operand stack had to be fixed first: a module constant
+argument lowers through its accessor call and is materialized into the
+argument local, so `v.set(0, K)` / `v.push(NIL)` emitted invalid core
+Wasm. The private generic declarations in `std/prelude.ark` remain as
+receiver-method signature anchors; they are not importable.
+
 | Deprecated API | Replacement |
 |----------------|-------------|
-| `push(v, x)` | `v.push(x)` |
-| `pop(v)` | `v.pop()` |
+| `push(v, x)` | `v.push(x)` (retired 2026-10-30) |
+| `pop(v)` | `v.pop()` (retired 2026-10-30) |
 | `len(v)` / `len(s)` | `v.len()` / `s.len()` (retired 2026-10-30) |
 | `get(v, i)` | `v.get(i)` |
-| `set(v, i, x)` | `v.set(i, x)` |
+| `set(v, i, x)` | `v.set(i, x)` (retired 2026-10-30) |
 | `get_unchecked(v, i)` | `v.get_unchecked(i)` |
 | `clear(v)` | `v.clear()` — stale non-callable entry, retired |
 | `as_slice(v, s, e)` | `v.as_slice(s, e)` |
-| `slice_len(view)` | `view.len()` |
+| `slice_len(view)` | `view.len()` (retired 2026-10-30) |
 | `slice_get(view, i)` | `view.get(i)` |
 
 ### Assertion frees (4) — retired 2026-10-30

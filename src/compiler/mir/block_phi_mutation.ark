@@ -2,5 +2,5 @@ use mir::phi_record
 use mir::types_block
 
 fn MirBlock_push_phi(mut block: MirBlock, phi: MirPhi) {
-    push(block.phis, phi)
+    block.phis.push(phi)
 }

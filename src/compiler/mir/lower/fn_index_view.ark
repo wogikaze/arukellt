@@ -27,7 +27,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: Mi
             if mir_entry_generic_decl(source, d) &&
             fn_names.len() > base_name_position &&
             get_unchecked(fn_names, base_name_position).eq(decl_name.clone()) {
-                push(priority_fn_indices, base_name_position)
+                priority_fn_indices.push(base_name_position)
             }
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
@@ -103,14 +103,14 @@ fn mir_collect_qualified_fn_aliases(
                     let typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, info_index, info_index)
                     let return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
                     let return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-                    push(fn_names, qualified_name.clone())
-                    push(fn_return_vts, return_vt)
-                    push(fn_return_type_names, return_type_name.clone())
+                    fn_names.push(qualified_name.clone())
+                    fn_return_vts.push(return_vt)
+                    fn_return_type_names.push(return_type_name.clone())
                     let import_name = mir_import_facing_qualified_name(qualified_name)
                     if import_name.len() > 0 {
-                        push(fn_names, import_name)
-                        push(fn_return_vts, return_vt)
-                        push(fn_return_type_names, return_type_name)
+                        fn_names.push(import_name)
+                        fn_return_vts.push(return_vt)
+                        fn_return_type_names.push(return_type_name)
                     }
                 }
             }
@@ -125,7 +125,7 @@ fn mir_import_facing_qualified_name(qualified_name: String) -> String {
     let mut index = 0
     while index < name_len - 1 {
         if qualified_name.byte_at(index) == 58 && qualified_name.byte_at(index + 1) == 58 {
-            push(separators, index)
+            separators.push(index)
             index = index + 2
         } else {
             index = index + 1

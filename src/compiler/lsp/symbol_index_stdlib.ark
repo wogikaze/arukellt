@@ -39,12 +39,12 @@ fn render_manifest_signature(name: String, params: String, returns: String) -> S
 
 fn push_function_symbol(mut out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String, detail: String, doc: String) {
     let nm = name.clone()
-    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_FUNCTION(), detail, module_path, stdlib_module_to_source_uri(module_path.clone()), 0, nm.len(), doc))
+    out.push(symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_FUNCTION(), detail, module_path, stdlib_module_to_source_uri(module_path.clone()), 0, nm.len(), doc))
 }
 
 fn push_type_symbol(mut out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String) {
     let detail = String_from("type ").concat(name.clone())
-    push(out, symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new(), 0, detail.len(), String_new()))
+    out.push(symbol_index_record::StdlibIndexedSymbol_new(name, kinds::LSP_SYMBOL_STRUCT(), detail, String_new(), String_new(), 0, detail.len(), String_new()))
 }
 
 fn flush_function_symbol(mut out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState) {
