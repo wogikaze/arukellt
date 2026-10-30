@@ -167,6 +167,7 @@ def main() -> int:
     removed_names = table_names(removed_text, "removed_name_hint")
     removed_names += table_names(removed_text, "removed_name_specific_hint")
     removed_names += table_names(removed_text, "removed_assertion_free_hint")
+    removed_names += table_names(removed_text, "removed_vec_mutation_free_hint")
     removed_names += table_names(removed_text, "is_gated_prelude_name")
     stable_names = set(table_names(stable_text, "is_stable_prelude_name"))
 
