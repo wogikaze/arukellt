@@ -1,0 +1,27 @@
+use std::host::stdio::Stdio
+
+fn identity(s: String) -> String {
+    s
+}
+
+fn pick(n: i32) -> String {
+    match n {
+        1 => 10.to_string(),
+        _ => 20.to_string(),
+    }
+}
+
+fn main() {
+    Stdio::println((1 + 2).to_string())
+    Stdio::println((1.5 + 2.5).to_string())
+    Stdio::println(identity((4 + 5).to_string()))
+
+    let assigned = (6 + 7).to_string()
+    Stdio::println(assigned)
+
+    Stdio::println(pick(3))
+    Stdio::println(match 1 {
+            1 => (2.5 + 0.5).to_string(),
+            _ => 0.to_string(),
+        })
+}

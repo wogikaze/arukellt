@@ -47,7 +47,12 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         }
     }
     let is_println = core_call_args::mir_core_is_printlike_callee(callee_name.clone())
-    let stage_call_args = !is_println && child_count > 2
+    // Printlike calls record the staged local as their receiver hint, so the
+    // argument must be materialized in a local. Leaving it stack-resident lets
+    // the previous call's store rule consume it before the print call reads
+    // the local (linear wasm32 `println(x.to_string())`). The legacy AST
+    // lowering stages printlike args for the same reason.
+    let stage_call_args = is_println || child_count > 2
     let mut staged_arg_locals = Vec::new<i32>()
     let mut arg_widen_i64 = Vec::new<i32>()
     let mut first_arg_idx = 0 - 1

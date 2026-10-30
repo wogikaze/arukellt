@@ -67,11 +67,10 @@ built from `494727819` + this wave, wasm32-gc pin `56ff0808…`):
   t3-run) pins the same BFS shape, and the existing `stdlib_deque/*` fixtures
   cover the remaining method surface.
 
-One unrelated limitation blocks printable `wasm32` runs: current s2 emits
-invalid Wasm for `Stdio::println(x.to_string())` on `wasm32`
-(`type mismatch: expected i32 but nothing on stack`, func validation). The
-pinned compiler predates it and the same program compiles on `wasm32-gc`, so
-the BFS acceptance evidence uses assert-only code on `wasm32`.
+The printable `wasm32` limitation is resolved (2026-10-30, see #917):
+`Stdio::println(x.to_string())` validates and runs on `wasm32` with the
+current s2. The BFS acceptance evidence stays assert-only to keep the fixture
+independent of print formatting.
 
 ## Workaround
 

@@ -2055,3 +2055,11 @@ classified there, in dependency-safe waves.
   to `Deque` (a two-line `Stdio::println(x.to_string())` reproduces it), so
   the wasm32 runtime fixture stays assert-only and the printable BFS fixture
   runs on `wasm32-gc`. `Deque<T>` remains provisional per ADR-086 §9.
+- **Resolved (2026-10-30, wave/to-string-linear)**: the `wasm32` invalid-Wasm
+  regression is fixed. The core-HIR direct-call lowerer now stages printlike
+  arguments (`core_call_direct_args.ark`), so the `to_string` result lands in
+  its destination local before the print call and the linear root-update
+  cannot consume the pending call argument. `Stdio::println((1+2).to_string())`
+  validates and prints `3` on both targets; `stdlib_core/to_string_value_contexts.ark`
+  (`run:` + `t3-run:`) covers int/float `to_string()` in print, assignment,
+  call-argument, and match contexts.
