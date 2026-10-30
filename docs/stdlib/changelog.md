@@ -16,6 +16,25 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-31 — `HashSet::with_capacity` の追加 (#917, wave/hashset-with-capacity)
+
+- **Added**: `HashSet<i32>` / `HashSet<String>` の associated constructor
+  `HashSet::with_capacity<T>(n)`。i32 family は flat store の
+  `hashmap_with_capacity`、String family は String-keyed map の
+  `hashmap_str_with_capacity` へ delegate し、default 16 slots ではなく要求した
+  bucket capacity で構築する。0 以下は 1 に clamp する。
+- **Contract**: 構築直後の `capacity()` は要求した bucket 数（0 は 1）を返す。
+  その後の insert は既存の 0.75 load-factor rehash で成長し、既存 member は
+  保持される。型引数は turbofish で指定する。
+- **Fixtures**: `stdlib_hashset/hashset_with_capacity` と `_wasm32` variant を
+  追加し、両 family の要求 capacity・0 clamp・40 要素成長後の member 保持を
+  両 target で検証する。registry 3667 -> 3669。
+- **Evidence**: `verify fixtures` PASS=1963 FAIL=0（113 runtime smoke、43/43
+  `test:`、2 runtime-unsupported）、`verify lane` PASS、`docs check` 6/6 PASS、
+  `selfhost diag-parity` PASS、ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `e92df1090d97d179a6eec784343e7dd9c4ac08460d1d13fcdaf8602334fcd201`、
+  pinned base `56ff0808…`）。
+
 ## 2026-10-30 — vec intrinsic-compat / provisional seq free の退役と ADR-092 例外の記録 (ADR-046, ADR-087, ADR-091, ADR-092, #917, wave/seq-fd-remain)
 
 - **Removed**: prelude の vec intrinsic-compat free

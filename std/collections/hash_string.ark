@@ -5,7 +5,8 @@
 //! struct with parallel arrays (T3). The functions here are non-public MIR
 //! lowering targets for the `impl HashMap<K, V>` and `impl HashSet<String>`
 //! methods; the user spelling is `HashMap::new<K, V>()` /
-//! `HashSet::new<String>()` plus receiver methods.
+//! `HashMap::with_capacity<K, V>(n)` / `HashSet::new<String>()` /
+//! `HashSet::with_capacity<String>(n)` plus receiver methods.
 //!
 //! The capacity / bulk-maintenance group (`with_capacity`, `capacity`,
 //! `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`,
@@ -994,6 +995,13 @@ fn hashmap_str_str_extend(m: HashMap<String, String>, other: HashMap<String, Str
 
 fn hashset_str_new() -> HashMap<String, i32> {
     hashmap_str_i32_new()
+}
+
+/// Create an empty String set with at least `cap` bucket slots (minimum 1).
+/// The set is a key view over the map store, so construction goes through the
+/// map's capacity constructor and keeps its zero-clamp and load-factor plan.
+fn hashset_str_with_capacity(cap: i32) -> HashMap<String, i32> {
+    hashmap_str_with_capacity(cap)
 }
 
 fn hashset_str_insert(m: HashMap<String, i32>, value: String) -> bool {

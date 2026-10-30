@@ -2,9 +2,11 @@
 //!
 //! Provides the raw HashMap and HashSet implementation layer backed by a flat
 //! `Vec<i32>` with open addressing and linear probing. The canonical source
-//! surface is `HashMap::new<K,V>()` and receiver methods; the compiler
-//! monomorphizes those calls to per-pair implementation functions and uses
-//! these helpers where the selected representation is linear memory.
+//! surface is `HashMap::new<K,V>()` / `HashMap::with_capacity<K,V>(n)` and
+//! `HashSet::new<T>()` / `HashSet::with_capacity<T>(n)` plus receiver
+//! methods; the compiler monomorphizes those calls to per-pair implementation
+//! functions and uses these helpers where the selected representation is
+//! linear memory.
 //!
 //! ## Generic dispatch
 //!
@@ -427,6 +429,13 @@ fn hashmap_extend(mut m: Vec<i32>, other: Vec<i32>) {
 /// Create a new empty HashSet.
 fn hashset_new() -> Vec<i32> {
     hashmap_new()
+}
+
+/// Create an empty set with at least `cap` bucket slots (minimum 1). The set
+/// shares the flat map's counters, so construction goes through the map's
+/// capacity constructor instead of allocating a default store.
+fn hashset_with_capacity(cap: i32) -> Vec<i32> {
+    hashmap_with_capacity(cap)
 }
 
 /// Insert a value into the set. Returns true if the value was newly added,

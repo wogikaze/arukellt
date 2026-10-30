@@ -5,14 +5,14 @@
 //! bucket store in `std::collections::hash_string`. MIR rewrites the shell
 //! calls to the store functions, so the shell bodies never recurse at runtime.
 //!
-//! The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
-//! `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`)
-//! are available on both element families. `HashSet<String>` is a key view
-//! over the `HashMap<String, i32>` bucket store: membership uses the same
-//! keys/flags arrays, the value slot is always 0, and the capacity group
-//! reuses the map's 0.75 load-factor machinery. Both element families
-//! implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
-//! `Debug`.
+//! The constructors (`new`, `with_capacity`) and the aggregate operations
+//! (`to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`,
+//! `try_reserve`, `shrink_to_fit`, `clear`, `extend`) are available on both
+//! element families. `HashSet<String>` is a key view over the
+//! `HashMap<String, i32>` bucket store: membership uses the same keys/flags
+//! arrays, the value slot is always 0, and the capacity group reuses the
+//! map's 0.75 load-factor machinery. Both element families implement
+//! `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and `Debug`.
 //!
 //! `iter` returns a `VecIter<T>` over a snapshot and `retain` evaluates its
 //! predicate against a snapshot before reinserting kept elements; Arukellt v2
@@ -33,11 +33,12 @@ use std::core::iter
 
 /// A set of unique `i32` or `String` values.
 ///
-/// Construct with `HashSet::new<i32>()` / `HashSet::new<String>()`, or collect
-/// a `VecIter` with `HashSet::from_iter`, and use the receiver methods; the
-/// `i32` operations lower to the flat hash store, and the `String` operations
-/// lower to the key view over the String-keyed map's bucket store. The storage
-/// representation is private.
+/// Construct with `HashSet::new<i32>()` / `HashSet::new<String>()`,
+/// `HashSet::with_capacity<T>(cap)`, or collect a `VecIter` with
+/// `HashSet::from_iter`, and use the receiver methods; the `i32` operations
+/// lower to the flat hash store, and the `String` operations lower to the key
+/// view over the String-keyed map's bucket store. The storage representation
+/// is private.
 pub struct HashSet<T> {
 }
 
@@ -45,6 +46,11 @@ impl<T> HashSet<T> {
     /// Creates an empty set.
     fn new() -> HashSet<T> {
         HashSet::new<T>()
+    }
+
+    /// Creates an empty set with at least `cap` bucket slots (minimum 1).
+    fn with_capacity(cap: i32) -> HashSet<T> {
+        HashSet::with_capacity<T>(cap)
     }
 }
 

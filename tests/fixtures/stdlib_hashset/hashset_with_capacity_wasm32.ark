@@ -1,0 +1,50 @@
+// `HashSet::with_capacity<T>` constructs the map-backed store at the
+// requested bucket count; later growth keeps every member reachable.
+use std::collections::hash_set::HashSet
+use std::test::Test
+
+fn main() {
+    // i32 family: construction starts above the store's default capacity.
+    let default_ints: HashSet<i32> = HashSet::new<i32>()
+    let reserved_ints: HashSet<i32> = HashSet::with_capacity<i32>(64)
+    Test::assert_eq_i32(reserved_ints.capacity(), 64)
+    Test::assert_true(reserved_ints.capacity() > default_ints.capacity())
+    Test::assert_true(reserved_ints.is_empty())
+
+    let zero_ints: HashSet<i32> = HashSet::with_capacity<i32>(0)
+    Test::assert_eq_i32(zero_ints.capacity(), 1)
+
+    let mut ints: HashSet<i32> = HashSet::with_capacity<i32>(8)
+    let int_capacity: i32 = ints.capacity()
+    let mut index: i32 = 0
+    while index < 40 {
+        Test::assert_true(ints.insert(index))
+        index = index + 1
+    }
+    Test::assert_eq_i32(ints.len(), 40)
+    Test::assert_true(ints.capacity() > int_capacity)
+    Test::assert_true(ints.contains(0))
+    Test::assert_true(ints.contains(39))
+
+    // String family: the same requested capacity over the bucket store.
+    let default_strings: HashSet<String> = HashSet::new<String>()
+    let reserved_strings: HashSet<String> = HashSet::with_capacity<String>(32)
+    Test::assert_eq_i32(reserved_strings.capacity(), 32)
+    Test::assert_true(reserved_strings.capacity() > default_strings.capacity())
+    Test::assert_true(reserved_strings.is_empty())
+
+    let zero_strings: HashSet<String> = HashSet::with_capacity<String>(0)
+    Test::assert_eq_i32(zero_strings.capacity(), 1)
+
+    let mut words: HashSet<String> = HashSet::with_capacity<String>(8)
+    let word_capacity: i32 = words.capacity()
+    let mut word_index: i32 = 0
+    while word_index < 40 {
+        Test::assert_true(words.insert("value".concat(word_index.to_string())))
+        word_index = word_index + 1
+    }
+    Test::assert_eq_i32(words.len(), 40)
+    Test::assert_true(words.capacity() > word_capacity)
+    Test::assert_true(words.contains("value0"))
+    Test::assert_true(words.contains("value39"))
+}

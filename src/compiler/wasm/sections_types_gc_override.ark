@@ -193,6 +193,10 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
     fn_name.clone().starts_with("hashset_new__") ||
     fn_name.clone().eq("hash::hashset_new") ||
     fn_name.clone().ends_with("::hashset_new") ||
+    fn_name.clone().eq("hashset_with_capacity") ||
+    fn_name.clone().starts_with("hashset_with_capacity__") ||
+    fn_name.clone().eq("hash::hashset_with_capacity") ||
+    fn_name.clone().ends_with("::hashset_with_capacity") ||
     fn_name.clone().eq("hashset_i32_new") ||
     fn_name.clone().starts_with("hashset_i32_new__") ||
     fn_name.clone().ends_with("::hashset_i32_new") {

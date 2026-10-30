@@ -6,6 +6,7 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
+use mir::lower::method_resolve
 use mir::lower::mono_suffix_parse
 use mir::mono
 use mir::value_types
@@ -13,7 +14,9 @@ use wasm::sections_types_gc_phase7
 fn mir_resolve_mono_call_target(mut ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
     let mut resolved = concretize_var_owner_call_target(ctx, rewritten.clone())
     let mut mono_resolved_by_type = false
-    if first_arg_idx >= 0 {
+    // The capacity argument's i32 type must not select the monomorphized
+    // container family; the turbofish type is resolved by span lookup.
+    if first_arg_idx >= 0 && !method_resolve::mir_method_is_capacity_constructor(resolved.clone()) {
         let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         let mut mono_type_key = normalize_mono_type_key(mono_arg_type)
         // Int/float literals often have empty type_name; derive from VT so
