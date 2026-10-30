@@ -313,6 +313,66 @@ unchanged. Residuals:
 - Method-call `.push` / `.get` rewriting (span 0) keeps its historical
   receiver-type path.
 
+## Update (2026-10-30, `wave/checker-table-retire`) — `vec_core_mono` retired
+
+The checker no longer maps Vec call spellings to CoreOp fallback symbols.
+`src/compiler/typechecker/vec_core_mono.ark` and both call sites are deleted
+(`infer_call_expr`'s unresolved-callee branch and
+`infer_builtin_vec_method`).
+
+What replaced the table:
+
+- `len` / `pop` / `push` / `get` already lower from the per-call owner record
+  (`ResolvedCallOwner` → owner-qualified FunctionId → CoreOp); the checker no
+  longer needs a second, name-keyed mono demand for them.
+- `set` / `get_unchecked` are checked through the prelude generic signatures
+  and MIR rewrites them to the `vec.set` / `vec.get_unchecked` CoreOps.
+- Vec method calls resolve through the `Vec::<method>` shell signature before
+  the builtin Vec fallback, and `is_empty` lowers to the sealed raw length.
+  The registry handlers in `wasm/call_vec.ark` emit `vec.len` /
+  `vec.is_empty` / `vec.set` / `vec.get_unchecked` directly, and
+  `mir_opt/stdlib_inline.ark` already refuses to specialize
+  `__core_vec_len_impl`, so the deleted hint had no consumer left.
+
+Evidence (current s2 = `5bcc29abf458…`):
+
+- `selfhost build-compiler`: PASS, 55.3s.
+- `verify fixtures`: PASS=1941 FAIL=0 COMPILE_VALIDATE=1941 EXECUTED=112
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=42 FAIL=0.
+- Negative fixtures unchanged on both targets (`wasm32-gc` and the `_wasm32`
+  companions with `--target wasm32 --wasi-version wasi-p1`):
+  `prelude_len_arg_type` → "type mismatch in call to `len`: argument 1 has
+  type i32, expected String or Vec<T>"; `prelude_vec_push_arg_type` → "type
+  mismatch: i32 vs String"; `prelude_len_unconstrained_receiver` → "cannot
+  infer the type of the `len` receiver: argument 1 must be String or Vec<T>".
+- `verify lane`, `docs check` 6/6, `selfhost diag-parity` and `selfhost
+  fixpoint` pass; fixpoint s2 == s3 =
+  `5bcc29abf45821072834f2d882f54bca579616e4939f759322289f9626c509cb` on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+  Stage 3 is the s2 self-build of the trimmed bootstrap overlay, where the
+  builtin Vec fallback is the live path, so the fixpoint also covers the case
+  the deleted table was written for.
+
+Acceptance movement: item 2's `vec_core_mono` entry is gone; items 1, 3 and 4
+are unchanged. Remaining name-keyed tables and their blockers:
+
+- `builtins::is_concrete_prelude_builtin` and `builtin_call_return_type` stay
+  until #935 lands general concrete-call argument unification. #935 forbids a
+  new per-name allowlist, and `assert_eq_i64` (emitter i32→i64 widening) and
+  `char_to_string` (i32 codepoint representation) still rely on the current
+  exemptions.
+- `call_method::infer_builtin_vec_method` still name-keys the Vec fallback
+  return types and arity (`len` / `is_empty` / `pop` / `get` /
+  `get_unchecked`). It is a result-type table used when the `Vec::*` shell
+  signature is absent (trimmed bootstrap overlay), not a CoreOp dispatcher.
+- MIR still chooses concrete element intrinsics by name predicate
+  (`call_rewrite_vec*`, `stdlib_specialize_vec_fallback`) and keeps
+  `get` / `pop` / `set` in `mir_is_unbound_prelude_intrinsic_shim`; the bare
+  `push` alias stays until #818.
+- `len` / `push` / `get` / `pop` still declare signature-only bodies (item 1);
+  the `len` declaration keeps the String spelling until the committed pin is
+  refreshed. #928 is unchanged.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the
