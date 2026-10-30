@@ -1,0 +1,39 @@
+// `.clone()` on a concrete struct receiver lowers to the identity clone CoreOp.
+// Passing it straight to a call must leave exactly one operand: a stray copy
+// made the enclosing if block end with a value still on the Wasm stack.
+struct Ann {
+    text: String,
+}
+
+fn ann_at(node: i32) -> Ann {
+    Ann { text: "a".concat(node.to_string()) }
+}
+
+fn ann_text(a: Ann) -> String {
+    a.text.clone()
+}
+
+fn field_count(ctx: i32, name: String) -> i32 {
+    ctx + name.len()
+}
+
+fn local_type_name(a: Ann, n: i32) -> String {
+    a.text.concat(n.to_string())
+}
+
+fn describe(node: i32) -> String {
+    let mut bound = ""
+    if node > 0 {
+        let ta = ann_at(node)
+        if node > 1 {
+            let ta_name = ann_text(ta.clone())
+            bound = local_type_name(ta, field_count(0, ta_name))
+        }
+    }
+    bound
+}
+
+fn main() {
+    assert(describe(3).eq("a32"))
+    assert(describe(0).eq(""))
+}

@@ -10,7 +10,6 @@ use mir::lower::call_args
 use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::inst_call
-use mir::inst_local_get
 use mir::value_types
 fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i32, first_arg_idx: i32, value_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(callee_name.clone())
@@ -117,14 +116,33 @@ fn mir_is_string_clone_callee(name: String) -> bool {
     name.clone().ends_with("::raw_string_clone")
 }
 
+// The bare `clone` shim is identity: for a concrete receiver the lowerer emits
+// the clone CoreOp directly instead of resolving `clone` through the shared
+// name cache (a Vec receiver resolved to String::clone and produced invalid
+// core Wasm, #928). Emit it as a real stack call so the store policy can
+// SET/TEE/SKIP the result from the enclosing consumer. A bare LOCAL_GET copy
+// added a second stack value on top of the receiver operand that the
+// method-call lowering already pushed; `f(x.clone())` then validated with one
+// value left at the block end (gc self-build func 7188).
 fn mir_emit_clone_identity(mut ctx: LowerCtx, source: i32) -> i32 {
     let source_vt = ctx_api_local_types::ctx_local_vt(ctx, source)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
-    let source_type = ctx_api_local_types::ctx_get_local_type(ctx, source)
-    if source_type.len() > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, source_type)
-    }
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(source, dest))
+    call_types::mir_mark_call_result_type(ctx, String_from("__intrinsic_string_clone"), dest, source)
+    ctx_api_local_types::ctx_set_local_mvt(
+        ctx,
+        dest,
+        ctx_api_local_types::ctx_local_mvt(ctx, source)
+    )
+    let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    ctx_api_emit::ctx_emit(
+        ctx,
+        inst_call::MirInst_call_with_val_type(
+            String_from("__intrinsic_string_clone"),
+            1,
+            dest,
+            dest_vt
+        )
+    )
     dest
 }
 
