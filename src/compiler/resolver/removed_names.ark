@@ -1612,6 +1612,16 @@ pub fn removed_vec_mutation_free_hint(name: String) -> String {
     String_new()
 }
 
+// The Slice constructor and accessor frees share their hints with the
+// explicit-import rejection in register_use. The method spellings resolve
+// through the same `Slice::View` payload, so the prelude anchor needs no
+// import; `use std::collections::vec` only selects the Vec impl body.
+pub fn removed_slice_free_hint(name: String) -> String {
+    if name.clone().eq("as_slice") { return String_from("use `v.as_slice(start, end)` on the `Vec<T>` receiver instead") }
+    if name.clone().eq("slice_get") { return String_from("use `view.get(idx)` on the `Slice<T>` receiver instead") }
+    String_new()
+}
+
 // Retired prelude free functions. Each hint names the exact receiver method
 // or namespace associated function so a bare old call fails with E0100 and a
 // usable migration target, not a request to import a name that no longer
@@ -1620,6 +1630,10 @@ fn removed_prelude_free_hint(name: String) -> String {
     let vec_mutation = removed_vec_mutation_free_hint(name.clone())
     if vec_mutation.clone().len() > 0 {
         return vec_mutation
+    }
+    let slice = removed_slice_free_hint(name.clone())
+    if slice.clone().len() > 0 {
+        return slice
     }
     if name.clone().eq("abs") { return String_from("use `x.abs()` on the `i32` value instead") }
     if name.clone().eq("args") { return String_from("use `Env::args()` from `use std::host::env::Env` instead") }
@@ -1734,10 +1748,7 @@ fn is_gated_prelude_name(name: String) -> bool {
     if name.clone().eq("Box") || name.clone().eq("Slice") {
         return true
     }
-    if name.clone().eq("as_slice") {
-        return true
-    }
-    if name.clone().eq("slice_get") || name.clone().eq("slice_len") {
+    if name.clone().eq("slice_len") {
         return true
     }
     false

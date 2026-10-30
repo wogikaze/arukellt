@@ -124,14 +124,23 @@ owner = "none"
 # arguments. The private generic declarations in std/prelude.ark stay as
 # receiver-method signature anchors; they are not importable and bare calls
 # fail with E0100 hints.
+#
+# `as_slice` / `slice_get` were retired together by #917 on 2026-10-30
+# (wave/slice-abi). They could not be split: the method-built and free-built
+# Slice<T> values had different constructor ABIs, so pairing one surface with
+# the other emitted invalid core Wasm. Both constructor paths now produce the
+# same `Slice::View` payload (the prelude anchor and the imported Vec<T> impl),
+# and `Slice<T>::len` / `get` are the only public consumers. The private
+# `as_slice` declaration stays as the receiver-method signature anchor; bare
+# calls and selective imports fail with E0100 hints.
 
 [[rules]]
 label = "vec intrinsic-compat frees"
 module_less = true
-name = ["get", "get_unchecked", "clear", "as_slice", "slice_len", "slice_get"]
+name = ["get", "get_unchecked", "clear", "slice_len"]
 class = "must delete"
 owner = "917"
-replacement = "Vec<T> methods: v.get(idx), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `push` / `pop` / `set` were retired with E0100 hints onto `v.push(x)` / `v.pop()` / `v.set(idx, value)`; `clear` was a stale non-callable entry and was retired directly."
+replacement = "Vec<T> methods: v.get(idx), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len`, `as_slice` and `slice_get` were retired with E0100 hints; `push` / `pop` / `set` were retired with E0100 hints onto `v.push(x)` / `v.pop()` / `v.set(idx, value)`; `clear` was a stale non-callable entry and was retired directly."
 
 # The 4 deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
 # `assert_eq_i64`, `assert_eq_str`) completed their ADR-087 Wave 2 deletion on

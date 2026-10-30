@@ -10,10 +10,8 @@ helpers are included alongside any other deprecated public entry.
 
 | API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |
 |-----|--------|-----------|-------------|------------------|------------------|--------|
-| `as_slice` | `prelude` | `deprecated` | `Vec::as_slice` | `0.1.0` | `1.0.0` | Superseded API |
 | `get` | `prelude` | `deprecated` | `Vec::get` | `0.1.0` | `1.0.0` | Superseded API |
 | `get_unchecked` | `prelude` | `deprecated` | `Vec::get_unchecked` | `0.1.0` | `1.0.0` | Superseded API |
-| `slice_get` | `prelude` | `deprecated` | `Slice::get` | `0.1.0` | `1.0.0` | Superseded API |
 | `slice_len` | `prelude` | `deprecated` | `Slice::len` | `0.1.0` | `1.0.0` | Superseded API |
 
-Total deprecated public entries: **5**.
+Total deprecated public entries: **3**.

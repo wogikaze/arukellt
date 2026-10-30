@@ -38,14 +38,8 @@ fn deprecated_vec_call_message(name: String) -> String {
     if name.clone().eq("get_unchecked") {
         return "use the Vec method `v.get_unchecked(idx)` instead"
     }
-    if name.clone().eq("as_slice") {
-        return "use the Vec method `v.as_slice(start, end)` instead"
-    }
     if name.clone().eq("slice_len") {
         return "use the Slice method `view.len()` instead"
-    }
-    if name.clone().eq("slice_get") {
-        return "use the Slice method `view.get(idx)` instead"
     }
     String_new()
 }
@@ -126,9 +120,13 @@ test mod "deprecated" {
     test "vec_frees_warn_w0009" {
         assert(deprecated_call_message("get").len() > 0)
         assert(deprecated_call_message("get_unchecked").len() > 0)
-        assert(deprecated_call_message("as_slice").len() > 0)
         assert(deprecated_call_message("slice_len").len() > 0)
-        assert(deprecated_call_message("slice_get").len() > 0)
+    }
+    test "retired slice frees have no w0009 entry" {
+        // as_slice / slice_get were deleted with E0100 hints
+        // (wave/slice-abi); resolver::removed_names owns them now.
+        assert(deprecated_call_message("as_slice").len() == 0)
+        assert(deprecated_call_message("slice_get").len() == 0)
     }
     test "retired vec mutation frees have no w0009 entry" {
         // push / pop / set were deleted with E0100 hints

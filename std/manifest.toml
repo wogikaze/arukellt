@@ -14,7 +14,7 @@
 #   - __intrinsic_string_is_empty: resolver prelude entry exists without a builtin signature.
 #   - Several resolver prelude builtins lack direct typechecker signatures:
 #       unwrap_or_else, clear, is_ok, is_err, Vec_with_capacity_i32,
-#       Vec_with_capacity_String, as_slice, ok_or, ok, err, expect,
+#       Vec_with_capacity_String, ok_or, ok, err, expect,
 #       map_option_String_String, map_result_i32_i32
 #     These are resolved dynamically or via special-case handling in the type checker.
 
@@ -265,6 +265,8 @@ stability = "stable"
 doc_category = "conversion"
 doc = "Encode a Unicode scalar as canonical UTF-8."
 
+# NOTE: clear is in the prelude function registry but lacks a manifest entry
+# and a typechecker function signature.
 [[functions]]
 name = "push"
 kind = "builtin"
@@ -318,20 +320,6 @@ deprecated_since = "0.1.0"
 remove_in = "1.0.0"
 doc_category = "collections"
 
-# NOTE: clear is in the prelude function registry but lacks a typechecker
-# function signature.
-[[functions]]
-name = "as_slice"
-kind = "builtin"
-params = ["Vec<T>", "i32", "i32"]
-returns = "Slice<T>"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::as_slice"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
 [[functions]]
 name = "slice_len"
 kind = "builtin"
@@ -340,18 +328,6 @@ returns = "i32"
 prelude = true
 stability = "deprecated"
 deprecated_by = "Slice::len"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "slice_get"
-kind = "builtin"
-params = ["Slice<T>", "i32"]
-returns = "T"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Slice::get"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
 doc_category = "collections"

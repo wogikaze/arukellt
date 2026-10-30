@@ -1,0 +1,6 @@
+// E0100: a selective import of the retired `as_slice` free is rejected with
+// the receiver-method hint instead of resurrecting a bare symbol.
+use std::prelude::{as_slice}
+
+fn main() {
+}
