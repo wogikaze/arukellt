@@ -16,6 +16,52 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — Slice constructor/accessor free の退役と method ABI の一本化 (ADR-046, ADR-087, ADR-091, #917, wave/slice-abi)
+
+- **Removed**: prelude の free `as_slice(v, s, e)` と `slice_get(view, i)`。
+  manifest entry と `pub fn` 宣言を削除した。bare call と
+  `use std::prelude::{as_slice|slice_get}` は **E0100** と receiver method
+  hint（`v.as_slice(start, end)` / `view.get(idx)`）で失敗する。
+  `as_slice` 宣言は `Vec<T>` receiver method の signature anchor として
+  private で残す。`Slice<T>::len` / `get` は変更しない。
+- **ABI decision**: `Slice<T>` の表現は target ごとに 1 つだけ持つ。
+  `wasm32` は `[tag=0, vec, start, end]` の 4 word record への pointer、
+  `wasm32-gc` は同じ field 並びの GC struct ref である。構築経路は
+  private prelude anchor と import された `Vec<T>` impl の 2 つだが、
+  どちらも同じ `Slice::View` payload を作り、`Slice<T>::len` / `get` が
+  その 1 表現だけを消費する。free を両方退役したことで、free 構築と
+  method 構築を混在させる旧経路自体が surface から消える。
+- **WAT evidence**: `wasm32` の `as_slice` は
+  `(param i32 i32 i32) (result i32)` で 16 byte を確保し、tag 0 / vec /
+  start / end を格納して pointer を返す。`Slice::len` は `(param i32)`、
+  `Slice::get` は `(param i32 i32)` で同じ pointer を受ける。
+  `wasm32-gc` でも method 構築（`Vec__as_slice__i32`）と anchor 構築の
+  戻り値は同じ Slice struct ref で、`Slice__len__i32` / `Slice__get__i32`
+  が同じ field を読む。退役前に method 構築 + free 消費、free 構築 +
+  method 消費、function 境界を越える view の 4 通りを両 target で実行し、
+  同じ出力になることを確認した。
+- **Migration**: 最後の in-tree free caller `ownership/adt_probe` を
+  `values.as_slice(0, 1)` / `view.len()` / `view.get(0)` へ移行した。
+  `collections/slice_method_abi` を追加し、import された `Vec<T>` impl の
+  method 構築と function から返る view を両 target で検証する。
+- **Diagnostics / fixtures**: `resolver::removed_names` と
+  `resolver::register_use` に E0100 hint を追加し、W0009 行を削除した。
+  `diagnostics/removed_as_slice_free{,_wasm32}` /
+  `removed_as_slice_import` / `removed_slice_get_free{,_wasm32}` /
+  `removed_slice_get_import` を追加した。
+- **Scorecard**: real std surface 13 → **11**、`pub fn` declarations
+  13 → **11**、manifest public entries 13 → **11**、`must delete`
+  6 → **4**、vec intrinsic-compat rule 5 → **3**、deprecated 5 → **3**。
+- **Gates**: pin `56ff0808…` から build した s2 で `verify fixtures`
+  1957/1957 PASS（112 runtime、43/43 test、0 FAIL、runtime-unsupported 2）、
+  `verify lane` PASS、`docs check` 6/6、`selfhost diag-parity` PASS=279、
+  ADR-029 fixpoint は s2 == s3 = sha256
+  `7d29d63795f3d732952e66ce037edbe534d28e3affc6a3985385a45697f1fad8`。
+  `check-stdlib-eradication` / `check-compat-orphans` / `check-comment-policy`
+  / `check-ark-code-quality` / `check-semantic-debt` / `git diff --check` も
+  clean。追加 fixture: `collections/slice_method_abi` と
+  `diagnostics/removed_{as_slice,slice_get}_{free,import}`（各 wasm32 版を含む）。
+
 ## 2026-10-30 — prelude free `push` / `pop` / `set` の退役 (ADR-046, ADR-087, ADR-088, #917, wave/vec-push-pop-set)
 
 - **Removed**: prelude の free `push(v, x)` / `pop(v)` / `set(v, i, x)`。

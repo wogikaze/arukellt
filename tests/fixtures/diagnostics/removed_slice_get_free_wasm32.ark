@@ -1,0 +1,7 @@
+// E0100: the Slice accessor free was retired; read through `view.get(index)`.
+fn main() {
+    let mut values: Vec<i32> = Vec::new<i32>()
+    values.push(1)
+    let view = values.as_slice(0, 1)
+    let _value = slice_get(view, 0)
+}

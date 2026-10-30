@@ -280,7 +280,7 @@ through the `__intrinsic_*` conversion bridges (ADR-067).
 | `f64_bits_lo(x)` | `(x).to_bits_lo()` |
 | `f64_bits_hi(x)` | `(x).to_bits_hi()` |
 
-### Vec intrinsic-compat frees (`len`, `slice_len`, `push`, `pop`, `set` retired 2026-10-30)
+### Vec intrinsic-compat frees (`len`, `slice_len`, `as_slice`, `slice_get`, `push`, `pop`, `set` retired 2026-10-30)
 
 `len` retired in `wave/vec-intrinsic-len`. Bare calls and selective
 `use std::prelude::{len}` imports now fail with **E0100** and the
@@ -298,6 +298,17 @@ argument local, so `v.set(0, K)` / `v.push(NIL)` emitted invalid core
 Wasm. The private generic declarations in `std/prelude.ark` remain as
 receiver-method signature anchors; they are not importable.
 
+`as_slice` and `slice_get` retired together in `wave/slice-abi`. They
+could not be split while the constructor ABIs differed: pairing
+`v.as_slice(...)` with `slice_get(view, i)`, or `as_slice(v, ...)` with
+`view.get(i)`, emitted invalid core Wasm. Both constructor paths now
+produce the same `Slice::View` payload and the receiver methods consume
+that one representation. `v.as_slice(start, end)` is the constructor;
+`view.len()` and `view.get(index)` are the accessors. The private
+`as_slice` prelude anchor keeps the method available without an import;
+`use std::collections::vec` selects the Vec impl body. Bare calls and
+selective imports fail with **E0100**.
+
 | Deprecated API | Replacement |
 |----------------|-------------|
 | `push(v, x)` | `v.push(x)` (retired 2026-10-30) |
@@ -307,9 +318,9 @@ receiver-method signature anchors; they are not importable.
 | `set(v, i, x)` | `v.set(i, x)` (retired 2026-10-30) |
 | `get_unchecked(v, i)` | `v.get_unchecked(i)` |
 | `clear(v)` | `v.clear()` — stale non-callable entry, retired |
-| `as_slice(v, s, e)` | `v.as_slice(s, e)` |
+| `as_slice(v, s, e)` | `v.as_slice(s, e)` (retired 2026-10-30) |
 | `slice_len(view)` | `view.len()` (retired 2026-10-30) |
-| `slice_get(view, i)` | `view.get(i)` |
+| `slice_get(view, i)` | `view.get(i)` (retired 2026-10-30) |
 
 ### Assertion frees (4) — retired 2026-10-30
 

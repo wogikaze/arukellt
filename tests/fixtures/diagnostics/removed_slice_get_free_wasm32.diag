@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: slice_get; use `view.get(idx)` on the `Slice<T>` receiver instead

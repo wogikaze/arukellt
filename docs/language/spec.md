@@ -271,9 +271,9 @@ their field layout does not implicitly opt them in.
 
 Non-`Copy` values move at an ownership boundary and a later use is a type
 error. `Box<T>` is always a unique, non-`Copy` owner. `Slice<T>` is a
-non-`Copy` read-only view; `as_slice` retains the source binding and stores a
-backend-specific reference plus a bounded range. These rules do not depend on
-whether the backend stores the value as a Wasm GC object, a tagged/unboxed
+non-`Copy` read-only view; `v.as_slice(start, end)` retains the source binding
+and stores a backend-specific reference plus a bounded range. These rules do
+not depend on whether the backend stores the value as a Wasm GC object, a tagged/unboxed
 value, or a linear-memory record. See [ADR-059](../adr/ADR-059-language-v2-ownership-copy-mutability.md)
 and [ADR-060](../adr/ADR-060-language-v2-owned-adts-box-slice.md).
 
@@ -1751,8 +1751,8 @@ Non-prelude: `f32_to_string(f: f32) -> String`.
 
 ### 9.6 Vec — Operations
 
-`push`, `pop`, `len` and `set` are receiver methods; their free prelude
-spellings are retired and fail with E0100. `get` / `get_unchecked` / `as_slice`
+`push`, `pop`, `len`, `set` and `as_slice` are receiver methods; their free
+prelude spellings are retired and fail with E0100. `get` / `get_unchecked`
 remain prelude frees for now (ADR-046 migration).
 
 | Signature | Description |
@@ -1764,7 +1764,7 @@ remain prelude frees for now (ADR-046 migration).
 | `get_unchecked(v: Vec<T>, i: i32) -> T` | Unchecked access |
 | `v.set(i: i32, x: T)` | Set element at index |
 | `clear(v: Vec<T>)` | Remove all elements |
-| `as_slice(v: Vec<T>) -> Vec<T>` | View as slice |
+| `v.as_slice(start: i32, end: i32) -> Slice<T>` | View as slice |
 
 ### 9.7 Vec — Sorting
 
@@ -1854,9 +1854,9 @@ lane lands; `s.contains(sub)` replaces the String substring helper.
 
 | Signature | Description |
 |-----------|-------------|
-| `as_slice(source: Vec<T>, start: i32, end: i32) -> Slice<T>` | Create a bounded, non-`Copy` read view without consuming the source binding |
-| `slice_len(view: Slice<T>) -> i32` | Consume the view and return its bounded length |
-| `slice_get(view: Slice<T>, index: i32) -> T` | Consume the view and read an element within the bounded range |
+| `v.as_slice(start: i32, end: i32) -> Slice<T>` | Create a bounded, non-`Copy` read view without consuming the source binding |
+| `view.len() -> i32` | Return the bounded length |
+| `view.get(index: i32) -> T` | Read an element within the bounded range |
 
 The current view API does not provide full lifetime or mutation-exclusion
 checking. Those rules are separate from the owned ADT contract and are tracked

@@ -70,6 +70,10 @@ fn retired_prelude_import_hint(name: String) -> String {
     if vec_mutation.clone().len() > 0 {
         return vec_mutation
     }
+    let slice = removed_names::removed_slice_free_hint(name.clone())
+    if slice.clone().len() > 0 {
+        return slice
+    }
     let numeric = removed_names::removed_numeric_conversion_hint(name.clone())
     if numeric.clone().len() > 0 {
         return numeric

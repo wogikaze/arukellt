@@ -44,6 +44,12 @@ ADR-059 は binding の move、明示的な `Copy`、`let mut` を採択した�
 - `Slice<T>` の view は読み取り API だけを公開する。source の mutation と view の同時利用を静的に排他する完全な lifetime / borrow checker はこの ADR の範囲外であり、後続の closure / borrow work で採択する。
 - source owner が生きていること、view が範囲を越えて要素を読むこと、backend が異なることを理由に source-level の意味を変えてはならない。
 
+> **API spelling update (2026-10-30, #917 / ADR-091):** 値意味論と表現の決定は
+> 上記のまま。公開スペリングは receiver method の
+> `v.as_slice(start, end)` / `view.len()` / `view.get(index)` に移り、
+> free の `as_slice` / `slice_get` は E0100 で退役した。`Slice<T>` の
+> method 構築と free 構築は同じ `Slice::View` payload を共有する。
+
 ### 4. GC と linear-memory は同じ契約を lower する
 
 - `wasm32-gc` は GC `struct` / `array` / `ref` と tagged/unboxed representation を優先して使用できる。

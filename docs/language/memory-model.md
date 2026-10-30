@@ -14,7 +14,7 @@ Arukellt v2 の source semantics は Wasm GC の内部表現に依存しない�
 - 関数呼び出しは非 `Copy` 引数を move せず、呼び出しの間だけ借用する。呼び出しをまたぐ書き換えは `mut` 仮引数と可変 place の組でだけ許可する（ADR-088）。
 - `Option` / `Result` / enum は owned tagged ADT である。
 - `Box<T>` は非 `Copy` の一意所有値、`Slice<T>` は source collection と bounded range を保持する非 `Copy` の読み取り view である（ADR-060）。
-- `as_slice` は source binding を消費しない。closure capture の borrow / move / escape は ADR-061 の規則に従う。
+- `v.as_slice(start, end)` は source binding を消費しない。closure capture の borrow / move / escape は ADR-061 の規則に従う。
 - 公開 stable ABI は WIT / Canonical ABI（ADR-006）。GC layout、linear header、tag、collector は compiler-private である。
 
 ## ターゲット別の表現（lowering）
@@ -42,7 +42,7 @@ scalar、構造的に `Copy` な tuple / array / `Option` / `Result` は独立�
 user-defined struct / enum は明示 `impl Copy` が必要であり、`Box<T>` と `Slice<T>` は非 `Copy` である。
 非 `Copy` 値の ownership boundary は move になり、moved binding の再利用は E0212 で拒否する。
 
-`as_slice` は source collection の owner binding を消費せず、backend object と range を保持する読み取り view を作る。
+`v.as_slice(start, end)` は source collection の owner binding を消費せず、backend object と range を保持する読み取り view を作る。
 GC object の共有、linear-memory の pointer、将来の tracing collector はこの view の実装手段であり、view API の observable contract を変えない。
 
 <!-- fixture: spec_examples/memory_model_move.ark -->
@@ -56,7 +56,7 @@ v2.push(20)
 
 この種のコードでは、`v1` と `v2` の move / mutation 可否は binding と `Copy` 契約で決まり、
 GC reference だから自動的に alias 可能とはみなさない。`let mut v2 = v1` で `v1` は move され、以後は使えない。
-共有 view が必要な場合は `as_slice` のような明示 API を使う。
+共有 view が必要な場合は `v.as_slice(start, end)` のような明示 API を使う。
 
 ## 関数呼び出し境界（ADR-088）
 

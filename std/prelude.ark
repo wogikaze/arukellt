@@ -509,7 +509,13 @@ fn __prelude_unwrap_panic(message: String) -> i32 {
 // A slice retains the source collection and a bounded range. The collection
 // reference is shared by the backend representation; the source binding is
 // not consumed at this language boundary.
-pub fn as_slice<T>(source: Vec<T>, start: i32, end: i32) -> Slice<T> {
+//
+// `as_slice` is the private receiver-method signature anchor for
+// `v.as_slice(start, end)`, the same shape `push` / `pop` / `set` use. The
+// imported `Vec<T>` impl constructs the same `Slice::View` payload, so both
+// constructor paths hand the receiver methods one representation. The public
+// free spelling is retired with an E0100 hint (#917).
+fn as_slice<T>(source: Vec<T>, start: i32, end: i32) -> Slice<T> {
     Slice::View(source, start, end)
 }
 
@@ -519,14 +525,8 @@ pub fn slice_len<T>(view: Slice<T>) -> i32 {
     }
 }
 
-pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
-    match view {
-        Slice::View(source, start, _) => get_unchecked(source, start + index),
-    }
-}
-
-// Receiver methods for the slice view. The free helpers above remain the
-// deprecated compatibility spelling until the slice family is retired.
+// Receiver methods for the slice view. `view.len()` and `view.get(index)`
+// own the public surface; the free `slice_get` is retired with an E0100 hint.
 impl<T> Slice<T> {
     /// Returns the number of elements covered by this view.
     fn len(self: Slice<T>) -> i32 {
