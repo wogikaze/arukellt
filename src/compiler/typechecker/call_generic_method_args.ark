@@ -1,6 +1,7 @@
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::associated_types
+use typechecker::call_generic_fn_args
 use typechecker::param_mode
 use typechecker::sigs
 use typechecker::contract_type_access
@@ -44,6 +45,17 @@ fn constrain_generic_method_args(
         let pty = contract_fn_sig::FnSig_param_at(sig, a + 1)
         let inst_pt = instantiate::instantiate_type(pty, var_names, var_types)
         let projected_pt = associated_types::resolve_generic_call_type(env, infer_env, sig, var_names, var_types, inst_pt)
+        // The signature is already bound by the receiver (`Vec<i64>` receiver,
+        // `v.push(10)`), so an unsuffixed integer literal must take the
+        // parameter width here exactly as it does for the free spelling
+        // (`push(Vec<i64>, 10)`). MIR widens that literal for the i64
+        // intrinsic, so rejecting it at the checker would regress #917.
+        let resolved_param = unify::resolve_type(infer_env, projected_pt.clone())
+        arg_ty = call_generic_fn_args::adapt_int_literal_arg_type(
+            arg_node,
+            arg_ty,
+            resolved_param
+        )
         param_mode::check_fn_type_value(
             env,
             scope,

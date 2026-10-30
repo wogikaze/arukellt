@@ -373,6 +373,76 @@ are unchanged. Remaining name-keyed tables and their blockers:
   the `len` declaration keeps the String spelling until the committed pin is
   refreshed. #928 is unchanged.
 
+## Update (2026-10-30, `wave/vec-method-fallback`) — `infer_builtin_vec_method` retired
+
+The method fallback is now signature-driven. `call_method.ark` no longer owns a
+name-keyed return-type/arity table for Vec methods; it resolves the call
+against a real declaration and runs the ordinary method-call checking.
+
+- `src/compiler/typechecker/call_method.ark`: `infer_builtin_vec_method` and
+  `is_vec_method_with_arity` are replaced by `infer_vec_method_from_signature`.
+  For a `Vec` receiver with no `Vec::<method>` shell signature it looks up, in
+  order: the free declaration of that name whose first parameter is `Vec<T>`
+  (`push` / `pop` / `get` / `set` / `get_unchecked`), then the CoreOp
+  implementation-symbol declaration `__core_vec_<method>_impl` (which covers
+  `len` and `is_empty`). The resolved FnSig binds the receiver's element type,
+  instantiates the return type (`Option<T>`, `T`, `i32`, `bool`), checks
+  arity and argument types, and records the same mono demand as a normal
+  generic method call. Arity mismatches keep the historical fall-through so
+  this change does not add a new diagnostic surface.
+- `src/compiler/typechecker/call_generic_method_args.ark`: generic method
+  arguments now apply the same unsuffixed-integer adaptation as generic free
+  arguments, so `v.push(10)` on `Vec<i64>` keeps the documented #917 behavior
+  under the stricter signature check.
+- No std or overlay change is needed: the declarations the lookup uses
+  (`push` / `pop` / `get` / `set` / `get_unchecked`,
+  `__core_vec_len_impl`, `__core_vec_is_empty_impl`) already live in
+  `std/prelude.ark`, which both user builds and the trimmed bootstrap overlay
+  ship.
+- Fixtures: `stdlib_vec/prelude_vec_method_signatures` (plus the `_wasm32`
+  companion) exercises all seven methods and the i64 literal push without the
+  extension import; `diagnostics/prelude_vec_method_arg_type` (plus `_wasm32`)
+  asserts `values.push(String_from("oops"))` on `Vec<i32>` is E0200 now that
+  the method resolves through a receiver-bound signature.
+
+Why the `Vec::*` shell alone was not enough: inherent impl signatures keep an
+untyped `self` for Vec (the MIR adapter path), so the shell cannot bind the
+element type from the receiver. The signature-driven lookup uses the
+declarations that do carry `Vec<T>` as their first parameter.
+
+Evidence (current s2 = `de70df8d9d0f…`):
+
+- `selfhost build-compiler`: PASS, 65.7s.
+- `verify fixtures`: PASS=1945 FAIL=0 COMPILE_VALIDATE=1945 EXECUTED=112
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=42 FAIL=0.
+- `verify lane`, `docs check` 6/6, `selfhost diag-parity` pass.
+- `selfhost fixpoint`: s2 == s3 =
+  `de70df8d9d0fda4eebe7bf9e53f8018d1389eeefc688a09fd97b374ecc7c3c03`
+  on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+  Stage 3 is the s2 self-build of the trimmed bootstrap overlay, so the new
+  resolver is exercised on the whole compiler source (the Vec method calls in
+  the checker/MIR are the live fallback path there).
+- Targeted fixture evidence: the negative fixture prints
+  `type mismatch: i32 vs String` on `wasm32-gc` and `wasm32`; the positive
+  fixture prints `prelude vec method signatures ok` on both targets.
+- Generated docs regenerated for the five new manifest entries (fixture
+  registry 3603 → 3608, remainder 2015 → 2020).
+
+Acceptance movement: item 2's `call_method.ark` entry is gone; items 1, 3 and
+4 are unchanged. Remaining name-keyed tables and blockers:
+
+- `builtins::is_concrete_prelude_builtin` / `builtin_call_return_type` stay
+  until #935 lands general concrete-call argument unification; `assert_eq_i64`
+  and `char_to_string` still rely on those exemptions.
+- MIR still chooses concrete element intrinsics by name predicate
+  (`call_rewrite_vec*`, `stdlib_specialize_vec_fallback`) and keeps
+  `get` / `pop` / `set` in `mir_is_unbound_prelude_intrinsic_shim`; the bare
+  `push` alias stays until #818.
+- `len` / `push` / `get` / `pop` still declare signature-only or deferred
+  bodies (item 1); the free `len` declaration keeps the String spelling until
+  the committed pin is refreshed. #928 is unchanged.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

@@ -1,0 +1,32 @@
+// Core Vec method syntax is a prelude contract, not a checker name table:
+// these calls resolve through the prelude declarations (`push` / `pop` / `get`
+// / `set` / `get_unchecked` and the `__core_vec_*_impl` len/is_empty forms)
+// without `use std::collections::vec` (#936). The i64 push pins the
+// generic-literal adaptation on the method path.
+use std::host::stdio
+use std::test::Test
+
+fn main() {
+    let mut numbers: Vec<i32> = Vec::new<i32>()
+    Test::assert_true(numbers.is_empty())
+    numbers.push(3)
+    numbers.push(1)
+    numbers.push(2)
+    Test::assert_false(numbers.is_empty())
+    Test::assert_eq_i32(numbers.len(), 3)
+    numbers.set(1, 7)
+    Test::assert_eq_i32(numbers.get_unchecked(1), 7)
+    match numbers.get(0) {
+        Option::Some(value) => Test::assert_eq_i32(value, 3),
+        Option::None => Test::assert_true(false),
+    }
+    match numbers.pop() {
+        Option::Some(value) => Test::assert_eq_i32(value, 2),
+        Option::None => Test::assert_true(false),
+    }
+    Test::assert_eq_i32(numbers.len(), 2)
+    let mut wide: Vec<i64> = Vec::new<i64>()
+    wide.push(10)
+    Test::assert_eq_i64(wide.get_unchecked(0), 10i64)
+    stdio::println("prelude vec method signatures ok")
+}
