@@ -73,18 +73,21 @@ newtype、LinkedList は node-pool struct とする。フィールドはすべ�
 利用者は associated function と method だけを使う。
 
 ```ark
-let d: Deque<i32> = Deque::new<i32>()
+use std::collections::deque::{Deque, Queue, Stack}
+use std::collections::linked_list::LinkedList
+
+let mut d: Deque<i32> = Deque::new<i32>()
 d.push_back(1)
 d.push_front(0)
 
-let q: Queue<i32> = Queue::with_capacity<i32>(8)
+let mut q: Queue<i32> = Queue::with_capacity<i32>(8)
 q.push(1)
 q.push(2)
 
-let s: Stack<i32> = Stack::new<i32>()
+let mut s: Stack<i32> = Stack::new<i32>()
 s.push(1)
 
-let list: LinkedList<i32> = LinkedList::new<i32>()
+let mut list: LinkedList<i32> = LinkedList::new<i32>()
 list.push_back(1)
 ```
 

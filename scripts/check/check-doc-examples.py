@@ -6,6 +6,16 @@ Usage:
 
 - Extracts ```ark ... ``` fenced code blocks (language tag exactly "ark").
 - Skips blocks immediately preceded by an HTML comment <!-- skip-doc-check -->.
+- Wraps statement-only snippets in a synthetic `fn main()` before checking:
+  `arukellt check` treats a file as a script and does not visit top-level
+  statements, so an unwrapped snippet would pass without being typechecked
+  (issue #683). Leading `use` / `import` declarations stay at file scope;
+  complete modules (a block that declares `fn`, `struct`, ...) are checked
+  unchanged.
+- Blocks whose body deliberately shows non-compilable notation keep the
+  same contract without an HTML marker: `// reject:` (ADR-067 rejection
+  lines) and `// before` / `// after` (migration guidance alternatives) are
+  reported as notation skips rather than wrapped.
 - Runs `arukellt check <snippet> --target wasm32` on each block.
 - Reports failures as "FAIL: <file> block <N>: <error>".
 - Exits 0 if all non-skipped blocks pass and every marker is valid.
@@ -62,6 +72,23 @@ DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # Skip kinds that denote permanent notation rather than deferred work.
 # They are exempt from the owner/exit requirements (issue #877).
 NOTATION_KINDS = {"grammar-fragment", "invalid-example", "notation"}
+
+# A complete module declares at least one top-level item; wrapping it in a
+# synthetic main would nest the declaration. Only column-0 items count, so
+# indented statements in a snippet body are not mistaken for declarations.
+TOP_LEVEL_ITEM_PATTERN = re.compile(
+    r"^(?:pub\s+)?(?:fn|struct|enum|trait|impl|const|static|type|mod|"
+    r"extern|intrinsic|macro)\b"
+)
+TOP_LEVEL_IMPORT_PATTERN = re.compile(r"^(?:pub\s+)?(?:use|import|export)\b")
+# In-snippet notation markers. `// reject:` documents code that must not
+# typecheck (ADR-067); `// before` / `// after` shows alternative migration
+# shapes. Wrapping either in main would turn the documented intent into a
+# false failure, so they keep the existing skip contract.
+NON_CANONICAL_BODY_PATTERN = re.compile(
+    r"(?:^[ \t]*//[ \t]*(?:before|after)[ \t]*$)|(?://[ \t]*reject[ \t]*:)",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
 FIXTURES_ROOT = ROOT / "tests" / "fixtures"
@@ -213,6 +240,53 @@ def find_arukellt() -> str:
     return "arukellt"  # fall back; will produce a clear error
 
 
+def is_non_canonical_body(code: str) -> bool:
+    """True when the snippet deliberately documents non-compilable notation."""
+    return NON_CANONICAL_BODY_PATTERN.search(code) is not None
+
+
+def has_top_level_item(code: str) -> bool:
+    """True when the snippet declares a module item and is a complete file."""
+    return any(TOP_LEVEL_ITEM_PATTERN.match(line) for line in code.splitlines())
+
+
+def wrap_statement_snippet(code: str) -> str | None:
+    """Put statement-only code inside a synthetic main.
+
+    Returns None when there is nothing to wrap: a complete module must stay
+    unchanged, and an imports/comments-only block has no statements for the
+    typechecker to reach. Leading imports stay at file scope because `use`
+    inside a function is not part of the snippet contract.
+    """
+    if has_top_level_item(code):
+        return None
+
+    preamble: list[str] = []
+    body: list[str] = []
+    in_preamble = True
+    for line in code.splitlines():
+        stripped = line.strip()
+        is_preamble_line = (
+            not stripped
+            or stripped.startswith("//")
+            or TOP_LEVEL_IMPORT_PATTERN.match(line)
+        )
+        if in_preamble and is_preamble_line:
+            preamble.append(line)
+            continue
+        in_preamble = False
+        body.append(line)
+
+    if not any(line.strip() for line in body):
+        return None
+
+    prefix = "\n".join(preamble).rstrip()
+    wrapped_body = "\n".join(body)
+    if prefix:
+        return f"{prefix}\n\nfn main() {{\n{wrapped_body}\n}}\n"
+    return f"fn main() {{\n{wrapped_body}\n}}\n"
+
+
 def extract_blocks(md_path: Path) -> list[tuple[int, str, bool]]:
     """Return list of (block_index, code, should_skip) for each ```ark block."""
     text = md_path.read_text(encoding="utf-8")
@@ -299,6 +373,8 @@ def main() -> int:
     pass_count = 0
     fail_count = 0
     skip_count = 0
+    notation_skip_count = 0
+    wrapped_count = 0
     marker_failures: list[str] = []
     marker_warnings: list[str] = []
     manifest_paths = load_manifest_paths()
@@ -328,6 +404,16 @@ def main() -> int:
                 skip_count += 1
                 continue
 
+            if is_non_canonical_body(code):
+                notation_skip_count += 1
+                skip_count += 1
+                continue
+
+            wrapped = wrap_statement_snippet(code)
+            if wrapped is not None:
+                code = wrapped
+                wrapped_count += 1
+
             passed, error_output = check_block(arukellt, code, md, idx, args.target)
             if passed:
                 pass_count += 1
@@ -347,7 +433,8 @@ def main() -> int:
         print(f"MARKER-WARN: {msg}")
     print(
         f"\nDoc example check: {pass_count} pass, {fail_count} fail, "
-        f"{skip_count} skip, {len(marker_failures)} marker-fail, "
+        f"{skip_count} skip ({notation_skip_count} notation), "
+        f"{wrapped_count} wrapped, {len(marker_failures)} marker-fail, "
         f"{len(marker_warnings)} marker-warn"
     )
     return 0 if fail_count == 0 and not marker_failures else 1
