@@ -340,7 +340,7 @@ fn instantiate_scheme(mut env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
 fn type_name_is_present(names: Vec<String>, name: String) -> bool {
     let mut i = 0
     while i < names.len() {
-        if get_unchecked(names, i).eq(name.clone()) {
+        if names.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -367,7 +367,7 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
         )
         let mut j = 0
         while j < nested.len() {
-            let name = get_unchecked(nested, j)
+            let name = nested.get_unchecked(j)
             if !type_name_is_present(names, name.clone()) {
                 push(names, name.clone())
             }
@@ -395,7 +395,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
         }
         let mut j = 0
         while j < binding_names.len() {
-            let name = get_unchecked(binding_names, j)
+            let name = binding_names.get_unchecked(j)
             if !type_name_is_present(quantified, name.clone()) &&
             !type_name_is_present(names, name.clone()) {
                 push(names, name.clone())
@@ -407,7 +407,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
     let generic_count = env.current_fn_type_params.len()
     let mut generic_index = 0
     while generic_index < generic_count {
-        let name = get_unchecked(env.current_fn_type_params, generic_index)
+        let name = env.current_fn_type_params.get_unchecked(generic_index)
         if !type_name_is_present(names, name.clone()) {
             push(names, name.clone())
         }
@@ -422,7 +422,7 @@ fn generalize(env: TypeEnv, scope: LocalScope, ty: TypeInfo) -> TypeScheme {
     let mut vars = Vec::new<String>()
     let mut i = 0
     while i < candidates.len() {
-        let name = get_unchecked(candidates, i)
+        let name = candidates.get_unchecked(i)
         if !type_name_is_present(environment_names, name.clone()) {
             push(vars, name.clone())
         }

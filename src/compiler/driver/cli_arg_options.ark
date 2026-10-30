@@ -15,10 +15,10 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
     let mut has_output = false
     let mut i = start
     while i < argc {
-        let flag = get_unchecked(args, i)
+        let flag = args.get_unchecked(i)
         if flag.clone().eq("-o") {
             if i + 1 < argc {
-                output_path = get_unchecked(args, i + 1)
+                output_path = args.get_unchecked(i + 1)
                 has_output = true
                 i = i + 2
             } else {
@@ -27,7 +27,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
         } else {
             if flag.clone().eq("--target") {
                 if i + 1 < argc {
-                    config_record::config_set_target(config, get_unchecked(args, i + 1))
+                    config_record::config_set_target(config, args.get_unchecked(i + 1))
                     i = i + 2
                 } else {
                     i = i + 1
@@ -35,7 +35,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, mut co
             } else {
                 if flag.clone().eq("--emit") {
                     if i + 1 < argc {
-                        config_record::config_set_emit_mode(config, get_unchecked(args, i + 1))
+                        config_record::config_set_emit_mode(config, args.get_unchecked(i + 1))
                         i = i + 2
                     } else {
                         i = i + 1

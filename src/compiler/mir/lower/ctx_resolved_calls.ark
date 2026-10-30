@@ -11,7 +11,7 @@ fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall
     ctx.resolved_call_owners = Vec::new<String>()
     let mut i = 0
     while i < count {
-        let call = get_unchecked(calls, i)
+        let call = calls.get_unchecked(i)
         let key = resolved_call_key(
             raw_dto::CoreHirResolvedCall_decl_index(call.clone()),
             raw_dto::CoreHirResolvedCall_body_child_index(call.clone()),
@@ -48,7 +48,7 @@ fn ctx_resolved_call_owner(ctx: LowerCtx, span_start: i32, callee_name: String) 
     if index < 0 || index >= ctx.resolved_call_owners.len() {
         return String_new()
     }
-    get_unchecked(ctx.resolved_call_owners, index).clone()
+    ctx.resolved_call_owners.get_unchecked(index).clone()
 }
 
 fn resolved_call_key(decl_index: i32, child_index: i32, span_start: i32, callee_name: String) -> String {

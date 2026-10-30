@@ -28,10 +28,10 @@ fn main() {
     push(imag, 4.0)
     push(imag, 0.0)
     let mags = Signal::magnitude(real, imag)
-    if !Signal::approx_eq(get_unchecked(mags, 0), 5.0, 0.0001) {
+    if !Signal::approx_eq(mags.get_unchecked(0), 5.0, 0.0001) {
         Std::panic("magnitude(3+4i) must be 5")
     }
-    if !Signal::approx_eq(get_unchecked(mags, 1), 0.0, 0.0001) {
+    if !Signal::approx_eq(mags.get_unchecked(1), 0.0, 0.0001) {
         Std::panic("magnitude(0) must be 0")
     }
     Stdio::println("signal ok")

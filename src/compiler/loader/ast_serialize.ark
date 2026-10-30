@@ -77,7 +77,7 @@ fn fnv1a_bytes(bytes: Vec<i32>) -> i32 {
     let n = bytes.len()
     let mut i = 0
     while i < n {
-        h = h * FNV_PRIME ^ (get_unchecked(bytes, i) & 255)
+        h = h * FNV_PRIME ^ (bytes.get_unchecked(i) & 255)
         if h < 0 {
             h = 0 - h
         }
@@ -93,7 +93,7 @@ pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
     let n = nodes.len()
     let mut i = 0
     while i < n {
-        serialize_node(payload, get_unchecked(nodes, i))
+        serialize_node(payload, nodes.get_unchecked(i))
         i = i + 1
     }
     let mut buf: Vec<i32> = Vec::new<i32>()
@@ -108,7 +108,7 @@ pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
     let pn = payload.len()
     let mut j = 0
     while j < pn {
-        push(buf, get_unchecked(payload, j))
+        push(buf, payload.get_unchecked(j))
         j = j + 1
     }
     buf
@@ -128,14 +128,14 @@ fn serialize_node(mut buf: Vec<i32>, node: AstNode) {
     buf_push_i32(buf, cn)
     let mut ci = 0
     while ci < cn {
-        serialize_node(buf, get_unchecked(node.children, ci))
+        serialize_node(buf, node.children.get_unchecked(ci))
         ci = ci + 1
     }
     let tn = node.type_ann.len()
     buf_push_i32(buf, tn)
     let mut ti = 0
     while ti < tn {
-        serialize_node(buf, get_unchecked(node.type_ann, ti))
+        serialize_node(buf, node.type_ann.get_unchecked(ti))
         ti = ti + 1
     }
     // NOTE: infix `|` is not an expression operator in Ark (it silently
@@ -171,8 +171,8 @@ fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
     let mut total = n
     let mut i = 0
     while i < n {
-        total = total + count_nodes_vec(get_unchecked(nodes, i).children)
-        total = total + count_nodes_vec(get_unchecked(nodes, i).type_ann)
+        total = total + count_nodes_vec(nodes.get_unchecked(i).children)
+        total = total + count_nodes_vec(nodes.get_unchecked(i).type_ann)
         i = i + 1
     }
     total
@@ -242,12 +242,12 @@ test mod "astc_codec" {
         match astc_test_deserialize(bytes) {
             Result::Ok(back) => {
                 assert(back.len() == 1)
-                let root = get_unchecked(back, 0)
+                let root = back.get_unchecked(0)
                 assert(root.kind == 1)
                 assert(root.is_pub)
                 assert(root.is_component_export)
                 assert(root.children.len() == 1)
-                let leaf = get_unchecked(root.children, 0)
+                let leaf = root.children.get_unchecked(0)
                 assert(leaf.kind == 7)
                 assert(leaf.int_val == 4242)
                 assert(leaf.float_val == 2.5)

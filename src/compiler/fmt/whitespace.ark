@@ -30,7 +30,7 @@ fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
     let mut prev_blank = false
     let mut j = 0
     while j < line_count {
-        let raw = get_unchecked(lines, j)
+        let raw = lines.get_unchecked(j)
         let processed = fmt_normalize_line(raw)
         let is_blank = processed.len() == 0
         if !(is_blank && prev_blank) {
@@ -45,7 +45,7 @@ fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
 fn fmt_join_lines(lines: Vec<String>) -> String {
     let mut end = lines.len()
     while end > 0 {
-        let last = get_unchecked(lines, end - 1)
+        let last = lines.get_unchecked(end - 1)
         if last.len() == 0 {
             end = end - 1
         } else {
@@ -58,7 +58,7 @@ fn fmt_join_lines(lines: Vec<String>) -> String {
         if k > 0 {
             result = result.concat("\n")
         }
-        result = result.concat(get_unchecked(lines, k).clone())
+        result = result.concat(lines.get_unchecked(k).clone())
         k = k + 1
     }
     result = result.concat("\n")

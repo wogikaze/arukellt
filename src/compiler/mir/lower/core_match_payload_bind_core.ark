@@ -43,7 +43,7 @@ fn core_emit_payload_variant_binds(
         if payload_hint.len() == 0 {
             let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, variant_name.clone())
             if slot >= 0 {
-                let sig = get_unchecked(ctx.gc_enum_variant_sigs, slot).clone()
+                let sig = ctx.gc_enum_variant_sigs.get_unchecked(slot).clone()
                 if sig.clone().contains("_f1_fnref") {
                     payload_hint = "fnref"
                     scrut_type = "option:fnref"
@@ -54,7 +54,7 @@ fn core_emit_payload_variant_binds(
     }
     let mut bi = 0
     while bi < core_expr_shape_accessors::mir_core_expr_child_count(pat) {
-        let bind_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, bi))
+        let bind_pat = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, bi))
         if core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(bind_pat) {
             bi = bi + 1
             continue
@@ -251,7 +251,7 @@ fn core_emit_subpat_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreH
         let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
         let mut ei = 0
         while ei < elem_count {
-            let elem = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, ei))
+            let elem = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, ei))
             if core_expr_shape_patterns::mir_core_expr_is_pat_ident(elem) ||
             core_expr_shape_patterns::mir_core_expr_is_pat_variant(elem) ||
             core_expr_shape_patterns::mir_core_expr_is_pat_tuple(elem) {
@@ -271,7 +271,7 @@ fn core_emit_subpat_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreH
         let is_ref = core_match_payload_info::core_scrut_type_is_ref(scrut_type.clone())
         let mut bi = 0
         while bi < core_expr_shape_accessors::mir_core_expr_child_count(pat) {
-            let bind_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, bi))
+            let bind_pat = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, bi))
             if core_expr_shape_patterns::mir_core_expr_is_pat_wildcard(bind_pat) ||
             core_expr_shape_patterns::mir_core_expr_is_pat_literal(bind_pat) {
                 bi = bi + 1

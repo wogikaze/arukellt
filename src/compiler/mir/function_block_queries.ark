@@ -6,5 +6,5 @@ fn MirFunction_block_count(f: MirFunction) -> i32 {
 }
 
 fn MirFunction_block_at(f: MirFunction, idx: i32) -> MirBlock {
-    get_unchecked(f.blocks, idx)
+    f.blocks.get_unchecked(idx)
 }

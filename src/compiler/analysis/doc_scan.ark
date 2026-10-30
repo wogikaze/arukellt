@@ -68,10 +68,10 @@ fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
     if n == 0 {
         return String_new()
     }
-    let mut out = get_unchecked(docs, n - 1)
+    let mut out = docs.get_unchecked(n - 1)
     let mut i = n - 2
     while i >= 0 {
-        out = get_unchecked(docs, i).concat("\n").concat(out)
+        out = docs.get_unchecked(i).concat("\n").concat(out)
         i = i - 1
     }
     out

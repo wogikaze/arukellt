@@ -5,7 +5,7 @@ fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
     let n = paths.len()
     let mut i = 0
     while i < n {
-        if get_unchecked(paths, i).eq(import_path.clone()) {
+        if paths.get_unchecked(i).eq(import_path.clone()) {
             return true
         }
         i = i + 1

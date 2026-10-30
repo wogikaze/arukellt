@@ -23,7 +23,7 @@ fn main() {
     match r.read(1) {
         Result::Ok(one) => {
             assert(one.len() == 1)
-            assert(get_unchecked(one, 0) == 67)
+            assert(one.get_unchecked(0) == 67)
         },
         Result::Err(_e) => assert(false),
     }
@@ -33,7 +33,7 @@ fn main() {
         Result::Err(_e) => assert(false),
     }
     match r.read(1) {
-        Result::Ok(one) => assert(get_unchecked(one, 0) == 65),
+        Result::Ok(one) => assert(one.get_unchecked(0) == 65),
         Result::Err(_e) => assert(false),
     }
 

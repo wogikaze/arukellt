@@ -32,8 +32,8 @@ fn wit_binding_type(wit_type: String) -> String {
     }
     if t.clone().starts_with("result<") {
         let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
-        let ok = if args.len() > 0 { wit_binding_type(get_unchecked(args, 0)) } else { "()" }
-        let err = if args.len() > 1 { wit_binding_type(get_unchecked(args, 1)) } else { "()" }
+        let ok = if args.len() > 0 { wit_binding_type(args.get_unchecked(0)) } else { "()" }
+        let err = if args.len() > 1 { wit_binding_type(args.get_unchecked(1)) } else { "()" }
         return "Result<".concat(ok.concat(", ".concat(err.concat(">"))))
     }
     if t.clone().starts_with("tuple<") {
@@ -41,7 +41,7 @@ fn wit_binding_type(wit_type: String) -> String {
         let mut out = "("
         for i in 0..args.len() {
             if i > 0 { out = out.concat(", ") }
-            out = out.concat(wit_binding_type(get_unchecked(args, i)))
+            out = out.concat(wit_binding_type(args.get_unchecked(i)))
         }
         return out.concat(")")
     }
@@ -51,9 +51,9 @@ fn wit_binding_type(wit_type: String) -> String {
 fn wit_binding_validation_error(doc: wit_parse_text::WitParsedInterface) -> String {
     let records = wit_parse_text::WitParsedInterface_records(doc)
     for ri in 0..records.len() {
-        let record = get_unchecked(records, ri)
+        let record = records.get_unchecked(ri)
         for fi in 0..record.field_wit_types.len() {
-            let field_type = get_unchecked(record.field_wit_types, fi)
+            let field_type = record.field_wit_types.get_unchecked(fi)
             if wit_parse_text_scan::wit_trim_txt(field_type.clone()).eq(record.wit_name.clone()) {
                 return "E0402 recursive WIT record binding: ".concat(record.wit_name.clone())
             }
@@ -72,33 +72,33 @@ fn emit_wit_bindings_from_doc(doc: wit_parse_text::WitParsedInterface) -> String
     out = out.concat("// wit-interface: ".concat(doc.interface.clone().concat("\n\n")))
     let records = wit_parse_text::WitParsedInterface_records(doc)
     for ri in 0..records.len() {
-        let record = get_unchecked(records, ri)
+        let record = records.get_unchecked(ri)
         out = out.concat("pub struct ".concat(record.ark_name.clone().concat(" {\n")))
         for fi in 0..record.field_names.len() {
             out = out.concat("    ")
-            out = out.concat(wit_names_import::wit_kebab_to_snake(get_unchecked(record.field_names, fi)))
+            out = out.concat(wit_names_import::wit_kebab_to_snake(record.field_names.get_unchecked(fi)))
             out = out.concat(": ")
-            out = out.concat(wit_binding_type(get_unchecked(record.field_wit_types, fi)))
+            out = out.concat(wit_binding_type(record.field_wit_types.get_unchecked(fi)))
             out = out.concat(",\n")
         }
         out = out.concat("}\n\n")
     }
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     for ei in 0..enums.len() {
-        let en = get_unchecked(enums, ei)
+        let en = enums.get_unchecked(ei)
         out = out.concat("pub enum ".concat(en.ark_name.clone().concat(" {\n")))
         for vi in 0..en.variant_ark_names.len() {
-            out = out.concat("    ".concat(get_unchecked(en.variant_ark_names, vi).concat(",\n")))
+            out = out.concat("    ".concat(en.variant_ark_names.get_unchecked(vi).concat(",\n")))
         }
         out = out.concat("}\n\n")
     }
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
     for vi in 0..variants.len() {
-        let variant = get_unchecked(variants, vi)
+        let variant = variants.get_unchecked(vi)
         out = out.concat("pub enum ".concat(variant.ark_name.clone().concat(" {\n")))
         for ci in 0..variant.case_ark_names.len() {
-            out = out.concat("    ".concat(get_unchecked(variant.case_ark_names, ci)))
-            let payload = get_unchecked(variant.case_payload_wit_types, ci)
+            out = out.concat("    ".concat(variant.case_ark_names.get_unchecked(ci)))
+            let payload = variant.case_payload_wit_types.get_unchecked(ci)
             if payload.len() > 0 {
                 out = out.concat("(".concat(wit_binding_type(payload).concat(")")))
             }

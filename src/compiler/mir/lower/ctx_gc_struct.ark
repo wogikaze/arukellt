@@ -37,7 +37,7 @@ fn ctx_register_gc_struct(mut ctx: LowerCtx, struct_name: String, sig: String) {
     let count = ctx.gc_struct_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.gc_struct_names, i).eq(struct_name.clone()) {
+        if ctx.gc_struct_names.get_unchecked(i).eq(struct_name.clone()) {
             ctx_intern_gc_struct_type(ctx, struct_name)
             return
         }
@@ -81,7 +81,7 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
     let count = ctx.gc_struct_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.gc_struct_names, i).eq(struct_name.clone()) {
+        if ctx.gc_struct_names.get_unchecked(i).eq(struct_name.clone()) {
             // A materialized module slot mirrors the sig pushed at
             // materialize time; rewriting it afterwards would desync the
             // emitted type from the canon entry. Only pending slots may
@@ -130,13 +130,13 @@ fn ctx_gc_struct_materialize_ready(mut ctx: LowerCtx) {
     let count = ctx.gc_struct_names.len()
     let mut slot = module_gc_struct::MirModule_gc_struct_sig_count(m)
     while slot < count {
-        if get_unchecked(ctx.gc_struct_sig_pending, slot) {
+        if ctx.gc_struct_sig_pending.get_unchecked(slot) {
             return
         }
-        let sig = get_unchecked(ctx.gc_struct_sigs, slot).clone()
+        let sig = ctx.gc_struct_sigs.get_unchecked(slot).clone()
         module_gc_struct::MirModule_push_gc_struct(
             m,
-            get_unchecked(ctx.gc_struct_names, slot).clone(),
+            ctx.gc_struct_names.get_unchecked(slot).clone(),
             sig.clone()
         )
         let canon = ctx_gc_canon::ctx_gc_canon_ensure_struct_sig(ctx, sig)
@@ -184,7 +184,7 @@ fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     let count = ctx.gc_struct_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.gc_struct_names, i).eq(struct_name.clone()) {
+        if ctx.gc_struct_names.get_unchecked(i).eq(struct_name.clone()) {
             return i
         }
         i = i + 1
@@ -210,8 +210,8 @@ fn ctx_flush_gc_structs_from(mut ctx: LowerCtx, start: i32) {
         i = materialized
     }
     while i < count {
-        let sig = get_unchecked(ctx.gc_struct_sigs, i).clone()
-        module_gc_struct::MirModule_push_gc_struct(m, get_unchecked(ctx.gc_struct_names, i).clone(), sig.clone())
+        let sig = ctx.gc_struct_sigs.get_unchecked(i).clone()
+        module_gc_struct::MirModule_push_gc_struct(m, ctx.gc_struct_names.get_unchecked(i).clone(), sig.clone())
         // Sealed registrations emit in slot order, so ensure inline while
         // pushing. Post-seal entries were materialized at registration; any
         // stragglers keep -1 until ctx_gc_canon_ensure_late assigns them in

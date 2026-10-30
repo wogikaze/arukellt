@@ -33,7 +33,7 @@ fn type_info_type_arg_count(ty: TypeInfo) -> i32 {
 }
 
 fn type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
-    get_unchecked(ty.type_args, index)
+    ty.type_args.get_unchecked(index)
 }
 
 fn type_info_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
@@ -48,7 +48,7 @@ fn type_info_param_is_mut(ty: TypeInfo, index: i32) -> bool {
     if index < 0 || index >= ty.param_modes.len() {
         return false
     }
-    get_unchecked(ty.param_modes, index)
+    ty.param_modes.get_unchecked(index)
 }
 
 fn type_info_push_param_mode(mut ty: TypeInfo, is_mut: bool) {

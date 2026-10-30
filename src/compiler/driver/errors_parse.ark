@@ -6,7 +6,7 @@ pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diag
     let mut result = result_record::CompileResult_new(false, phases::PHASE_PARSE(), parse_error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     let mut k = 0
     while k < parse_error_count {
-        let diag = get_unchecked(errors, k)
+        let diag = errors.get_unchecked(k)
         result_record::compile_result_push_diagnostic(result, diag)
         result_record::compile_result_push_error_message(result, errors_phase::enrich_diagnostic(source.clone(), source_file.clone(), diag))
         k = k + 1
@@ -14,7 +14,7 @@ pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diag
     let warning_count = warnings.len()
     let mut wi = 0
     while wi < warning_count {
-        result_record::compile_result_push_diagnostic(result, get_unchecked(warnings, wi))
+        result_record::compile_result_push_diagnostic(result, warnings.get_unchecked(wi))
         wi = wi + 1
     }
     result_record::compile_result_set_error_count(result, parse_error_count)
@@ -26,7 +26,7 @@ pub fn parse_warnings_result(source: String, source_file: String, warnings: Vec<
     let warning_count = warnings.len()
     let mut wi = 0
     while wi < warning_count {
-        let diag = get_unchecked(warnings, wi)
+        let diag = warnings.get_unchecked(wi)
         result_record::compile_result_push_diagnostic(result, diag)
         result_record::compile_result_push_error_message(result, errors_phase::enrich_diagnostic(source.clone(), source_file.clone(), diag))
         wi = wi + 1

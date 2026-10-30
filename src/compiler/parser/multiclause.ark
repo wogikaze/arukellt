@@ -5,7 +5,7 @@ use parser::multiclause_plain
 use parser::multiclause_where
 
 fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool, where_bindings: Vec<AstNode>, is_async: bool) -> AstNode {
-    let first = get_unchecked(clauses, 0)
+    let first = clauses.get_unchecked(0)
     let fn_span = core_ast_span_fields::AstNode_span(first)
     let mut result = multiclause_base::build_multiclause_fn_base(first, is_pub, fn_span, is_async)
     let first_child_count = core_ast_children::AstNode_child_count(first)

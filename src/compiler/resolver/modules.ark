@@ -16,7 +16,7 @@ fn module_decl_count(module: ModuleDecls) -> i32 {
 }
 
 fn module_decl_at(module: ModuleDecls, index: i32) -> AstNode {
-    get_unchecked(module.decls, index)
+    module.decls.get_unchecked(index)
 }
 
 // ModuleDecls entries register under their short name ("std::text::string" is
@@ -26,7 +26,7 @@ fn module_registered(modules: Vec<ModuleDecls>, name: String) -> bool {
     let count = modules.len()
     let mut i = 0
     while i < count {
-        if modules::module_name(get_unchecked(modules, i)).eq(name.clone()) {
+        if modules::module_name(modules.get_unchecked(i)).eq(name.clone()) {
             return true
         }
         i = i + 1

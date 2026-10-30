@@ -25,7 +25,7 @@ fn parser_at_end(p: Parser) -> bool {
 }
 
 fn parser_current_token(p: Parser) -> Token {
-    get_unchecked(p.tokens, p.pos)
+    p.tokens.get_unchecked(p.pos)
 }
 
 fn parser_token_count(p: Parser) -> i32 {
@@ -33,7 +33,7 @@ fn parser_token_count(p: Parser) -> i32 {
 }
 
 fn parser_token_at(p: Parser, idx: i32) -> Token {
-    get_unchecked(p.tokens, idx)
+    p.tokens.get_unchecked(idx)
 }
 
 fn parser_advance(mut p: Parser) {
@@ -61,7 +61,7 @@ fn parser_error_count(p: Parser) -> i32 {
 }
 
 fn parser_error_at(p: Parser, index: i32) -> Diagnostic {
-    get_unchecked(p.errors, index)
+    p.errors.get_unchecked(index)
 }
 
 fn parser_warnings(p: Parser) -> Vec<Diagnostic> {

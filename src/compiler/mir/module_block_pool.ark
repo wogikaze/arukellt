@@ -25,7 +25,7 @@ fn mir_module_take_block(mut m: MirModule, id: i32) -> MirBlock {
     }
     let idx = m.block_pool_used - 1
     m.block_pool_used = idx
-    let mut block = get_unchecked(m.block_pool, idx)
+    let mut block = m.block_pool.get_unchecked(idx)
     mir_block_reset_for_reuse(block, id)
     block
 }
@@ -45,7 +45,7 @@ fn mir_function_detach_blocks(mut f: MirFunction, mut m: MirModule) {
     let n = f.blocks.len()
     let mut i = 0
     while i < n {
-        mir_module_give_block(m, get_unchecked(f.blocks, i))
+        mir_module_give_block(m, f.blocks.get_unchecked(i))
         i = i + 1
     }
     // After wasm emit the function no longer owns the objects. Vec::new here

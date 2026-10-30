@@ -116,7 +116,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
     if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_UNKNOWN() {
         let unique_index = unique_method_signature_index(fn_sigs.clone(), method_name.clone())
         if unique_index >= 0 {
-            let unique_sig = get_unchecked(fn_sigs, unique_index)
+            let unique_sig = fn_sigs.get_unchecked(unique_index)
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, unique_sig, recv_ty, child_count)
         }
     }
@@ -179,7 +179,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
             let mut seen = false
             let mut ei = 0
             while ei < env.errors.len() {
-                if get_unchecked(env.errors, ei).clone().eq(message.clone()) {
+                if env.errors.get_unchecked(ei).clone().eq(message.clone()) {
                     seen = true
                 }
                 ei = ei + 1
@@ -244,7 +244,7 @@ fn reject_hashset_method_outside_family(
     // report the family rejection once per environment.
     let mut index = 0
     while index < env.errors.len() {
-        if get_unchecked(env.errors, index).clone().eq(message.clone()) {
+        if env.errors.get_unchecked(index).clone().eq(message.clone()) {
             return true
         }
         index = index + 1
@@ -388,6 +388,14 @@ fn infer_vec_method_from_signature(
     if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_VEC() {
         return simple_type(commands::TY_UNKNOWN())
     }
+    // The retired `get_unchecked` free was also this method's generic
+    // signature anchor. Build the `(Vec<T>, i32) -> T` contract from the
+    // receiver so nested / struct / String element types bind even though the
+    // prelude no longer exports the declarable free (E0100).
+    if method_name.clone().eq(String_from("get_unchecked")) {
+        let sig = vec_get_unchecked_method_sig(recv_ty)
+        return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
+    }
     let sig = vec_method_declaration(env, fn_sigs, method_name)
     if !is_vec_receiver_signature(sig.clone()) {
         return simple_type(commands::TY_UNKNOWN())
@@ -400,6 +408,23 @@ fn infer_vec_method_from_signature(
         return simple_type(commands::TY_UNKNOWN())
     }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
+}
+
+fn vec_get_unchecked_method_sig(recv_ty: TypeInfo) -> FnSig {
+    let mut params = Vec::new<TypeInfo>()
+    push(params, recv_ty)
+    push(params, simple_type(commands::TY_I32()))
+    let mut elem_ty = simple_type(commands::TY_UNKNOWN())
+    if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
+        elem_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
+    }
+    contract_fn_sig::FnSig_new(
+        String_from("get_unchecked"),
+        params,
+        elem_ty,
+        Vec::new<String>(),
+        Vec::new<contract_type_param_bounds::TypeParamBounds>()
+    )
 }
 
 // Prefer the free declaration with a `Vec<T>` receiver, because the Vec impl
@@ -651,7 +676,7 @@ fn try_resolve_trait_method_from_bounds(mut env: TypeEnv, mut scope: LocalScope,
     let bound_count = env.current_fn_bounds.len()
     let mut i = 0
     while i < bound_count {
-        let tp_bound = get_unchecked(env.current_fn_bounds, i)
+        let tp_bound = env.current_fn_bounds.get_unchecked(i)
         let tp_name = contract_type_param_bounds::TypeParamBounds_name(tp_bound)
         if tp_name.clone().eq(recv_ty_name.clone()) {
             let inner_bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(tp_bound)
@@ -756,7 +781,7 @@ fn unique_method_signature_index(fn_sigs: Vec<FnSig>, method_name: String) -> i3
     let mut count = 0
     let mut i = 0
     while i < fn_sigs.len() {
-        let name = contract_fn_sig::FnSig_name(get_unchecked(fn_sigs, i))
+        let name = contract_fn_sig::FnSig_name(fn_sigs.get_unchecked(i))
         let matches = name.clone().ends_with(suffix.clone()) ||
         name.clone().eq(String_from("::").concat(method_name.clone()))
         if matches {

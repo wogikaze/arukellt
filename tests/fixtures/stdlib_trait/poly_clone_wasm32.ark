@@ -22,12 +22,12 @@ fn main() {
     v.push(String_from("a"))
     let vc = v.clone()
     Test::assert_eq_i32(vc.len(), 1)
-    Test::assert_eq_string(get_unchecked(vc, 0), "a")
+    Test::assert_eq_string(vc.get_unchecked(0), "a")
 
     let mut nums: Vec<i32> = Vec::new<i32>()
     nums.push(7)
     let nc = nums.clone()
-    Test::assert_eq_i32(get_unchecked(nc, 0), 7)
+    Test::assert_eq_i32(nc.get_unchecked(0), 7)
 
     let p = Pair { a: 1, b: 2 }
     let pc = p.clone()

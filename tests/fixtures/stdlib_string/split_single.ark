@@ -5,5 +5,5 @@ fn main() {
     let s = String_from("solo")
     let parts = s.split(String_from(","))
     Test::assert_eq_i32(parts.len(), 1)
-    Test::assert_eq_string(get_unchecked(parts, 0), "solo")
+    Test::assert_eq_string(parts.get_unchecked(0), "solo")
 }

@@ -10,5 +10,5 @@ fn main() {
     let mut h = Holder { name: String_from("test"), items: Vec::new<String>() }
     h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
     Stdio::println(h.name)
-    Stdio::println(get_unchecked(h.items, 0))
+    Stdio::println(h.items.get_unchecked(0))
 }

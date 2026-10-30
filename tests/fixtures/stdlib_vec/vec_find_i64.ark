@@ -9,7 +9,7 @@ fn find_hundred(v: Vec<i64>) -> Option<i64> {
     let n = v.len()
     let mut i = 0
     while i < n {
-        let x = get_unchecked(v, i)
+        let x = v.get_unchecked(i)
         if is_hundred(x) {
             return Some(x)
         }

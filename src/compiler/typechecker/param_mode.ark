@@ -121,7 +121,7 @@ fn check_mutable_parameter_places(
     let param_count = requires_mutable.len()
     let mut index = 0
     while index < param_count {
-        if get_unchecked(requires_mutable, index) {
+        if requires_mutable.get_unchecked(index) {
             let arg_node = ast_access::node_child_at(node, first_arg + index)
             if !arg_is_mutable_place(scope, arg_node) &&
             !ownership::is_moved_place(scope, arg_node) {
@@ -388,7 +388,7 @@ fn check_overlapping_places(
     while left < param_count {
         let mut right = left + 1
         while right < param_count {
-            if get_unchecked(requires_mutable, left) || get_unchecked(requires_mutable, right) {
+            if requires_mutable.get_unchecked(left) || requires_mutable.get_unchecked(right) {
                 let left_key = place_key(
                     scope,
                     ast_access::node_child_at(node, first_arg + left)

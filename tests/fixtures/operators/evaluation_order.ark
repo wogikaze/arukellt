@@ -32,7 +32,7 @@ fn make_cell(mut log: Vec<i32>, value: i32) -> Cell {
 }
 
 fn expect_marker(log: Vec<i32>, index: i32, expected: i32) {
-    if get_unchecked(log, index) != expected {
+    if log.get_unchecked(index) != expected {
         Process::exit(1)
     }
 }
@@ -43,7 +43,7 @@ fn main() {
     let _args = combine(observe(log, 1), observe(log, 2))
     let _binary = observe(log, 3) + observe(log, 4)
     let _aggregate = Pair { left: observe(log, 5), right: observe(log, 6) }
-    let _indexed = get_unchecked(make_values(log), observe(log, 8) - 8)
+    let _indexed = make_values(log).get_unchecked(observe(log, 8) - 8)
     make_cell(log, 9).value = observe(log, 10)
 
     expect_marker(log, 0, 1)

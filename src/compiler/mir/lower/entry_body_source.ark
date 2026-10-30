@@ -119,7 +119,7 @@ fn mir_entry_body_source_fn_body_node(
     if decl_index < 0 || decl_index >= source.decl_nodes.len() || body_idx < 0 {
         return frontend_ast_node::corehir_empty_ast_node()
     }
-    let decl = get_unchecked(source.decl_nodes, decl_index)
+    let decl = source.decl_nodes.get_unchecked(decl_index)
     if body_idx >= decl_children::decl_child_count(decl) {
         return frontend_ast_node::corehir_empty_ast_node()
     }
@@ -135,7 +135,7 @@ fn mir_entry_body_source_method_body_node(
     if impl_decl_index < 0 || impl_decl_index >= source.decl_nodes.len() {
         return frontend_ast_node::corehir_empty_ast_node()
     }
-    let impl_decl = get_unchecked(source.decl_nodes, impl_decl_index)
+    let impl_decl = source.decl_nodes.get_unchecked(impl_decl_index)
     if method_index < 0 || method_index >= decl_member_collections::decl_method_count(impl_decl) {
         return frontend_ast_node::corehir_empty_ast_node()
     }

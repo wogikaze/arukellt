@@ -13,5 +13,5 @@ fn main() {
         Option::Some(val) => Test::assert_eq_i32(val, 2),
         None => Std::panic("expected Some, got None"),
     }
-    Test::assert_eq_i32(get_unchecked(v, 0), 1)
+    Test::assert_eq_i32(v.get_unchecked(0), 1)
 }

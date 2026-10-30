@@ -4,19 +4,19 @@ fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_struct_layout_name_at(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.struct_names, index).clone()
+    ctx.struct_names.get_unchecked(index).clone()
 }
 
 fn ctx_struct_layout_field_count_at(ctx: LowerCtx, index: i32) -> i32 {
-    get_unchecked(ctx.struct_field_counts, index)
+    ctx.struct_field_counts.get_unchecked(index)
 }
 
 fn ctx_struct_field_name_at_offset(ctx: LowerCtx, offset: i32) -> String {
-    get_unchecked(ctx.struct_all_fields, offset).clone()
+    ctx.struct_all_fields.get_unchecked(offset).clone()
 }
 
 fn ctx_struct_field_type_at_offset(ctx: LowerCtx, offset: i32) -> String {
-    get_unchecked(ctx.struct_field_types, offset).clone()
+    ctx.struct_field_types.get_unchecked(offset).clone()
 }
 
 fn ctx_struct_push_layout(mut ctx: LowerCtx, struct_name: String, field_count: i32) {
@@ -24,7 +24,7 @@ fn ctx_struct_push_layout(mut ctx: LowerCtx, struct_name: String, field_count: i
     let field_offset = if index == 0 {
         0
     } else {
-        get_unchecked(ctx.struct_layout_field_offsets, index - 1) + get_unchecked(ctx.struct_field_counts, index - 1)
+        ctx.struct_layout_field_offsets.get_unchecked(index - 1) + ctx.struct_field_counts.get_unchecked(index - 1)
     }
     name_index::name_index_insert_first(ctx.struct_layout_first_index, struct_name.clone(), index)
     push(ctx.struct_layout_field_offsets, field_offset)
@@ -89,7 +89,7 @@ fn ctx_struct_layout_preferred_index(ctx: LowerCtx, struct_name: String) -> i32 
 
 // Offset of layout `index`'s first field in struct_all_fields / struct_field_types.
 fn ctx_struct_layout_field_offset_at(ctx: LowerCtx, index: i32) -> i32 {
-    get_unchecked(ctx.struct_layout_field_offsets, index)
+    ctx.struct_layout_field_offsets.get_unchecked(index)
 }
 
 fn ctx_struct_layout_name_memo_reset(mut ctx: LowerCtx) {
@@ -102,7 +102,7 @@ fn ctx_struct_layout_name_memo_slot(ctx: LowerCtx, type_name: String) -> i32 {
 }
 
 fn ctx_struct_layout_name_memo_value_at(ctx: LowerCtx, slot: i32) -> String {
-    get_unchecked(ctx.struct_layout_name_memo_values, slot).clone()
+    ctx.struct_layout_name_memo_values.get_unchecked(slot).clone()
 }
 
 fn ctx_struct_layout_name_memo_put(mut ctx: LowerCtx, type_name: String, resolved: String) {
@@ -115,8 +115,8 @@ fn ctx_struct_push_field(mut ctx: LowerCtx, field_name: String, field_type: Stri
     push(ctx.struct_field_types, field_type)
     let index = ctx.struct_names.len() - 1
     if index >= 0 {
-        let field_count = get_unchecked(ctx.struct_field_counts, index)
-        let field_offset = get_unchecked(ctx.struct_layout_field_offsets, index)
+        let field_count = ctx.struct_field_counts.get_unchecked(index)
+        let field_offset = ctx.struct_layout_field_offsets.get_unchecked(index)
         if ctx.struct_all_fields.len() - field_offset == field_count {
             ctx_struct_layout_record_struct_index(ctx, index)
         }

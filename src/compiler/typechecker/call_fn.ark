@@ -122,7 +122,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         let variants = callee_spelling::callee_spelling_variants(callee_name.clone())
         let mut vi = 0
         while vi < variants.len() {
-            let variant = get_unchecked(variants, vi).clone()
+            let variant = variants.get_unchecked(vi).clone()
             let variant_sig = sigs::lookup_fn_sig(env, fn_sigs, variant.clone())
             if contract_fn_sig::FnSig_has_name(variant_sig) {
                 sig = variant_sig
@@ -436,7 +436,7 @@ fn hashmap_from_iter_candidate(
     push(owners, String_from("HashMap_String_fnref"))
     let mut index: i32 = 0
     while index < owners.len() {
-        let owner = get_unchecked(owners, index)
+        let owner = owners.get_unchecked(index)
         let candidate = owner.concat(String_from("::from_iter__").concat(source_name.clone()))
         if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, candidate.clone())) {
             return candidate

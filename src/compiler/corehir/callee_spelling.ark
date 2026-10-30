@@ -148,7 +148,7 @@ fn callee_spelling_variants(name: String) -> Vec<String> {
         let mut seen = false
         let mut i = 0
         while i < variants.len() {
-            if get_unchecked(variants, i).clone().eq(after_first.clone()) {
+            if variants.get_unchecked(i).clone().eq(after_first.clone()) {
                 seen = true
                 i = variants.len()
             } else {

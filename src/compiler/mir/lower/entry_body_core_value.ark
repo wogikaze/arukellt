@@ -15,7 +15,7 @@ fn mir_lower_entry_body_core_value(mut ctx: LowerCtx, body: MirLowerEntryCoreBod
     // A bare fn name in tail position is the implicit return value; with a
     // funcref return type it must lower to the fn pair, not `call name()`
     // (#884).
-    let tail_expr = mir_core_body_tail_expr(exprs, get_unchecked(exprs, root_index))
+    let tail_expr = mir_core_body_tail_expr(exprs, exprs.get_unchecked(root_index))
     if core_jumps::mir_core_return_expr_is_fn_value(ctx, tail_expr) {
         return value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(tail_expr))
     }
@@ -28,7 +28,7 @@ fn mir_core_body_tail_expr(exprs: Vec<CoreHirExpr>, root_expr: CoreHirExpr) -> C
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(root_expr)
     if expr_predicates::expr_kind_is(root_expr, commands::COREHIR_EXPR_BLOCK()) && child_count >= 1 {
         let tail_index = core_expr_shape_accessors::mir_core_expr_child(root_expr, child_count - 1)
-        return get_unchecked(exprs, tail_index)
+        return exprs.get_unchecked(tail_index)
     }
     root_expr
 }

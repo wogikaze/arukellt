@@ -30,7 +30,7 @@ impl Arena {
 
     /// Allocates `value` and returns its stable `ArenaId`.
     fn alloc(mut self: Arena, value: i32) -> i32 {
-        let idx: i32 = get_unchecked(self.entries, 0)
+        let idx: i32 = self.entries.get_unchecked(0)
         push(self.entries, value)
         set(self.entries, 0, idx + 1)
         idx
@@ -38,12 +38,12 @@ impl Arena {
 
     /// Returns the value at `idx`.
     fn get(self: Arena, idx: i32) -> i32 {
-        get_unchecked(self.entries, 1 + idx)
+        self.entries.get_unchecked(1 + idx)
     }
 
     /// Returns the number of allocated entries.
     fn len(self: Arena) -> i32 {
-        get_unchecked(self.entries, 0)
+        self.entries.get_unchecked(0)
     }
 }
 
@@ -69,11 +69,11 @@ impl SlotMap {
 
     /// Inserts `value` and returns its stable `SlotKey`.
     fn insert(mut self: SlotMap, value: i32) -> i32 {
-        let key: i32 = get_unchecked(self.slots, 1)
+        let key: i32 = self.slots.get_unchecked(1)
         push(self.slots, value)
         push(self.slots, 1)
         set(self.slots, 1, key + 1)
-        let count: i32 = get_unchecked(self.slots, 0)
+        let count: i32 = self.slots.get_unchecked(0)
         set(self.slots, 0, count + 1)
         key
     }
@@ -81,47 +81,47 @@ impl SlotMap {
     /// Returns the value at `key`, or `None` when the key is out of range or
     /// has been removed.
     fn get(self: SlotMap, key: i32) -> Option<i32> {
-        let max_key: i32 = get_unchecked(self.slots, 1)
+        let max_key: i32 = self.slots.get_unchecked(1)
         if key < 0 || key >= max_key {
             return None
         }
-        let is_alive: i32 = get_unchecked(self.slots, 2 + key * 2 + 1)
+        let is_alive: i32 = self.slots.get_unchecked(2 + key * 2 + 1)
         if is_alive == 0 {
             return None
         }
-        Some(get_unchecked(self.slots, 2 + key * 2))
+        Some(self.slots.get_unchecked(2 + key * 2))
     }
 
     /// Removes and returns the value at `key`, or `None` when the key is out
     /// of range or already removed.
     fn remove(mut self: SlotMap, key: i32) -> Option<i32> {
-        let max_key: i32 = get_unchecked(self.slots, 1)
+        let max_key: i32 = self.slots.get_unchecked(1)
         if key < 0 || key >= max_key {
             return None
         }
-        let slot_alive: i32 = get_unchecked(self.slots, 2 + key * 2 + 1)
+        let slot_alive: i32 = self.slots.get_unchecked(2 + key * 2 + 1)
         if slot_alive == 0 {
             return None
         }
-        let val: i32 = get_unchecked(self.slots, 2 + key * 2)
+        let val: i32 = self.slots.get_unchecked(2 + key * 2)
         set(self.slots, 2 + key * 2 + 1, 0)
-        let count: i32 = get_unchecked(self.slots, 0)
+        let count: i32 = self.slots.get_unchecked(0)
         set(self.slots, 0, count - 1)
         Some(val)
     }
 
     /// Returns true when `key` is in range and still active.
     fn contains(self: SlotMap, key: i32) -> bool {
-        let max_key: i32 = get_unchecked(self.slots, 1)
+        let max_key: i32 = self.slots.get_unchecked(1)
         if key < 0 || key >= max_key {
             return false
         }
-        get_unchecked(self.slots, 2 + key * 2 + 1) == 1
+        self.slots.get_unchecked(2 + key * 2 + 1) == 1
     }
 
     /// Returns the number of active entries.
     fn len(self: SlotMap) -> i32 {
-        get_unchecked(self.slots, 0)
+        self.slots.get_unchecked(0)
     }
 }
 
@@ -149,7 +149,7 @@ impl Interner {
         let n: i32 = self.values.len()
         let mut idx: i32 = 0
         while idx < n {
-            if get_unchecked(self.values, idx).eq(value) {
+            if self.values.get_unchecked(idx).eq(value) {
                 return idx
             }
             idx = idx + 1
@@ -164,7 +164,7 @@ impl Interner {
         if sym < 0 || sym >= n {
             return None
         }
-        Some(get_unchecked(self.values, sym))
+        Some(self.values.get_unchecked(sym))
     }
 
     /// Returns the number of interned strings.

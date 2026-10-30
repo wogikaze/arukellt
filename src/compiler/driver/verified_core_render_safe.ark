@@ -38,7 +38,7 @@ fn vcs_return_value_type(program: CoreHirRawProgram, function_index: i32) -> i32
     if typed_index < 0 || typed_index >= typed_fns.len() {
         return 0 - 1
     }
-    let typed_fn = get_unchecked(typed_fns, typed_index)
+    let typed_fn = typed_fns.get_unchecked(typed_index)
     let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
     verified_core_render_primitives::vc_type_info_value_type(return_type)
 }
@@ -49,7 +49,7 @@ fn vcs_return_type_id(program: CoreHirRawProgram, function_index: i32) -> i32 {
     if typed_index < 0 || typed_index >= typed_fns.len() {
         return 0 - 1
     }
-    let typed_fn = get_unchecked(typed_fns, typed_index)
+    let typed_fn = typed_fns.get_unchecked(typed_index)
     let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
     let return_vt = verified_core_render_primitives::vc_type_info_value_type(return_type)
     verified_core_render_primitives::vc_type_id(
@@ -64,7 +64,7 @@ fn vcs_typed_param_count(program: CoreHirRawProgram, function_index: i32) -> i32
     if typed_index < 0 || typed_index >= typed_fns.len() {
         return 0 - 1
     }
-    let typed_fn = get_unchecked(typed_fns, typed_index)
+    let typed_fn = typed_fns.get_unchecked(typed_index)
     contract_typed_fn::TypedFn_param_types(typed_fn).len()
 }
 
@@ -99,7 +99,7 @@ fn vcs_collect_reachable(program: CoreHirRawProgram, root: i32) -> Vec<i32> {
         let mut already_seen = false
         let mut seen_i = 0
         while seen_i < reachable.len() {
-            if get_unchecked(reachable, seen_i) == id {
+            if reachable.get_unchecked(seen_i) == id {
                 already_seen = true
                 seen_i = reachable.len()
             } else {
@@ -109,7 +109,7 @@ fn vcs_collect_reachable(program: CoreHirRawProgram, root: i32) -> Vec<i32> {
         if !already_seen {
             push(reachable, id)
             if id >= 0 && id < exprs.len() {
-                let expr = get_unchecked(exprs, id)
+                let expr = exprs.get_unchecked(id)
                 let child_count = expr_raw::corehir_expr_child_count(expr)
                 let mut child_i = 0
                 while child_i < child_count {
@@ -127,11 +127,11 @@ fn vcs_reachable_is_typed(program: CoreHirRawProgram, reachable: Vec<i32>) -> bo
     let exprs = body_table::corehir_body_table_exprs(table)
     let mut i = 0
     while i < reachable.len() {
-        let id = get_unchecked(reachable, i)
+        let id = reachable.get_unchecked(i)
         if id < 0 || id >= exprs.len() {
             return false
         }
-        let expr = get_unchecked(exprs, id)
+        let expr = exprs.get_unchecked(id)
         let type_id = verified_core_render_primitives::vc_type_id(
             expr_raw::corehir_expr_val_type(expr),
             expr_raw::corehir_expr_type_name(expr)
@@ -238,7 +238,7 @@ fn vcs_render_parameter_locals(program: CoreHirRawProgram, function_index: i32) 
 fn vcs_is_reachable(reachable: Vec<i32>, expr_id: i32) -> bool {
     let mut i = 0
     while i < reachable.len() {
-        if get_unchecked(reachable, i) == expr_id {
+        if reachable.get_unchecked(i) == expr_id {
             return true
         }
         i = i + 1
@@ -336,7 +336,7 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Str
     if modules.len() == 0 {
         return ""
     }
-    let main_module = get_unchecked(modules, modules.len() - 1)
+    let main_module = modules.get_unchecked(modules.len() - 1)
     let main_decl_start = raw_dto::CoreHirModuleInfo_decl_start(main_module)
     let main_decl_end = main_decl_start + raw_dto::CoreHirModuleInfo_decl_count(main_module)
     let fn_infos = raw_decls::program_fn_infos(program)

@@ -16,7 +16,7 @@ fn main() {
     let mut found_30 = false
     let mut i = 0
     while i < keys.len() {
-        let k = get_unchecked(keys, i)
+        let k = keys.get_unchecked(i)
         if k == 10 { found_10 = true }
         if k == 20 { found_20 = true }
         if k == 30 { found_30 = true }

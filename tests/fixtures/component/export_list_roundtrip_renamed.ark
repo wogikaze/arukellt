@@ -3,7 +3,7 @@ export fn copy_with_tail(v: Vec<i32>) -> Vec<i32> {
     let mut out: Vec<i32> = Vec::new<i32>()
     let mut i = 0
     while i < v.len() {
-        push(out, get_unchecked(v, i))
+        push(out, v.get_unchecked(i))
         i = i + 1
     }
     push(out, 77)

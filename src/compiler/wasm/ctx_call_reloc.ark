@@ -34,10 +34,10 @@ fn SelfEmitCtx_apply_call_relocs(
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let mut i = 0
     while i < n {
-        let off = get_unchecked(ctx.call_reloc_offs, i)
-        let fid_raw = get_unchecked(ctx.call_reloc_fids, i)
-        let func_idx = get_unchecked(ctx.call_reloc_funcs, i)
-        let mut name = get_unchecked(ctx.call_reloc_names, i)
+        let off = ctx.call_reloc_offs.get_unchecked(i)
+        let fid_raw = ctx.call_reloc_fids.get_unchecked(i)
+        let func_idx = ctx.call_reloc_funcs.get_unchecked(i)
+        let mut name = ctx.call_reloc_names.get_unchecked(i)
         if fid_raw >= 0 {
             let signature = signature_registry::signature_registry_lookup_by_id(
                 registry,
@@ -47,7 +47,7 @@ fn SelfEmitCtx_apply_call_relocs(
         }
         let fn_idx = inst_ctx::resolve_fn_index_for_call(ctx, name, fid_raw)
         if fn_idx >= 0 {
-            let mut body = get_unchecked(ctx.body_bytes, func_idx)
+            let mut body = ctx.body_bytes.get_unchecked(func_idx)
             ctx_reloc::reloc_patch_leb_u_fixed(
                 body,
                 off,

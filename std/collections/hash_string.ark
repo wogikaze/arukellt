@@ -1042,13 +1042,13 @@ fn hashset_str_union(a: HashMap<String, i32>, b: HashMap<String, i32>) -> HashMa
     let ak: Vec<String> = hashmap_str_i32_keys(a)
     let mut i: i32 = 0
     while i < ak.len() {
-        let _ = hashset_str_insert(result, get_unchecked(ak, i))
+        let _ = hashset_str_insert(result, ak.get_unchecked(i))
         i = i + 1
     }
     let bk: Vec<String> = hashmap_str_i32_keys(b)
     let mut j: i32 = 0
     while j < bk.len() {
-        let _ = hashset_str_insert(result, get_unchecked(bk, j))
+        let _ = hashset_str_insert(result, bk.get_unchecked(j))
         j = j + 1
     }
     result
@@ -1059,7 +1059,7 @@ fn hashset_str_intersection(a: HashMap<String, i32>, b: HashMap<String, i32>) ->
     let ak: Vec<String> = hashmap_str_i32_keys(a)
     let mut i: i32 = 0
     while i < ak.len() {
-        let value: String = get_unchecked(ak, i)
+        let value: String = ak.get_unchecked(i)
         if hashset_str_contains(b, value.clone()) {
             let _ = hashset_str_insert(result, value)
         }
@@ -1073,7 +1073,7 @@ fn hashset_str_difference(a: HashMap<String, i32>, b: HashMap<String, i32>) -> H
     let ak: Vec<String> = hashmap_str_i32_keys(a)
     let mut i: i32 = 0
     while i < ak.len() {
-        let value: String = get_unchecked(ak, i)
+        let value: String = ak.get_unchecked(i)
         if !hashset_str_contains(b, value.clone()) {
             let _ = hashset_str_insert(result, value)
         }
@@ -1108,7 +1108,7 @@ fn hashset_str_extend(m: HashMap<String, i32>, other: HashMap<String, i32>) {
     let incoming: Vec<String> = hashmap_str_i32_keys(other)
     let mut i: i32 = 0
     while i < incoming.len() {
-        let _ = hashset_str_insert(m, get_unchecked(incoming, i))
+        let _ = hashset_str_insert(m, incoming.get_unchecked(i))
         i = i + 1
     }
 }
@@ -1121,8 +1121,8 @@ fn hashmap_str_retain(mut map: HashMap<String, i32>, keep: fn((String, i32)) -> 
     let mut drop_indices: Vec<i32> = Vec::new<i32>()
     let mut index: i32 = 0
     while index < keys.len() {
-        let key: String = get_unchecked(keys, index)
-        let value: i32 = get_unchecked(values, index)
+        let key: String = keys.get_unchecked(index)
+        let value: i32 = values.get_unchecked(index)
         if keep((key, value)) == false {
             push(drop_indices, index)
         }
@@ -1130,8 +1130,8 @@ fn hashmap_str_retain(mut map: HashMap<String, i32>, keep: fn((String, i32)) -> 
     }
     let mut drop_index: i32 = 0
     while drop_index < drop_indices.len() {
-        let removed_index: i32 = get_unchecked(drop_indices, drop_index)
-        let key: String = get_unchecked(keys, removed_index)
+        let removed_index: i32 = drop_indices.get_unchecked(drop_index)
+        let key: String = keys.get_unchecked(removed_index)
         let _ = hashmap_str_remove(map, key)
         drop_index = drop_index + 1
     }
@@ -1145,8 +1145,8 @@ fn hashmap_i32_str_retain(mut map: HashMap<i32, String>, keep: fn((i32, String))
     let mut drop_indices: Vec<i32> = Vec::new<i32>()
     let mut index: i32 = 0
     while index < keys.len() {
-        let key: i32 = get_unchecked(keys, index)
-        let value: String = get_unchecked(values, index)
+        let key: i32 = keys.get_unchecked(index)
+        let value: String = values.get_unchecked(index)
         if keep((key, value)) == false {
             push(drop_indices, index)
         }
@@ -1154,8 +1154,8 @@ fn hashmap_i32_str_retain(mut map: HashMap<i32, String>, keep: fn((i32, String))
     }
     let mut drop_index: i32 = 0
     while drop_index < drop_indices.len() {
-        let removed_index: i32 = get_unchecked(drop_indices, drop_index)
-        let key: i32 = get_unchecked(keys, removed_index)
+        let removed_index: i32 = drop_indices.get_unchecked(drop_index)
+        let key: i32 = keys.get_unchecked(removed_index)
         let _ = hashmap_i32_str_remove(map, key)
         drop_index = drop_index + 1
     }
@@ -1169,8 +1169,8 @@ fn hashmap_str_str_retain(mut map: HashMap<String, String>, keep: fn((String, St
     let mut drop_indices: Vec<i32> = Vec::new<i32>()
     let mut index: i32 = 0
     while index < keys.len() {
-        let key: String = get_unchecked(keys, index)
-        let value: String = get_unchecked(values, index)
+        let key: String = keys.get_unchecked(index)
+        let value: String = values.get_unchecked(index)
         if keep((key, value)) == false {
             push(drop_indices, index)
         }
@@ -1178,8 +1178,8 @@ fn hashmap_str_str_retain(mut map: HashMap<String, String>, keep: fn((String, St
     }
     let mut drop_index: i32 = 0
     while drop_index < drop_indices.len() {
-        let removed_index: i32 = get_unchecked(drop_indices, drop_index)
-        let key: String = get_unchecked(keys, removed_index)
+        let removed_index: i32 = drop_indices.get_unchecked(drop_index)
+        let key: String = keys.get_unchecked(removed_index)
         let _ = hashmap_str_str_remove(map, key)
         drop_index = drop_index + 1
     }

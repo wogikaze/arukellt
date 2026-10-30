@@ -13,7 +13,7 @@ fn MirBlock_dom_set_count(block: MirBlock) -> i32 {
 }
 
 fn MirBlock_dom_set_at(block: MirBlock, idx: i32) -> i32 {
-    get_unchecked(block.dom_set, idx)
+    block.dom_set.get_unchecked(idx)
 }
 
 fn MirBlock_dom_frontier_count(block: MirBlock) -> i32 {
@@ -21,7 +21,7 @@ fn MirBlock_dom_frontier_count(block: MirBlock) -> i32 {
 }
 
 fn MirBlock_dom_frontier_at(block: MirBlock, idx: i32) -> i32 {
-    get_unchecked(block.dom_frontier, idx)
+    block.dom_frontier.get_unchecked(idx)
 }
 
 fn MirBlock_dom_frontier(block: MirBlock) -> Vec<i32> {

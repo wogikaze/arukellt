@@ -53,7 +53,7 @@ fn has_explicit_copy_impl(env: TypeEnv, ty: TypeInfo) -> bool {
     let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         if names::same_type_name(contract_trait_impl::TraitImplInfo_trait_name(impl_info), "Copy") &&
         names::same_nominal_type(contract_trait_impl::TraitImplInfo_self_ty(impl_info), ty) {
             return true

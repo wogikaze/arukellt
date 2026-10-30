@@ -25,7 +25,7 @@ fn infer_core_let_local_type_name(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, ex
     if type_name.len() > 0 || ctx_api_local_types::ctx_get_local_type(ctx, local_idx).len() > 0 || child_count < 1 {
         return
     }
-    let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let init_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     if core_expr_shape_atoms::mir_core_expr_is_int(init_expr) {
         // The literal spelling is not enough to choose the storage width:
         // suffixed and out-of-range literals are lowered as i64.  Reusing

@@ -21,12 +21,12 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
     }
     let mut i = 0
     while i < start {
-        if !translation_validation::mir_translation_inst_equal(get_unchecked(before, i), get_unchecked(after, i)) {
+        if !translation_validation::mir_translation_inst_equal(before.get_unchecked(i), after.get_unchecked(i)) {
             return false
         }
         i = i + 1
     }
-    if !translation_validation::mir_translation_inst_equal(get_unchecked(before, start), get_unchecked(after, marker_after)) {
+    if !translation_validation::mir_translation_inst_equal(before.get_unchecked(start), after.get_unchecked(marker_after)) {
         return false
     }
     let modified = licm_predicates::licm_collect_loop_modified(before, start, end)
@@ -34,11 +34,11 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
     let mut search_from = start + 1
     let mut hi = 0
     while hi < claimed_hoisted {
-        let candidate = get_unchecked(after, start + hi)
+        let candidate = after.get_unchecked(start + hi)
         let mut found = 0 - 1
         let mut source_i = search_from
         while source_i < end {
-            let original = get_unchecked(before, source_i)
+            let original = before.get_unchecked(source_i)
             if translation_validation::mir_translation_inst_equal(original, candidate) &&
             licm_predicates::licm_is_hoistable_inst(original) &&
             !licm_predicates::licm_inst_depends_on_any(original, modified) {
@@ -59,13 +59,13 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
     let mut after_i = marker_after
     let mut selected_i = 0
     while before_i < before.len() {
-        if selected_i < selected.len() && before_i == get_unchecked(selected, selected_i) {
+        if selected_i < selected.len() && before_i == selected.get_unchecked(selected_i) {
             selected_i = selected_i + 1
             before_i = before_i + 1
             continue
         }
         if after_i >= after.len() ||
-        !translation_validation::mir_translation_inst_equal(get_unchecked(before, before_i), get_unchecked(after, after_i)) {
+        !translation_validation::mir_translation_inst_equal(before.get_unchecked(before_i), after.get_unchecked(after_i)) {
             return false
         }
         before_i = before_i + 1

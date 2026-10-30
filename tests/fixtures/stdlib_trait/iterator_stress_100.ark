@@ -13,9 +13,9 @@ fn main() {
 
     let doubled = v.iter().map(double).collect()
     Test::assert_eq_i32(doubled.len(), 100)
-    Test::assert_eq_i32(get_unchecked(doubled, 0), 0)
-    Test::assert_eq_i32(get_unchecked(doubled, 50), 100)
-    Test::assert_eq_i32(get_unchecked(doubled, 99), 198)
+    Test::assert_eq_i32(doubled.get_unchecked(0), 0)
+    Test::assert_eq_i32(doubled.get_unchecked(50), 100)
+    Test::assert_eq_i32(doubled.get_unchecked(99), 198)
 
     let sum = v.iter().fold(0, add)
     Test::assert_eq_i32(sum, 4950)

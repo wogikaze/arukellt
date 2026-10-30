@@ -49,7 +49,6 @@ intrinsic_compatibility_functions = [
     "pop",
     "get",
     "set",
-    "get_unchecked",
 ]
 
 # ─────────────────────────────────────────────
@@ -303,18 +302,6 @@ returns = "Option<T>"
 prelude = true
 stability = "deprecated"
 deprecated_by = "Vec::get"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-
-[[functions]]
-name = "get_unchecked"
-kind = "builtin"
-params = ["Vec<T>", "i32"]
-returns = "T"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::get_unchecked"
 deprecated_since = "0.1.0"
 remove_in = "1.0.0"
 doc_category = "collections"

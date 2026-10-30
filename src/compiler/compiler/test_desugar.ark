@@ -21,7 +21,7 @@ pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let decl = get_unchecked(decls, i)
+        let decl = decls.get_unchecked(i)
         desugar_test_node(decl, out, names, String_new())
         i = i + 1
     }
@@ -32,7 +32,7 @@ pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
     let extra_count = extra.len()
     let mut j = 0
     while j < extra_count {
-        push(out, get_unchecked(extra, j))
+        push(out, extra.get_unchecked(j))
         j = j + 1
     }
     out
@@ -95,7 +95,7 @@ fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode>
     while i < name_count {
         src = src.concat("    __test_".concat(i.to_string()))
         src = src.concat("()\n")
-        src = src.concat("    Stdio::println(\"  PASS ".concat(escape_test_name(get_unchecked(names, i))))
+        src = src.concat("    Stdio::println(\"  PASS ".concat(escape_test_name(names.get_unchecked(i))))
         src = src.concat("\")\n")
         i = i + 1
     }
@@ -107,7 +107,7 @@ fn has_stdio_use(decls: Vec<AstNode>) -> bool {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let decl = get_unchecked(decls, i)
+        let decl = decls.get_unchecked(i)
         if ast::ast_node_kind(decl) == kinds::NK_USE() {
             if ast::ast_node_text(decl).eq("std::host::stdio::Stdio") && ast::ast_node_child_count(decl) == 0 {
                 return true

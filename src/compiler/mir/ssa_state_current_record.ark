@@ -12,7 +12,7 @@ fn mir_ssa_state_current_for(state: MirSsaRenameState, local_id: i32) -> i32 {
     if local_id < 0 || local_id >= state.original_local_count {
         return local_id
     }
-    let value_id = get_unchecked(state.current, local_id)
+    let value_id = state.current.get_unchecked(local_id)
     if value_id >= 0 {
         return value_id
     }

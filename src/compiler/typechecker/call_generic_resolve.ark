@@ -7,7 +7,7 @@ use typechecker::unify
 fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeInfo> {
     let mut resolved_type_args = Vec::new<TypeInfo>()
     for rv in 0..var_types.len() {
-        let tv_raw = get_unchecked(var_types, rv)
+        let tv_raw = var_types.get_unchecked(rv)
         let resolved_tv = unify::resolve_type_deep(infer_env, tv_raw)
         push(resolved_type_args, resolved_tv)
     }
@@ -34,7 +34,7 @@ fn has_unresolved_fresh_type_arg(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -
     let count = var_types.len()
     let mut i = 0
     while i < count {
-        let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        let resolved = unify::resolve_type(infer_env, var_types.get_unchecked(i))
         if is_unresolved_fresh_type_var(infer_env, resolved) {
             return true
         }

@@ -8,7 +8,7 @@ fn main() {
     Stdio::println(String_from("count=").concat(n.to_string()))
     let mut i = 0
     while i < n {
-        Stdio::println(String_from("arg=").concat(get_unchecked(values, i)))
+        Stdio::println(String_from("arg=").concat(values.get_unchecked(i)))
         i = i + 1
     }
 }

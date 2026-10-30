@@ -80,7 +80,7 @@ fn ctx_generic_enum_type_name(ctx: LowerCtx, type_name: String) -> String {
     let gc = ctx.generic_struct_names.len()
     let mut gi = 0
     while gi < gc {
-        if get_unchecked(ctx.generic_struct_names, gi).eq(base.clone()) {
+        if ctx.generic_struct_names.get_unchecked(gi).eq(base.clone()) {
             return String_new()
         }
         gi = gi + 1

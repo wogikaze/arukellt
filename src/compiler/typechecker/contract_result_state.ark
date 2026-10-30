@@ -59,7 +59,7 @@ fn typecheck_result_message_count(result: TypeCheckResult) -> i32 {
 }
 
 fn typecheck_result_error_at(result: TypeCheckResult, index: i32) -> String {
-    get_unchecked(result.errors, index).clone()
+    result.errors.get_unchecked(index).clone()
 }
 
 fn typecheck_result_errors(result: TypeCheckResult) -> Vec<String> {
@@ -87,7 +87,7 @@ fn typecheck_result_mono_instance_count(result: TypeCheckResult) -> i32 {
 }
 
 fn typecheck_result_mono_instance_at(result: TypeCheckResult, index: i32) -> MonoInstance {
-    get_unchecked(result.mono_instances, index)
+    result.mono_instances.get_unchecked(index)
 }
 
 fn typecheck_result_mono_instances(result: TypeCheckResult) -> Vec<MonoInstance> {

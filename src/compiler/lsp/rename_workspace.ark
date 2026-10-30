@@ -42,7 +42,7 @@ pub fn collect_workspace_changes(state: LspState, req_uri: String, req_text: Str
     let mut edits = String_new()
     let mut ri = 0
     while ri < rn {
-        let loc = get_unchecked(refs, ri)
+        let loc = refs.get_unchecked(ri)
         edits = append_text_edit(edits, req_text.clone(), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc), new_name.clone())
         ri = ri + 1
     }

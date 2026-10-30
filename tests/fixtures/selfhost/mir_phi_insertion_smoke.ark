@@ -32,7 +32,7 @@ fn block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
     let count = ids.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ids, i) == block_id {
+        if ids.get_unchecked(i) == block_id {
             return true
         }
         i = i + 1
@@ -67,8 +67,8 @@ fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa
 }
 
 fn format_phi(phi: Phi) -> String {
-    let arg0 = get_unchecked(phi.args, 0)
-    let arg1 = get_unchecked(phi.args, 1)
+    let arg0 = phi.args.get_unchecked(0)
+    let arg1 = phi.args.get_unchecked(1)
     let mut out = String_from("phi ")
     out = out.concat(format_ssa_value(phi.ssa_name.clone(), phi.dest_version))
     out = out.concat(String_from(" = [bb"))

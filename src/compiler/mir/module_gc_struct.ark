@@ -5,11 +5,11 @@ fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {
 }
 
 fn MirModule_gc_struct_sig_at(m: MirModule, idx: i32) -> String {
-    get_unchecked(m.gc_struct_sigs, idx).clone()
+    m.gc_struct_sigs.get_unchecked(idx).clone()
 }
 
 fn MirModule_gc_struct_name_at(m: MirModule, idx: i32) -> String {
-    get_unchecked(m.gc_struct_names, idx).clone()
+    m.gc_struct_names.get_unchecked(idx).clone()
 }
 
 fn MirModule_gc_struct_names(m: MirModule) -> Vec<String> {
@@ -36,7 +36,7 @@ fn MirModule_gc_struct_canon_idx_at(m: MirModule, slot: i32) -> i32 {
     if slot < 0 || slot >= m.gc_struct_canon_idx.len() {
         return 0 - 1
     }
-    get_unchecked(m.gc_struct_canon_idx, slot)
+    m.gc_struct_canon_idx.get_unchecked(slot)
 }
 
 fn MirModule_set_gc_struct_canon_idx(mut m: MirModule, slot: i32, canon_idx: i32) {
@@ -46,7 +46,7 @@ fn MirModule_set_gc_struct_canon_idx(mut m: MirModule, slot: i32, canon_idx: i32
     // Count only the -1 -> final transition: emit-side derived indexes
     // rebuild on version bumps (#851), and re-setting the same final
     // value must not masquerade as new canon state.
-    if canon_idx >= 0 && get_unchecked(m.gc_struct_canon_idx, slot) < 0 {
+    if canon_idx >= 0 && m.gc_struct_canon_idx.get_unchecked(slot) < 0 {
         m.gc_canon_version = m.gc_canon_version + 1
     }
     set(m.gc_struct_canon_idx, slot, canon_idx)

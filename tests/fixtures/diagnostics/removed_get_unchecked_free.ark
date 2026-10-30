@@ -1,0 +1,6 @@
+// E0100: the vec intrinsic-compat `get_unchecked` free was retired; the
+// receiver method is the only spelling and the hint names it.
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    let _first = get_unchecked(values, 0)
+}

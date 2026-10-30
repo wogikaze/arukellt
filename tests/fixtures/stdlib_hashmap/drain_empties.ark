@@ -12,7 +12,7 @@ fn main() {
     let mut found_2_20 = false
     let mut i = 0
     while i < drained.len() {
-        let (k, v) = get_unchecked(drained, i)
+        let (k, v) = drained.get_unchecked(i)
         if k == 1 && v == 10 {
             found_1_10 = true
         }

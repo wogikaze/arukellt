@@ -6,7 +6,7 @@ fn MirFunction_param_count(f: MirFunction) -> i32 {
 }
 
 fn MirFunction_param_at(f: MirFunction, idx: i32) -> MirLocal {
-    get_unchecked(f.params, idx)
+    f.params.get_unchecked(idx)
 }
 
 fn MirFunction_param_val_type(f: MirFunction, idx: i32) -> i32 {

@@ -43,7 +43,7 @@ fn mir_str_pool_find(pool: MirStrPool, text: String) -> i32 {
     }
     let mut i = 0
     while i < n {
-        if get_unchecked(pool.strings, i).clone().eq(text.clone()) {
+        if pool.strings.get_unchecked(i).clone().eq(text.clone()) {
             return i
         }
         i = i + 1
@@ -56,7 +56,7 @@ fn mir_str_pool_build_index(mut pool: MirStrPool) {
     pool.index = name_index::NameIndex_new(n * 2)
     let mut i = 0
     while i < n {
-        name_index::name_index_insert_first(pool.index, get_unchecked(pool.strings, i).clone(), i)
+        name_index::name_index_insert_first(pool.index, pool.strings.get_unchecked(i).clone(), i)
         i = i + 1
     }
 }
@@ -83,7 +83,7 @@ fn mir_local_pool_string(pool: MirStrPool, id: i32) -> String {
     if id < 0 || id >= pool.strings.len() {
         return String_new()
     }
-    get_unchecked(pool.strings, id).clone()
+    pool.strings.get_unchecked(id).clone()
 }
 
 fn mir_local_str_pool(local: MirLocal) -> MirStrPool {

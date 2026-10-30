@@ -98,7 +98,7 @@ impl HashSet<i32> {
         self.clear()
         let mut index: i32 = 0
         while index < values.len() {
-            let value: i32 = get_unchecked(values, index)
+            let value: i32 = values.get_unchecked(index)
             if keep(value) {
                 let _ = self.insert(value)
             }
@@ -203,7 +203,7 @@ impl HashSet<String> {
         self.clear()
         let mut index: i32 = 0
         while index < values.len() {
-            let value: String = get_unchecked(values, index)
+            let value: String = values.get_unchecked(index)
             if keep(value) {
                 let _ = self.insert(value)
             }
@@ -279,7 +279,7 @@ impl Clone for HashSet<i32> {
         let mut result: HashSet<i32> = HashSet::new<i32>()
         let mut index: i32 = 0
         while index < values.len() {
-            let _ = result.insert(get_unchecked(values, index))
+            let _ = result.insert(values.get_unchecked(index))
             index = index + 1
         }
         result
@@ -295,7 +295,7 @@ impl Eq for HashSet<i32> {
         let values: Vec<i32> = self.to_vec()
         let mut index: i32 = 0
         while index < values.len() {
-            if !other.contains(get_unchecked(values, index)) {
+            if !other.contains(values.get_unchecked(index)) {
                 return false
             }
             index = index + 1
@@ -314,7 +314,7 @@ impl Debug for HashSet<i32> {
             if index > 0 {
                 out = out.concat(String_from(", "))
             }
-            out = out.concat(get_unchecked(values, index).fmt_debug())
+            out = out.concat(values.get_unchecked(index).fmt_debug())
             index = index + 1
         }
         out.concat(String_from("]"))
@@ -370,7 +370,7 @@ impl Clone for HashSet<String> {
         let mut result: HashSet<String> = HashSet::new<String>()
         let mut index: i32 = 0
         while index < values.len() {
-            let _ = result.insert(get_unchecked(values, index))
+            let _ = result.insert(values.get_unchecked(index))
             index = index + 1
         }
         result
@@ -386,7 +386,7 @@ impl Eq for HashSet<String> {
         let values: Vec<String> = self.to_vec()
         let mut index: i32 = 0
         while index < values.len() {
-            if !other.contains(get_unchecked(values, index)) {
+            if !other.contains(values.get_unchecked(index)) {
                 return false
             }
             index = index + 1
@@ -405,7 +405,7 @@ impl Debug for HashSet<String> {
             if index > 0 {
                 out = out.concat(String_from(", "))
             }
-            out = out.concat(get_unchecked(values, index).fmt_debug())
+            out = out.concat(values.get_unchecked(index).fmt_debug())
             index = index + 1
         }
         out.concat(String_from("]"))

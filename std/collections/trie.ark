@@ -36,15 +36,15 @@ const VALUE_OFFSET: i32 = 257
 const NIL: i32 = 0 - 1
 
 fn header_root(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 0)
+    buf.get_unchecked(0)
 }
 
 fn header_count(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 1)
+    buf.get_unchecked(1)
 }
 
 fn header_free(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 2)
+    buf.get_unchecked(2)
 }
 
 fn set_header_root(mut buf: Vec<i32>, val: i32) {
@@ -68,7 +68,7 @@ fn child_index(node: i32, byte: i32) -> i32 {
 }
 
 fn get_child(buf: Vec<i32>, node: i32, byte: i32) -> i32 {
-    get_unchecked(buf, child_index(node, byte))
+    buf.get_unchecked(child_index(node, byte))
 }
 
 fn set_child(mut buf: Vec<i32>, node: i32, byte: i32, val: i32) {
@@ -76,11 +76,11 @@ fn set_child(mut buf: Vec<i32>, node: i32, byte: i32, val: i32) {
 }
 
 fn node_has_value(buf: Vec<i32>, node: i32) -> bool {
-    get_unchecked(buf, node_base(node) + HAS_VALUE_OFFSET) != 0
+    buf.get_unchecked(node_base(node) + HAS_VALUE_OFFSET) != 0
 }
 
 fn node_value(buf: Vec<i32>, node: i32) -> i32 {
-    get_unchecked(buf, node_base(node) + VALUE_OFFSET)
+    buf.get_unchecked(node_base(node) + VALUE_OFFSET)
 }
 
 fn set_node_value(mut buf: Vec<i32>, node: i32, has_val: i32, val: i32) {

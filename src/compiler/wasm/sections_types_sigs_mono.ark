@@ -27,7 +27,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     // and multi-param generics (e.g. "pair_first__i32__String" → "i32__String" all valid).
     let mut si = 0
     while si < sep_count {
-        let sep_pos = get_unchecked(sep_positions, si)
+        let sep_pos = sep_positions.get_unchecked(si)
         let suffix = fn_name.slice(sep_pos + 2, name_len)
         let type_keys = split_by_double_underscore(suffix)
         let key_count = type_keys.len()
@@ -46,7 +46,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
 fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
     let mut ki = 0
     while ki < key_count {
-        let key = get_unchecked(type_keys, ki)
+        let key = type_keys.get_unchecked(ki)
         if !is_valid_type_key(key) {
             return false
         }
@@ -101,9 +101,9 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
     // ordinals are bound by the signature registry before this path is hit.
     let type_idx = mono_suffix_parse::mono_type_var_to_index(type_var_name.clone())
     if type_idx < 0 || type_idx >= key_count {
-        return sections_types_sigs_mono_helpers::mono_type_key_to_sig(get_unchecked(type_keys, 0))
+        return sections_types_sigs_mono_helpers::mono_type_key_to_sig(type_keys.get_unchecked(0))
     }
-    sections_types_sigs_mono_helpers::mono_type_key_to_sig(get_unchecked(type_keys, type_idx))
+    sections_types_sigs_mono_helpers::mono_type_key_to_sig(type_keys.get_unchecked(type_idx))
 }
 
 // Try to resolve a mono type variable parameter to a gc_struct type sig.
@@ -124,7 +124,7 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, _param_o
     if type_idx < 0 || type_idx >= key_count {
         return String_new()
     }
-    let key = get_unchecked(type_keys, type_idx)
+    let key = type_keys.get_unchecked(type_idx)
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, key.clone())
     if slot >= 0 {
         return "gcsref".concat((slot).to_string())
@@ -175,7 +175,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     }
     let mut receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(return_type_name.clone(), mir)
     if receiver.len() == 0 {
-        receiver = get_unchecked(base_parts, 0)
+        receiver = base_parts.get_unchecked(0)
     }
     if receiver.len() == 0 {
         return String_new()
@@ -205,7 +205,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if key_count <= 0 {
         return String_new()
     }
-    let last_key = get_unchecked(type_keys, key_count - 1)
+    let last_key = type_keys.get_unchecked(key_count - 1)
     if last_key.clone().eq(receiver.clone()) {
         return String_new()
     }

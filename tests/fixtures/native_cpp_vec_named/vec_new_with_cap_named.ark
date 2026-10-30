@@ -8,5 +8,5 @@ fn main() {
     let mut items = Vec::with_capacity<Item>(4)
     items = push(items, Item { n: 3 })
     Stdio::println((items.len()).to_string())
-    Stdio::println(get_unchecked(items, 0).n.to_string())
+    Stdio::println(items.get_unchecked(0).n.to_string())
 }

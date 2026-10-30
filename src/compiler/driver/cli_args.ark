@@ -21,7 +21,7 @@ fn has_min_compile_args(argc: i32, arg_start: i32) -> bool {
 }
 
 fn parse_legacy_compile_args(args: Vec<String>, argc: i32, arg_start: i32, mut config: DriverConfig) -> LegacyCompileArgs {
-    let input_path = get_unchecked(args, arg_start + 1)
+    let input_path = args.get_unchecked(arg_start + 1)
     let options = cli_arg_options::parse_legacy_compile_options(args, argc, arg_start + 2, config)
     LegacyCompileArgs_new(
         input_path,

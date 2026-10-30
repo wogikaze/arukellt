@@ -96,7 +96,7 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx: SelfEmitCtx, variant_slot
     }
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     if variant_slot < map.len() {
-        return get_unchecked(map, variant_slot)
+        return map.get_unchecked(variant_slot)
     }
     0 - 1
 }
@@ -107,12 +107,12 @@ fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -
     }
     let flags = ctx_record::SelfEmitCtx_gc_enum_variant_type_flags(ctx)
     if wasm_type_idx < flags.len() {
-        return get_unchecked(flags, wasm_type_idx) == 1
+        return flags.get_unchecked(wasm_type_idx) == 1
     }
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut i = 0
     while i < map.len() {
-        if get_unchecked(map, i) == wasm_type_idx {
+        if map.get_unchecked(i) == wasm_type_idx {
             return true
         }
         i = i + 1

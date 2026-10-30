@@ -16,7 +16,7 @@ fn core_emit_or_pattern_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pa
     let mut or_oi = 0
     let mut or_prev_cmp = 0 - 1
     while or_oi < alt_count {
-        let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
+        let or_alt = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
         let mut or_cmp = 0 - 1
         if core_expr_shape_patterns::mir_core_expr_is_pat_variant(or_alt) &&
         core_match_subpat::core_variant_pat_has_checked_children(ctx, exprs, or_alt) {

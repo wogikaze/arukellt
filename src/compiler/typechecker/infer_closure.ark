@@ -67,11 +67,11 @@ fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
     while param_index < param_types.len() {
         contract_type_mutation::TypeInfo_push_type_arg(
             fn_ty,
-            unify::resolve_type_deep(env, get_unchecked(param_types, param_index))
+            unify::resolve_type_deep(env, param_types.get_unchecked(param_index))
         )
         contract_type_mutation::TypeInfo_push_param_mode(
             fn_ty,
-            get_unchecked(param_modes, param_index)
+            param_modes.get_unchecked(param_index)
         )
         param_index = param_index + 1
     }

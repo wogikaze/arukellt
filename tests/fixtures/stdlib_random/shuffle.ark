@@ -11,11 +11,11 @@ fn main() {
     push(v, 50)
     let shuffled = Rng::new(42).shuffle(v)
     Test::assert_eq_i32(shuffled.len(), 5)
-    Test::assert_eq_i32(get_unchecked(shuffled, 0), 30)
-    Test::assert_eq_i32(get_unchecked(shuffled, 1), 40)
-    Test::assert_eq_i32(get_unchecked(shuffled, 2), 20)
-    Test::assert_eq_i32(get_unchecked(shuffled, 3), 50)
-    Test::assert_eq_i32(get_unchecked(shuffled, 4), 10)
+    Test::assert_eq_i32(shuffled.get_unchecked(0), 30)
+    Test::assert_eq_i32(shuffled.get_unchecked(1), 40)
+    Test::assert_eq_i32(shuffled.get_unchecked(2), 20)
+    Test::assert_eq_i32(shuffled.get_unchecked(3), 50)
+    Test::assert_eq_i32(shuffled.get_unchecked(4), 10)
     Stdio::println("shuffle ok")
 }
 // Same length

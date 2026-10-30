@@ -5,17 +5,17 @@ use std::test::Test
 fn main() {
     let fields = csv::Csv::split_line("a,b,c")
     Test::assert_eq_i32(fields.len(), 3)
-    Test::assert_eq_string(get_unchecked(fields, 1), "b")
+    Test::assert_eq_string(fields.get_unchecked(1), "b")
 
     let row = csv::Csv::parse_row("\"Smith, John\",30")
     Test::assert_eq_i32(row.len(), 2)
-    Test::assert_eq_string(get_unchecked(row, 0), "Smith, John")
+    Test::assert_eq_string(row.get_unchecked(0), "Smith, John")
     Test::assert_eq_string(csv::Csv::stringify_row(row), "\"Smith, John\",30")
 
     Test::assert_eq_i32(csv::Csv::count_rows("a\n\nb\n"), 2)
     Test::assert_eq_string(csv::Csv::get_row_raw("a\nb\n", 1), "b")
     let row_at = csv::Csv::parse_row_at("a,b\nc,d\n", 1)
-    Test::assert_eq_string(get_unchecked(row_at, 0), "c")
+    Test::assert_eq_string(row_at.get_unchecked(0), "c")
     Test::assert_eq_string(csv::Csv::stringify(Vec::new<Vec<String>>()), "")
 
     let parsed: Result<Vec<Vec<String>>, String> = csv::Csv::parse("a,b\n1,2")

@@ -176,7 +176,7 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
     while ei < ev_names.len() {
-        if get_unchecked(ev_names, ei).clone().starts_with(prefix.clone()) {
+        if ev_names.get_unchecked(ei).clone().starts_with(prefix.clone()) {
             return true
         }
         ei = ei + 1

@@ -18,7 +18,7 @@ fn register_trait_method_sigs(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if is_trait_decl(node) {
             register_trait_methods(env, node)
         }
@@ -87,7 +87,7 @@ fn lookup_trait_method_direct(env: TypeEnv, trait_name: String, method_name: Str
     let count = env.trait_methods.len()
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(env.trait_methods, i)
+        let entry = env.trait_methods.get_unchecked(i)
         if names::same_type_name(
             contract_trait_method_record::trait_method_entry_trait_name(entry),
             trait_name.clone()
@@ -139,7 +139,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let count = env.trait_defs.len()
     let mut i = 0
     while i < count {
-        let info = get_unchecked(env.trait_defs, i)
+        let info = env.trait_defs.get_unchecked(i)
         if names::same_type_name(contract_trait_info::trait_info_name(info), trait_name.clone()) {
             return info
         }

@@ -45,9 +45,11 @@ not have a second manifest or resolver entry.
 | `String_new()` | Construct an empty String |
 | `char_to_string(c)` | Encode a Unicode scalar as String |
 
-The intrinsic compatibility group (`len`, `push`, `pop`, `get`, `set`, and
-`get_unchecked`) remains explicit in the manifest policy for existing compiler
-and stdlib code. Other `prelude = true` entries are still explicit-import only:
+The intrinsic compatibility group (`push`, `pop`, `get`, and `set`) remains
+explicit in the manifest policy for existing compiler and stdlib code. `len`
+and `get_unchecked` are receiver methods now (`s.len()` / `v.len()` and
+`v.get_unchecked(i)`); their frees retired with E0100 hints. Other
+`prelude = true` entries are still explicit-import only:
 bare calls fail with E0100 and a migration hint, and the name resolves only
 through `use std::prelude::{name}` or its canonical replacement module.
 

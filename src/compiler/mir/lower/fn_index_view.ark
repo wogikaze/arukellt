@@ -26,7 +26,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: Mi
             fn_index = fn_index_fns::mir_index_top_level_fn(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
             if mir_entry_generic_decl(source, d) &&
             fn_names.len() > base_name_position &&
-            get_unchecked(fn_names, base_name_position).eq(decl_name.clone()) {
+            fn_names.get_unchecked(base_name_position).eq(decl_name.clone()) {
                 push(priority_fn_indices, base_name_position)
             }
         }
@@ -134,5 +134,5 @@ fn mir_import_facing_qualified_name(qualified_name: String) -> String {
     if separators.len() < 2 {
         return String_new()
     }
-    qualified_name.slice(get_unchecked(separators, separators.len() - 2) + 2, name_len)
+    qualified_name.slice(separators.get_unchecked(separators.len() - 2) + 2, name_len)
 }

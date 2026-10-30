@@ -23,7 +23,7 @@ fn MirModule_string_constant_count(m: MirModule) -> i32 {
 }
 
 fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
-    get_unchecked(m.string_constants, idx)
+    m.string_constants.get_unchecked(idx)
 }
 
 fn MirModule_push_string_constant(mut m: MirModule, s: String) {
@@ -34,7 +34,7 @@ fn MirModule_push_string_constant(mut m: MirModule, s: String) {
 }
 
 fn MirModule_string_data_rel_at(m: MirModule, idx: i32) -> i32 {
-    get_unchecked(m.string_data_rel, idx)
+    m.string_data_rel.get_unchecked(idx)
 }
 
 fn MirModule_string_data_next(m: MirModule) -> i32 {
@@ -46,7 +46,7 @@ fn intern_string(mut m: MirModule, s: String) -> i32 {
     let count = m.string_constants.len()
     let mut i = 0
     while i < count {
-        let existing = get_unchecked(m.string_constants, i)
+        let existing = m.string_constants.get_unchecked(i)
         if existing.clone().eq(s.clone()) {
             return i
         }

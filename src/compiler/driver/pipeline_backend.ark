@@ -113,11 +113,11 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if lower_diag_count > 0 {
         let mut result = result_record::CompileResult_err(
             phases::PHASE_LOWER(),
-            get_unchecked(lower_diags, 0).clone()
+            lower_diags.get_unchecked(0).clone()
         )
         let mut di = 1
         while di < lower_diag_count {
-            result_record::compile_result_push_error_message(result, get_unchecked(lower_diags, di).clone())
+            result_record::compile_result_push_error_message(result, lower_diags.get_unchecked(di).clone())
             di = di + 1
         }
         result_record::compile_result_set_error_count(result, lower_diag_count)

@@ -41,7 +41,7 @@ pub fn parse_path_suffix(mut p: Parser, lhs: AstNode) -> AstNode {
             if type_args.len() > 0 {
                 let mut k = 0
                 while k < type_args.len() {
-                    core_ast_children::AstNode_push_child(node, get_unchecked(type_args, k))
+                    core_ast_children::AstNode_push_child(node, type_args.get_unchecked(k))
                     k = k + 1
                 }
                 // Vec::new<T>() keeps path text "Vec::new"; typechecker binds

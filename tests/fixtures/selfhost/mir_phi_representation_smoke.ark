@@ -43,7 +43,7 @@ fn mir_format_phi(phi: MirPhi) -> String {
     let arg_count = phi.args.len()
     let mut i = 0
     while i < arg_count {
-        let arg = get_unchecked(phi.args, i)
+        let arg = phi.args.get_unchecked(i)
         if i > 0 {
             out = out.concat(String_from(", "))
         }

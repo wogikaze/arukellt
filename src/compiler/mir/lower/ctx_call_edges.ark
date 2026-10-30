@@ -59,12 +59,12 @@ fn ctx_edge_ensure_header(mut ctx: LowerCtx) {
 
 fn ctx_edge_begin_function(mut ctx: LowerCtx) {
     ctx_edge_ensure_header(ctx)
-    let depth = get_unchecked(ctx.fn_indices, 0)
+    let depth = ctx.fn_indices.get_unchecked(0)
     if depth >= 0 && depth < ctx_edge_stack_slots() {
         set(ctx.fn_indices, 2 + depth, ctx.gc_type_base)
         set(ctx.fn_indices, 0, depth + 1)
     }
-    let next_id = get_unchecked(ctx.fn_indices, 1) + 1
+    let next_id = ctx.fn_indices.get_unchecked(1) + 1
     set(ctx.fn_indices, 1, next_id)
     ctx.gc_type_base = next_id
 }
@@ -76,17 +76,17 @@ fn ctx_edge_restore_parent(mut ctx: LowerCtx) {
     let child_frame = ctx.gc_type_base
     push(ctx.fn_indices, ctx_edge_map_mark())
     push(ctx.fn_indices, child_frame)
-    let depth = get_unchecked(ctx.fn_indices, 0)
+    let depth = ctx.fn_indices.get_unchecked(0)
     if depth > 0 {
-        ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
+        ctx.gc_type_base = ctx.fn_indices.get_unchecked(1 + depth)
         set(ctx.fn_indices, 0, depth - 1)
     }
 }
 
 fn ctx_edge_pop_frame(mut ctx: LowerCtx) {
-    let depth = get_unchecked(ctx.fn_indices, 0)
+    let depth = ctx.fn_indices.get_unchecked(0)
     if depth > 0 {
-        ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
+        ctx.gc_type_base = ctx.fn_indices.get_unchecked(1 + depth)
         set(ctx.fn_indices, 0, depth - 1)
     }
 }
@@ -108,7 +108,7 @@ fn ctx_edge_pending_map_open(ctx: LowerCtx) -> bool {
     if n < ctx_edge_header_len() + 2 {
         return false
     }
-    get_unchecked(ctx.fn_indices, n - 2) == ctx_edge_map_mark()
+    ctx.fn_indices.get_unchecked(n - 2) == ctx_edge_map_mark()
 }
 
 fn ctx_edge_record_callee(mut ctx: LowerCtx, payload: i32) {

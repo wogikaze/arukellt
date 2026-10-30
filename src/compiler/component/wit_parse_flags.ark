@@ -63,7 +63,7 @@ fn wit_flags_type_text(member_names: Vec<String>) -> String {
         if i > 0 {
             out = out.concat(", ")
         }
-        out = out.concat(get_unchecked(member_names, i))
+        out = out.concat(member_names.get_unchecked(i))
     }
     out.concat("}")
 }

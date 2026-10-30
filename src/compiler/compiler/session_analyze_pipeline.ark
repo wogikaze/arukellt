@@ -103,7 +103,7 @@ fn session_record_parse_warnings(mut snap: AnalysisSnapshot, parse_result: Parse
     let warning_count = warnings.len()
     let mut wi = 0
     while wi < warning_count {
-        let warning = get_unchecked(warnings, wi)
+        let warning = warnings.get_unchecked(wi)
         let code = diag_record::diagnostic_code(warning)
         let message = diag_record::diagnostic_message(warning)
         let span = diag_record::diagnostic_span(warning)
@@ -149,7 +149,7 @@ fn session_record_lint_diagnostics(mut snap: AnalysisSnapshot, decls: Vec<AstNod
     let lw_count = lint_warns.len()
     let mut li = 0
     while li < lw_count {
-        let w = get_unchecked(lint_warns, li)
+        let w = lint_warns.get_unchecked(li)
         let code = diag_record::diagnostic_code(w)
         let msg = diag_record::diagnostic_message(w)
         let span = diag_record::diagnostic_span(w)
@@ -164,7 +164,7 @@ fn session_record_lint_diagnostics(mut snap: AnalysisSnapshot, decls: Vec<AstNod
     let tw_count = tc_warns.len()
     let mut ti = 0
     while ti < tw_count {
-        let w = get_unchecked(tc_warns, ti)
+        let w = tc_warns.get_unchecked(ti)
         let code = diag_record::diagnostic_code(w)
         let msg = diag_record::diagnostic_message(w)
         let span = diag_record::diagnostic_span(w)

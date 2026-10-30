@@ -76,7 +76,7 @@ fn mono_type_var_decl_index(type_var: String, type_params: Vec<String>) -> i32 {
     let count = type_params.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(type_params, i).eq(name.clone()) {
+        if type_params.get_unchecked(i).eq(name.clone()) {
             return i
         }
         i = i + 1
@@ -129,7 +129,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     }
     let mut si = 0
     while si < sep_count {
-        let sep_pos = get_unchecked(sep_positions, si)
+        let sep_pos = sep_positions.get_unchecked(si)
         let suffix = fn_name.slice(sep_pos + 2, name_len)
         let type_keys = split_mono_suffix(suffix)
         let key_count = type_keys.len()
@@ -184,7 +184,7 @@ fn is_mono_type_var_name(type_name: String) -> bool {
 fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
     let mut ki = 0
     while ki < key_count {
-        let key = get_unchecked(type_keys, ki)
+        let key = type_keys.get_unchecked(ki)
         if !is_valid_mono_type_key(key) {
             return false
         }

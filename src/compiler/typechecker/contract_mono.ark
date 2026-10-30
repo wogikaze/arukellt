@@ -71,7 +71,7 @@ fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
 }
 
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
-    get_unchecked(instance.type_args, index)
+    instance.type_args.get_unchecked(index)
 }
 
 fn MonoInstance_return_type(instance: MonoInstance) -> TypeInfo {

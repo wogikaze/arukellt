@@ -6,7 +6,7 @@ fn type_env_resolved_call_owner_count(env: TypeEnv) -> i32 {
 }
 
 fn type_env_resolved_call_owner_at(env: TypeEnv, index: i32) -> ResolvedCallOwner {
-    get_unchecked(env.resolved_call_owners, index)
+    env.resolved_call_owners.get_unchecked(index)
 }
 
 // The checker may infer the same call more than once (the return-contract
@@ -19,7 +19,7 @@ fn type_env_record_resolved_call_owner(mut env: TypeEnv, span_start: i32, callee
     let count = env.resolved_call_owners.len()
     let mut i = 0
     while i < count {
-        let existing = get_unchecked(env.resolved_call_owners, i)
+        let existing = env.resolved_call_owners.get_unchecked(i)
         let same_site = existing.decl_index == env.current_decl_index &&
         existing.body_child_index == env.current_body_child_index &&
         existing.span_start == span_start
@@ -45,7 +45,7 @@ fn type_env_deferred_len_receiver_count(env: TypeEnv) -> i32 {
 }
 
 fn type_env_deferred_len_receiver_at(env: TypeEnv, index: i32) -> DeferredLenReceiver {
-    get_unchecked(env.deferred_len_receivers, index)
+    env.deferred_len_receivers.get_unchecked(index)
 }
 
 fn type_env_push_deferred_len_receiver(mut env: TypeEnv, receiver: DeferredLenReceiver) {

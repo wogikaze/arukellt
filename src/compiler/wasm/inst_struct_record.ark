@@ -63,10 +63,10 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
     let count = variant_types.len()
     let mut variant_id = 0
     while variant_id < count {
-        if get_unchecked(variant_types, variant_id) == type_idx && variant_id < variant_sigs.len() {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(variant_sigs, variant_id))
+        if variant_types.get_unchecked(variant_id) == type_idx && variant_id < variant_sigs.len() {
+            let fields = sections_types_gc::struct_field_sigs(variant_sigs.get_unchecked(variant_id))
             if field_idx >= 0 && field_idx < fields.len() {
-                return get_unchecked(fields, field_idx).eq(String_from("i32"))
+                return fields.get_unchecked(field_idx).eq(String_from("i32"))
             }
             return false
         }
@@ -82,10 +82,10 @@ fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> 
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
     while i < map.len() {
-        if get_unchecked(map, i) == type_idx && i < sigs.len() {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        if map.get_unchecked(i) == type_idx && i < sigs.len() {
+            let fields = sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
             if field_idx >= 0 && field_idx < fields.len() {
-                return get_unchecked(fields, field_idx)
+                return fields.get_unchecked(field_idx)
             }
             return String_new()
         }

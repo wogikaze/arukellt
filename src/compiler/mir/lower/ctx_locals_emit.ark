@@ -9,7 +9,7 @@ fn ctx_emit(mut ctx: LowerCtx, mut inst: MirInstDraft) {
     let flush = ctx_env_cells::ctx_env_cell_flush(ctx, inst)
     let mut ri = 0
     while ri < flush.len() {
-        ctx_emit(ctx, get_unchecked(flush, ri))
+        ctx_emit(ctx, flush.get_unchecked(ri))
         ri = ri + 1
     }
     // Promoted borrow-capture cells: value reads/writes on a cell local are
@@ -19,7 +19,7 @@ fn ctx_emit(mut ctx: LowerCtx, mut inst: MirInstDraft) {
     let rewritten = closure_pcells::ctx_pcell_rewrite(ctx, inst)
     let mut wi = 0
     while wi < rewritten.len() {
-        ctx_emit_core::ctx_emit_verbatim(ctx, get_unchecked(rewritten, wi))
+        ctx_emit_core::ctx_emit_verbatim(ctx, rewritten.get_unchecked(wi))
         wi = wi + 1
     }
 }

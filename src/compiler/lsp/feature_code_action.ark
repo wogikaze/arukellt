@@ -38,7 +38,7 @@ fn build_import_actions_json(state: LspState, uri: String, text: String, name: S
     let mut j = 0
     let mut actions = String_new()
     while j < sn {
-        let sym = get_unchecked(stdlib, j)
+        let sym = stdlib.get_unchecked(j)
         if symbol_index_record::stdlib_indexed_symbol_name(sym).eq(name.clone()) {
             let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
             if module_path.len() > 0 {

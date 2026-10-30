@@ -5,10 +5,10 @@ fn main() {
     let vals = [0, 1, 12, 8, 15, 25, 7, 13, 100, 0]
     let mut i = 0
     while i < 10 {
-        let a = get_unchecked(vals, i)
+        let a = vals.get_unchecked(i)
         let mut j = 0
         while j < 10 {
-            let b = get_unchecked(vals, j)
+            let b = vals.get_unchecked(j)
             Test::assert_eq_i32(a.gcd(b), b.gcd(a))
             j = j + 1
         }

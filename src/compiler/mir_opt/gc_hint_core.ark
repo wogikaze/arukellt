@@ -83,8 +83,8 @@ fn gc_hint_translation_valid(before: Vec<MirInstDraft>, after: Vec<MirInstDraft>
     let mut before_i = 0
     let mut after_i = 0
     while after_i < after.len() {
-        let candidate = get_unchecked(after, after_i)
-        if before_i < before.len() && gc_hint_instruction_equal(get_unchecked(before, before_i), candidate) {
+        let candidate = after.get_unchecked(after_i)
+        if before_i < before.len() && gc_hint_instruction_equal(before.get_unchecked(before_i), candidate) {
             before_i = before_i + 1
             after_i = after_i + 1
             continue
@@ -118,7 +118,7 @@ fn gc_hint_resolve_use_target(insts: Vec<MirInstDraft>, from: i32, to: i32, loca
     let mut direct_uses = 0
     let mut i = from
     while i <= to {
-        let inst = get_unchecked(insts, i)
+        let inst = insts.get_unchecked(i)
         let op = inst_draft::MirInstDraft_op(inst)
         let arg0 = inst_draft::MirInstDraft_arg0(inst)
         let arg1 = inst_draft::MirInstDraft_arg1(inst)
@@ -169,7 +169,7 @@ fn gc_hint_count_local_uses(
     let mut uses = 0
     let mut i = from
     while i <= to {
-        let inst = get_unchecked(insts, i)
+        let inst = insts.get_unchecked(i)
         if gc_hint_is_local_reload(inst, local) {
             i = i + 1
             continue
@@ -190,7 +190,7 @@ fn gc_hint_count_local_uses(
 fn gc_hint_local_escapes(insts: Vec<MirInstDraft>, from: i32, to: i32, local: i32) -> bool {
     let mut i = from
     while i <= to {
-        let inst = get_unchecked(insts, i)
+        let inst = insts.get_unchecked(i)
         let op = inst_draft::MirInstDraft_op(inst)
         if op == opcodes::MIR_CALL() || op == opcodes::MIR_WIT_CALL() {
             if inst_draft::MirInstDraft_arg0(inst) == local {
@@ -211,7 +211,7 @@ fn gc_hint_local_escapes(insts: Vec<MirInstDraft>, from: i32, to: i32, local: i3
 }
 
 fn gc_hint_should_annotate(insts: Vec<MirInstDraft>, idx: i32, end: i32) -> bool {
-    let inst = get_unchecked(insts, idx)
+    let inst = insts.get_unchecked(idx)
     if inst_draft::MirInstDraft_op(inst) != opcodes::MIR_STRUCT_NEW() {
         return false
     }
@@ -248,12 +248,12 @@ fn gc_hint_annotate_loop(insts: Vec<MirInstDraft>, region: LoopRegion) -> GcHint
     while i < insts.len() {
         if i > start && i < end && gc_hint_should_annotate(insts, i, end) {
             push(out, inst_gc_hint::MirInst_gc_hint_short_lived())
-            push(out, get_unchecked(insts, i))
+            push(out, insts.get_unchecked(i))
             annotated = annotated + 1
             i = i + 1
             continue
         }
-        push(out, get_unchecked(insts, i))
+        push(out, insts.get_unchecked(i))
         i = i + 1
     }
     GcHintAnnotateResult_new(out, annotated)
@@ -264,7 +264,7 @@ fn gc_hint_optimize_block_insts(insts: Vec<MirInstDraft>) -> GcHintAnnotateResul
     let mut current = insts
     let mut total = 0
     for ri in 0..regions.len() {
-        let result = gc_hint_annotate_loop(current, get_unchecked(regions, ri))
+        let result = gc_hint_annotate_loop(current, regions.get_unchecked(ri))
         current = result.instructions
         total = total + result.annotated
     }

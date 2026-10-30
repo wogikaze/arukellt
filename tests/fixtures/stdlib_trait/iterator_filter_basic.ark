@@ -14,7 +14,7 @@ fn main() {
 
     let evens = v.iter().filter(is_even).collect()
     Test::assert_eq_i32(evens.len(), 3)
-    Test::assert_eq_i32(get_unchecked(evens, 0), 2)
-    Test::assert_eq_i32(get_unchecked(evens, 1), 4)
-    Test::assert_eq_i32(get_unchecked(evens, 2), 6)
+    Test::assert_eq_i32(evens.get_unchecked(0), 2)
+    Test::assert_eq_i32(evens.get_unchecked(1), 4)
+    Test::assert_eq_i32(evens.get_unchecked(2), 6)
 }

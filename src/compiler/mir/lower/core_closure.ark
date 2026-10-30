@@ -22,9 +22,9 @@ fn lower_core_closure(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     let mut eff_rebinds = Vec::new<i32>()
     let mut pi = 0
     while pi < caps.len() {
-        let mut eff = get_unchecked(rebind_flags, pi)
+        let mut eff = rebind_flags.get_unchecked(pi)
         if eff != 0 &&
-        closure_pcells::ctx_promote_capture_cell(ctx, get_unchecked(caps, pi).clone()) >= 0 {
+        closure_pcells::ctx_promote_capture_cell(ctx, caps.get_unchecked(pi).clone()) >= 0 {
             eff = 0
         }
         push(eff_rebinds, eff)
@@ -42,8 +42,8 @@ fn is_identity_core_closure(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool 
     if child_count != 2 {
         return false
     }
-    let param = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
-    let body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+    let param = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let body = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 1))
     if !core_expr_shape_atoms::mir_core_expr_is_ident(param) ||
     !core_expr_shape_atoms::mir_core_expr_is_ident(body) {
         return false

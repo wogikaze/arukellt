@@ -21,8 +21,8 @@ fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_struct_names)
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.generic_struct_names, i).eq(base.clone()) {
-            return get_unchecked(ctx.generic_struct_params, i).clone()
+        if ctx.generic_struct_names.get_unchecked(i).eq(base.clone()) {
+            return ctx.generic_struct_params.get_unchecked(i).clone()
         }
         i = i + 1
     }
@@ -39,8 +39,8 @@ fn ctx_generic_enum_params(ctx: LowerCtx, base: String) -> String {
     let count = len(ctx.generic_enum_names)
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.generic_enum_names, i).eq(base.clone()) {
-            return get_unchecked(ctx.generic_enum_params, i).clone()
+        if ctx.generic_enum_names.get_unchecked(i).eq(base.clone()) {
+            return ctx.generic_enum_params.get_unchecked(i).clone()
         }
         i = i + 1
     }
@@ -158,7 +158,7 @@ fn generic_inst_args_for_param_count(name: String, param_count: i32) -> Vec<Stri
     let mut tuple_heads = 0
     let mut i = 0
     while i < len(args) {
-        if generic_inst_arg_is_tuple(get_unchecked(args, i).clone()) {
+        if generic_inst_arg_is_tuple(args.get_unchecked(i).clone()) {
             if tuple_index < 0 {
                 tuple_index = i
             }
@@ -172,11 +172,11 @@ fn generic_inst_args_for_param_count(name: String, param_count: i32) -> Vec<Stri
     let mut merged = Vec::new<String>()
     let mut j = 0
     while j < len(args) {
-        let mut arg = get_unchecked(args, j).clone()
+        let mut arg = args.get_unchecked(j).clone()
         if j == tuple_index {
             let mut absorbed = 0
             while absorbed < extra && j + 1 < len(args) {
-                arg = arg.concat(String_from(",").concat(get_unchecked(args, j + 1).clone()))
+                arg = arg.concat(String_from(",").concat(args.get_unchecked(j + 1).clone()))
                 j = j + 1
                 absorbed = absorbed + 1
             }
@@ -230,8 +230,8 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
         let mut replaced = false
         let mut pi = 0
         while pi < len(params) {
-            if pi < len(args) && get_unchecked(params, pi).eq(tok.clone()) {
-                out = out.concat(get_unchecked(args, pi).clone())
+            if pi < len(args) && params.get_unchecked(pi).eq(tok.clone()) {
+                out = out.concat(args.get_unchecked(pi).clone())
                 replaced = true
                 pi = len(params)
             }
@@ -271,7 +271,7 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
     }
     let mut ai = 0
     while ai < len(args) {
-        if generic_arg_is_unbound(get_unchecked(args, ai).clone()) {
+        if generic_arg_is_unbound(args.get_unchecked(ai).clone()) {
             return false
         }
         ai = ai + 1

@@ -46,7 +46,7 @@ fn main() {
     Stdio::println("Parsed ".concat(n.to_string().concat(" declaration(s)")))
     let mut i = 0
     while i < n {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         dump::print_ast(d, 0)
         i = i + 1
     }

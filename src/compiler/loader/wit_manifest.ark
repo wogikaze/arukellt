@@ -17,7 +17,7 @@ pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -
     let package_root = module_package_root::find_package_root(base_dir.clone())
     let mut merged = collect_wit_paths_from_manifest(package_root.clone())
     for i in 0..cli_paths.len() {
-        wit_push_unique(merged, get_unchecked(cli_paths, i))
+        wit_push_unique(merged, cli_paths.get_unchecked(i))
     }
     merged
 }
@@ -27,7 +27,7 @@ fn wit_push_unique(mut paths: Vec<String>, path: String) {
         return
     }
     for i in 0..paths.len() {
-        if get_unchecked(paths, i).eq(path.clone()) {
+        if paths.get_unchecked(i).eq(path.clone()) {
             return
         }
     }

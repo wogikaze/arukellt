@@ -9,7 +9,7 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
             out = out.concat(String_from(","))
         }
         out = out.concat(String_from("{\"label\":"))
-        out = out.concat(json::JsonText::quote(get_unchecked(params, i)))
+        out = out.concat(json::JsonText::quote(params.get_unchecked(i)))
         out = out.concat(String_from("}"))
         i = i + 1
     }

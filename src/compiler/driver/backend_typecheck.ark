@@ -51,7 +51,7 @@ fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> 
     let count = warnings.len()
     let mut i = 0
     while i < count {
-        let diag = get_unchecked(warnings, i)
+        let diag = warnings.get_unchecked(i)
         let code = diag_record::diagnostic_code(diag)
         if lint_registry::should_suppress(code.clone(), allow_codes) {
             i = i + 1
@@ -72,7 +72,7 @@ fn partition_deny_lists(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, mut 
     let count = warnings.len()
     let mut i = 0
     while i < count {
-        let diag = get_unchecked(warnings, i)
+        let diag = warnings.get_unchecked(i)
         let code = diag_record::diagnostic_code(diag)
         if lint_registry::should_deny(code.clone(), deny_codes) {
             push(denied, escalate_lint_to_error(diag))

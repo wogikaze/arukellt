@@ -75,7 +75,7 @@ fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo
     let tp_count = type_params.len()
     let mut k = 0
     while k < tp_count {
-        let tp = get_unchecked(type_params, k)
+        let tp = type_params.get_unchecked(k)
         if tp.clone().eq(name.clone()) {
             return type_names::type_info_named(commands::TY_TYPE_VAR(), name)
         }

@@ -24,11 +24,11 @@ fn main() {
     let r = Range::new(0, 5)
     let collected = r.into_iter().collect()
     Test::assert_eq_i32(collected.len(), 5)
-    Test::assert_eq_i32(get_unchecked(collected, 0), 0)
-    Test::assert_eq_i32(get_unchecked(collected, 1), 1)
-    Test::assert_eq_i32(get_unchecked(collected, 2), 2)
-    Test::assert_eq_i32(get_unchecked(collected, 3), 3)
-    Test::assert_eq_i32(get_unchecked(collected, 4), 4)
+    Test::assert_eq_i32(collected.get_unchecked(0), 0)
+    Test::assert_eq_i32(collected.get_unchecked(1), 1)
+    Test::assert_eq_i32(collected.get_unchecked(2), 2)
+    Test::assert_eq_i32(collected.get_unchecked(3), 3)
+    Test::assert_eq_i32(collected.get_unchecked(4), 4)
 
     let source = Range::new(2, 5)
     let mut iterator = source.into_iter()
@@ -53,15 +53,15 @@ fn main() {
 
     let collected_inclusive: Vec<i32> = RangeInclusive::new(4, 6).into_iter().collect()
     Test::assert_eq_i32(collected_inclusive.len(), 3)
-    Test::assert_eq_i32(get_unchecked(collected_inclusive, 2), 6)
+    Test::assert_eq_i32(collected_inclusive.get_unchecked(2), 6)
 
     let from_iter_range: Vec<i32> = Vec::from_iter(Range::new(8, 11).into_iter())
     Test::assert_eq_i32(from_iter_range.len(), 3)
-    Test::assert_eq_i32(get_unchecked(from_iter_range, 2), 10)
+    Test::assert_eq_i32(from_iter_range.get_unchecked(2), 10)
 
     let from_iter_inclusive: Vec<i32> = Vec::from_iter(RangeInclusive::new(9, 11).into_iter())
     Test::assert_eq_i32(from_iter_inclusive.len(), 3)
-    Test::assert_eq_i32(get_unchecked(from_iter_inclusive, 2), 11)
+    Test::assert_eq_i32(from_iter_inclusive.get_unchecked(2), 11)
 
     Test::assert_eq_i32(fold_values(Range::new(2, 5).into_iter(), 10, add_i32), 19)
     Test::assert_eq_i32(fold_values(RangeInclusive::new(1, 3).into_iter(), 0, add_i32), 6)

@@ -19,7 +19,7 @@ fn lower_core_array_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHi
 fn lower_core_array_repeat(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let val_child = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
     let count_child = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
-    let count_expr = get_unchecked(exprs, count_child)
+    let count_expr = exprs.get_unchecked(count_child)
     let count = core_expr_shape_accessors::mir_core_expr_int_val(count_expr)
     let dest = aggregate::mir_emit_array_new(ctx, count)
     let val_idx = lower_core_expr(ctx, exprs, val_child)

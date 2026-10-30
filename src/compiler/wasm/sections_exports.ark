@@ -124,14 +124,14 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
     let mut slot = hash % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = get_unchecked(counts.buckets, slot)
+        let bucket = counts.buckets.get_unchecked(slot)
         if bucket == 0 {
             push(counts.keys, name)
             push(counts.vals, 1)
             set(counts.buckets, slot, counts.keys.len())
             return 0
         }
-        let key = get_unchecked(counts.keys, bucket - 1)
+        let key = counts.keys.get_unchecked(bucket - 1)
         let mut same = key.len() == name_len
         if same {
             let mut i = 0
@@ -145,7 +145,7 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
             }
         }
         if same {
-            let prev = get_unchecked(counts.vals, bucket - 1)
+            let prev = counts.vals.get_unchecked(bucket - 1)
             set(counts.vals, bucket - 1, prev + 1)
             return prev
         }

@@ -21,5 +21,5 @@ fn TypeParamBounds_bound_count(info: TypeParamBounds) -> i32 {
 }
 
 fn TypeParamBounds_bound_at(info: TypeParamBounds, index: i32) -> TypeInfo {
-    get_unchecked(info.bounds, index)
+    info.bounds.get_unchecked(index)
 }

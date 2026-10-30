@@ -7,7 +7,7 @@ fn mir_format_block_ids(ids: Vec<i32>) -> String {
         if i > 0 {
             out = out.concat(",")
         }
-        out = out.concat(get_unchecked(ids, i).to_string())
+        out = out.concat(ids.get_unchecked(i).to_string())
         i = i + 1
     }
     out.concat("]")

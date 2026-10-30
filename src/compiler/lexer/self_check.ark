@@ -34,7 +34,7 @@ fn main() {
     let mut i = 0
     let mut done = false
     while !done {
-        let tok = get_unchecked(tokens, i)
+        let tok = tokens.get_unchecked(i)
         let kind = token_state::Token_kind(tok)
         print_token_fields(kind, token_state::Token_text(tok), token_state::Token_int_val(tok), token_state::Token_float_val(tok))
         if kind == tokens::TK_EOF() {

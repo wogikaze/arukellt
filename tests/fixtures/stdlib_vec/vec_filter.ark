@@ -13,6 +13,6 @@ fn main() {
     push(v, 5)
     let evens: Vec<i32> = filter_i32(v, is_even)
     Test::assert_eq_i32(evens.len(), 2)
-    Test::assert_eq_i32(get_unchecked(evens, 0), 2)
-    Test::assert_eq_i32(get_unchecked(evens, 1), 4)
+    Test::assert_eq_i32(evens.get_unchecked(0), 2)
+    Test::assert_eq_i32(evens.get_unchecked(1), 4)
 }

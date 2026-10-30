@@ -88,9 +88,9 @@ fn mir_reachability_marks_for_target_and_edges(
     let packed_edges = reachability_walk::mir_build_recorded_edge_lists(edges, fn_count)
     let mut qhead = 0
     while qhead < queue.len() {
-        let fi = get_unchecked(queue, qhead)
+        let fi = queue.get_unchecked(qhead)
         qhead = qhead + 1
-        let f = get_unchecked(functions, fi)
+        let f = functions.get_unchecked(fi)
         reachability_walk::mir_enqueue_call_edges(
             m,
             index,

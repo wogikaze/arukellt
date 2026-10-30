@@ -15,7 +15,7 @@ fn main() {
     // map(double) then filter(is_even): [2,4,6,8,10]
     let result = v.iter().map(double).filter(is_even).collect()
     Test::assert_eq_i32(result.len(), 5)
-    Test::assert_eq_i32(get_unchecked(result, 0), 2)
-    Test::assert_eq_i32(get_unchecked(result, 1), 4)
-    Test::assert_eq_i32(get_unchecked(result, 4), 10)
+    Test::assert_eq_i32(result.get_unchecked(0), 2)
+    Test::assert_eq_i32(result.get_unchecked(1), 4)
+    Test::assert_eq_i32(result.get_unchecked(4), 10)
 }

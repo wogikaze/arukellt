@@ -25,13 +25,13 @@ use mir::lower::value_variants
 fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     if callee_name.clone().eq("String_from") && child_count == 2 {
-        let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+        let arg_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 1))
         if core_expr_shape_atoms::mir_core_expr_is_string(arg_expr) {
             return core_literals::lower_core_literal_value(ctx, arg_expr)
         }
     }
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-    let callee_node = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let callee_node = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     if core_expr_shape_atoms::mir_core_expr_is_ident(callee_node) {
         let callee_local = core_names::mir_core_lookup_local(ctx, callee_node)
         if callee_local >= 0 && call_indirect_emit::mir_is_funcref_local(ctx, callee_local) {
@@ -78,7 +78,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         )
     }
     while a < child_count {
-        let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        let arg_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, a))
         let mut arg_idx = 0 - 1
         let param_idx = a - 1
         let is_lane_immediate = a == lane_immediate_position && core_expr_shape_atoms::mir_core_expr_is_int(arg_expr)
@@ -126,7 +126,7 @@ fn lower_core_direct_call_args(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
             core_expr_shape_accessors::mir_core_expr_int_val(arg_expr) == lower_kinds::UOP_NEG() &&
             core_expr_shape_accessors::mir_core_expr_child_count(arg_expr) >= 1 {
                 // -100 passed to format_i64 / parse_i64 must be i64 NEG, not i32 (#807).
-                let unary_operand = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(arg_expr, 0))
+                let unary_operand = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(arg_expr, 0))
                 if core_expr_shape_atoms::mir_core_expr_is_int(unary_operand) &&
                 call_arg_i64::mir_should_force_int_lit_i64(ctx, callee_name.clone(), param_idx) {
                     arg_idx = core_literals::lower_core_unary_neg_forced_i64(ctx, unary_operand)

@@ -40,7 +40,7 @@ fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> 
     let mut j = 0
     let mut out = items
     while j < sn {
-        let sym = get_unchecked(stdlib, j)
+        let sym = stdlib.get_unchecked(j)
         let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
         let label = if module_path.len() > 0 {
@@ -78,7 +78,7 @@ fn push_project(items: String, text: String, prefix: String, state: LspState) ->
     let mut i = 0
     let mut out = items
     while i < n {
-        let sym = get_unchecked(symbols, i)
+        let sym = symbols.get_unchecked(i)
         let name = symbol_index_record::indexed_symbol_name(sym)
         if starts_with_prefix(name.clone(), prefix.clone()) {
             out = completion_items::append_item(
@@ -168,7 +168,7 @@ fn use_completion_items(state: LspState, text: String, offset: i32, prefix: Stri
     let mut out = String_new()
     let mut j = 0
     while j < sn {
-        let sym = get_unchecked(stdlib, j)
+        let sym = stdlib.get_unchecked(j)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
         if module_path.len() > 0 && starts_with_prefix(module_path.clone(), prefix.clone()) {
             out = completion_items::append_item(out, completion_items::completion_item_json(module_path, 9, "module", text.clone(), String_new(), false))

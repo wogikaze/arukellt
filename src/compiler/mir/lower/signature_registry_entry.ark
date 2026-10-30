@@ -292,13 +292,13 @@ fn sig_reg_params_from_fn_info_mono(
             return String_new()
         }
         if key_count == 1 {
-            return get_unchecked(keys, 0)
+            return keys.get_unchecked(0)
         }
         let idx = mono_suffix_parse::mono_type_var_index(type_var.clone(), type_params)
         if idx >= 0 && idx < key_count {
-            return get_unchecked(keys, idx)
+            return keys.get_unchecked(idx)
         }
-        get_unchecked(keys, 0)
+        keys.get_unchecked(0)
     }
 
     // Substitute a generic param type name through the recorded MonoInstance

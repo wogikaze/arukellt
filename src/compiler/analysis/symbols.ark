@@ -71,7 +71,7 @@ fn find_ident_span_in_decls(decls: Vec<AstNode>, offset: i32) -> IdentSpan {
     let n = decls.len()
     let mut i = 0
     while i < n {
-        let r = find_ident_span_at_in(get_unchecked(decls, i), offset)
+        let r = find_ident_span_at_in(decls.get_unchecked(i), offset)
         if ident_span::ident_span_found(r) { return r }
         i = i + 1
     }
@@ -108,7 +108,7 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> SymbolI
     let n = decls.len()
     let mut i = n - 1
     while i >= 0 {
-        let found = find_decl_in_node(get_unchecked(decls, i), name.clone())
+        let found = find_decl_in_node(decls.get_unchecked(i), name.clone())
         if symbol_types::symbol_info_found(found) {
             let doc = doc_scan::doc_comment_before_offset(text.clone(), symbol_types::symbol_info_decl_start(found))
             return symbol_types::SymbolInfo_found(
@@ -145,7 +145,7 @@ fn use_site_sig_for_name(decls: Vec<AstNode>, name: String) -> String {
     let n = decls.len()
     let mut i = 0
     while i < n {
-        let sig: String = find_use_site_sig_in_node(get_unchecked(decls, i), name.clone())
+        let sig: String = find_use_site_sig_in_node(decls.get_unchecked(i), name.clone())
         if sig.len() > 0 { return sig }
         i = i + 1
     }

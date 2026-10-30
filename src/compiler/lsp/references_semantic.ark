@@ -92,7 +92,7 @@ fn semantic_items_for_request(state: LspState, req: LspTextPositionRequest) -> S
         let mut items = String_new()
         let mut ri = 0
         while ri < rn {
-            let loc = get_unchecked(refs, ri)
+            let loc = refs.get_unchecked(ri)
             items = append_location(items, uri, req_text.clone(), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
             ri = ri + 1
         }
@@ -113,7 +113,7 @@ fn highlight_items_for_request(req: LspTextPositionRequest) -> String {
     let mut items = String_new()
     let mut ri = 0
     while ri < rn {
-        let loc = get_unchecked(refs, ri)
+        let loc = refs.get_unchecked(ri)
         items = append_highlight(items, req_text.clone(), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc))
         ri = ri + 1
     }

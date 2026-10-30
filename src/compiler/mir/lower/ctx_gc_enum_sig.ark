@@ -28,7 +28,7 @@ fn gc_enum_field_sig_for_vt(mut ctx: LowerCtx, vt: i32) -> String {
 fn ctx_gc_enum_payload_field_sigs_from_vts(mut ctx: LowerCtx, payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
     for i in 0..payload_vts.len() {
-        sig = sig.concat(gc_enum_field_sig_for_vt(ctx, get_unchecked(payload_vts, i)))
+        sig = sig.concat(gc_enum_field_sig_for_vt(ctx, payload_vts.get_unchecked(i)))
     }
     sig
 }
@@ -36,7 +36,7 @@ fn ctx_gc_enum_payload_field_sigs_from_vts(mut ctx: LowerCtx, payload_vts: Vec<i
 fn ctx_gc_enum_payload_field_sigs_typed(mut ctx: LowerCtx, payload_vts: Vec<i32>, type_name: String) -> String {
     let mut sig = String_new()
     for i in 0..payload_vts.len() {
-        let vt = get_unchecked(payload_vts, i)
+        let vt = payload_vts.get_unchecked(i)
         if i == 0 && should_use_typed_payload_field_sig(vt, type_name.clone()) {
             sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, type_name.clone()))
         } else {
@@ -257,18 +257,18 @@ fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> 
     let layout_count = ctx.struct_names.len()
     let mut li = 0
     while li < layout_count {
-        if get_unchecked(ctx.struct_names, li).eq(layout_name.clone()) || get_unchecked(ctx.struct_names, li).eq(variant_name.clone()) {
-            let field_count = get_unchecked(ctx.struct_field_counts, li)
+        if ctx.struct_names.get_unchecked(li).eq(layout_name.clone()) || ctx.struct_names.get_unchecked(li).eq(variant_name.clone()) {
+            let field_count = ctx.struct_field_counts.get_unchecked(li)
             let mut fi = 1
             while fi < field_count {
                 let mut off = 0
                 let mut si = 0
                 while si < li {
-                    off = off + get_unchecked(ctx.struct_field_counts, si)
+                    off = off + ctx.struct_field_counts.get_unchecked(si)
                     si = si + 1
                 }
                 off = off + fi
-                let ft = get_unchecked(ctx.struct_field_types, off)
+                let ft = ctx.struct_field_types.get_unchecked(off)
                 let resolved_ft = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, ft.clone())
                 sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, resolved_ft.clone()))
                 fi = fi + 1

@@ -18,11 +18,11 @@ fn main() {
     match r.read(5) {
         Result::Ok(read) => {
             Test::assert_eq_i32(read.len(), 5)
-            Test::assert_eq_i32(get_unchecked(read, 0), 72)
-            Test::assert_eq_i32(get_unchecked(read, 1), 101)
-            Test::assert_eq_i32(get_unchecked(read, 2), 108)
-            Test::assert_eq_i32(get_unchecked(read, 3), 108)
-            Test::assert_eq_i32(get_unchecked(read, 4), 111)
+            Test::assert_eq_i32(read.get_unchecked(0), 72)
+            Test::assert_eq_i32(read.get_unchecked(1), 101)
+            Test::assert_eq_i32(read.get_unchecked(2), 108)
+            Test::assert_eq_i32(read.get_unchecked(3), 108)
+            Test::assert_eq_i32(read.get_unchecked(4), 111)
         },
         Result::Err(e) => Std::panic(e.message()),
     }

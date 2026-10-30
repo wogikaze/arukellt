@@ -18,7 +18,7 @@ impl Cli {
     fn flag(args: Vec<String>, name: String) -> bool {
         let mut i = 0
         while i < args.len() {
-            if get_unchecked(args, i) == name {
+            if args.get_unchecked(i) == name {
                 return true
             }
             i = i + 1
@@ -38,7 +38,7 @@ impl Cli {
         let prefix_len = prefix.len()
         let mut i = 0
         while i < n {
-            let arg = get_unchecked(args, i)
+            let arg = args.get_unchecked(i)
             let arg_len = arg.len()
             if arg_len > prefix_len {
                 let head = arg.slice(0, prefix_len)
@@ -47,7 +47,7 @@ impl Cli {
                 }
             }
             if arg == name && i + 1 < n {
-                return Some(get_unchecked(args, i + 1))
+                return Some(args.get_unchecked(i + 1))
             }
             i = i + 1
         }

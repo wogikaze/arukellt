@@ -121,10 +121,7 @@ fn sig_reg_index_top_level_fn(
             )
         }
         if leaf_inst_idx >= 0 {
-            let leaf_inst = get_unchecked(
-                fn_index_source::mir_fn_index_source_mono_instances(source),
-                leaf_inst_idx
-            )
+            let leaf_inst = fn_index_source::mir_fn_index_source_mono_instances(source).get_unchecked(leaf_inst_idx)
             registered = signature_registry_entry::sig_reg_register_fn_leaf_instance(
                 table,
                 registry,

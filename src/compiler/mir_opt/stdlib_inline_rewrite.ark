@@ -74,7 +74,7 @@ fn stdlib_inline_append_call(
             output,
             inst_local_set::MirInst_local_set_from(
                 stdlib_inline_locals::stdlib_inline_remap_local(local_map, param_index),
-                get_unchecked(args, param_index)
+                args.get_unchecked(param_index)
             )
         )
         param_index = param_index + 1

@@ -91,7 +91,7 @@ fn compose_wit_load_world(path: String) -> ComposeWitWorld {
 
 fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32 {
     for i in 0..exports.len() {
-        if get_unchecked(exports, i).name.clone().eq(name.clone()) {
+        if exports.get_unchecked(i).name.clone().eq(name.clone()) {
             return i
         }
     }
@@ -100,14 +100,14 @@ fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32
 
 fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider_exports: Vec<ComposeWitFuncSig>) -> String {
     for i in 0..socket_imports.len() {
-        let imp = get_unchecked(socket_imports, i)
+        let imp = socket_imports.get_unchecked(i)
         // prelude clone() is String-only; cloning a Vec makes Memory64 locals
         // typed as String and fails validate (#730).
         let export_idx = compose_wit_find_export(provider_exports, imp.name.clone())
         if export_idx < 0 {
             return "error: compose conflict: socket import '".concat(imp.name.clone().concat("' has no matching provider export".concat(String_new())))
         }
-        let exp = get_unchecked(provider_exports, export_idx)
+        let exp = provider_exports.get_unchecked(export_idx)
         if !imp.signature.clone().eq(exp.signature.clone()) {
             return "error: compose conflict: import/export type mismatch for '".concat(
                 imp.name.clone().concat("': socket expects ".concat(imp.signature.clone().concat(" but provider exports ".concat(exp.signature.clone()))))

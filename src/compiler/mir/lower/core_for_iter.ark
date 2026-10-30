@@ -18,7 +18,7 @@ fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
         return 0 - 1
     }
-    let iter_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let iter_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let source_is_ident = core_expr_shape_atoms::mir_core_expr_is_ident(iter_expr)
     let source_idx = if source_is_ident {
         ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(iter_expr))

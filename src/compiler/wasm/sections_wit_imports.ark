@@ -12,10 +12,10 @@ fn emit_wit_import_entries(
     wasi_version: String
 ) {
     for i in 0..bindings.len() {
-        let binding = get_unchecked(bindings, i)
+        let binding = bindings.get_unchecked(i)
         let iface = wit_import_module_name(binding, wasi_version.clone())
         let func = wit_import_bind::wit_import_binding_wit_func_name(binding)
-        let type_idx = get_unchecked(wit_type_map, i)
+        let type_idx = wit_type_map.get_unchecked(i)
         writer_string::emit_string(import_sec, iface)
         writer_string::emit_string(import_sec, func)
         writer_core::emit_byte(import_sec, 0)

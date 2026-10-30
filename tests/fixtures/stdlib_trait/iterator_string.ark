@@ -44,7 +44,7 @@ fn main() {
     push(collect_source, String_from("gamma"))
     let collected = collect_values(collect_source.into_iter())
     Test::assert_eq_i32(collected.len(), 1)
-    Test::assert_eq_string(get_unchecked(collected, 0), "gamma")
+    Test::assert_eq_string(collected.get_unchecked(0), "gamma")
 
     let mut count_source: Vec<String> = Vec::new<String>()
     push(count_source, String_from("delta"))
@@ -54,19 +54,19 @@ fn main() {
     let mut from_source: Vec<String> = Vec::new<String>()
     push(from_source, String_from("zeta"))
     let rebuilt: Vec<String> = Vec::from_iter(from_source.into_iter())
-    Test::assert_eq_string(get_unchecked(rebuilt, 0), "zeta")
+    Test::assert_eq_string(rebuilt.get_unchecked(0), "zeta")
 
     let mut method_source: Vec<String> = Vec::new<String>()
     push(method_source, String_from("eta"))
     let method_collected = method_source.iter().collect()
-    Test::assert_eq_string(get_unchecked(method_collected, 0), "eta")
+    Test::assert_eq_string(method_collected.get_unchecked(0), "eta")
 
     let mut take_source: Vec<String> = Vec::new<String>()
     push(take_source, String_from("kappa"))
     push(take_source, String_from("lambda"))
     let take_collected = take_source.iter().take(1).collect()
     Test::assert_eq_i32(take_collected.len(), 1)
-    Test::assert_eq_string(get_unchecked(take_collected, 0), "kappa")
+    Test::assert_eq_string(take_collected.get_unchecked(0), "kappa")
 
     let mut skip_take_source: Vec<String> = Vec::new<String>()
     push(skip_take_source, String_from("mu"))
@@ -74,7 +74,7 @@ fn main() {
     push(skip_take_source, String_from("xi"))
     let skip_take_collected = skip_take_source.iter().skip(1).take(1).collect()
     Test::assert_eq_i32(skip_take_collected.len(), 1)
-    Test::assert_eq_string(get_unchecked(skip_take_collected, 0), "nu")
+    Test::assert_eq_string(skip_take_collected.get_unchecked(0), "nu")
 
     let mut for_source: Vec<String> = Vec::new<String>()
     push(for_source, String_from("iota"))

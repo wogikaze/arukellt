@@ -15,8 +15,8 @@ fn validate_hashmap_constructor(mut env: TypeEnv, fn_name: String, type_args: Ve
     if type_args.len() < 2 {
         return true
     }
-    let key_ty = get_unchecked(type_args, 0)
-    let value_ty = get_unchecked(type_args, 1)
+    let key_ty = type_args.get_unchecked(0)
+    let value_ty = type_args.get_unchecked(1)
     validate_hashmap_pair(env, key_ty, value_ty)
 }
 

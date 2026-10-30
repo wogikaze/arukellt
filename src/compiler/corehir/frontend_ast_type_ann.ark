@@ -5,5 +5,5 @@ fn corehir_node_type_ann_count(node: AstNode) -> i32 {
 }
 
 fn corehir_node_type_ann_at(node: AstNode, idx: i32) -> AstNode {
-    get_unchecked(node.type_ann, idx)
+    node.type_ann.get_unchecked(idx)
 }

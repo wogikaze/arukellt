@@ -2,9 +2,11 @@
 //!
 //! Importing `std::collections::vec` registers the `impl Vec<T>` block, so the
 //! methods below are available as `v.method(...)`. The basic prelude builtins
-//! (`push` / `pop` / `get` / `set` / `len` / `get_unchecked`) stay callable
-//! without this import; the extension surface is module-gated because it uses
-//! generic method bodies and module-owned return types.
+//! (`push` / `pop` / `get` / `set` / `len`) stay callable without this import;
+//! `get_unchecked` is also a receiver method, typed through the prelude's
+//! private `__core_vec_get_unchecked_impl` anchor. The extension surface is
+//! module-gated because it uses generic method bodies and module-owned return
+//! types.
 //!
 //! Operations follow ADR-036 / ADR-066: associated constructors and receiver
 //! methods only. There is no user-reachable free-function spelling for the
@@ -106,7 +108,7 @@ impl<T> Vec<T> {
     /// loses `T` before an `Ord` call such as `.cmp()` can select the
     /// element's impl (#965).
     fn get_unchecked(self: Vec<T>, idx: i32) -> T {
-        get_unchecked(self, idx)
+        RawArray::get_unchecked(self, idx)
     }
 
     /// Returns every contiguous window of `width` elements, in order.
@@ -125,7 +127,7 @@ impl<T> Vec<T> {
             let mut window: Vec<T> = Vec::with_capacity<T>(width)
             let mut offset: i32 = 0
             while offset < width {
-                push(window, get_unchecked(self, start + offset))
+                push(window, self.get_unchecked(start + offset))
                 offset = offset + 1
             }
             push(windows, window)
@@ -153,7 +155,7 @@ impl<T> Vec<T> {
             let mut chunk: Vec<T> = Vec::with_capacity<T>(stop - start)
             let mut index: i32 = start
             while index < stop {
-                push(chunk, get_unchecked(self, index))
+                push(chunk, self.get_unchecked(index))
                 index = index + 1
             }
             push(chunks, chunk)
@@ -177,7 +179,7 @@ impl<T> Vec<T> {
             let mut chunk: Vec<T> = Vec::with_capacity<T>(width)
             let mut index: i32 = start
             while index < start + width {
-                push(chunk, get_unchecked(self, index))
+                push(chunk, self.get_unchecked(index))
                 index = index + 1
             }
             push(chunks, chunk)
@@ -195,7 +197,7 @@ impl<T> Vec<T> {
         let mut read: i32 = 0
         let mut write: i32 = 0
         while read < count {
-            let current = get_unchecked(self, read)
+            let current = self.get_unchecked(read)
             let keep_current: bool = keep(current)
             if keep_current {
                 if write != read {
@@ -232,7 +234,7 @@ impl<T> Vec<T> {
         let count: i32 = vec_len(other)
         let mut i: i32 = 0
         while i < count {
-            push(self, get_unchecked(other, i))
+            push(self, other.get_unchecked(i))
             i = i + 1
         }
         while vec_len(other) > 0 {
@@ -259,13 +261,13 @@ impl<T> Vec<T> {
         let mut removed: Vec<T> = Vec::with_capacity<T>(to - from)
         let mut i: i32 = from
         while i < to {
-            push(removed, get_unchecked(self, i))
+            push(removed, self.get_unchecked(i))
             i = i + 1
         }
         let mut read: i32 = to
         let mut write: i32 = from
         while read < count {
-            vec_set(self, write, get_unchecked(self, read))
+            vec_set(self, write, self.get_unchecked(read))
             read = read + 1
             write = write + 1
         }
@@ -295,7 +297,7 @@ impl<T> Vec<T> {
         let inserted: i32 = vec_len(replacement)
         let mut i: i32 = 0
         while i < inserted {
-            push(self, get_unchecked(replacement, i))
+            push(self, replacement.get_unchecked(i))
             i = i + 1
         }
         let total: i32 = vec_len(self)
@@ -303,8 +305,8 @@ impl<T> Vec<T> {
         while moved < inserted {
             let mut j: i32 = total - 1
             while j > from {
-                let left = get_unchecked(self, j - 1)
-                let right = get_unchecked(self, j)
+                let left = self.get_unchecked(j - 1)
+                let right = self.get_unchecked(j)
                 vec_set(self, j - 1, right)
                 vec_set(self, j, left)
                 j = j - 1
@@ -328,7 +330,7 @@ impl<T> Vec<T> {
         // 埋める（drain と同じく、複製したハンドルは GC 管理なので安全）。
         let mut scratch: Vec<T> = Vec::with_capacity<T>(count)
         for _i in 0..count {
-            push(scratch, get_unchecked(self, 0))
+            push(scratch, self.get_unchecked(0))
         }
         let mut width: i32 = 1
         while width < count {
@@ -351,18 +353,18 @@ impl<T> Vec<T> {
                         if j >= hi {
                             take_left = true
                         } else {
-                            let left = get_unchecked(self, i)
-                            let right = get_unchecked(self, j)
+                            let left = self.get_unchecked(i)
+                            let right = self.get_unchecked(j)
                             if !ordering_is_greater(cmp(left, right)) {
                                 take_left = true
                             }
                         }
                     }
                     if take_left {
-                        vec_set(scratch, k, get_unchecked(self, i))
+                        vec_set(scratch, k, self.get_unchecked(i))
                         i = i + 1
                     } else {
-                        vec_set(scratch, k, get_unchecked(self, j))
+                        vec_set(scratch, k, self.get_unchecked(j))
                         j = j + 1
                     }
                     k = k + 1
@@ -370,7 +372,7 @@ impl<T> Vec<T> {
                 lo = hi
             }
             for t in 0..count {
-                vec_set(self, t, get_unchecked(scratch, t))
+                vec_set(self, t, scratch.get_unchecked(t))
             }
             width = width * 2
         }
@@ -381,10 +383,10 @@ impl<T> Vec<T> {
         let count: i32 = vec_len(self)
         let mut index: i32 = 1
         while index < count {
-            let current = get_unchecked(self, index)
+            let current = self.get_unchecked(index)
             let mut slot: i32 = index - 1
             while slot >= 0 {
-                let previous = get_unchecked(self, slot)
+                let previous = self.get_unchecked(slot)
                 let should_shift = ordering_is_less(key(current).cmp(key(previous)))
                 if !should_shift {
                     break
@@ -422,8 +424,8 @@ impl<T> Vec<T> {
         let mut write: i32 = 1
         let mut read: i32 = 1
         while read < count {
-            let previous = get_unchecked(self, write - 1)
-            let current = get_unchecked(self, read)
+            let previous = self.get_unchecked(write - 1)
+            let current = self.get_unchecked(read)
             let same: bool = ordering_is_equal(same_bucket(previous, current))
             if !same {
                 if write != read {
@@ -448,11 +450,11 @@ impl<T> Vec<T> {
         let mut write: i32 = 0
         let mut read: i32 = 0
         while read < count {
-            let current = get_unchecked(self, read)
+            let current = self.get_unchecked(read)
             let matches: bool = pred(current)
             if matches {
                 if write != read {
-                    let displaced = get_unchecked(self, write)
+                    let displaced = self.get_unchecked(write)
                     vec_set(self, write, current)
                     vec_set(self, read, displaced)
                 }
@@ -469,8 +471,8 @@ impl<T> Vec<T> {
         let count: i32 = vec_len(self)
         let mut index: i32 = 1
         while index < count {
-            let previous = get_unchecked(self, index - 1)
-            let current = get_unchecked(self, index)
+            let previous = self.get_unchecked(index - 1)
+            let current = self.get_unchecked(index)
             let out_of_order = ordering_is_greater(cmp(previous, current))
             if out_of_order {
                 return false
@@ -487,7 +489,7 @@ impl<T> Vec<T> {
         let mut hi: i32 = vec_len(self) - 1
         while lo <= hi {
             let mid: i32 = lo + (hi - lo) / 2
-            let ordering = key(get_unchecked(self, mid)).cmp(target_key)
+            let ordering = key(self.get_unchecked(mid)).cmp(target_key)
             if ordering_is_equal(ordering) {
                 return mid
             }
@@ -514,7 +516,7 @@ impl<T> Vec<T> {
         }
         push(self, value)
         while vec_len(self) < target {
-            push(self, get_unchecked(self, old_len))
+            push(self, self.get_unchecked(old_len))
         }
     }
 
@@ -524,7 +526,7 @@ impl<T> Vec<T> {
         let count: i32 = vec_len(other)
         let mut index: i32 = 0
         while index < count {
-            push(self, get_unchecked(other, index))
+            push(self, other.get_unchecked(index))
             index = index + 1
         }
     }
@@ -664,13 +666,13 @@ impl<T> Vec<T> {
 // bodies can.
 fn partition_ord<T: Ord>(mut values: Vec<T>, lo: i32, hi: i32) -> i32 {
     let mid: i32 = lo + (hi - lo) / 2
-    let pivot = get_unchecked(values, mid)
-    set(values, mid, get_unchecked(values, hi))
+    let pivot = values.get_unchecked(mid)
+    set(values, mid, values.get_unchecked(hi))
     set(values, hi, pivot)
     let mut boundary: i32 = lo - 1
     let mut scan: i32 = lo
     while scan < hi {
-        let current = get_unchecked(values, scan)
+        let current = values.get_unchecked(scan)
         let mut greater: bool = false
         match current.cmp(pivot) {
             Ordering::Greater => {
@@ -680,14 +682,14 @@ fn partition_ord<T: Ord>(mut values: Vec<T>, lo: i32, hi: i32) -> i32 {
         }
         if !greater {
             boundary = boundary + 1
-            let displaced = get_unchecked(values, boundary)
+            let displaced = values.get_unchecked(boundary)
             set(values, boundary, current)
             set(values, scan, displaced)
         }
         scan = scan + 1
     }
     boundary = boundary + 1
-    let displaced = get_unchecked(values, boundary)
+    let displaced = values.get_unchecked(boundary)
     set(values, boundary, pivot)
     set(values, hi, displaced)
     boundary

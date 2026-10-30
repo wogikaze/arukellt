@@ -49,23 +49,23 @@ fn signature_registry_mark_signature_only(mut registry: SignatureRegistry, index
 
 fn signature_registry_is_signature_only(registry: SignatureRegistry, index: i32) -> bool {
     if index >= 0 && index < registry.signature_only.len() {
-        return get_unchecked(registry.signature_only, index)
+        return registry.signature_only.get_unchecked(index)
     }
     false
 }
 
 fn signature_registry_entry_at(registry: SignatureRegistry, index: i32) -> SignatureEntry {
-    get_unchecked(registry.entries, index)
+    registry.entries.get_unchecked(index)
 }
 
 fn signature_registry_set_core_op_id_at(mut registry: SignatureRegistry, index: i32, core_op_id: CoreOpId) {
-    let mut entry = get_unchecked(registry.entries, index)
+    let mut entry = registry.entries.get_unchecked(index)
     signature_entry::signature_entry_set_core_op_id(entry, core_op_id)
     set(registry.entries, index, entry)
 }
 
 fn signature_registry_mangled_at(registry: SignatureRegistry, index: i32) -> String {
-    get_unchecked(registry.id_to_mangled, index)
+    registry.id_to_mangled.get_unchecked(index)
 }
 
 fn signature_registry_lookup_by_mangled(registry: SignatureRegistry, mangled: String) -> FunctionId {
@@ -128,7 +128,7 @@ fn signature_registry_register_core_op_alias(
 fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) -> SignatureEntry {
     let raw = FunctionId_raw(id)
     if raw >= 0 && raw < registry.entries.len() {
-        return get_unchecked(registry.entries, raw)
+        return registry.entries.get_unchecked(raw)
     }
     signature_entry::SignatureEntry_new(
         FUNCTION_ID_INVALID(),
@@ -150,7 +150,7 @@ fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {
     let mut total = 0
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(registry.entries, i)
+        let entry = registry.entries.get_unchecked(i)
         if signature_entry::signature_entry_abi_kind(entry) == kinds::ABI_KIND_HOST_INTRINSIC() {
             total = total + 1
         }
@@ -164,7 +164,7 @@ fn signature_registry_builtin_count(registry: SignatureRegistry) -> i32 {
     let mut total = 0
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(registry.entries, i)
+        let entry = registry.entries.get_unchecked(i)
         if signature_entry::signature_entry_abi_kind(entry) == kinds::ABI_KIND_BUILTIN() {
             total = total + 1
         }

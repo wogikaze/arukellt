@@ -1613,6 +1613,7 @@ fn removed_prelude_free_hint(name: String) -> String {
     if name.clone().eq("byte_len") { return String_from("use `s.len_bytes()` on `String` instead") }
     if name.clone().eq("clamp_i32") { return String_from("use `x.clamp(lo, hi)` on the `i32` value instead") }
     if name.clone().eq("len") { return String_from("use `s.len()` on `String` or `v.len()` on `Vec<T>` instead") }
+    if name.clone().eq("get_unchecked") { return String_from("use `v.get_unchecked(idx)` on the `Vec<T>` receiver instead") }
     if name.clone().eq("clone") { return String_from("use `x.clone()` on the value instead") }
     if name.clone().eq("eq") { return String_from("use `a.eq(b)` on the `String` value instead") }
     if name.clone().eq("Box_new") { return String_from("use `Box::new(value)` instead") }
@@ -2180,6 +2181,9 @@ test mod "removed_names" {
         assert(len(removed_name_hint("assert_eq_i64")) > 0)
         assert(len(removed_name_hint("assert_eq_str")) > 0)
         assert(len(removed_name_hint("assert")) == 0)
+    }
+    test "retired get_unchecked free has an E0100 hint" {
+        assert(len(removed_name_hint("get_unchecked")) > 0)
     }
     test "live names have no hint" {
         assert(len(removed_name_hint("len")) == 0)

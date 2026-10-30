@@ -69,7 +69,7 @@ fn emit_local_get(mut w: WasmWriter, local_idx: i32) {
     emit_byte(w, opcodes::OP_LOCAL_GET())
     emit_leb128_u(w, local_idx)
     let type_idx = if local_idx >= 0 && local_idx < w.local_ref_types.len() {
-        get_unchecked(w.local_ref_types, local_idx)
+        w.local_ref_types.get_unchecked(local_idx)
     } else {
         0 - 1
     }
@@ -79,7 +79,7 @@ fn emit_local_get(mut w: WasmWriter, local_idx: i32) {
 // Concrete type index of a `(ref null $t)` valtype starting at `pos`, or -1
 // for scalars and abstract heap types (which encode as negative s33).
 fn writer_ref_null_type_at(w: WasmWriter, pos: i32) -> i32 {
-    if pos < 0 || pos >= w.bytes.len() || get_unchecked(w.bytes, pos) != constants::WASM_REF_NULL() {
+    if pos < 0 || pos >= w.bytes.len() || w.bytes.get_unchecked(pos) != constants::WASM_REF_NULL() {
         return 0 - 1
     }
     let mut value = 0
@@ -87,7 +87,7 @@ fn writer_ref_null_type_at(w: WasmWriter, pos: i32) -> i32 {
     let mut i = pos + 1
     let mut byte = 128
     while byte >= 128 && i < w.bytes.len() {
-        byte = get_unchecked(w.bytes, i)
+        byte = w.bytes.get_unchecked(i)
         value = value + byte % 128 * shift
         shift = shift * 128
         i = i + 1
@@ -173,7 +173,7 @@ fn writer_linear_root_slot_offset(w: WasmWriter, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= w.linear_root_slot_offsets.len() {
         return 0 - 1
     }
-    get_unchecked(w.linear_root_slot_offsets, local_idx)
+    w.linear_root_slot_offsets.get_unchecked(local_idx)
 }
 
 fn writer_set_linear_root_slot_offsets(mut w: WasmWriter, offsets: Vec<i32>) {
@@ -199,7 +199,7 @@ fn emit_bytes(mut w: WasmWriter, src: Vec<i32>) {
     let count = src.len()
     let mut i = 0
     while i < count {
-        let b = get_unchecked(src, i)
+        let b = src.get_unchecked(i)
         emit_byte(w, b)
         i = i + 1
     }

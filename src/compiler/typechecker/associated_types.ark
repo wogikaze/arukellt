@@ -318,7 +318,7 @@ fn resolve_generic_call_type(
             if var_index >= 0 && var_index < var_types.len() {
                 let receiver = unify::resolve_type_deep(
                     infer_env,
-                    get_unchecked(var_types, var_index)
+                    var_types.get_unchecked(var_index)
                 )
                 let mut resolved = resolve_bound_projection(
                     env,
@@ -367,7 +367,7 @@ fn generic_type_var_index(names: Vec<String>, target: String) -> i32 {
     let count = names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).eq(target.clone()) {
+        if names.get_unchecked(i).eq(target.clone()) {
             return i
         }
         i = i + 1
@@ -421,7 +421,7 @@ fn lookup_associated_type(
     let count = env.associated_types.len()
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(env.associated_types, i)
+        let entry = env.associated_types.get_unchecked(i)
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             trait_name.clone()
@@ -438,7 +438,7 @@ fn lookup_associated_type(
     // instantiate the declared value type with the bound arguments.
     let mut p = 0
     while p < count {
-        let entry = get_unchecked(env.associated_types, p)
+        let entry = env.associated_types.get_unchecked(p)
         let pattern = contract_associated_type::trait_associated_type_info_self_ty(entry)
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
@@ -561,8 +561,8 @@ fn projection_owner_ty(
     let bound_count = var_names.len()
     let mut b = 0
     while b < bound_count {
-        if projection_bare_name(get_unchecked(var_names, b)).eq(projection_bare_name(owner_name.clone())) {
-            return get_unchecked(var_types, b)
+        if projection_bare_name(var_names.get_unchecked(b)).eq(projection_bare_name(owner_name.clone())) {
+            return var_types.get_unchecked(b)
         }
         b = b + 1
     }
@@ -643,7 +643,7 @@ fn lookup_assoc_for_ctor(env: TypeEnv, receiver: TypeInfo, assoc_name: String) -
     let count = env.associated_types.len()
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(env.associated_types, i)
+        let entry = env.associated_types.get_unchecked(i)
         let entry_self = contract_associated_type::trait_associated_type_info_self_ty(entry)
         if contract_associated_type::trait_associated_type_info_name(entry).eq(assoc_name.clone()) && names::same_type_name(
             contract_type_access::TypeInfo_name(entry_self),
@@ -691,7 +691,7 @@ fn lookup_var_carrying_impl_self(env: TypeEnv, trait_name: String, entry_self: T
     let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(impl_info),
@@ -733,8 +733,8 @@ fn match_pattern_collect_vars(
         let bound_count = names.len()
         let mut i = 0
         while i < bound_count {
-            if get_unchecked(names, i).eq(var_name.clone()) {
-                return same_type(get_unchecked(types, i), actual)
+            if names.get_unchecked(i).eq(var_name.clone()) {
+                return same_type(types.get_unchecked(i), actual)
             }
             i = i + 1
         }

@@ -10,8 +10,8 @@ fn main() {
     push(v, 50)
     v.drain(2, 2 + 1)
     Test::assert_eq_i32(v.len(), 4)
-    Test::assert_eq_i32(get_unchecked(v, 0), 10)
-    Test::assert_eq_i32(get_unchecked(v, 1), 20)
-    Test::assert_eq_i32(get_unchecked(v, 2), 40)
-    Test::assert_eq_i32(get_unchecked(v, 3), 50)
+    Test::assert_eq_i32(v.get_unchecked(0), 10)
+    Test::assert_eq_i32(v.get_unchecked(1), 20)
+    Test::assert_eq_i32(v.get_unchecked(2), 40)
+    Test::assert_eq_i32(v.get_unchecked(3), 50)
 }

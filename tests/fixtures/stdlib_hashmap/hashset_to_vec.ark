@@ -17,7 +17,7 @@ fn main() {
     let mut found_3 = false
     let mut i = 0
     while i < v.len() {
-        let x = get_unchecked(v, i)
+        let x = v.get_unchecked(i)
         if x == 1 { found_1 = true }
         if x == 2 { found_2 = true }
         if x == 3 { found_3 = true }

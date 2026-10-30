@@ -32,7 +32,7 @@ fn core_emit_tuple_arm_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat
     let mut has_cmp = false
     let mut ei = 0
     while ei < elem_count {
-        let sub = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, ei))
+        let sub = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, ei))
         if core_emit_tuple_elem_condition(ctx, exprs, sub, scrut_idx, ei, elem_count) {
             if has_cmp {
                 let and_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
@@ -59,7 +59,7 @@ fn core_emit_tuple_arm_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: Co
     let elem_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut ei = 0
     while ei < elem_count {
-        let sub = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, ei))
+        let sub = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, ei))
         if core_expr_shape_patterns::mir_core_expr_is_pat_ident(sub) {
             let name = core_expr_shape_accessors::mir_core_expr_text(sub)
             if !name.clone().eq("_") && ctx_api_variants::ctx_variant_tag(ctx, name.clone()) < 0 {
@@ -151,7 +151,7 @@ fn core_emit_tuple_elem_or_condition(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>,
     let mut unsupported = false
     let mut ai = 0
     while ai < alt_count {
-        let alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(sub, ai))
+        let alt = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(sub, ai))
         if core_expr_shape_patterns::mir_core_expr_is_pat_literal(alt) {
             has_literal_alt = true
         } else if core_expr_shape_patterns::mir_core_expr_is_pat_variant(alt) {
@@ -189,7 +189,7 @@ fn core_tuple_or_alt_is_record_variant(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, s
     let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(sub)
     let mut ai = 0
     while ai < alt_count {
-        let alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(sub, ai))
+        let alt = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(sub, ai))
         if ctx_api_variants::ctx_is_payload_variant(ctx, core_expr_shape_accessors::mir_core_expr_text(alt)) {
             return true
         }

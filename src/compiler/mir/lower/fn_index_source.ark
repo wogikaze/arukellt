@@ -96,7 +96,7 @@ fn mir_fn_index_source_typed_param_type_at(source: MirLowerFnIndexSource, typed_
     let type_source = source.type_source
     if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
-        return get_unchecked(tf.param_types, param_index)
+        return tf.param_types.get_unchecked(param_index)
     }
     type_contracts::TypeInfo_simple(0)
 }

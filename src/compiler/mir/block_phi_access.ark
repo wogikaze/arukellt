@@ -6,5 +6,5 @@ fn MirBlock_phi_count(block: MirBlock) -> i32 {
 }
 
 fn MirBlock_phi_at(block: MirBlock, idx: i32) -> MirPhi {
-    get_unchecked(block.phis, idx)
+    block.phis.get_unchecked(idx)
 }

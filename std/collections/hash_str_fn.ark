@@ -345,8 +345,8 @@ fn hashmap_str_fn_retain(mut map: HashMap<String, fn(i32) -> i32>, keep: fn((Str
     let mut drop_indices: Vec<i32> = Vec::new<i32>()
     let mut index: i32 = 0
     while index < keys.len() {
-        let key: String = get_unchecked(keys, index)
-        let value: fn(i32) -> i32 = get_unchecked(values, index)
+        let key: String = keys.get_unchecked(index)
+        let value: fn(i32) -> i32 = values.get_unchecked(index)
         if keep((key, value)) == false {
             push(drop_indices, index)
         }
@@ -354,8 +354,8 @@ fn hashmap_str_fn_retain(mut map: HashMap<String, fn(i32) -> i32>, keep: fn((Str
     }
     let mut drop_index: i32 = 0
     while drop_index < drop_indices.len() {
-        let removed_index: i32 = get_unchecked(drop_indices, drop_index)
-        let key: String = get_unchecked(keys, removed_index)
+        let removed_index: i32 = drop_indices.get_unchecked(drop_index)
+        let key: String = keys.get_unchecked(removed_index)
         let _ = hashmap_str_fn_remove(map, key)
         drop_index = drop_index + 1
     }

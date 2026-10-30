@@ -9,11 +9,11 @@ fn ctx_local_index_count(ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_local_index_name_at(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.local_names, index).clone()
+    ctx.local_names.get_unchecked(index).clone()
 }
 
 fn ctx_local_index_value_at(ctx: LowerCtx, index: i32) -> i32 {
-    get_unchecked(ctx.local_indices, index)
+    ctx.local_indices.get_unchecked(index)
 }
 
 fn ctx_local_index_names(ctx: LowerCtx) -> Vec<String> {
@@ -88,7 +88,7 @@ fn ctx_local_hash_reinsert_all(mut ctx: LowerCtx) {
     let count = ctx.local_names.len()
     let mut i = 0
     while i < count {
-        let slot = ctx_local_hash_probe_slot(ctx, get_unchecked(ctx.local_names, i))
+        let slot = ctx_local_hash_probe_slot(ctx, ctx.local_names.get_unchecked(i))
         if slot >= 0 {
             set(ctx.local_name_buckets, slot, i + 1)
         }
@@ -129,11 +129,11 @@ fn ctx_local_hash_probe_slot(ctx: LowerCtx, name: String) -> i32 {
     let mut slot = hash % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = get_unchecked(ctx.local_name_buckets, slot)
+        let bucket = ctx.local_name_buckets.get_unchecked(slot)
         if bucket == 0 {
             return slot
         }
-        let key = get_unchecked(ctx.local_names, bucket - 1)
+        let key = ctx.local_names.get_unchecked(bucket - 1)
         let mut same = key.len() == name_len
         if same {
             let mut i = 0

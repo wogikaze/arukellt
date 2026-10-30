@@ -197,7 +197,7 @@ def _patch_bootstrap_prelude_structural_box_slice_text(text: str) -> str:
         "    view.end - view.start\n"
         "}\n\n"
         "pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {\n"
-        "    get_unchecked(view.source, view.start + index)\n"
+        "    raw_array_get_unchecked(view.source, view.start + index)\n"
         "}\n\n"
     )
     return text[:begin] + replacement + text[end:]
@@ -566,6 +566,23 @@ BOOTSTRAP_PRELUDE_LEN_SHIM = """
 // `.len()` lowering; the checked-in prelude retires the free.
 pub fn len(s: String) -> i32 {
     raw_string_len_bytes(s)
+}
+"""
+
+# The checked-in prelude retired the `get_unchecked` free as well. The pin's
+# method lowering rewrites `v.get_unchecked(i)` to the bare callee without a
+# `Vec` element suffix, so the flat overlay cannot retype it; without this
+# declaration the unresolved call becomes the `drop; unreachable` stub and the
+# rebuilt s2 traps in its own lowering (`lower_program_to_mir_with_roots`).
+# The shim is overlay-only and bodies the sealed raw accessor: user programs see
+# the E0100 hint plus `v.get_unchecked(i)`. Delete it when the pin is refreshed
+# past the method-call lowering (the compiler now emits
+# `raw_array_get_unchecked` from `mir_vec_method_prefer_coreop_name`).
+BOOTSTRAP_PRELUDE_GET_UNCHECKED_SHIM = """
+// Bootstrap-only compatibility declaration for the pinned compiler's
+// `.get_unchecked()` lowering; the checked-in prelude retires the free.
+pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
+    raw_array_get_unchecked(v, idx)
 }
 """
 
@@ -4774,6 +4791,7 @@ def _prepare_flattened_selfhost_source_locked(
             prelude_text
         )
         prelude_text = prelude_text.rstrip() + "\n" + BOOTSTRAP_PRELUDE_LEN_SHIM
+        prelude_text = prelude_text.rstrip() + "\n" + BOOTSTRAP_PRELUDE_GET_UNCHECKED_SHIM
         (std_dst / "prelude.ark").write_text(prelude_text, encoding="utf-8")
     # Copy std/toml.ark (top-level scanner file without pub enum) so the
     # compiler's toml helpers are not stubbed.  This file has no `use`

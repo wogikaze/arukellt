@@ -12,7 +12,7 @@ fn mir_type_source_typed_fn_count(source: CoreHirMirTypeSource) -> i32 {
 }
 
 fn mir_type_source_typed_fn_at(source: CoreHirMirTypeSource, typed_index: i32) -> TypedFn {
-    get_unchecked(source.typed_fns, typed_index)
+    source.typed_fns.get_unchecked(typed_index)
 }
 
 fn mir_type_source_typed_fn_param_count(source: CoreHirMirTypeSource, typed_index: i32) -> i32 {
@@ -25,7 +25,7 @@ fn mir_type_source_typed_fn_param_count(source: CoreHirMirTypeSource, typed_inde
 
 fn mir_type_source_typed_fn_param_at(source: CoreHirMirTypeSource, typed_index: i32, param_index: i32) -> TypeInfo {
     let tf = mir_type_source_typed_fn_at(source, typed_index)
-    get_unchecked(tf.param_types, param_index)
+    tf.param_types.get_unchecked(param_index)
 }
 
 fn mir_type_source_mono_instances(source: CoreHirMirTypeSource) -> Vec<MonoInstance> {

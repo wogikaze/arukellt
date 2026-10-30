@@ -11,7 +11,7 @@
 | `stable` | 4 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 8 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 7 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -238,7 +238,6 @@
 | ~~`as_slice`~~ ⚠️ Deprecated → `Vec::as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
 | ~~`get`~~ ⚠️ Deprecated → `Vec::get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`get_unchecked`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`pop`~~ ⚠️ Deprecated → `Vec::pop` | `(Vec<T>) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
 | ~~`push`~~ ⚠️ Deprecated → `Vec::push` | `(Vec<T>, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
@@ -278,13 +277,12 @@ push(v, 2)
 
 ## Deprecated APIs
 
-> ⚠️ **8 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **7 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |

@@ -31,7 +31,7 @@ fn ctx_hashset_local_family(ctx: LowerCtx, local_idx: i32) -> String {
     if local_idx < 0 || local_idx >= ctx.hashset_locals.len() {
         return String_new()
     }
-    let code = get_unchecked(ctx.hashset_locals, local_idx)
+    let code = ctx.hashset_locals.get_unchecked(local_idx)
     if code == 1 {
         return String_from("i32")
     }

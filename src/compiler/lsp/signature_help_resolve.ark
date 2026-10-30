@@ -90,7 +90,7 @@ pub fn resolve_signature_for_name(state: LspState, name: String) -> ResolvedSign
     let n = symbols.len()
     let mut i = 0
     while i < n {
-        let sym = get_unchecked(symbols, i)
+        let sym = symbols.get_unchecked(i)
         if symbol_index_record::indexed_symbol_name(sym).eq(name.clone()) {
             return resolve_from_project_symbol(sym)
         }

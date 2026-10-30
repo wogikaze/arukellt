@@ -32,7 +32,7 @@ fn hir_trait_method_count(decl: HirTraitDecl) -> i32 {
 }
 
 fn hir_trait_method_at(decl: HirTraitDecl, index: i32) -> HirFunction {
-    get_unchecked(decl.methods, index)
+    decl.methods.get_unchecked(index)
 }
 
 fn HirImplBlock_new(trait_ty: HirType, self_ty: HirType) -> HirImplBlock {
@@ -56,5 +56,5 @@ fn hir_impl_block_method_count(block: HirImplBlock) -> i32 {
 }
 
 fn hir_impl_block_method_at(block: HirImplBlock, index: i32) -> HirFunction {
-    get_unchecked(block.methods, index)
+    block.methods.get_unchecked(index)
 }

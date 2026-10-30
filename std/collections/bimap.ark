@@ -32,7 +32,7 @@ fn bimap_find_key(buf: Vec<i32>, key: i32) -> i32 {
     let mut pair_index: i32 = 0
     let mut key_index: i32 = 0
     while key_index + 1 < buf.len() {
-        if get_unchecked(buf, key_index) == key {
+        if buf.get_unchecked(key_index) == key {
             return pair_index
         }
         key_index = key_index + 2
@@ -45,7 +45,7 @@ fn bimap_find_value(buf: Vec<i32>, value: i32) -> i32 {
     let mut pair_index: i32 = 0
     let mut value_index: i32 = 1
     while value_index < buf.len() {
-        if get_unchecked(buf, value_index) == value {
+        if buf.get_unchecked(value_index) == value {
             return pair_index
         }
         value_index = value_index + 2
@@ -93,7 +93,7 @@ impl Bimap {
         if pair_index < 0 {
             return Option::None
         }
-        Option::Some(get_unchecked(self.entries, pair_index * 2 + 1))
+        Option::Some(self.entries.get_unchecked(pair_index * 2 + 1))
     }
 
     /// Returns the key associated with `value`, or `Option::None`.
@@ -102,7 +102,7 @@ impl Bimap {
         if pair_index < 0 {
             return Option::None
         }
-        Option::Some(get_unchecked(self.entries, pair_index * 2))
+        Option::Some(self.entries.get_unchecked(pair_index * 2))
     }
 
     /// Returns true when `key` has an association.

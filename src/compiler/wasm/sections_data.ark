@@ -42,7 +42,7 @@ fn emit_active_data_offset_expr(mut data_sec: WasmWriter) {
 fn total_string_data_size(strings: Vec<String>) -> i32 {
     let mut total_data = 0
     for ds in 0..strings.len() {
-        let s = get_unchecked(strings, ds)
+        let s = strings.get_unchecked(ds)
         assert_emittable_string_len(s.len())
         total_data = total_data + 4 + s.len()
     }
@@ -51,7 +51,7 @@ fn total_string_data_size(strings: Vec<String>) -> i32 {
 
 fn emit_string_data_payload(mut data_sec: WasmWriter, strings: Vec<String>) {
     for ds2 in 0..strings.len() {
-        let s = get_unchecked(strings, ds2)
+        let s = strings.get_unchecked(ds2)
         let slen = s.len()
         assert_emittable_string_len(slen)
         writer_core::emit_byte(data_sec, slen % 256)

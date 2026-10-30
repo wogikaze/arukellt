@@ -15,7 +15,7 @@ fn print_image(path: String) {
             Stdio::println((image.len()).to_string())
             let mut i: i32 = 0
             while i < image.len() {
-                Stdio::println((get_unchecked(image, i)).to_string())
+                Stdio::println((image.get_unchecked(i)).to_string())
                 i = i + 1
             }
         },

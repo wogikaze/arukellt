@@ -55,7 +55,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     }
     let qualified = ctx_fn_index::ctx_qualified_fn_index_find(ctx, name.clone())
     if qualified >= 0 {
-        let qualified_vt = get_unchecked(ctx.qualified_fn_return_vts, qualified)
+        let qualified_vt = ctx.qualified_fn_return_vts.get_unchecked(qualified)
         if qualified_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
@@ -66,7 +66,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < variants.len() {
-        let variant = get_unchecked(variants, vi).clone()
+        let variant = variants.get_unchecked(vi).clone()
         let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if variant_found >= 0 {
             let variant_vt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, variant_found)

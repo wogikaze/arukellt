@@ -31,7 +31,7 @@ fn build_checked_program_bundle(
     let module_count = modules.len()
     let mut mi = 0
     while mi < module_count {
-        let md = get_unchecked(modules, mi)
+        let md = modules.get_unchecked(mi)
         let decl_count = module_state_modules::ModuleDecls_decl_count(md)
         push(module_names, md.name)
         push(module_decl_counts, decl_count)

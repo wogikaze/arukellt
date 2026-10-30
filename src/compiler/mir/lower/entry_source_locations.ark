@@ -13,7 +13,7 @@ fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, s
     while fi < fn_count {
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, fi, 0 - 1)
         let loc = if decl_index >= 0 && decl_index < decl_nodes.len() {
-            let node = get_unchecked(decl_nodes, decl_index)
+            let node = decl_nodes.get_unchecked(decl_index)
             if ast_node::node_kind(node) == ast_node::fn_decl_kind() {
                 let span_start = ast_node::node_span_start(node)
                 let line = source_map_offsets::offset_to_line(source_text.clone(), span_start)

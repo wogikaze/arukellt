@@ -59,7 +59,7 @@ fn emit_rung_census_print(ctx: SelfEmitCtx) {
     let mut index = 0
     let mut line = String_new()
     while index < rungs.len() {
-        let decisions = get_unchecked(rungs, index)
+        let decisions = rungs.get_unchecked(index)
         if decisions > 0 {
             let entry = emit_rung_name(index).concat("=".concat((decisions).to_string()))
             line = line.concat(" ".concat(entry))

@@ -6,7 +6,7 @@ use component::wit_types
 fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
     let mut out = ""
     for i in 0..decls.len() {
-        let d = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+        let d = wit_decl::wit_decl_from_node(decls.get_unchecked(i))
         // Generic decls (Pair<T>) have no WIT record/enum equivalent;
         // emitting their unsubstituted fields produces undeclared types.
         // A nested guard is used instead of continue: for-loop continue
@@ -22,8 +22,8 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
             if wit_decl::wit_decl_is_enum(d) {
                 out = out.concat(emit_wit_enum_type_def(d))
             }
-            if component_decl_is_perms_flags_shape(get_unchecked(decls, i)) {
-                out = out.concat(emit_wit_flags_type_def(get_unchecked(decls, i)))
+            if component_decl_is_perms_flags_shape(decls.get_unchecked(i)) {
+                out = out.concat(emit_wit_flags_type_def(decls.get_unchecked(i)))
             }
         }
     }

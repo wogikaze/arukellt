@@ -258,6 +258,9 @@ diag:diagnostics/removed_assertion_import.ark
 diag:diagnostics/removed_len_free.ark
 diag:diagnostics/removed_len_free_wasm32.ark
 diag:diagnostics/removed_len_import.ark
+diag:diagnostics/removed_get_unchecked_free.ark
+diag:diagnostics/removed_get_unchecked_free_wasm32.ark
+diag:diagnostics/removed_get_unchecked_import.ark
 diag:diagnostics/removed_test_free.ark
 diag:diagnostics/removed_test_free_wasm32.ark
 diag:diagnostics/removed_hashset_free.ark
@@ -2239,6 +2242,7 @@ run:stdlib_vec/vec_get_first.ark
 run:stdlib_vec/vec_get_last.ark
 run:stdlib_vec/vec_get_middle.ark
 run:stdlib_vec/vec_get_out_of_bounds.ark
+run:stdlib_vec/get_unchecked_element_types.ark
 run:stdlib_vec/vec_get_unchecked_first.ark
 run:stdlib_vec/vec_get_unchecked_last.ark
 run:stdlib_vec/vec_get_unchecked_middle.ark
@@ -2827,6 +2831,7 @@ t3-compile:stdlib_vec/vec_get_first.ark
 t3-compile:stdlib_vec/vec_get_last.ark
 t3-compile:stdlib_vec/vec_get_middle.ark
 t3-compile:stdlib_vec/vec_get_out_of_bounds.ark
+t3-compile:stdlib_vec/get_unchecked_element_types.ark
 t3-compile:stdlib_vec/vec_get_unchecked_first.ark
 t3-compile:stdlib_vec/vec_get_unchecked_last.ark
 t3-compile:stdlib_vec/vec_get_unchecked_middle.ark
@@ -3384,6 +3389,7 @@ t3-run:stdlib_vec/vec_get_first.ark
 t3-run:stdlib_vec/vec_get_last.ark
 t3-run:stdlib_vec/vec_get_middle.ark
 t3-run:stdlib_vec/vec_get_out_of_bounds.ark
+t3-run:stdlib_vec/get_unchecked_element_types.ark
 t3-run:stdlib_vec/vec_get_unchecked_first.ark
 t3-run:stdlib_vec/vec_get_unchecked_last.ark
 t3-run:stdlib_vec/vec_get_unchecked_middle.ark

@@ -53,29 +53,29 @@ fn closure_storage_bind_count(ctx: LowerCtx) -> i32 {
 }
 
 fn closure_storage_bind_name_at(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.closure_bind_names, index).clone()
+    ctx.closure_bind_names.get_unchecked(index).clone()
 }
 
 fn closure_storage_bind_synth_at(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.closure_bind_synth, index).clone()
+    ctx.closure_bind_synth.get_unchecked(index).clone()
 }
 
 fn closure_storage_bind_caps_at(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.closure_bind_caps, index).clone()
+    ctx.closure_bind_caps.get_unchecked(index).clone()
 }
 
 fn closure_storage_bind_extra_at(ctx: LowerCtx, index: i32) -> i32 {
-    get_unchecked(ctx.closure_bind_extra, index)
+    ctx.closure_bind_extra.get_unchecked(index)
 }
 
 fn closure_storage_bind_env_at(ctx: LowerCtx, index: i32) -> i32 {
-    get_unchecked(ctx.closure_bind_env, index)
+    ctx.closure_bind_env.get_unchecked(index)
 }
 
 fn closure_storage_bind_fn_at(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.closure_bind_fns, index).clone()
+    ctx.closure_bind_fns.get_unchecked(index).clone()
 }
 
 fn closure_storage_bind_identity_at(ctx: LowerCtx, index: i32) -> bool {
-    get_unchecked(ctx.closure_bind_identity, index)
+    ctx.closure_bind_identity.get_unchecked(index)
 }

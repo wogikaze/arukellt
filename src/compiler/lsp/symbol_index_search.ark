@@ -35,7 +35,7 @@ fn results_contains(results: Vec<symbol_index_record::IndexedSymbol>, uri: Strin
     let n = results.len()
     let mut i = 0
     while i < n {
-        let sym = get_unchecked(results, i)
+        let sym = results.get_unchecked(i)
         let existing = result_key(symbol_index_record::indexed_symbol_uri(sym), symbol_index_record::indexed_symbol_name(sym))
         if existing.eq(key.clone()) {
             return true
@@ -59,7 +59,7 @@ pub fn symbol_index_search(state: LspState, query: String) -> Vec<symbol_index_r
     let file_n = symbols.len()
     let mut fi = 0
     while fi < file_n {
-        let sym = get_unchecked(symbols, fi)
+        let sym = symbols.get_unchecked(fi)
         if name_matches_query(symbol_index_record::indexed_symbol_name(sym), query.clone()) {
             push_unique_result(results, sym)
         }

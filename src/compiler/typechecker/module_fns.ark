@@ -14,7 +14,7 @@ fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(node) {
             push(fn_sigs, sigs::fn_sig_from_fn_decl(node))
         }

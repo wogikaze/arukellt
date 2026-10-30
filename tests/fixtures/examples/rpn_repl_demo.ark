@@ -31,9 +31,9 @@ fn apply_op_values(op: RpnOp, a: i32, b: i32) -> i32 {
 fn apply_op(mut stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
     if stack.len() < 2 { print_error(String_from("stack underflow")); stack }
     else {
-        let b: i32 = get_unchecked(stack, stack.len() - 1)
+        let b: i32 = stack.get_unchecked(stack.len() - 1)
         let _: Option<i32> = pop(stack)
-        let a: i32 = get_unchecked(stack, stack.len() - 1)
+        let a: i32 = stack.get_unchecked(stack.len() - 1)
         let _: Option<i32> = pop(stack)
         push(stack, apply_op_values(op, a, b))
         stack
@@ -62,7 +62,7 @@ fn token_end(line: String, start: i32, line_len: i32) -> i32 {
 fn finish_line(stack: Vec<i32>, input_trimmed: String) {
     let sp: i32 = stack.len()
     if sp == 1 {
-        let val: i32 = get_unchecked(stack, 0)
+        let val: i32 = stack.get_unchecked(0)
         Stdio::println(val.to_string())
         print_result(val)
     } else { if sp > 1 { Stdio::println(input_trimmed); print_stack_count_error(sp) } }

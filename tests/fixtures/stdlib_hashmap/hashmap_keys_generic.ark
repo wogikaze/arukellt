@@ -24,13 +24,13 @@ fn main() {
     let _ = si.insert(String_from("a"), 1)
     let si_keys = si.keys()
     assert(si_keys.len() == 1)
-    assert(get_unchecked(si_keys, 0).eq(String_from("a")))
+    assert(si_keys.get_unchecked(0).eq(String_from("a")))
 
     let mut i_fn = HashMap::new<i32, fn(i32) -> i32>()
     let _ = i_fn.insert(7, double)
     let i_fn_keys = i_fn.keys()
     assert(i_fn_keys.len() == 1)
-    assert(get_unchecked(i_fn_keys, 0) == 7)
+    assert(i_fn_keys.get_unchecked(0) == 7)
 
     let mut s_fn = HashMap::new<String, fn(i32) -> i32>()
     let _ = s_fn.insert(String_from("k"), double)

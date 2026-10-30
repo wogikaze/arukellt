@@ -12,7 +12,7 @@ fn main() {
     let n = vals.len()
     let mut i = 0
     while i < n {
-        let v = get_unchecked(vals, i)
+        let v = vals.get_unchecked(i)
         let enc: Vec<i32> = Bytes::from_leb128_i32(v)
         let mut c: Vec<i32> = enc.byte_cursor()
         let dec: i32 = c.read_leb128_i32()

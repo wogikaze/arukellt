@@ -24,8 +24,8 @@ fn main() {
     match reader.read(2) {
         Result::Ok(chunk) => {
             assert(chunk.len() == 2)
-            assert(get_unchecked(chunk, 0) == 88)
-            assert(get_unchecked(chunk, 1) == 89)
+            assert(chunk.get_unchecked(0) == 88)
+            assert(chunk.get_unchecked(1) == 89)
         },
         Result::Err(_e) => assert(false),
     }

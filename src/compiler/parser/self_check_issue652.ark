@@ -51,15 +51,15 @@ fn issue652_parser_self_check() -> String {
     if decls.len() != 3 {
         return "issue652 parser fail: decl count=".concat(decls.len().to_string())
     }
-    let wit_alias = issue652_assert_wit_import(get_unchecked(decls, 0), "test:host/math", "host")
+    let wit_alias = issue652_assert_wit_import(decls.get_unchecked(0), "test:host/math", "host")
     if wit_alias.len() > 0 {
         return wit_alias
     }
-    let wit_default = issue652_assert_wit_import(get_unchecked(decls, 1), "wasi:cli/stdin", "stdin")
+    let wit_default = issue652_assert_wit_import(decls.get_unchecked(1), "wasi:cli/stdin", "stdin")
     if wit_default.len() > 0 {
         return wit_default
     }
-    let local = get_unchecked(decls, 2)
+    let local = decls.get_unchecked(2)
     if issue652_import_kind(local) != kinds::IMPORT_KIND_LOCAL() {
         return "issue652 parser fail: expected local import kind"
     }

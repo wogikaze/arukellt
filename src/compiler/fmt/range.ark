@@ -34,7 +34,7 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
         if i > start {
             out = out.concat("\n")
         }
-        out = out.concat(get_unchecked(lines, i).clone())
+        out = out.concat(lines.get_unchecked(i).clone())
         i = i + 1
     }
     if end < max_line {
@@ -54,7 +54,7 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
         if i > 0 {
             out = out.concat("\n")
         }
-        out = out.concat(get_unchecked(lines, i).clone())
+        out = out.concat(lines.get_unchecked(i).clone())
         i = i + 1
     }
     if replacement.len() > 0 {
@@ -65,7 +65,7 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
     }
     for j in (end + 1)..lines.len() {
         out = out.concat("\n")
-        out = out.concat(get_unchecked(lines, j).clone())
+        out = out.concat(lines.get_unchecked(j).clone())
     }
     if lines.len() > 0 {
         out = out.concat("\n")

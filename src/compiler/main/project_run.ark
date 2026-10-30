@@ -164,7 +164,7 @@ fn collect_test_names(decls: Vec<AstNode>, prefix: String) -> i32 {
     let mut count = 0
     let mut i = 0
     while i < n {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         count = count + collect_test_name_node(d, prefix.clone())
         i = i + 1
     }

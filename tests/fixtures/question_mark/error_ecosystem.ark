@@ -53,7 +53,7 @@ fn read_and_parse(data: Vec<i32>, text: String) -> Result<i32, AppError> {
         Err(err) => return Err(AppError::Io(err.message())),
     }
     let parsed: i32 = parse_count(text)?
-    Ok(get_unchecked(bytes, 0) + parsed)
+    Ok(bytes.get_unchecked(0) + parsed)
 }
 
 fn typed_io_failure() -> Result<i32, IoError> {

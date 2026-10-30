@@ -39,7 +39,7 @@ fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
     let mut cap_vts = Vec::new<i32>()
     let mut cvi = 0
     while cvi < cap_n {
-        let cname = get_unchecked(caps, cvi).clone()
+        let cname = caps.get_unchecked(cvi).clone()
         let cli = ctx_api_local_alloc::ctx_lookup_local(ctx, cname.clone())
         let mut pvt = value_types::VT_I32()
         if cli >= 0 {
@@ -74,7 +74,7 @@ fn core_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<Strin
     let mut cap_types = Vec::new<String>()
     let mut cvi = 0
     while cvi < cap_n {
-        let cname = get_unchecked(caps, cvi).clone()
+        let cname = caps.get_unchecked(cvi).clone()
         let cli = ctx_api_local_alloc::ctx_lookup_local(ctx, cname.clone())
         if cli >= 0 && closure_pcells::ctx_pcell_is_cell(ctx, cli) {
             // Promoted cap params declare the cell ref type so direct
@@ -94,9 +94,9 @@ fn core_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
     let cap_n = caps.len()
     let mut ci = 0
     while ci < cap_n {
-        let cname = get_unchecked(caps, ci).clone()
-        let pvt = get_unchecked(cap_vts, ci)
-        let cap_type = get_unchecked(cap_types, ci).clone()
+        let cname = caps.get_unchecked(ci).clone()
+        let pvt = cap_vts.get_unchecked(ci)
+        let cap_type = cap_types.get_unchecked(ci).clone()
         let pname = closure_pcells::ctx_pcell_cap_param_name(
             cap_type.clone(),
             cname.clone()

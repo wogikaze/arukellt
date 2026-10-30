@@ -27,7 +27,7 @@ fn lower_core_continue(mut ctx: LowerCtx) -> i32 {
 fn lower_core_return(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) >= 1 {
         let ret_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
-        let ret_expr = get_unchecked(exprs, ret_index)
+        let ret_expr = exprs.get_unchecked(ret_index)
         let val_idx = if mir_core_return_expr_is_fn_value(ctx, ret_expr) {
             value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(ret_expr))
         } else {

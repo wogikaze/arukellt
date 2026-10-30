@@ -103,7 +103,7 @@ fn validate_target_configuration(mut opts: CliOptions) {
 }
 
 fn parse_initial_command(argv: Vec<String>, mut opts: CliOptions) {
-    let cmd_str = get_unchecked(argv, 1)
+    let cmd_str = argv.get_unchecked(1)
     let cmd_is_check = arg_is_check_command(cmd_str.clone())
     let cmd_is_compile = arg_is_compile_command(cmd_str.clone())
     if arg_is_help(cmd_str.clone()) {
@@ -175,7 +175,7 @@ fn parse_component_subcommand(argv: Vec<String>, argc: i32, mut opts: CliOptions
     if argc <= 2 {
         return
     }
-    let sub = get_unchecked(argv, 2)
+    let sub = argv.get_unchecked(2)
     if commands::cli_str_eq(sub.clone(), "inspect") {
         args_record::cli_set_component_action(opts, kinds::COMP_ACTION_INSPECT())
         return
@@ -189,7 +189,7 @@ fn component_option_start(argv: Vec<String>, argc: i32, opts: CliOptions) -> i32
     if args_record::cli_command(opts) != kinds::CMD_COMPONENT() || argc <= 2 {
         return 2
     }
-    let sub = get_unchecked(argv, 2)
+    let sub = argv.get_unchecked(2)
     if commands::cli_str_eq(sub.clone(), "build") || args_record::cli_component_action(opts) != kinds::COMP_ACTION_BUILD() {
         return 3
     }
@@ -199,7 +199,7 @@ fn component_option_start(argv: Vec<String>, argc: i32, opts: CliOptions) -> i32
 fn parse_compose_args(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
     let mut i = 2
     while i < argc {
-        let arg = get_unchecked(argv, i)
+        let arg = argv.get_unchecked(i)
         if commands::cli_str_eq(arg.clone(), "--validate") {
             args_record::cli_set_compose_validate_only(opts, true)
             i = i + 1
@@ -210,8 +210,8 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
                 args_record::cli_set_error(opts, "--plug requires <provider> and <socket> paths")
                 return
             }
-            args_record::cli_set_compose_plug(opts, get_unchecked(argv, i + 1))
-            args_record::cli_set_compose_socket(opts, get_unchecked(argv, i + 2))
+            args_record::cli_set_compose_plug(opts, argv.get_unchecked(i + 1))
+            args_record::cli_set_compose_socket(opts, argv.get_unchecked(i + 2))
             i = i + 3
             continue
         }
@@ -220,7 +220,7 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
                 args_record::cli_set_error(opts, "-o requires an output path")
                 return
             }
-            args_record::cli_set_output_file(opts, get_unchecked(argv, i + 1))
+            args_record::cli_set_output_file(opts, argv.get_unchecked(i + 1))
             i = i + 2
             continue
         }
@@ -248,7 +248,7 @@ fn arg_is_version(arg: String) -> bool {
 fn parse_option_args(argv: Vec<String>, argc: i32, mut opts: CliOptions, start_index: i32) {
     let mut i = start_index
     while i < argc {
-        let arg = get_unchecked(argv, i)
+        let arg = argv.get_unchecked(i)
         if commands::cli_str_eq(arg.clone(), "--target") {
             i = args_parse_opts::parse_target_option(argv, argc, opts, i)
             i = i + 1
@@ -324,7 +324,7 @@ fn parse_option_args(argv: Vec<String>, argc: i32, mut opts: CliOptions, start_i
 fn parse_world_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_world(opts, get_unchecked(argv, next).clone())
+        args_record::cli_set_world(opts, argv.get_unchecked(next).clone())
     } else {
         args_record::cli_set_error(opts, "--world requires a world name")
     }

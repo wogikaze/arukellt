@@ -19,9 +19,9 @@ fn main() {
     Stdio::println((m.type_count()).to_string())
     Stdio::println((m.func_count()).to_string())
     let hdr: Vec<i32> = wasm::WasmModuleBuilder::encode_header()
-    Stdio::println((get_unchecked(hdr, 0)).to_string())
-    Stdio::println((get_unchecked(hdr, 1)).to_string())
-    Stdio::println((get_unchecked(hdr, 4)).to_string())
+    Stdio::println((hdr.get_unchecked(0)).to_string())
+    Stdio::println((hdr.get_unchecked(1)).to_string())
+    Stdio::println((hdr.get_unchecked(4)).to_string())
 }
 // WasmModuleBuilder::new returns a builder with zero entries
 // Build a FuncType: () -> i32

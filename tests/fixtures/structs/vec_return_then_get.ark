@@ -16,6 +16,6 @@ fn make_items() -> Vec<Item> {
 
 fn main() {
     let items = make_items()
-    let first = get_unchecked(items, 0)
+    let first = items.get_unchecked(0)
     Stdio::println((first.n).to_string())
 }

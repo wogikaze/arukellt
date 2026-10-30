@@ -300,7 +300,7 @@ fn vc_expression_text(kind: i32, raw_text: String, int_value: i32) -> String {
 fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
-    let expr = get_unchecked(exprs, expr_id)
+    let expr = exprs.get_unchecked(expr_id)
     let kind = expr_raw::corehir_expr_kind(expr)
     let value_type = expr_raw::corehir_expr_val_type(expr)
     let type_name = expr_raw::corehir_expr_type_name(expr)

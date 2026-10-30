@@ -9,5 +9,5 @@ fn AstNode_type_ann_count(node: AstNode) -> i32 {
 }
 
 fn AstNode_type_ann_at(node: AstNode, index: i32) -> AstNode {
-    get_unchecked(node.type_ann, index)
+    node.type_ann.get_unchecked(index)
 }

@@ -99,7 +99,7 @@ fn closure_register_env_type(mut ctx: LowerCtx, env_name: String, cap_types: Vec
     while i < cap_types.len() {
         // Capture types arrive as local spellings (struct:Name:size); the
         // layout registry and named GC slots key on the bare name.
-        let cap_type = ctx_struct_layout::strip_struct_type_prefix(get_unchecked(cap_types, i).clone())
+        let cap_type = ctx_struct_layout::strip_struct_type_prefix(cap_types.get_unchecked(i).clone())
         sig = sig.concat(ctx_gc_struct::gc_struct_field_sig_for_type(ctx, cap_type, i))
         i = i + 1
     }
@@ -128,8 +128,8 @@ fn closure_emit_env_alloc(mut ctx: LowerCtx, env_name: String, cap_names: Vec<St
     let mut off = 0
     let mut i = 0
     while i < cap_n {
-        let cvt = get_unchecked(cap_vts, i)
-        let cap_li = ctx_api_local_alloc::ctx_lookup_local(ctx, get_unchecked(cap_names, i).clone())
+        let cvt = cap_vts.get_unchecked(i)
+        let cap_li = ctx_api_local_alloc::ctx_lookup_local(ctx, cap_names.get_unchecked(i).clone())
         if cap_li >= 0 {
             ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(
                     env_local,
@@ -292,7 +292,7 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
     let env_li = ctx_api_local_alloc::ctx_lookup_local(ctx, "__env")
     let mut pi = 0
     while pi < param_lis.len() {
-        let li = get_unchecked(param_lis, pi)
+        let li = param_lis.get_unchecked(pi)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(li, li))
         pi = pi + 1
     }
@@ -300,7 +300,7 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
     let mut off = 0
     let mut ci = 0
     while ci < cap_n {
-        let cvt = get_unchecked(cap_vts, ci)
+        let cvt = cap_vts.get_unchecked(ci)
         // Each struct.get consumes its base ref; push __env explicitly so
         // the first get's base-push skip sees a LOCAL_GET of the env local.
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(env_li, env_li))
@@ -335,7 +335,7 @@ fn closure_synth_fn_thunk(mut ctx: LowerCtx, fn_name: String, target: MirFunctio
     let param_lis = closure_trampoline_push_params(ctx, target, param_count)
     let mut pi = 0
     while pi < param_lis.len() {
-        let li = get_unchecked(param_lis, pi)
+        let li = param_lis.get_unchecked(pi)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(li, li))
         pi = pi + 1
     }
@@ -365,7 +365,7 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
     let thunk = closure_thunk_name(fn_name)
     let mut i = 0
     while i < ctx.closure_thunk_names.len() {
-        if get_unchecked(ctx.closure_thunk_names, i).eq(fn_name.clone()) {
+        if ctx.closure_thunk_names.get_unchecked(i).eq(fn_name.clone()) {
             return thunk
         }
         i = i + 1
@@ -399,7 +399,7 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
 fn closure_flush_pending_fn_thunks(mut ctx: LowerCtx) {
     let mut i = 0
     while i < ctx.pending_fn_thunks.len() {
-        let fn_name = get_unchecked(ctx.pending_fn_thunks, i).clone()
+        let fn_name = ctx.pending_fn_thunks.get_unchecked(i).clone()
         let fi = closure_find_module_function(ctx, fn_name.clone())
         if fi >= 0 {
             let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -446,7 +446,7 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
             nk = nk.concat(",")
             vk = vk.concat(",")
         }
-        let li = get_unchecked(arg_lis, i)
+        let li = arg_lis.get_unchecked(i)
         let avt = if li >= 0 {
             ctx_api_local_types::ctx_local_vt(ctx, li)
         } else {

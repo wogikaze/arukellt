@@ -71,8 +71,8 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
         let resolved = mir_param_resolve_no_local_type(ctx, p_type_name.clone())
         if resolved.len() > 0 {
             pvt = value_types::VT_GC_REF()
-            mir_type_name = get_unchecked(resolved, 0)
-            sig_type_name = get_unchecked(resolved, 1)
+            mir_type_name = resolved.get_unchecked(0)
+            sig_type_name = resolved.get_unchecked(1)
             if mir_type_name.clone().starts_with(String_from("?")) {
                 is_type_var = true
             }

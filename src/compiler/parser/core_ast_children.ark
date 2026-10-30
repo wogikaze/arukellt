@@ -9,7 +9,7 @@ fn AstNode_child_count(node: AstNode) -> i32 {
 }
 
 fn AstNode_child_at(node: AstNode, index: i32) -> AstNode {
-    get_unchecked(node.children, index)
+    node.children.get_unchecked(index)
 }
 
 fn AstNode_children(node: AstNode) -> Vec<AstNode> {

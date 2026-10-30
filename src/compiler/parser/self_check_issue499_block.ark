@@ -16,7 +16,7 @@ fn issue499_parser_block_body_lexer_integration_self_check() -> String {
     if decls.len() != 1 {
         return "issue499 block body fail: decl count=".concat(decls.len().to_string())
     }
-    let fn_decl = get_unchecked(decls, 0)
+    let fn_decl = decls.get_unchecked(0)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {
         return "issue499 block body fail: expected fn decl"
     }

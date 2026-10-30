@@ -19,8 +19,8 @@ fn lower_core_binary(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     }
     let left_expr_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
     let right_expr_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
-    let left_expr = get_unchecked(exprs, left_expr_index)
-    let right_expr = get_unchecked(exprs, right_expr_index)
+    let left_expr = exprs.get_unchecked(left_expr_index)
+    let right_expr = exprs.get_unchecked(right_expr_index)
     let mut binop_vt = binary_type_select::mir_initial_binop_vt(binary_type_select::mir_peek_core_expr_vt(ctx, left_expr), binary_type_select::mir_peek_core_expr_vt(ctx, right_expr))
     let l_idx = lower_core_expr(ctx, exprs, left_expr_index)
     let overloaded = core_binary_overload::try_lower_overloaded_binary(ctx, exprs, expr, mir_op, l_idx)

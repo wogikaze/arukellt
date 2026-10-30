@@ -6,17 +6,18 @@ fn main() {
     let t = toml::TomlValue::parse("m = [[1, 2], [3, 4]]")
     match t {
         Result::Ok(table) => match table.get_field("m") {
-            Option::Some(v) => match v.as_array() {
-                Option::Some(arr) => {
-                    Test::assert_eq_i32(arr.len(), 2)
-                    let first: toml::TomlValue = get_unchecked(arr, 0)
-                    let nested: Option<Vec<toml::TomlValue>> = first.as_array()
-                    match nested {
-                        Option::Some(inner) => Test::assert_eq_i32(inner.len(), 2),
-                        None => assert(false),
+            Option::Some(v) => match v {
+                toml::TomlValue::Array(rows) => {
+                    Test::assert_eq_i32(rows.len(), 2)
+                    match rows.get(0) {
+                        Option::Some(first) => match first {
+                            toml::TomlValue::Array(inner) => Test::assert_eq_i32(inner.len(), 2),
+                            _ => assert(false),
+                        },
+                        Option::None => assert(false),
                     }
                 },
-                None => assert(false),
+                _ => assert(false),
             },
             None => assert(false),
         },

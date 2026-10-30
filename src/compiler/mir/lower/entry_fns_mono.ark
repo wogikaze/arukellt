@@ -59,7 +59,7 @@ fn mir_emit_top_level_fn_mono_bodies(
         let generic_rt_type_var_name = mir_entry_typed_return_type_var_name(entry_view, typed_index)
         let generic_return_ty = mir_entry_typed_return_type_at(entry_view, typed_index)
         while mono_emit_i < emit_mangled_list.len() {
-            let mangled = get_unchecked(emit_mangled_list, mono_emit_i)
+            let mangled = emit_mangled_list.get_unchecked(mono_emit_i)
             let emit_fn_name = mono::mono_safe_name(mangled)
             let emit_inst = ctx_mono_index::ctx_mono_instance_at(ctx, mangled.clone())
             if type_contracts::MonoInstance_mangled_name(emit_inst).len() > 0 &&
@@ -115,7 +115,7 @@ fn mir_emit_top_level_fn_mono_bodies(
     // caller's result local as the structref-element vec on wasm32-gc.
     let leaf_inst_idx = ctx_mono_type_params::ctx_find_leaf_mono_instance_index(ctx, decl_name.clone())
     if leaf_inst_idx >= 0 {
-        let leaf_inst = get_unchecked(ctx.mono_instances, leaf_inst_idx)
+        let leaf_inst = ctx.mono_instances.get_unchecked(leaf_inst_idx)
         let leaf_concrete = mono_instantiate_return_from_instance(
             ctx,
             type_contracts::MonoInstance_mangled_name(leaf_inst),
@@ -227,7 +227,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).eq(name.clone()) {
+        if names.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -305,7 +305,7 @@ fn mir_entry_decl_is_generic(view: MirLowerEntryView, typed_index: i32) -> bool 
     let param_count = tf.param_types.len()
     let mut i = 0
     while i < param_count {
-        if mir_type_info_contains_var(get_unchecked(tf.param_types, i)) {
+        if mir_type_info_contains_var(tf.param_types.get_unchecked(i)) {
             return true
         }
         i = i + 1

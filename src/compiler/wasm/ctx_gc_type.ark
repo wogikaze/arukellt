@@ -202,7 +202,7 @@ fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
     }
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     if type_slot >= 0 && type_slot < map.len() {
-        return get_unchecked(map, type_slot)
+        return map.get_unchecked(type_slot)
     }
     let base = ctx_record::SelfEmitCtx_gc_enum_variant_base(ctx)
     if base < 0 {

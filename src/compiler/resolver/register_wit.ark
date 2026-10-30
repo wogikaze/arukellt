@@ -10,7 +10,7 @@ use resolver::ast_access
 use resolver::wit_register
 fn wit_seen_name(items: Vec<String>, name: String) -> bool {
     for i in 0..items.len() {
-        if get_unchecked(items, i).eq(name.clone()) {
+        if items.get_unchecked(i).eq(name.clone()) {
             return true
         }
     }
@@ -23,7 +23,7 @@ fn register_wit_imports(mut ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_wit_import(d) {
             let package_id = ast_access::node_text(d)
             let alias = wit_import_alias(d)

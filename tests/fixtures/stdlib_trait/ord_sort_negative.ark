@@ -13,9 +13,9 @@ fn main() {
     v.sort()
     let s = v
     Test::assert_eq_i32(s.len(), 5)
-    Test::assert_eq_i32(get_unchecked(s, 0), -5)
-    Test::assert_eq_i32(get_unchecked(s, 1), -3)
-    Test::assert_eq_i32(get_unchecked(s, 2), -1)
-    Test::assert_eq_i32(get_unchecked(s, 3), 0)
-    Test::assert_eq_i32(get_unchecked(s, 4), 5)
+    Test::assert_eq_i32(s.get_unchecked(0), -5)
+    Test::assert_eq_i32(s.get_unchecked(1), -3)
+    Test::assert_eq_i32(s.get_unchecked(2), -1)
+    Test::assert_eq_i32(s.get_unchecked(3), 0)
+    Test::assert_eq_i32(s.get_unchecked(4), 5)
 }

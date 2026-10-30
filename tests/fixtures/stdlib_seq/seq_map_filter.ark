@@ -18,12 +18,12 @@ fn main() {
     push(v, 5)
     let doubled: Vec<i32> = v.iter().map(double).collect()
     Stdio::println((doubled.len()).to_string())
-    Stdio::println((get_unchecked(doubled, 0)).to_string())
-    Stdio::println((get_unchecked(doubled, 4)).to_string())
+    Stdio::println((doubled.get_unchecked(0)).to_string())
+    Stdio::println((doubled.get_unchecked(4)).to_string())
     let evens: Vec<i32> = v.iter().filter(is_even).collect()
     Stdio::println((evens.len()).to_string())
-    Stdio::println((get_unchecked(evens, 0)).to_string())
-    Stdio::println((get_unchecked(evens, 1)).to_string())
+    Stdio::println((evens.get_unchecked(0)).to_string())
+    Stdio::println((evens.get_unchecked(1)).to_string())
 }
 // map: double each element
 // filter: keep even numbers

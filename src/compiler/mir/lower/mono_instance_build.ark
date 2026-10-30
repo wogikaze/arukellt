@@ -30,7 +30,7 @@ fn mono_instance_table_register_from_instances(
         let var_name = mono_suffix_parse::mono_type_var_name_at(ai)
         let mut type_name = var_name.clone()
         if ai < keys.len() {
-            type_name = get_unchecked(keys, ai)
+            type_name = keys.get_unchecked(ai)
         }
         push(subst_names, var_name.clone())
         let kind = mono_subst_kind_for_type_name(type_name.clone())
@@ -73,7 +73,7 @@ fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> Mon
     let count = mono_instances.len()
     let mut i = 0
     while i < count {
-        let inst = get_unchecked(mono_instances, i)
+        let inst = mono_instances.get_unchecked(i)
         if mono_names::mono_name_eq_safe(type_contracts::MonoInstance_mangled_name(inst), safe.clone()) {
             return inst
         }

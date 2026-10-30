@@ -54,7 +54,7 @@ fn main() {
                 let root_dist = if v == 0 {
                     0
                 } else {
-                    get_unchecked(dists, dist_offset(n, 0, v))
+                    dists.get_unchecked(dist_offset(n, 0, v))
                 }
                 push(order_keys, root_dist * base + v)
                 v = v + 1
@@ -65,21 +65,21 @@ fn main() {
             let mut ok = true
             let mut k = 1
             while ok && k < order_keys.len() {
-                let v = get_unchecked(order_keys, k) % base
+                let v = order_keys.get_unchecked(k) % base
                 let root_dist = if v == 0 {
                     0
                 } else {
-                    get_unchecked(dists, dist_offset(n, 0, v))
+                    dists.get_unchecked(dist_offset(n, 0, v))
                 }
                 let mut parent = 0
                 let mut best_depth = 0
                 let mut p = 0
                 while p < processed.len() {
-                    let u = get_unchecked(processed, p)
+                    let u = processed.get_unchecked(p)
                     let u_depth = if u == 0 {
                         0
                     } else {
-                        get_unchecked(dists, dist_offset(n, 0, u))
+                        dists.get_unchecked(dist_offset(n, 0, u))
                     }
                     let mut a = u
                     let mut b = v
@@ -91,7 +91,7 @@ fn main() {
                     let uv = if a == b {
                         0
                     } else {
-                        get_unchecked(dists, dist_offset(n, a, b))
+                        dists.get_unchecked(dist_offset(n, a, b))
                     }
                     if u_depth + uv == root_dist && u_depth >= best_depth {
                         best_depth = u_depth
@@ -102,7 +102,7 @@ fn main() {
                 let parent_depth = if parent == 0 {
                     0
                 } else {
-                    get_unchecked(dists, dist_offset(n, 0, parent))
+                    dists.get_unchecked(dist_offset(n, 0, parent))
                 }
                 let weight = root_dist - parent_depth
                 if weight == 0 {
@@ -110,7 +110,7 @@ fn main() {
                 } else {
                     p = 0
                     while ok && p < processed.len() {
-                        let u = get_unchecked(processed, p)
+                        let u = processed.get_unchecked(p)
                         let mut a1 = v
                         let mut b1 = u
                         if a1 > b1 {
@@ -121,7 +121,7 @@ fn main() {
                         let vu = if a1 == b1 {
                             0
                         } else {
-                            get_unchecked(dists, dist_offset(n, a1, b1))
+                            dists.get_unchecked(dist_offset(n, a1, b1))
                         }
                         let mut a2 = parent
                         let mut b2 = u
@@ -133,7 +133,7 @@ fn main() {
                         let pu = if a2 == b2 {
                             0
                         } else {
-                            get_unchecked(dists, dist_offset(n, a2, b2))
+                            dists.get_unchecked(dist_offset(n, a2, b2))
                         }
                         if vu != weight + pu {
                             ok = false

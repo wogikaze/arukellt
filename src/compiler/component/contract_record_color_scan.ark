@@ -89,7 +89,7 @@ fn component_record_color_scan_apply_export(mut scan: ComponentRecordColorScan, 
 fn component_record_color_scan(decls: Vec<AstNode>) -> ComponentRecordColorScan {
     let mut scan = ComponentRecordColorScan_empty()
     for i in 0..decls.len() {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         component_record_color_scan_apply_decl(scan, d)
     }
     scan

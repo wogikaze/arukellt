@@ -66,7 +66,7 @@ fn emit_local_decls(mut body: WasmWriter, f: MirFunction, local_count: i32, para
     while pi < param_count {
         let mut param_ref = 0 - 1
         if pi < param_ref_types.len() {
-            param_ref = get_unchecked(param_ref_types, pi)
+            param_ref = param_ref_types.get_unchecked(pi)
         }
         push(local_ref_types, param_ref)
         pi = pi + 1
@@ -412,7 +412,7 @@ fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
+        let block = f.blocks.get_unchecked(bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {

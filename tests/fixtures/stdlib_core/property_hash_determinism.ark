@@ -12,7 +12,7 @@ fn main() {
     let strings = ["a", "ab", "abc", "hello", "world"]
     let mut j = 0
     while j < 5 {
-        let s = get_unchecked(strings, j)
+        let s = strings.get_unchecked(j)
         Test::assert_eq_i32(s.hash(), s.hash())
         j = j + 1
     }

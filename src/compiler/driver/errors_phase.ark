@@ -18,7 +18,7 @@ pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
     let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), "module loading error(s)")
     let mut le = 0
     while le < errors.len() {
-        result_record::compile_result_push_error_message(result, get_unchecked(errors, le).clone())
+        result_record::compile_result_push_error_message(result, errors.get_unchecked(le).clone())
         le = le + 1
     }
     result_record::compile_result_set_error_count(result, errors.len())
@@ -31,7 +31,7 @@ pub fn resolve_errors_result(source: String, source_file: String, error_count: i
     if diag_count > 0 {
         let mut i = 0
         while i < diag_count {
-            let diag = get_unchecked(diagnostics, i)
+            let diag = diagnostics.get_unchecked(i)
             result_record::compile_result_push_diagnostic(result, diag)
             result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
             i = i + 1
@@ -39,7 +39,7 @@ pub fn resolve_errors_result(source: String, source_file: String, error_count: i
     } else {
         let mut ei = 0
         while ei < errors.len() {
-            result_record::compile_result_push_error_message(result, get_unchecked(errors, ei).clone())
+            result_record::compile_result_push_error_message(result, errors.get_unchecked(ei).clone())
             ei = ei + 1
         }
     }
@@ -53,7 +53,7 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
     if diag_count > 0 {
         let mut i = 0
         while i < diag_count {
-            let diag = get_unchecked(diagnostics, i)
+            let diag = diagnostics.get_unchecked(i)
             result_record::compile_result_push_diagnostic(result, diag)
             result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
             i = i + 1
@@ -61,7 +61,7 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
     } else {
         let mut ei = 0
         while ei < errors.len() {
-            result_record::compile_result_push_error_message(result, get_unchecked(errors, ei).clone())
+            result_record::compile_result_push_error_message(result, errors.get_unchecked(ei).clone())
             ei = ei + 1
         }
     }
@@ -74,7 +74,7 @@ pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<D
     // to escalate selected rules to type_errors_result (exit 1).
     let mut result = result_record::CompileResult_new(true, phases::PHASE_TYPECHECK(), warnings.len(), Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     for i in 0..warnings.len() {
-        let diag = get_unchecked(warnings, i)
+        let diag = warnings.get_unchecked(i)
         result_record::compile_result_push_diagnostic(result, diag)
         result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
     }

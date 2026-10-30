@@ -11,7 +11,7 @@ fn main() {
     let mut sum: i32 = 0
     let mut j: i32 = 0
     while j < v.len() {
-        sum = sum + get_unchecked(v, j)
+        sum = sum + v.get_unchecked(j)
         j = j + 1
     }
     Stdio::println((sum).to_string())

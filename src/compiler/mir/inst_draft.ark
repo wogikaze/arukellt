@@ -51,7 +51,7 @@ fn MirInstDraft_func_id_raw(inst: MirInstDraft) -> i32 { inst.func_id_raw }
 fn MirInstDraft_result_types(inst: MirInstDraft) -> Vec<MirValueType> { inst.result_types }
 fn MirInstDraft_result_type_count(inst: MirInstDraft) -> i32 { inst.result_types.len() }
 fn MirInstDraft_result_type_at(inst: MirInstDraft, index: i32) -> MirValueType {
-    get_unchecked(inst.result_types, index)
+    inst.result_types.get_unchecked(index)
 }
 
 fn MirInstDraft_with_func_id_raw(mut inst: MirInstDraft, func_id_raw: i32) -> MirInstDraft {

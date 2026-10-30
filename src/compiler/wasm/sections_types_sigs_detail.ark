@@ -324,7 +324,7 @@ fn p2_merge_enum_payload(mut payload: Vec<String>, field: String) {
         push(payload, field.clone())
         return
     }
-    let current = get_unchecked(payload, 0)
+    let current = payload.get_unchecked(0)
     if current.clone().eq(field.clone()) {
         return
     }
@@ -341,11 +341,11 @@ fn p2_enum_payload_sigs(type_name: String, mir: MirModule) -> Vec<String> {
     let mut payload = Vec::new<String>()
     let mut i = 0
     while i < names.len() {
-        if i < sigs.len() && p2_enum_variant_matches(type_name.clone(), get_unchecked(names, i)) {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        if i < sigs.len() && p2_enum_variant_matches(type_name.clone(), names.get_unchecked(i)) {
+            let fields = sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
             let mut fi = 1
             while fi < fields.len() {
-                let field = get_unchecked(fields, fi)
+                let field = fields.get_unchecked(fi)
                 p2_merge_enum_payload(payload, field)
                 fi = fi + 1
             }
@@ -510,14 +510,14 @@ fn p2_canonical_param_count_for_type(type_name: String, value_type: i32, mir: Mi
         let mut count = 0
         let mut i = 0
         while i < fields.len() {
-            count = count + p2_field_flat_count(get_unchecked(fields, i))
+            count = count + p2_field_flat_count(fields.get_unchecked(i))
             i = i + 1
         }
         return count
     }
     let payload = p2_enum_payload_sigs(type_name.clone(), mir)
     if payload.len() > 0 {
-        return 1 + p2_field_flat_count(get_unchecked(payload, 0))
+        return 1 + p2_field_flat_count(payload.get_unchecked(0))
     }
     1
 }
@@ -562,14 +562,14 @@ fn p2_canonical_param_type_sig(param: MirLocal, mir: MirModule) -> String {
         let mut sig = String_new()
         let mut i = 0
         while i < fields.len() {
-            sig = sig.clone().concat(p2_field_canonical_sig(get_unchecked(fields, i)).concat("_"))
+            sig = sig.clone().concat(p2_field_canonical_sig(fields.get_unchecked(i)).concat("_"))
             i = i + 1
         }
         return sig.slice(0, sig.len() - 1)
     }
     let payload = p2_enum_payload_sigs(type_name.clone(), mir)
     if payload.len() > 0 {
-        return String_from("i32_").concat(p2_field_canonical_sig(get_unchecked(payload, 0)))
+        return String_from("i32_").concat(p2_field_canonical_sig(payload.get_unchecked(0)))
     }
     p2_value_canonical_sig(type_name.clone(), value_type, mir)
 }
@@ -638,7 +638,7 @@ fn p2_supported_record_fields(type_name: String, mir: MirModule) -> bool {
     }
     let mut i = 0
     while i < fields.len() {
-        if !p2_is_supported_storage_field(get_unchecked(fields, i)) {
+        if !p2_is_supported_storage_field(fields.get_unchecked(i)) {
             return false
         }
         i = i + 1
@@ -691,13 +691,13 @@ fn p2_supported_enum_payloads(type_name: String, mir: MirModule) -> bool {
     let mut payload_sig = String_new()
     let mut i = 0
     while i < names.len() {
-        if i < sigs.len() && p2_enum_variant_matches(type_name.clone(), get_unchecked(names, i)) {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        if i < sigs.len() && p2_enum_variant_matches(type_name.clone(), names.get_unchecked(i)) {
+            let fields = sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
             if fields.len() > 2 {
                 return false
             }
             if fields.len() == 2 {
-                let field = get_unchecked(fields, 1)
+                let field = fields.get_unchecked(1)
                 if !p2_is_supported_storage_field(field.clone()) {
                     return false
                 }

@@ -88,7 +88,7 @@ fn count_from_impls(env: TypeEnv, source_ty: TypeInfo, target_ty: TypeInfo) -> i
     let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(impl_info),
             "From"
@@ -108,7 +108,7 @@ fn from_impl_matches(impl_info: TraitImplInfo, source_ty: TypeInfo, target_ty: T
         return false
     }
     let args = contract_trait_impl_record::trait_impl_info_trait_args(impl_info)
-    args.len() == 1 && same_try_type(get_unchecked(args, 0), source_ty)
+    args.len() == 1 && same_try_type(args.get_unchecked(0), source_ty)
 }
 
 fn same_try_type(left: TypeInfo, right: TypeInfo) -> bool {

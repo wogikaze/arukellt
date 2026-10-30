@@ -36,5 +36,5 @@ fn MatchCoverage_variant_count(coverage: MatchCoverage) -> i32 {
 }
 
 fn MatchCoverage_variant_at(coverage: MatchCoverage, index: i32) -> String {
-    get_unchecked(coverage.covered_variants, index).clone()
+    coverage.covered_variants.get_unchecked(index).clone()
 }

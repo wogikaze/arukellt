@@ -27,7 +27,7 @@ fn main() {
     let mut filtered: Vec<Record> = Vec::new<Record>()
     let mut j: i32 = 0
     while j < records.len() {
-        let rec: Record = get_unchecked(records, j)
+        let rec: Record = records.get_unchecked(j)
         if filter_fn(rec.group) {
             push(filtered, rec)
         }
@@ -42,7 +42,7 @@ fn main() {
     let mut mapped: Vec<i32> = Vec::new<i32>()
     let mut k: i32 = 0
     while k < filtered.len() {
-        push(mapped, map_fn(get_unchecked(filtered, k).value))
+        push(mapped, map_fn(filtered.get_unchecked(k).value))
         k = k + 1
     }
 
@@ -50,7 +50,7 @@ fn main() {
     let mut sum: i32 = 0
     let mut l: i32 = 0
     while l < mapped.len() {
-        sum = sum + get_unchecked(mapped, l)
+        sum = sum + mapped.get_unchecked(l)
         if sum > 1000000 {
             sum = sum - 1000000
         }

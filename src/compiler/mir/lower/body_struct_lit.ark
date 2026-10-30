@@ -107,8 +107,8 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             ctx,
             inst_name.clone(),
             dest,
-            get_unchecked(field_names, emit_i).clone(),
-            get_unchecked(field_vals, emit_i)
+            field_names.get_unchecked(emit_i).clone(),
+            field_vals.get_unchecked(emit_i)
         )
         emit_i = emit_i + 1
     }

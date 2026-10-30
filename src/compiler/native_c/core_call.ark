@@ -91,7 +91,7 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
 }
 
 fn native_c_core_arg(arguments: Vec<i32>, index: i32) -> String {
-    "ark_v_".concat((get_unchecked(arguments, index)).to_string())
+    "ark_v_".concat((arguments.get_unchecked(index)).to_string())
 }
 
 fn native_c_core_ref_arg(arguments: Vec<i32>, index: i32, c_type: String) -> String {
@@ -738,8 +738,8 @@ fn native_c_emit_core_call(
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_push() {
-        let value_local = get_unchecked(arguments, 1)
-        let vec_local = get_unchecked(arguments, 0)
+        let value_local = arguments.get_unchecked(1)
+        let vec_local = arguments.get_unchecked(0)
         let member = native_c_core_override_member_from_vec_local(
             function,
             vec_local,
@@ -751,10 +751,10 @@ fn native_c_emit_core_call(
         return native_c_core_call_expression(operation)
     }
     if handler == core_op_registry_generated::core_op_handler_vec_set() {
-        let value_local = get_unchecked(arguments, 2)
+        let value_local = arguments.get_unchecked(2)
         let member = native_c_core_override_member_from_vec_local(
             function,
-            get_unchecked(arguments, 0),
+            arguments.get_unchecked(0),
             native_c_core_value_member(function, value_local)
         )
         let operation = "ark_rt_vec_set(".concat(
@@ -765,10 +765,10 @@ fn native_c_emit_core_call(
         return native_c_core_call_expression(operation)
     }
     if handler == core_op_registry_generated::core_op_handler_raw_array_set_unchecked() {
-        let value_local = get_unchecked(arguments, 2)
+        let value_local = arguments.get_unchecked(2)
         let member = native_c_core_override_member_from_vec_local(
             function,
-            get_unchecked(arguments, 0),
+            arguments.get_unchecked(0),
             native_c_core_value_member(function, value_local)
         )
         let operation = "ark_rt_vec_set_unchecked(".concat(
@@ -859,7 +859,7 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_unwrap_or() {
         let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
-        let fallback_member = native_c_core_value_member(function, get_unchecked(arguments, 1))
+        let fallback_member = native_c_core_value_member(function, arguments.get_unchecked(1))
         return native_c_core_call_expression(
             (String_from("ark_rt_result_unwrap_or(")).concat(
                 native_c_core_ref_arg(arguments, 0, String_from("ark_object_header")).concat(
@@ -938,7 +938,7 @@ fn native_c_emit_core_call(
     handler == core_op_registry_generated::core_op_handler_vec_get_unchecked_i64() {
         let member = native_c_core_override_member_from_vec_local(
             function,
-            get_unchecked(arguments, 0),
+            arguments.get_unchecked(0),
             native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
         )
         return native_c_core_call_expression(
@@ -949,7 +949,7 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_vec_push_f64() ||
     handler == core_op_registry_generated::core_op_handler_vec_push_i64() {
-        let value_local = get_unchecked(arguments, 1)
+        let value_local = arguments.get_unchecked(1)
         let member = native_c_core_value_member(function, value_local)
         let operation = (String_from("ark_rt_vec_push(")).concat(
             native_c_core_ref_arg(arguments, 0, String_from("ark_vec")).concat(

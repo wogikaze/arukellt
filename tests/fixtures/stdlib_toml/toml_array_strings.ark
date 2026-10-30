@@ -9,13 +9,13 @@ fn main() {
             Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
                     Test::assert_eq_i32(arr.len(), 2)
-                    let first: toml::TomlValue = get_unchecked(arr, 0)
+                    let first: toml::TomlValue = arr.get_unchecked(0)
                     let first_text: Option<String> = first.as_string()
                     match first_text {
                         Option::Some(s) => Test::assert_eq_string(s, "a"),
                         None => assert(false),
                     }
-                    let second: toml::TomlValue = get_unchecked(arr, 1)
+                    let second: toml::TomlValue = arr.get_unchecked(1)
                     let second_text: Option<String> = second.as_string()
                     match second_text {
                         Option::Some(s) => Test::assert_eq_string(s, "b"),

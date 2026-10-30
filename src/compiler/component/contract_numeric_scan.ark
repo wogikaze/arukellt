@@ -164,7 +164,7 @@ fn component_numeric_scan_finalize(mut scan: ComponentNumericScan) -> ComponentN
 fn component_numeric_scan(decls: Vec<AstNode>) -> ComponentNumericScan {
     let mut scan = ComponentNumericScan_empty()
     for i in 0..decls.len() {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         if contract_helpers::is_export_func_decl(d) {
             ComponentNumericScan_increment_export_count(scan)
             component_numeric_scan_apply_fn(d, scan)

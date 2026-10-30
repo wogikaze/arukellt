@@ -16,8 +16,8 @@ pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
     let n = symbols.len()
     let mut i = 0
     while i < n {
-        if !symbol_index_record::indexed_symbol_uri(get_unchecked(symbols, i)).eq(uri.clone()) {
-            symbol_index_record::symbol_index_push_symbol(kept, get_unchecked(symbols, i))
+        if !symbol_index_record::indexed_symbol_uri(symbols.get_unchecked(i)).eq(uri.clone()) {
+            symbol_index_record::symbol_index_push_symbol(kept, symbols.get_unchecked(i))
         }
         i = i + 1
     }
@@ -32,7 +32,7 @@ pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
         let mut j = 0
         while j < un {
             if j != uri_idx {
-                push(rebuilt, get_unchecked(indexed_uris, j))
+                push(rebuilt, indexed_uris.get_unchecked(j))
             }
             j = j + 1
         }
@@ -48,7 +48,7 @@ pub fn symbol_index_update_uri(mut state: LspState, uri: String, text: String) {
     let en = extracted.len()
     let mut ei = 0
     while ei < en {
-        symbol_index_record::symbol_index_push_symbol(symbols, get_unchecked(extracted, ei))
+        symbol_index_record::symbol_index_push_symbol(symbols, extracted.get_unchecked(ei))
         ei = ei + 1
     }
     symbol_index_record::symbol_index_mark_indexed(state_record::lsp_state_symbol_indexed_uris(state), uri)

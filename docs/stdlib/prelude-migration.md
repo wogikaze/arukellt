@@ -45,7 +45,7 @@ Do **not** treat the counts and timeline here as the current source of truth for
 | `Vec_new_i32()` | `collections::vec_new_i32()` |
 | `Vec_new_String()` | `collections::vec_new_string()` |
 | `push(v, x)` | `v.push(x)` (planned method-style target) |
-| `get_unchecked(v, i)` | `v.get(i)` (planned method-style target) |
+| `get_unchecked(v, i)` | `v.get_unchecked(i)` (retired free, method target) |
 | `set(v, i, x)` | `v.set(i, x)` (planned method-style target) |
 | `sort_i32(v)` | `seq::sort_i32(v)` |
 | `sort_String(v)` | `seq::sort_string(v)` |

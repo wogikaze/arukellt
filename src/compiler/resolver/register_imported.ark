@@ -17,7 +17,7 @@ fn register_imported_modules(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = modules.len()
     let mut mi = 0
     while mi < mod_count {
-        let m = get_unchecked(modules, mi)
+        let m = modules.get_unchecked(mi)
         let module_name = modules::module_name(m)
         let existing = scope_lookup::lookup(ctx, module_name.clone())
         if existing < 0 {
@@ -34,7 +34,7 @@ fn register_prelude_bare_names(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mod_count = modules.len()
     let mut mi = 0
     while mi < mod_count {
-        let m = get_unchecked(modules, mi)
+        let m = modules.get_unchecked(mi)
         let module_name = modules::module_name(m)
         if module_name.clone().eq("prelude") {
             register_prelude_module_bare_names(ctx, m)
@@ -242,7 +242,7 @@ fn register_pub_use_reexports(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     let mut edge_sources = Vec::new<String>()
     let mut mi = 0
     while mi < mod_count {
-        let m = get_unchecked(modules, mi)
+        let m = modules.get_unchecked(mi)
         collect_pub_use_edges(m, modules::module_name(m), modules, edge_targets, edge_sources)
         mi = mi + 1
     }
@@ -254,8 +254,8 @@ fn register_pub_use_reexports(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
         while ei < edge_count {
             if reexport_module_symbols(
                 ctx,
-                get_unchecked(edge_targets, ei).clone(),
-                get_unchecked(edge_sources, ei).clone()
+                edge_targets.get_unchecked(ei).clone(),
+                edge_sources.get_unchecked(ei).clone()
             ) {
                 defined_any = true
             }

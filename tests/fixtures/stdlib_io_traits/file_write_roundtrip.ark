@@ -12,7 +12,7 @@ fn print_byte_values(bytes: Vec<i32>) {
     Stdio::println((bytes.len()).to_string())
     let mut i: i32 = 0
     while i < bytes.len() {
-        Stdio::println((get_unchecked(bytes, i)).to_string())
+        Stdio::println((bytes.get_unchecked(i)).to_string())
         i = i + 1
     }
 }

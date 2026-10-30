@@ -7,7 +7,7 @@ fn mir_register_mono_rewrites(mut ctx: LowerCtx, mono_instances: Vec<MonoInstanc
     let mono_site_count = mono_instances.len()
     let mut mono_site_i = 0
     while mono_site_i < mono_site_count {
-        let site_marker = get_unchecked(mono_instances, mono_site_i)
+        let site_marker = mono_instances.get_unchecked(mono_site_i)
         if mono_instance_shape::mir_mono_instance_type_arg_count(site_marker) > 0 {
             let safe_target = mono::mono_safe_name(mono_instance_shape::mir_mono_instance_mangled_name(site_marker))
             let source_name = mono_instance_shape::mir_mono_instance_fn_name(site_marker)

@@ -6,7 +6,7 @@ fn main() {
     push(v, 42)
     Test::assert_eq_i32(v.len(), 1)
     Test::assert_false(v.is_empty())
-    Test::assert_eq_i32(get_unchecked(v, 0), 42)
+    Test::assert_eq_i32(v.get_unchecked(0), 42)
     match get(v, 0) {
         Option::Some(val) => Test::assert_eq_i32(val, 42),
         None => Std::panic("expected Some, got None"),

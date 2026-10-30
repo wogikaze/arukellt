@@ -24,8 +24,8 @@ fn main() {
     }
     let image: Vec<i32> = dst.into_bytes()
     assert(image.len() == 11)
-    assert(get_unchecked(image, 0) == 72)
-    assert(get_unchecked(image, 5) == 32)
-    assert(get_unchecked(image, 10) == 100)
+    assert(image.get_unchecked(0) == 72)
+    assert(image.get_unchecked(5) == 32)
+    assert(image.get_unchecked(10) == 100)
     Stdio::println("OK")
 }

@@ -33,7 +33,7 @@ fn corehir_body_table_expr_count(table: CoreHirBodyTable) -> i32 {
 }
 
 fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
-    get_unchecked(table.exprs, index)
+    table.exprs.get_unchecked(index)
 }
 
 fn corehir_body_table_take_body_forest(mut table: CoreHirBodyTable) -> CoreHirBodyForest {
@@ -104,7 +104,7 @@ fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
 }
 
 fn corehir_body_table_fn_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
-    get_unchecked(table.fn_body_roots, index)
+    table.fn_body_roots.get_unchecked(index)
 }
 
 fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
@@ -112,21 +112,21 @@ fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
 }
 
 fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
-    get_unchecked(table.method_body_roots, index)
+    table.method_body_roots.get_unchecked(index)
 }
 
 fn corehir_body_table_fn_contract_count(table: CoreHirBodyTable, body_index: i32) -> i32 {
     if body_index < 0 || body_index >= table.fn_contract_counts.len() {
         return 0
     }
-    get_unchecked(table.fn_contract_counts, body_index)
+    table.fn_contract_counts.get_unchecked(body_index)
 }
 
 fn corehir_body_table_fn_contract_start(table: CoreHirBodyTable, body_index: i32) -> i32 {
     if body_index < 0 || body_index >= table.fn_contract_starts.len() {
         return 0 - 1
     }
-    get_unchecked(table.fn_contract_starts, body_index)
+    table.fn_contract_starts.get_unchecked(body_index)
 }
 
 fn corehir_body_table_fn_contract_flat_index(
@@ -150,18 +150,18 @@ fn corehir_body_table_contract_flat_count(table: CoreHirBodyTable) -> i32 {
 }
 
 fn corehir_body_table_contract_root_flat_at(table: CoreHirBodyTable, index: i32) -> i32 {
-    get_unchecked(table.contract_roots, index)
+    table.contract_roots.get_unchecked(index)
 }
 
 fn corehir_body_table_contract_kind_flat_at(table: CoreHirBodyTable, index: i32) -> String {
-    get_unchecked(table.contract_kinds, index).clone()
+    table.contract_kinds.get_unchecked(index).clone()
 }
 
 fn corehir_body_table_contract_result_name_flat_at(
     table: CoreHirBodyTable,
     index: i32
 ) -> String {
-    get_unchecked(table.contract_result_names, index).clone()
+    table.contract_result_names.get_unchecked(index).clone()
 }
 
 fn corehir_body_table_contract_kind_count(table: CoreHirBodyTable) -> i32 {

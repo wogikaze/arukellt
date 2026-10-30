@@ -7,9 +7,9 @@ fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> T
         let count = names.len()
         let mut i = 0
         while i < count {
-            let n = get_unchecked(names, i)
+            let n = names.get_unchecked(i)
             if n.clone().eq(contract_type_access::TypeInfo_name(ty)) {
-                return get_unchecked(types, i)
+                return types.get_unchecked(i)
             }
             i = i + 1
         }

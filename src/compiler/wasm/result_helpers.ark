@@ -11,11 +11,11 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).clone().eq(variant_name.clone()) {
+        if names.get_unchecked(i).clone().eq(variant_name.clone()) {
             if i < type_map.len() {
-                let variant_type = get_unchecked(type_map, i)
+                let variant_type = type_map.get_unchecked(i)
                 if variant_type != open_type {
-                    if i < sigs.len() && get_unchecked(sigs, i).clone().ends_with("_f1_ref0") {
+                    if i < sigs.len() && sigs.get_unchecked(i).clone().ends_with("_f1_ref0") {
                         return variant_type
                     }
                     if fallback < 0 {
@@ -41,11 +41,11 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).clone().eq(variant_name.clone()) {
+        if names.get_unchecked(i).clone().eq(variant_name.clone()) {
             if i < type_map.len() {
-                let variant_type = get_unchecked(type_map, i)
+                let variant_type = type_map.get_unchecked(i)
                 if variant_type != open_type {
-                    if i < sigs.len() && get_unchecked(sigs, i).clone().ends_with(suffix.clone()) {
+                    if i < sigs.len() && sigs.get_unchecked(i).clone().ends_with(suffix.clone()) {
                         return variant_type
                     }
                     if fallback < 0 {

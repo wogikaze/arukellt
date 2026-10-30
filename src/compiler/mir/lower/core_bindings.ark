@@ -28,7 +28,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         let saved_expected = ctx.expected_struct_inst.clone()
         ctx.expected_struct_inst = resolved_type_name.clone()
         let init_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
-        let init_expr = get_unchecked(exprs, init_index)
+        let init_expr = exprs.get_unchecked(init_index)
         if mir_core_let_init_is_fn_value(ctx, init_expr, resolved_type_name.clone()) {
             val_idx = value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(init_expr))
         } else {
@@ -106,7 +106,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         }
     }
     if child_count >= 1 {
-        let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+        let init_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         if core_expr_shape_calls::mir_core_expr_is_closure(init_expr) {
             if !binding_name.clone().eq("_") {
                 closure_registry::closure_flush_pending_bind(ctx, binding_name.clone())

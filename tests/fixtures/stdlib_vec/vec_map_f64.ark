@@ -12,10 +12,10 @@ fn main() {
     let mut result: Vec<f64> = Vec::new<f64>()
     let mut map_index: i32 = 0
     while map_index < v.len() {
-        push(result, square(get_unchecked(v, map_index)))
+        push(result, square(v.get_unchecked(map_index)))
         map_index = map_index + 1
     }
-    Test::assert_eq_f64(get_unchecked(result, 0), 4.0)
-    Test::assert_eq_f64(get_unchecked(result, 1), 9.0)
-    Test::assert_eq_f64(get_unchecked(result, 2), 16.0)
+    Test::assert_eq_f64(result.get_unchecked(0), 4.0)
+    Test::assert_eq_f64(result.get_unchecked(1), 9.0)
+    Test::assert_eq_f64(result.get_unchecked(2), 16.0)
 }

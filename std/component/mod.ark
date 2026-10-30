@@ -25,7 +25,7 @@ pub struct CanonicalSlice {
 pub struct Component {}
 
 fn scratch_bump(mut scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error> {
-    let base = get_unchecked(scratch, 0)
+    let base = scratch.get_unchecked(0)
     let next = base + nbytes
     if nbytes < 0 || next > CANONICAL_SCRATCH_BASE + CANONICAL_SCRATCH_LIMIT {
         return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
@@ -47,7 +47,7 @@ fn scratch_read_byte(scratch: Vec<i32>, offset: i32) -> i32 {
     if idx < 1 || idx >= scratch.len() {
         return 0
     }
-    get_unchecked(scratch, idx)
+    scratch.get_unchecked(idx)
 }
 
 impl Component {
@@ -119,7 +119,7 @@ impl Component {
             Result::Ok(start) => {
                 let mut i = 0
                 while i < count {
-                    let v = get_unchecked(items, i)
+                    let v = items.get_unchecked(i)
                     let off = start + i * 4
                     scratch_write_byte(scratch, off, v)
                     scratch_write_byte(scratch, off + 1, 0)

@@ -53,7 +53,7 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        push_declared_type_name(names, get_unchecked(decls, i))
+        push_declared_type_name(names, decls.get_unchecked(i))
         i = i + 1
     }
     names
@@ -118,7 +118,7 @@ fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
     let count = declared.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(declared, i).eq(name.clone()) {
+        if declared.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1

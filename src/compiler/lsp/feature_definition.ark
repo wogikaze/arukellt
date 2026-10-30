@@ -76,7 +76,7 @@ pub fn handle_definition(mut state: LspState, body: String) {
             framing::append_framed(state, responses::build_null_response(feature_request::text_position_request_id(req)))
             return
         }
-        let hit = get_unchecked(matches, 0)
+        let hit = matches.get_unchecked(0)
         let def_uri = symbol_index_record::indexed_symbol_uri(hit)
         let def_text = source_text::text_for_uri(state, def_uri.clone())
         let start = positions::offset_to_position(def_text.clone(), symbol_index_record::indexed_symbol_decl_start(hit))

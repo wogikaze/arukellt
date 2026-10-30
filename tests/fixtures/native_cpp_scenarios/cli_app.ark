@@ -7,7 +7,7 @@ fn main() {
     let values = Env::args()
     let n = values.len()
     if n >= 2 {
-        Stdio::println(String_from("hello=").concat(get_unchecked(values, 1)))
+        Stdio::println(String_from("hello=").concat(values.get_unchecked(1)))
         Process::exit(0)
     }
     Stdio::println(String_from("hello=default"))

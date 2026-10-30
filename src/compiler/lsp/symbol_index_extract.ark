@@ -113,7 +113,7 @@ pub fn extract_symbols_from_decls(uri: String, decls: Vec<AstNode>) -> Vec<symbo
     let n = decls.len()
     let mut i = 0
     while i < n {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         if node_is_fn_decl(d) || node_is_struct_decl(d) || node_is_enum_decl(d) || node_is_trait_decl(d) {
             push_decl_symbol(out, uri.clone(), d, false)
         } else {

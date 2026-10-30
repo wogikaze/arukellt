@@ -15,7 +15,7 @@ fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
 
 fn append_synthetic_params(mut result: AstNode, param_names: Vec<String>, clauses: Vec<AstNode>, fn_span: Span) {
     for pi in 0..param_names.len() {
-        let syn_name = get_unchecked(param_names, pi)
+        let syn_name = param_names.get_unchecked(pi)
         let mut param = AstNode_leaf(kinds::NK_IDENT(), syn_name.clone(), fn_span)
         copy_first_typed_clause_param_annotations(param, clauses, pi)
         core_ast_children::AstNode_push_child(result, param)
@@ -25,7 +25,7 @@ fn append_synthetic_params(mut result: AstNode, param_names: Vec<String>, clause
 fn copy_first_typed_clause_param_annotations(mut param: AstNode, clauses: Vec<AstNode>, param_index: i32) {
     let mut ci = 0
     while ci < clauses.len() {
-        let clause = get_unchecked(clauses, ci)
+        let clause = clauses.get_unchecked(ci)
         if param_index < core_ast_children::AstNode_child_count(clause) {
             let source = core_ast_children::AstNode_child_at(clause, param_index)
             let ann_count = core_ast_type_ann::AstNode_type_ann_count(source)

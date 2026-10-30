@@ -74,7 +74,7 @@ fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < variants.len() {
-        let variant_idx = resolve_fn_index_by_name(ctx, get_unchecked(variants, vi).clone())
+        let variant_idx = resolve_fn_index_by_name(ctx, variants.get_unchecked(vi).clone())
         if variant_idx >= 0 {
             return call_resolve::mir_resolve_self_delegate_collision(
                 functions,

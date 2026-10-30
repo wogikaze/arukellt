@@ -48,7 +48,7 @@ fn load_imported_modules_at(
     let mut i = 0
     while i < count {
         load_import_path(
-            get_unchecked(import_paths, i).clone(),
+            import_paths.get_unchecked(i).clone(),
             current_dir.clone(),
             root_dir.clone(),
             state,

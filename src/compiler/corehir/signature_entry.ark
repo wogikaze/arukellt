@@ -56,7 +56,7 @@ fn signature_entry_param_count(entry: SignatureEntry) -> i32 {
 }
 
 fn signature_entry_param_at(entry: SignatureEntry, index: i32) -> MirValueType {
-    get_unchecked(entry.param_types, index)
+    entry.param_types.get_unchecked(index)
 }
 
 fn signature_entry_return_count(entry: SignatureEntry) -> i32 {
@@ -64,7 +64,7 @@ fn signature_entry_return_count(entry: SignatureEntry) -> i32 {
 }
 
 fn signature_entry_return_at(entry: SignatureEntry, index: i32) -> MirValueType {
-    get_unchecked(entry.return_types, index)
+    entry.return_types.get_unchecked(index)
 }
 
 fn signature_entry_return_types(entry: SignatureEntry) -> Vec<MirValueType> {

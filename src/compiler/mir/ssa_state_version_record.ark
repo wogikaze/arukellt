@@ -12,5 +12,5 @@ fn mir_ssa_state_version_for(state: MirSsaRenameState, local_id: i32) -> i32 {
     if local_id < 0 || local_id >= state.original_local_count {
         return 0 - 1
     }
-    get_unchecked(state.versions, local_id)
+    state.versions.get_unchecked(local_id)
 }

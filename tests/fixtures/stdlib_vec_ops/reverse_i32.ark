@@ -10,7 +10,7 @@ fn main() {
     v = v.iter().rev().collect()
     let mut i: i32 = 0
     while i < v.len() {
-        Stdio::println(get_unchecked(v, i))
+        Stdio::println(v.get_unchecked(i))
         i = i + 1
     }
 }

@@ -58,7 +58,7 @@ fn emit_declared_gc_return_cast(mut w: WasmWriter, ctx: SelfEmitCtx) {
     }
     let result_ref = ctx_fn_type_refs::SelfEmitCtx_fn_sig_result_ref_type(
         ctx,
-        get_unchecked(functions, own_idx)
+        functions.get_unchecked(own_idx)
     )
     if result_ref != ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) {
         return
