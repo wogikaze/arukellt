@@ -45,10 +45,7 @@ stable_functions = [
     "char_to_string",
 ]
 intrinsic_compatibility_functions = [
-    "push",
-    "pop",
     "get",
-    "set",
 ]
 
 # ─────────────────────────────────────────────
