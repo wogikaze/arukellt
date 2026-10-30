@@ -17,9 +17,11 @@ fn lower_field_assign_base(mut ctx: LowerCtx, target: AstNode) -> i32 {
         // Field-access bases materialize into a local (dest >= 0). Do not
         // LOCAL_SET-from-stack — that grabs an unrelated stack value and
         // breaks chained assigns like o.middle.inner.count = … (#807).
+        // Stage the local before the RHS lowers so a later aggregate store
+        // cannot read a destination whose producer stayed on the stack.
         let raw_idx = lower_expr(ctx, struct_node)
         if raw_idx >= 0 {
-            struct_idx = raw_idx
+            struct_idx = assign::mir_stage_field_base_local(ctx, raw_idx)
         } else {
             struct_idx = assign::mir_save_field_base_from_stack(ctx)
         }

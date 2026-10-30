@@ -33,6 +33,24 @@ fn mir_save_field_base_from_stack(mut ctx: LowerCtx) -> i32 {
     temp
 }
 
+// Field assigns stage the base before lowering the RHS, but only emit the
+// aggregate store afterwards. An expression base is lowered into a
+// destination local, yet the emitter may leave its producer value on the
+// operand stack (stack-compose store policy). Copying the destination into a
+// fresh local forces that producer to store, so the aggregate store cannot
+// read an uninitialized local after the RHS. The copy also runs the linear
+// root update, keeping the base reachable across RHS calls.
+fn mir_stage_field_base_local(mut ctx: LowerCtx, base_idx: i32) -> i32 {
+    let staged = ctx_fresh_local(ctx, ctx_local_vt(ctx, base_idx))
+    let base_type = ctx_get_local_type(ctx, base_idx)
+    if base_type.len() > 0 {
+        ctx_set_local_type(ctx, staged, base_type)
+    }
+    ctx_set_local_mvt(ctx, staged, ctx_local_mvt(ctx, base_idx))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set_from(staged, base_idx))
+    staged
+}
+
 fn mir_emit_field_assign(mut ctx: LowerCtx, field_name: String, struct_idx: i32, val_idx: i32) {
     let raw_type = ctx_get_local_type(ctx, struct_idx)
     let base_type = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, raw_type)
