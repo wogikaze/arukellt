@@ -11,7 +11,7 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 934 | 934 — typechecker resolves calls through a flat, overload-b... | compiler | 5 | 0 | 1 | 5 | 4 | 15 |
+| 1 | 934 | 934 — typechecker resolves calls through a flat, overload-b... | compiler | 5 | 0 | 2 | 5 | 4 | 16 |
 | 2 | 946 | 946 — single-uppercase type names in impl heads are treated... | typecheck | 0 | 0 | 5 | 5 | 5 | 15 |
 | 3 | 951 | 951 — implement ADR-088: `mut` parameter mode, mutable-plac... | typecheck | 0 | 0 | 5 | 5 | 5 | 15 |
 | 4 | 971 | 971 — `Vec::sort_by` cannot sort aggregate elements on wasm... | compiler | 0 | 0 | 3 | 5 | 5 | 13 |

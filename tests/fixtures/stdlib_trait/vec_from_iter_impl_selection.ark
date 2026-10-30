@@ -1,0 +1,39 @@
+//! `Vec::from_iter` resolves to the impl whose declared source type matches
+//! the call's argument, not to the first impl registered under the name.
+//!
+//! The concrete impls register as `Vec::from_iter__VecIter_i32`,
+//! `Vec_String::from_iter__VecIter_String`, and
+//! `Vec_String::from_iter__MapIter_String_String`. Each element type below is
+//! read back through `get_unchecked`, so a wrong implementation selection is a
+//! type error at the `let` annotation.
+
+use std::core::iter
+use std::test::Test
+
+fn keep(value: String) -> String {
+    value.clone()
+}
+
+fn main() {
+    let mut numbers: Vec<i32> = Vec::new<i32>()
+    numbers.push(40)
+    numbers.push(2)
+    let from_numbers = Vec::from_iter(numbers.iter())
+    let first_number: i32 = from_numbers.get_unchecked(0)
+    Test::assert_eq_i32(first_number, 40)
+    Test::assert_eq_i32(from_numbers.len(), 2)
+
+    let mut words: Vec<String> = Vec::new<String>()
+    words.push(String_from("alpha"))
+    words.push(String_from("beta"))
+    let from_words = Vec::from_iter(words.iter())
+    let first_word: String = from_words.get_unchecked(0)
+    Test::assert_eq_string(first_word, String_from("alpha"))
+    Test::assert_eq_i32(from_words.len(), 2)
+
+    let mut mapped_words: Vec<String> = Vec::new<String>()
+    mapped_words.push(String_from("gamma"))
+    let from_mapped = Vec::from_iter(mapped_words.iter().map(keep))
+    let mapped_first: String = from_mapped.get_unchecked(0)
+    Test::assert_eq_string(mapped_first, String_from("gamma"))
+}

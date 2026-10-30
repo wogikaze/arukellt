@@ -80,7 +80,24 @@ fn push_sig_index_key(
         while ci < child_count {
             let child = ast_access::node_child_at(decl, ci)
             if ast_decl_predicates::node_is_fn_decl(child) {
-                keys.push(owner_name.clone().concat(String_from("::").concat(ast_access::node_text(child))))
+                let method_name = ast_access::node_text(child)
+                let base_name = owner_name.clone().concat(String_from("::").concat(method_name.clone()))
+                let mangled_name = decl_impl_target::impl_method_mangled_name(
+                    decl,
+                    method_name,
+                    known_type_names.clone()
+                )
+                // A conversion impl registers its source type in the symbol
+                // (`Vec_String::from_iter__VecIter_String`), so its base
+                // spelling (`Vec_String::from_iter`) names the whole family,
+                // not one declaration. Index only the mangled identity;
+                // `call_fn` selects it from the call's source argument
+                // instead of letting the first impl claim the alias (#934).
+                if mangled_name.clone().eq(base_name) {
+                    keys.push(base_name)
+                } else {
+                    keys.push(String_new())
+                }
             }
             ci = ci + 1
         }
@@ -103,12 +120,17 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     // first claim on their bare names: a generic call can never resolve
     // to the imported concrete sig anyway, so that slot was dead weight.
     // Concrete entry decls keep the existing imported-first order so
-    // std-internal calls to colliding names are not re-bound.
+    // std-internal calls to colliding names are not re-bound. A conversion
+    // impl also has an empty key, but its name is the mangled
+    // `Owner::method__Source` identity, not a source-level bare name, so it
+    // must not take a bare-name slot here (#934).
     while i < count {
         if i < qualified_keys.len() && qualified_keys.get_unchecked(i).len() == 0 {
             let own_sig = fn_sigs.get_unchecked(i)
-            if contract_fn_sig::FnSig_type_param_count(own_sig) > 0 {
-                name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(own_sig), i)
+            let own_name = contract_fn_sig::FnSig_name(own_sig)
+            if contract_fn_sig::FnSig_type_param_count(own_sig) > 0 &&
+            !own_name.clone().contains(String_from("::")) {
+                name_index::name_index_insert_first(index, own_name, i)
             }
         }
         i = i + 1

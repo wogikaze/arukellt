@@ -150,11 +150,12 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         }
     }
     if !contract_fn_sig::FnSig_has_name(sig) {
-        // Concrete FromIterator impls are keyed by their source type
-        // (`HashSet_i32::from_iter__VecIter_i32`), but the source spelling is
-        // the trait's `HashSet::from_iter`. Select the impl from the inferred
-        // first argument before the unresolved-call fallback (#917).
-        let conversion_name = hashset_from_iter_candidate(
+        // A concrete conversion impl is keyed by its source type
+        // (`Vec_String::from_iter__VecIter_String`), while the source spelling
+        // is the trait's `Vec::from_iter`. Select the declaration whose source
+        // parameter the inferred first argument names, before the unresolved
+        // call fallback (#934).
+        let conversion_name = conversion_impl_candidate(
             env,
             scope,
             fn_sigs,
@@ -164,28 +165,6 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         )
         if conversion_name.clone().len() > 0 {
             let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, conversion_name)
-            if contract_fn_sig::FnSig_has_name(conversion_sig) {
-                return infer_concrete_call_expr(
-                    env,
-                    scope,
-                    fn_sigs,
-                    enum_defs,
-                    node,
-                    conversion_sig,
-                    child_count - 1
-                )
-            }
-        }
-        let hashmap_conversion = hashmap_from_iter_candidate(
-            env,
-            scope,
-            fn_sigs,
-            enum_defs,
-            node,
-            callee_name.clone()
-        )
-        if hashmap_conversion.clone().len() > 0 {
-            let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, hashmap_conversion)
             if contract_fn_sig::FnSig_has_name(conversion_sig) {
                 return infer_concrete_call_expr(
                     env,
@@ -361,12 +340,12 @@ fn len_receiver_mismatch_message(recv_ty: TypeInfo) -> String {
     )
 }
 
-// Concrete FromIterator impls carry their source type in the symbol
-// (`HashSet_i32::from_iter__VecIter_i32`) so the same `from_iter` method can
-// serve i32 and String sets. The source spelling has no concrete owner, so
-// probe both families with the mangled source type; only the matching one
-// exists.
-fn hashset_from_iter_candidate(
+// A concrete conversion impl (`impl FromIterator<VecIter<i32>> for Vec<i32>`)
+// carries its source type in the symbol so one associated name can serve every
+// element family. The source spelling (`Vec::from_iter`) therefore has no
+// single signature; resolve it from the declaration whose source parameter
+// the inferred first argument names, never from declaration order (#934).
+fn conversion_impl_candidate(
     mut env: TypeEnv,
     mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
@@ -374,9 +353,13 @@ fn hashset_from_iter_candidate(
     node: AstNode,
     callee_name: String
 ) -> String {
-    let is_from_iter = callee_name.clone().eq(String_from("HashSet::from_iter")) ||
-    callee_name.clone().ends_with(String_from("::HashSet::from_iter"))
-    if !is_from_iter || ast_access::node_child_count(node) < 2 {
+    let canonical = callee_spelling::callee_spelling_last_two_segments(callee_name.clone())
+    let owner_name = paths::path_module_part(canonical.clone())
+    let method_name = paths::path_symbol_part(canonical)
+    if owner_name.len() == 0 || !is_conversion_method_name(method_name.clone()) {
+        return String_new()
+    }
+    if ast_access::node_child_count(node) < 2 {
         return String_new()
     }
     let source_ty = infer_expr(
@@ -390,60 +373,42 @@ fn hashset_from_iter_candidate(
     if source_name.clone().len() == 0 {
         return String_new()
     }
-    let i32_name = String_from("HashSet_i32::from_iter__").concat(source_name.clone())
-    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, i32_name.clone())) {
-        return i32_name
+    let suffix = String_from("::").concat(
+        method_name.clone().concat(String_from("__").concat(source_name))
+    )
+    let mut found = String_new()
+    let mut count = 0
+    let mut i = 0
+    while i < fn_sigs.len() {
+        let name = contract_fn_sig::FnSig_name(fn_sigs.get_unchecked(i))
+        if name.clone().ends_with(suffix.clone()) &&
+        conversion_owner_matches(owner_name.clone(), name) {
+            found = name
+            count = count + 1
+        }
+        i = i + 1
     }
-    let string_name = String_from("HashSet_String::from_iter__").concat(source_name)
-    if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, string_name.clone())) {
-        return string_name
+    if count == 1 {
+        return found
     }
     String_new()
 }
 
-fn hashmap_from_iter_candidate(
-    mut env: TypeEnv,
-    mut scope: LocalScope,
-    fn_sigs: Vec<FnSig>,
-    enum_defs: Vec<EnumInfo>,
-    node: AstNode,
-    callee_name: String
-) -> String {
-    let is_from_iter = callee_name.clone().eq(String_from("HashMap::from_iter")) ||
-    callee_name.clone().ends_with(String_from("::HashMap::from_iter"))
-    if !is_from_iter || ast_access::node_child_count(node) < 2 {
-        return String_new()
-    }
-    let source_ty = infer_expr(
-        env,
-        scope,
-        fn_sigs,
-        enum_defs,
-        ast_access::node_child_at(node, 1)
-    )
-    let source_name = call_method::type_name_for_mangling(source_ty)
-    // Only the snapshot cursor carries the pair in its mangled type; a
-    // different source type cannot name one of HashMap's concrete impls.
-    if !source_name.clone().starts_with(String_from("HashMapIter_")) {
-        return String_new()
-    }
-    let mut owners: Vec<String> = Vec::new<String>()
-    owners.push(String_from("HashMap_i32_i32"))
-    owners.push(String_from("HashMap_String_i32"))
-    owners.push(String_from("HashMap_i32_String"))
-    owners.push(String_from("HashMap_String_String"))
-    owners.push(String_from("HashMap_i32_fnref"))
-    owners.push(String_from("HashMap_String_fnref"))
-    let mut index: i32 = 0
-    while index < owners.len() {
-        let owner = owners.get_unchecked(index)
-        let candidate = owner.concat(String_from("::from_iter__").concat(source_name.clone()))
-        if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, candidate.clone())) {
-            return candidate
-        }
-        index = index + 1
-    }
-    String_new()
+// The impl owner is the declared type (`Vec`) or its instantiation key
+// (`Vec_String`, `HashSet_i32`, `HashMap_String_i32`). Match the exact owner or
+// an underscore-suffixed instantiation so a same-prefix type cannot claim it.
+fn conversion_owner_matches(owner_name: String, sig_name: String) -> bool {
+    let sig_owner = paths::path_module_part(sig_name)
+    sig_owner.clone().eq(owner_name.clone()) ||
+    sig_owner.clone().starts_with(owner_name.clone().concat(String_from("_")))
+}
+
+// Associated functions whose concrete impls mangle their source type into the
+// symbol (`impl_conversion_trait_has_source_type`).
+fn is_conversion_method_name(method_name: String) -> bool {
+    method_name.clone().eq(String_from("from_iter")) ||
+    method_name.clone().eq(String_from("try_from")) ||
+    method_name.clone().eq(String_from("from"))
 }
 
 fn infer_concrete_call_expr(
