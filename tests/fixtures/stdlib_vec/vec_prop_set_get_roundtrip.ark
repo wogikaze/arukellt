@@ -6,12 +6,12 @@ fn main() {
     v.push(20)
     v.push(30)
     v.set(0, 100)
-    match get(v, 0) {
+    match v.get(0) {
         Option::Some(val) => Test::assert_eq_i32(val, 100),
         None => Std::panic("expected Some, got None"),
     }
     v.set(2, 300)
-    match get(v, 2) {
+    match v.get(2) {
         Option::Some(val) => Test::assert_eq_i32(val, 300),
         None => Std::panic("expected Some, got None"),
     }

@@ -1,0 +1,49 @@
+// The retired `get` free was the method's generic signature anchor. The
+// receiver must still bind nested / function / struct / String element types
+// so the Option payload can be matched and used without losing the element.
+use std::test::Test
+
+struct Point {
+    x: i32,
+}
+
+fn inc(x: i32) -> i32 {
+    x + 1
+}
+
+fn main() {
+    let mut nested: Vec<Vec<i32>> = Vec::new<Vec<i32>>()
+    let mut inner: Vec<i32> = Vec::new<i32>()
+    inner.push(9)
+    nested.push(inner)
+    match nested.get(0) {
+        Option::Some(row) => {
+            match row.get(0) {
+                Option::Some(value) => Test::assert_eq_i32(value, 9),
+                Option::None => Test::assert_eq_i32(0, 1),
+            }
+        }
+        Option::None => Test::assert_eq_i32(0, 1),
+    }
+
+    let mut fns: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
+    fns.push(inc)
+    match fns.get(0) {
+        Option::Some(f) => Test::assert_eq_i32(f(41), 42),
+        Option::None => Test::assert_eq_i32(0, 1),
+    }
+
+    let mut points: Vec<Point> = Vec::new<Point>()
+    points.push(Point { x: 3 })
+    match points.get(0) {
+        Option::Some(point) => Test::assert_eq_i32(point.x, 3),
+        Option::None => Test::assert_eq_i32(0, 1),
+    }
+
+    let mut strings: Vec<String> = Vec::new<String>()
+    strings.push("hello")
+    match strings.get(0) {
+        Option::Some(text) => Test::assert_eq_i32(text.len(), 5),
+        Option::None => Test::assert_eq_i32(0, 1),
+    }
+}

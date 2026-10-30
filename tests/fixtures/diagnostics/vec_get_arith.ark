@@ -2,5 +2,5 @@ fn main() {
     let mut xs: Vec<i32> = Vec::new<i32>()
     xs.push(1)
     xs.push(2)
-    let _sum = get(xs, 0) + get(xs, 1)
+    let _sum = xs.get(0) + xs.get(1)
 }

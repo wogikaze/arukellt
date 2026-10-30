@@ -6,7 +6,7 @@ fn main() {
     let mut inner: Vec<String> = Vec::new<i32>()
     inner.push(String_from("ok"))
     outer.push(inner)
-    match get(outer, 0) {
+    match outer.get(0) {
         Some(row) => Stdio::println(row.get_unchecked(0)),
         None => Stdio::println("none"),
     }

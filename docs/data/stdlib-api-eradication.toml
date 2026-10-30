@@ -41,6 +41,8 @@
 #                 or stability = "deprecated")
 #   source_only — rule matches only unregistered std declarations
 #   manifest_only — rule matches only manifest `[[functions]]` entries
+#   retained_exception — ADR id for a documented exception that keeps the
+#                        rule's symbols (they are not must-delete work)
 # `owner` is an issue id (open or done) or "none" for intrinsic-only.
 # `replacement` is human-readable guidance for migration notes.
 #
@@ -49,10 +51,10 @@
 # "monomorphic seq/combinator frees" (32). The 31 callable stable entries
 # were deprecated (W0009 + migration guide + changelog) in the ADR-087 0.x
 # wave and deleted in Wave 2 on 2026-10-27; their bare names now fail with
-# E0100 hints. The provisional `filter_i32` remains the only member of that
-# family (individual deferral), and the two stale, non-callable builtin
-# entries (`map_option_String_String`, `map_result_i32_i32`) were retired in
-# the earlier wave. The last 13 deprecated `std::seq` helpers completed their
+# E0100 hints. The provisional `filter_i32` retired on 2026-10-30
+# (wave/seq-fd-remain), and the two stale, non-callable builtin entries
+# (`map_option_String_String`, `map_result_i32_i32`) were retired in the
+# earlier wave. The last 13 deprecated `std::seq` helpers completed their
 # ADR-087 Wave 2 deletion on 2026-10-30 (wave/eradication-remain), so that
 # rule is gone and #917 owns every other family as the execution umbrella.
 
@@ -124,48 +126,15 @@ owner = "none"
 # arguments. The private generic declarations in std/prelude.ark stay as
 # receiver-method signature anchors; they are not importable and bare calls
 # fail with E0100 hints.
-#
-# `as_slice` / `slice_get` were retired together by #917 on 2026-10-30
-# (wave/slice-abi). They could not be split: the method-built and free-built
-# Slice<T> values had different constructor ABIs, so pairing one surface with
-# the other emitted invalid core Wasm. Both constructor paths now produce the
-# same `Slice::View` payload (the prelude anchor and the imported Vec<T> impl),
-# and `Slice<T>::len` / `get` are the only public consumers. The private
-# `as_slice` declaration stays as the receiver-method signature anchor; bare
-# calls and selective imports fail with E0100 hints.
 
-[[rules]]
-label = "vec intrinsic-compat frees"
-module_less = true
-name = ["get", "get_unchecked", "clear", "slice_len"]
-class = "must delete"
-owner = "917"
-replacement = "Vec<T> methods: v.get(idx), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len`, `as_slice` and `slice_get` were retired with E0100 hints; `push` / `pop` / `set` were retired with E0100 hints onto `v.push(x)` / `v.pop()` / `v.set(idx, value)`; `clear` was a stale non-callable entry and was retired directly."
-
-# The 4 deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
-# `assert_eq_i64`, `assert_eq_str`) completed their ADR-087 Wave 2 deletion on
-# 2026-10-30 (wave/assertion-frees). Their replacement is the
-# `std::test::Test` associated surface (assert_eq_i32 / assert_ne_i32 /
-# assert_eq_i64 / assert_eq_string); bare and selectively imported old
-# spellings fail with E0100 hints. `assert(cond)` remains in the prelude frees
-# (default) rule as the ADR-091 §3 exception, so no assertion rule remains.
-
-[[rules]]
-label = "monomorphic seq/combinator frees"
-module_less = true
-prefix = ["sort_", "map_", "filter_", "fold_", "any_", "find_", "contains_", "reverse_", "remove_", "sum_", "product_", "map_option_", "map_result_"]
-class = "must delete"
-owner = "703"
-replacement = "Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container"
-# Wave 1 landed 2026-10-26 under ADR-087: the 31 callable stable entries carried
-# stability = "deprecated", deprecated_by, deprecated_since, and remove_in, and
-# the bare names had W0009 coverage. Wave 2 (2026-10-27) deleted those 31
-# manifest entries and their `std/prelude.ark` declarations; bare calls now
-# fail with E0100 hints from resolver::removed_names. `filter_i32` stays
-# provisional (deferred) and is the only row this rule still matches. The
-# i64/f64 numeric iterator lanes remain planned, so the replacement text
-# describes the target shape plus the reachable loop / v.sort() fallback
-# recorded in docs/stdlib/migration-guidance.md.
+# `get` / `get_unchecked` / `as_slice` / `slice_len` / `slice_get` completed
+# the vec intrinsic-compat family on 2026-10-30 (wave/seq-fd-remain). The
+# receiver surface is `v.get(idx)` / `v.get_unchecked(idx)` /
+# `v.as_slice(start, end)` and `view.len()` / `view.get(idx)`; the private
+# generic declarations in std/prelude.ark stay as receiver-method signature
+# anchors. `filter_i32` retired in the same wave onto
+# `v.iter().filter(f).collect()` via `use std::core::iter`; both rules are
+# gone because no symbol matches them any more.
 
 # The 17 monomorphic numeric conversion frees (`u8_to_i32` … `f64_to_f32`,
 # `i32_to_u32`, `f64_bits_lo/hi`) completed their ADR-087 Wave 2 deletion on
@@ -318,6 +287,7 @@ module = "std::host::fs"
 name = ["fd_seek", "fd_tell", "fd_fdstat_errno"]
 class = "associated-or-method"
 owner = "917"
+retained_exception = "ADR-092"
 replacement = "No public replacement: the fd_* helpers are experimental, `wasm32` / WASI P1 only, and have no wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that does not lower on the primary target. The non-public `__intrinsic_fd_*` bridges remain (ADR-046 D2). Recorded as the retained exception in docs/stdlib/migration-guidance.md."
 # Retired by #917 (2026-10-26) core-helper wave — unregistered declarations,
 # so no manifest deprecation window was involved:

@@ -1,4 +1,0 @@
-fn main() {
-    let values: Vec<i32> = Vec::new<i32>()
-    let _first = get(values, 0)
-}

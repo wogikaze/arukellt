@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: slice_len; use `view.len()` on the `Slice<T>` view (via `use std::collections::vec`) instead

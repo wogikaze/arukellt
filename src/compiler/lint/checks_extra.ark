@@ -14,7 +14,7 @@ pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        check_deprecated_api_in_node(get_unchecked(decls, i), warnings)
+        check_deprecated_api_in_node(decls.get_unchecked(i), warnings)
         i = i + 1
     }
     warnings
@@ -70,7 +70,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
             if !name.clone().eq("main") {
@@ -85,17 +85,17 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let dcount = decls.len()
     let mut di = 0
     while di < dcount {
-        collect_referenced_idents(get_unchecked(decls, di), referenced)
+        collect_referenced_idents(decls.get_unchecked(di), referenced)
         di = di + 1
     }
     let fn_count = fn_names.len()
     let mut fi = 0
     while fi < fn_count {
-        let name = get_unchecked(fn_names, fi).clone()
+        let name = fn_names.get_unchecked(fi).clone()
         if !name_in_vec(name.clone(), referenced) &&
         !core_op_registry_generated::core_op_registry_has_fallback_symbol(name.clone()) {
             let msg = "unused symbol `".concat(name.clone().concat("`"))
-            let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
+            let span = record::DiagnosticSpan_from_raw(fn_spans_start.get_unchecked(fi), fn_spans_end.get_unchecked(fi))
             warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
         }
         fi = fi + 1
@@ -137,7 +137,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(node) &&
         ast_access::node_is_pub(node) &&
         !ast_access::node_is_component_export(node) {

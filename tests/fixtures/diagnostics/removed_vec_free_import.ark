@@ -1,0 +1,8 @@
+// E0100: explicit imports of the retired vec intrinsic-compat frees are
+// rejected and the hint names the receiver method.
+use std::prelude::{get}
+
+fn main() {
+    let values: Vec<i32> = Vec::new<i32>()
+    let _first = values.get(0)
+}

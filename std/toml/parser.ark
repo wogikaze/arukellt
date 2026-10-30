@@ -124,7 +124,7 @@ impl TomlValue {
                 let n = fields.len()
                 let mut i = 0
                 while i < n {
-                    let f = get_unchecked(fields, i)
+                    let f = fields.get_unchecked(i)
                     if f.key.eq(key) {
                         return Some(f.value)
                     }
@@ -147,7 +147,7 @@ impl TomlValue {
                 let n = fields.len()
                 let mut i = 0
                 while i < n {
-                    result.push(get_unchecked(fields, i).key)
+                    result.push(fields.get_unchecked(i).key)
                     i = i + 1
                 }
             },
@@ -874,7 +874,7 @@ fn toml_find_field_index(fields: Vec<TomlField>, key: String) -> i32 {
     let n = fields.len()
     let mut i = 0
     while i < n {
-        if (get_unchecked(fields, i).key).eq(key) {
+        if (fields.get_unchecked(i).key).eq(key) {
             return i
         }
         i = i + 1
@@ -888,10 +888,10 @@ fn toml_navigate_table_count(root: Vec<TomlField>, path: Vec<String>, count: i32
     let mut current = root
     let mut i = 0
     while i < count {
-        let seg = get_unchecked(path, i)
+        let seg = path.get_unchecked(i)
         let idx = toml_find_field_index(current, seg)
         if idx >= 0 {
-            let f = get_unchecked(current, idx)
+            let f = current.get_unchecked(idx)
             match f.value {
                 TomlValue::Table(cf) => {
                     current = cf
@@ -901,7 +901,7 @@ fn toml_navigate_table_count(root: Vec<TomlField>, path: Vec<String>, count: i32
                     if alen == 0 {
                         return Err("cannot navigate into empty array of tables")
                     }
-                    let last = get_unchecked(arr, alen - 1)
+                    let last = arr.get_unchecked(alen - 1)
                     match last {
                         TomlValue::Table(cf) => {
                             current = cf
@@ -937,10 +937,10 @@ fn toml_append_array_table(root: Vec<TomlField>, path: Vec<String>) -> Result<Ve
         Result::Ok(p) => p,
         Result::Err(e) => return Err(e),
     }
-    let last_seg = get_unchecked(path, plen - 1)
+    let last_seg = path.get_unchecked(plen - 1)
     let idx = toml_find_field_index(parent, last_seg)
     if idx >= 0 {
-        let f = get_unchecked(parent, idx)
+        let f = parent.get_unchecked(idx)
         match f.value {
             TomlValue::Array(arr) => {
                 let mut array = arr
@@ -970,7 +970,7 @@ fn toml_insert_key(fields: Vec<TomlField>, key_path: Vec<String>, value: TomlVal
         Result::Ok(p) => p,
         Result::Err(e) => return Err(e),
     }
-    let last_seg = get_unchecked(key_path, klen - 1)
+    let last_seg = key_path.get_unchecked(klen - 1)
     if toml_find_field_index(parent, last_seg) >= 0 {
         return Err("duplicate key: ".concat(last_seg))
     }
@@ -1086,7 +1086,7 @@ fn toml_stringify_table(fields: Vec<TomlField>) -> String {
         if i > 0 {
             out = out.concat("\n")
         }
-        let f = get_unchecked(fields, i)
+        let f = fields.get_unchecked(i)
         out = out.concat((f.key).concat(" = ".concat(toml_stringify_value(f.value))))
         i = i + 1
     }
@@ -1101,7 +1101,7 @@ fn toml_stringify_array(items: Vec<TomlValue>) -> String {
         if i > 0 {
             out = out.concat(", ")
         }
-        out = out.concat(toml_stringify_value(get_unchecked(items, i)))
+        out = out.concat(toml_stringify_value(items.get_unchecked(i)))
         i = i + 1
     }
     out.concat("]")

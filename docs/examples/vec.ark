@@ -2,19 +2,19 @@ use std::host::stdio::Stdio
 
 fn main() {
     let mut v = Vec::new<i32>()
-    push(v, 10)
-    push(v, 20)
-    push(v, 30)
+    v.push(10)
+    v.push(20)
+    v.push(30)
     Stdio::println((v.len()).to_string())
-    match get(v, 0) {
+    match v.get(0) {
         Option::Some(val) => Stdio::println((val).to_string()),
         None => Stdio::println("out of bounds"),
     }
-    match get(v, 1) {
+    match v.get(1) {
         Option::Some(val) => Stdio::println((val).to_string()),
         None => Stdio::println("out of bounds"),
     }
-    match get(v, 2) {
+    match v.get(2) {
         Option::Some(val) => Stdio::println((val).to_string()),
         None => Stdio::println("out of bounds"),
     }

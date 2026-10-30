@@ -15,31 +15,42 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 11 `pub fn` declarations under
-`std/**/*.ark`; 11 map to a manifest entry and
-0 are unregistered. Eradication scope = 14 manifest
-public entries + 0 unregistered declarations = **14 symbols**.
+**Real surface denominator:** 7 `pub fn` declarations under
+`std/**/*.ark`; 7 map to a manifest entry and
+0 are unregistered. Eradication scope = 7 manifest
+public entries + 0 unregistered declarations = **7 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 14 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 11 | — |
+| Eradication-scope symbols (real std surface) | 7 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 7 | — |
 | Unregistered std declarations (no manifest entry) | 0 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 14 | 0 |
-| `prelude_wrapper` entries | 5 | 0 |
-| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 2 | 0 |
+| Manifest public entries (registered scope) | 7 | 0 |
+| `prelude_wrapper` entries | 4 | 0 |
+| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 1 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
+| ADR retained exceptions (not must-delete) | 3 | — |
 
 ## Classification
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 4 |
-| `associated-or-method` | Replacement must land as method/associated first | 10 |
+| `must delete` | Replacement already exists or functionality retires | 0 |
+| `associated-or-method` | Replacement must land as method/associated first | 7 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
+
+## Retained Exceptions
+
+Documented ADR exceptions stay outside the must-delete work. The
+`retained_exception` field on the rule records the binding ADR; the
+symbols are not counted as `must delete`.
+
+| Rule | ADR | Symbols |
+|------|-----|---------|
+| experimental host fd frees | ADR-092 | `fd_fdstat_errno`, `fd_seek`, `fd_tell` |
 
 ## Execution Rules
 
@@ -50,9 +61,7 @@ registered entries and unregistered `pub fn` declarations.
 | Rule | Class | Owner | Manifest | Source | Replacement |
 |------|-------|-------|----------|--------|-------------|
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
-| vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 0 | Vec<T> methods: v.get(idx), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len`, `as_slice` and `slice_get` were retired with E0100 hints; `push` / `pop` / `set` were retired with E0100 hints onto `v.push(x)` / `v.pop()` / `v.set(idx, value)`; `clear` was a stale non-callable entry and was retired directly. |
-| monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 1 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
-| prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 7 | 0 | method / associated equivalent on the receiver or namespace type |
+| prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | method / associated equivalent on the receiver or namespace type |
 | experimental host fd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 0 | No public replacement: the fd_* helpers are experimental, `wasm32` / WASI P1 only, and have no wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that does not lower on the primary target. The non-public `__intrinsic_fd_*` bridges remain (ADR-046 D2). Recorded as the retained exception in docs/stdlib/migration-guidance.md. |
 
 ## Inventory (manifest entries)
@@ -61,17 +70,10 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 
 | Symbol | Module | Class | Rule | Owner |
 |--------|--------|-------|------|-------|
-| `filter_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
-| `get` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `get_unchecked` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `slice_len` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_from` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_new` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `char_to_string` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `pop` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `push` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `set` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_fdstat_errno` | `std::host::fs` | `associated-or-method` | experimental host fd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_seek` | `std::host::fs` | `associated-or-method` | experimental host fd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_tell` | `std::host::fs` | `associated-or-method` | experimental host fd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

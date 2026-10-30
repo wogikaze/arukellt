@@ -6,7 +6,7 @@ fn main() {
     v.push(20)
     v.push(30)
     v.set(1, 777)
-    match get(v, 1) {
+    match v.get(1) {
         Option::Some(val) => Test::assert_eq_i32(val, 777),
         None => Std::panic("expected Some, got None"),
     }

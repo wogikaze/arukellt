@@ -26,7 +26,7 @@ fn mir_inst_set_index(mut inst: MirInst, index: i32) {
 }
 
 fn mir_inst_val_type(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.val_types, inst.index)
+    inst.home.val_types.get_unchecked(inst.index)
 }
 
 // INV-1: a packed result is only real when its TypeId is valid. The legacy
@@ -34,7 +34,7 @@ fn mir_inst_val_type(inst: MirInst) -> i32 {
 // instruction appeared to carry a result type the emitter could not map.
 fn mir_inst_has_packed_result(inst: MirInst) -> bool {
     type_id::type_id_is_valid(
-        type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index))
+        type_id::TypeId_new(inst.home.type_ids.get_unchecked(inst.index))
     )
 }
 
@@ -44,9 +44,9 @@ fn mir_inst_result_types(inst: MirInst) -> Vec<MirValueType> {
     }
     let mut result = Vec::new<MirValueType>()
     result.push(mir_value_type::MirValueType_new(
-            type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index)),
-            get_unchecked(inst.home.type_reprs, inst.index),
-            get_unchecked(inst.home.type_nulls, inst.index)
+            type_id::TypeId_new(inst.home.type_ids.get_unchecked(inst.index)),
+            inst.home.type_reprs.get_unchecked(inst.index),
+            inst.home.type_nulls.get_unchecked(inst.index)
         ))
     result
 }
@@ -70,9 +70,9 @@ fn mir_inst_result_type_at(inst: MirInst, _index: i32) -> MirValueType {
         )
     }
     mir_value_type::MirValueType_new(
-        type_id::TypeId_new(get_unchecked(inst.home.type_ids, inst.index)),
-        get_unchecked(inst.home.type_reprs, inst.index),
-        get_unchecked(inst.home.type_nulls, inst.index)
+        type_id::TypeId_new(inst.home.type_ids.get_unchecked(inst.index)),
+        inst.home.type_reprs.get_unchecked(inst.index),
+        inst.home.type_nulls.get_unchecked(inst.index)
     )
 }
 
@@ -83,45 +83,45 @@ fn mir_inst_set_result_types(mut inst: MirInst, result_types: Vec<MirValueType>)
         inst.home.type_nulls.set(inst.index, 0)
         return
     }
-    let first = get_unchecked(result_types, 0)
+    let first = result_types.get_unchecked(0)
     inst.home.type_ids.set(inst.index, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(first)))
     inst.home.type_reprs.set(inst.index, mir_value_type::mir_value_type_repr(first))
     inst.home.type_nulls.set(inst.index, mir_value_type::mir_value_type_nullability(first))
 }
 
 fn mir_inst_op(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.ops, inst.index)
+    inst.home.ops.get_unchecked(inst.index)
 }
 
 fn mir_inst_dest(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.dests, inst.index)
+    inst.home.dests.get_unchecked(inst.index)
 }
 
 fn mir_inst_arg0(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.arg0s, inst.index)
+    inst.home.arg0s.get_unchecked(inst.index)
 }
 
 fn mir_inst_arg1(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.arg1s, inst.index)
+    inst.home.arg1s.get_unchecked(inst.index)
 }
 
 fn mir_inst_int_val(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.int_vals, inst.index)
+    inst.home.int_vals.get_unchecked(inst.index)
 }
 
 fn mir_inst_float_val(inst: MirInst) -> f64 {
-    block_record::mir_float_box_value(get_unchecked(inst.home.float_vals, inst.index))
+    block_record::mir_float_box_value(inst.home.float_vals.get_unchecked(inst.index))
 }
 
 fn mir_inst_str_val(inst: MirInst) -> String {
-    let str_id = get_unchecked(inst.home.str_ids, inst.index)
+    let str_id = inst.home.str_ids.get_unchecked(inst.index)
     if str_id < 0 {
         return String_new()
     }
     // Return the pooled String without cloning: emit-side callers only
     // read (eq/concat/parse); mutating a pooled name would corrupt the
     // block str_pool shared by every instruction.
-    get_unchecked(inst.home.str_pool, str_id)
+    inst.home.str_pool.get_unchecked(str_id)
 }
 
 fn mir_inst_set_arg0(mut inst: MirInst, arg0: i32) {
@@ -137,7 +137,7 @@ fn mir_inst_set_dest(mut inst: MirInst, dest: i32) {
 }
 
 fn mir_inst_func_id_raw(inst: MirInst) -> i32 {
-    get_unchecked(inst.home.func_ids, inst.index)
+    inst.home.func_ids.get_unchecked(inst.index)
 }
 
 fn mir_inst_with_func_id_raw(mut inst: MirInst, func_id_raw: i32) -> MirInst {

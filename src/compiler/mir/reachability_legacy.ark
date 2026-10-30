@@ -23,9 +23,9 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Ve
     let count = functions.len()
     let mut i = 0
     while i < count {
-        let f = get_unchecked(functions, i)
+        let f = functions.get_unchecked(i)
         if function_identity::MirFunction_name(f).eq(name.clone()) {
-            if get_unchecked(reachable, i) == 0 {
+            if reachable.get_unchecked(i) == 0 {
                 reachable.set(i, 1)
                 return true
             }
@@ -40,9 +40,9 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, mut reachable: Ve
     let mut changed = false
     let mut j = 0
     while j < count {
-        let f = get_unchecked(functions, j)
+        let f = functions.get_unchecked(j)
         if function_identity::MirFunction_name(f).eq(short.clone()) {
-            if get_unchecked(reachable, j) == 0 {
+            if reachable.get_unchecked(j) == 0 {
                 reachable.set(j, 1)
                 changed = true
             }
@@ -66,7 +66,7 @@ fn mir_legacy_mark_roots(functions: Vec<MirFunction>, mut reachable: Vec<i32>, e
     let extra_count = extra_roots.len()
     let mut ei = 0
     while ei < extra_count {
-        if mir_legacy_mark_reachable_name(functions, reachable, get_unchecked(extra_roots, ei).clone()) {
+        if mir_legacy_mark_reachable_name(functions, reachable, extra_roots.get_unchecked(ei).clone()) {
             root_count = root_count + 1
         }
         ei = ei + 1
@@ -126,8 +126,8 @@ fn mir_legacy_mark_reachable_calls(m: MirModule, functions: Vec<MirFunction>, mu
     let mut changed = false
     let mut fi = 0
     while fi < fn_count {
-        if get_unchecked(reachable, fi) != 0 {
-            let f = get_unchecked(functions, fi)
+        if reachable.get_unchecked(fi) != 0 {
+            let f = functions.get_unchecked(fi)
             if mir_legacy_mark_function_call_targets(m, functions, reachable, f) {
                 changed = true
             }

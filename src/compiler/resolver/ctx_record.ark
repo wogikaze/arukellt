@@ -66,7 +66,7 @@ fn resolve_ctx_scope_count(ctx: ResolveCtx) -> i32 {
 }
 
 fn resolve_ctx_scope_at(ctx: ResolveCtx, index: i32) -> Scope {
-    get_unchecked(ctx.scopes, index)
+    ctx.scopes.get_unchecked(index)
 }
 
 fn resolve_ctx_push_scope_value(mut ctx: ResolveCtx, scope: Scope) {
@@ -133,14 +133,14 @@ fn resolve_ctx_reported_error_count(ctx: ResolveCtx) -> i32 {
 }
 
 fn resolve_ctx_error_at(ctx: ResolveCtx, index: i32) -> String {
-    get_unchecked(ctx.errors, index).clone()
+    ctx.errors.get_unchecked(index).clone()
 }
 
 fn resolve_ctx_add_use_alias(mut ctx: ResolveCtx, short_name: String, target: String) {
     let count = ctx.use_alias_shorts.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.use_alias_shorts, i).clone().eq(short_name.clone()) {
+        if ctx.use_alias_shorts.get_unchecked(i).clone().eq(short_name.clone()) {
             ctx.use_alias_targets.set(i, target)
             return
         }
@@ -154,8 +154,8 @@ fn resolve_ctx_lookup_use_alias(ctx: ResolveCtx, short_name: String) -> String {
     let count = ctx.use_alias_shorts.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.use_alias_shorts, i).clone().eq(short_name.clone()) {
-            return get_unchecked(ctx.use_alias_targets, i).clone()
+        if ctx.use_alias_shorts.get_unchecked(i).clone().eq(short_name.clone()) {
+            return ctx.use_alias_targets.get_unchecked(i).clone()
         }
         i = i + 1
     }

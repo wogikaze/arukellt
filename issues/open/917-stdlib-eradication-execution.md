@@ -2064,61 +2064,51 @@ classified there, in dependency-safe waves.
   (`run:` + `t3-run:`) covers int/float `to_string()` in print, assignment,
   call-argument, and match contexts.
 
-### Landed slice (wave/slice-abi, 2026-10-30)
+### Landed slice (wave/seq-fd-remain, 2026-10-30)
 
-- **Feasibility**: yes. The `as_slice` / `slice_get` blocker from
-  `75277bfff` (free-built and method-built `Slice<T>` values carrying
-  different ABIs) no longer reproduces at the lane base `02de2d260`. Before
-  retiring either name, four combinations were compiled and run on both
-  `wasm32` and `wasm32-gc`: method-built view consumed by `slice_get`,
-  free-built view consumed by `view.get`, and both directions across a
-  function boundary. All four printed identical results.
-- **ABI decision**: `Slice<T>` has one representation per target. `wasm32`
-  lowers it as a pointer to a 4-word `[tag=0, vec, start, end]` record;
-  `wasm32-gc` lowers it as a struct ref with the same field order. Both
-  constructor paths — the private prelude `as_slice` anchor used for
-  `v.as_slice(...)` without an import, and the imported `Vec<T>::as_slice`
-  impl — produce the same `Slice::View` payload. `Slice<T>::len` / `get` are
-  the only consumers. Retiring both frees removes the mixed
-  free-constructor/free-consumer surface entirely.
-- **WAT evidence**: `wasm32` emits `as_slice` as
-  `(param i32 i32 i32) (result i32)`, allocates 16 bytes, stores tag 0 / vec /
-  start / end at offsets 0/4/8/12, and returns the pointer; `Slice__len__i32`
-  takes `(param i32)` and `Slice__get__i32` takes `(param i32 i32)`. On
-  `wasm32-gc`, `Vec__as_slice__i32` and the prelude anchor both return the
-  same Slice struct ref consumed by `Slice__len__i32` / `Slice__get__i32`.
-- **Landed**: the `as_slice` and `slice_get` manifest entries and `pub fn`
-  declarations are deleted. `as_slice` remains as a private receiver-method
-  signature anchor (the `push` / `pop` / `set` shape); `Slice<T>::len` / `get`
-  are unchanged. Bare calls and selective imports fail with **E0100** and
-  hints (`v.as_slice(start, end)` / `view.get(idx)`).
-- **Migration**: the remaining in-tree free caller
-  `ownership/adt_probe` now uses `values.as_slice(0, 1)`, `view.len()` and
-  `view.get(0)`. The new `collections/slice_method_abi` run fixture covers the
-  imported `Vec<T>` impl constructor and a view returned across a function
-  boundary on both targets.
-- **Diagnostics / fixtures**:
-  `diagnostics/removed_as_slice_free{,_wasm32}`,
-  `removed_as_slice_import`, `removed_slice_get_free{,_wasm32}` and
-  `removed_slice_get_import` pin the E0100 messages; the W0009 rows are
-  removed.
-- **Scorecard**: real std surface 13 -> **11**, `pub fn` declarations
-  13 -> 11, manifest public entries 13 -> 11, `must delete` 6 -> **4**,
-  vec intrinsic-compat rule 5 -> **3**, deprecated 5 -> **3**.
-- **Verification**: `verify fixtures` **1957/1957** compile+validate PASS
-  (112 runtime executed, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL),
-  `verify lane` PASS, `docs check` **6/6**, `selfhost diag-parity`
-  **PASS=279**, ADR-029 fixpoint PASS (s2 == s3 sha256
-  `7d29d63795f3d732952e66ce037edbe534d28e3affc6a3985385a45697f1fad8`,
-  pinned base `56ff0808…`). Targeted checks
-  (`check-stdlib-eradication`, `check-compat-orphans`,
-  `check-comment-policy`, `check-ark-code-quality`, `check-semantic-debt`,
-  `git diff --check`) are clean.
-- **Residuals (pre-existing on this branch)**: `get_unchecked` was retired by
-  `d2fc02513` but restored by the `push` / `pop` / `set` merge (`f060eccf8`),
-  which also left roughly 1.4k free `get_unchecked(...)` call sites; it needs
-  a merge repair, not a new retirement wave. `slice_len` remains public here
-  because its retirement lives on the unmerged `wave/vec-intrinsics` branch.
-  Merging that lane and repairing the `get_unchecked` merge yields the
-  intended "slice frees fully retired" state. This lane retires exactly the
-  two coupled names.
+- **Feasibility**: yes for the five vec intrinsic-compat frees and the
+  provisional `filter_i32`. The 2026-10-30 probes on the rebuilt s2 show
+  `v.get(idx)` / `v.get_unchecked(idx)` bind nested, function, struct, and
+  String element types; `v.as_slice(...)` + `view.len()` / `view.get(i)`
+  compile, validate, and run on wasm32-gc and `--target wasm32`.
+- **Landed**: `get`, `get_unchecked`, `as_slice`, `slice_len`, `slice_get`
+  manifest entries and `pub fn` declarations are deleted; `get` /
+  `get_unchecked` remain as private receiver-method signature anchors.
+  `filter_i32` retired onto `v.iter().filter(f).collect()`.
+- **Migration**: 1,424 free `get` / `get_unchecked` call sites across 177
+  files; the six `filter_i32` fixtures moved to the iterator pipeline; the
+  `ownership/adt_probe` slice calls moved to `values.as_slice(...)` /
+  `view.len()` / `view.get(0)`.
+- **E0100**: `resolver::removed_names` and `resolver::register_use` now name
+  the receiver methods, `lint::deprecated_table` drops the five W0009 rows,
+  and `resolver::prelude_stable` drops `get` / `get_unchecked`.
+- **Retained exception**: the three experimental `std::host::fs` fd frees are
+  exactly the ADR-092 §4 exception list. The eradication rule carries
+  `retained_exception = "ADR-092"` and the generated scorecard reports
+  `ADR retained exceptions (not must-delete) = 3`; they are not part of the
+  must-delete count.
+- **Scorecard**: eradication scope 13 -> **7** (`must delete` 6 -> **0**),
+  manifest public entries 13 -> **7**, `pub fn` declarations 13 -> 7,
+  `prelude_wrapper` 5 -> 4, monomorphic helpers 2 -> 1. The vec
+  intrinsic-compat rule and the monomorphic seq/combinator rule had no live
+  match and were removed from `docs/data/stdlib-api-eradication.toml`.
+- **Fixtures**: E0100 goldens on both targets for `get`, `slice_len`, and
+  `filter_i32`, plus `removed_as_slice_free`, `removed_slice_get_free`,
+  `removed_get_unchecked_free{,_wasm32}` / `_import`, and
+  `removed_vec_free_import`. New both-target run fixtures
+  `stdlib_vec/get_element_types`, `stdlib_vec/get_unchecked_element_types`,
+  and `stdlib_vec/slice_method_surface`; `ownership/adt_probe` joins the
+  `t3-run` (linear) set.
+- **Bootstrap**: the pinned compiler's method lowering still needs overlay-only
+  `get` / `get_unchecked` / `len` declarations; user programs see the retired
+  surface only. Delete the shims at the next pin refresh (ADR-029).
+- **Verification**: `verify fixtures` 1959/1959 compile+validate PASS (112
+  runtime smoke, 43/43 `test:`, 0 FAIL, 2 runtime-unsupported); `verify lane`
+  PASS; `docs check` 6/6; `selfhost diag-parity` 283/283 PASS; ADR-029
+  fixpoint PASS (s2 == s3 sha256
+  `7140d22dff39522f29b3a481019e2bb64744e27213113d5a2631a49651d4051d`, pinned
+  base `56ff0808…`). Changed `.ark` files were run through the formatter.
+- **Residuals**: `docs/sample/parser.ark` keeps its stale free `get` /
+  `get_unchecked` calls (the sample already fails current typechecking at
+  HEAD), matching the earlier `len` wave. The 7 remaining public symbols are
+  the ADR-091 stable-free exception (4) and the ADR-092 fd exception (3).

@@ -1,7 +1,6 @@
-// E0100: the Slice constructor free was retired; build the view with
-// `v.as_slice(start, end)` on the Vec<T> receiver.
+// E0100: the vec intrinsic-compat `as_slice` free was retired; the receiver
+// method is the only spelling and the hint names it.
 fn main() {
-    let mut values: Vec<i32> = Vec::new<i32>()
-    values.push(1)
-    let _view = as_slice(values, 0, 1)
+    let values: Vec<i32> = Vec::new<i32>()
+    let _view = as_slice(values, 0, 0)
 }

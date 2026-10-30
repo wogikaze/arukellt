@@ -12,12 +12,12 @@ fn main() {
     let mut doubled: Vec<i64> = Vec::new<i64>()
     let mut map_index: i32 = 0
     while map_index < v.len() {
-        doubled.push(double(get_unchecked(v, map_index)))
+        doubled.push(double(v.get_unchecked(map_index)))
         map_index = map_index + 1
     }
     let mut i: i32 = 0
     while i < doubled.len() {
-        Stdio::println((get_unchecked(doubled, i)).to_string())
+        Stdio::println((doubled.get_unchecked(i)).to_string())
         i = i + 1
     }
 }

@@ -18,7 +18,7 @@ impl DebugFormat {
         let mut out = "["
         let mut i = 0
         while i < n {
-            match get(v, i) {
+            match v.get(i) {
                 Option::Some(value) => {
                     out = __intrinsic_concat(out, value.fmt_debug())
                 }
@@ -38,7 +38,7 @@ impl DebugFormat {
         let mut out = "["
         let mut i = 0
         while i < n {
-            match get(v, i) {
+            match v.get(i) {
                 Option::Some(value) => {
                     out = __intrinsic_concat(out, value.fmt_debug())
                 }
@@ -58,7 +58,7 @@ impl DebugFormat {
         let mut out = "["
         let mut i = 0
         while i < n {
-            match get(v, i) {
+            match v.get(i) {
                 Option::Some(value) => {
                     out = __intrinsic_concat(out, value.fmt_debug())
                 }
@@ -78,7 +78,7 @@ impl DebugFormat {
         let mut out = "["
         let mut i = 0
         while i < n {
-            match get(v, i) {
+            match v.get(i) {
                 Option::Some(value) => {
                     out = __intrinsic_concat(out, value.fmt_debug())
                 }
@@ -98,7 +98,7 @@ impl DebugFormat {
         let mut out = "["
         let mut i = 0
         while i < n {
-            match get(v, i) {
+            match v.get(i) {
                 Option::Some(value) => {
                     out = __intrinsic_concat(out, value.fmt_debug())
                 }

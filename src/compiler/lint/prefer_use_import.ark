@@ -60,7 +60,7 @@ fn collect_paths(node: AstNode, mut paths: Vec<String>, mut starts: Vec<i32>, mu
 fn path_seen_before(paths: Vec<String>, path: String, before: i32) -> bool {
     let mut j = 0
     while j < before {
-        if get_unchecked(paths, j).clone().eq(path.clone()) {
+        if paths.get_unchecked(j).clone().eq(path.clone()) {
             return true
         }
         j = j + 1
@@ -73,7 +73,7 @@ fn count_same_path(paths: Vec<String>, path: String) -> i32 {
     let mut uses = 0
     let mut k = 0
     while k < n {
-        if get_unchecked(paths, k).clone().eq(path.clone()) {
+        if paths.get_unchecked(k).clone().eq(path.clone()) {
             uses = uses + 1
         }
         k = k + 1
@@ -89,14 +89,14 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let dn = decls.len()
     let mut di = 0
     while di < dn {
-        collect_paths(get_unchecked(decls, di), paths, starts, ends)
+        collect_paths(decls.get_unchecked(di), paths, starts, ends)
         di = di + 1
     }
     let threshold = prefer_use_import_threshold()
     let n = paths.len()
     let mut i = 0
     while i < n {
-        let path = get_unchecked(paths, i).clone()
+        let path = paths.get_unchecked(i).clone()
         if path_seen_before(paths, path.clone(), i) {
             i = i + 1
             continue
@@ -104,7 +104,7 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         let uses = count_same_path(paths, path.clone())
         if uses >= threshold {
             let msg = "qualified path `".concat(path.clone()).concat("` used repeatedly; prefer `use` and call the short name")
-            let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
+            let span = record::DiagnosticSpan_from_raw(starts.get_unchecked(i), ends.get_unchecked(i))
             warnings.push(diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }
         i = i + 1

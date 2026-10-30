@@ -4,5 +4,5 @@ use std::host::stdio::Stdio
 fn main() {
     let mut items = Vec::new<String>()
     items = items.push(String_from("exact"))
-    Stdio::println(get_unchecked(items, 0))
+    Stdio::println(items.get_unchecked(0))
 }

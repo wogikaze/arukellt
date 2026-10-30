@@ -54,21 +54,21 @@ pub struct Deque<T> {
 fn deque_at<T>(deque: Deque<T>, index: i32) -> T {
     let front_len: i32 = deque.front_items.len()
     if index < front_len {
-        return get_unchecked(deque.front_items, front_len - 1 - index)
+        return deque.front_items.get_unchecked(front_len - 1 - index)
     }
-    get_unchecked(deque.back_items, index - front_len)
+    deque.back_items.get_unchecked(index - front_len)
 }
 
 fn deque_replace_at<T>(mut deque: Deque<T>, index: i32, value: T) -> T {
     let front_len: i32 = deque.front_items.len()
     if index < front_len {
         let slot: i32 = front_len - 1 - index
-        let old: T = get_unchecked(deque.front_items, slot)
+        let old: T = deque.front_items.get_unchecked(slot)
         deque.front_items.set(slot, value)
         return old
     }
     let slot: i32 = index - front_len
-    let old: T = get_unchecked(deque.back_items, slot)
+    let old: T = deque.back_items.get_unchecked(slot)
     deque.back_items.set(slot, value)
     old
 }
@@ -87,14 +87,14 @@ fn deque_items_eq<T: Eq>(left: Deque<T>, right: Deque<T>) -> bool {
     let mut index: i32 = 0
     while index < count {
         let left_value: T = if index < left_front {
-            get_unchecked(left.front_items, left_front - 1 - index)
+            left.front_items.get_unchecked(left_front - 1 - index)
         } else {
-            get_unchecked(left.back_items, index - left_front)
+            left.back_items.get_unchecked(index - left_front)
         }
         let right_value: T = if index < right_front {
-            get_unchecked(right.front_items, right_front - 1 - index)
+            right.front_items.get_unchecked(right_front - 1 - index)
         } else {
-            get_unchecked(right.back_items, index - right_front)
+            right.back_items.get_unchecked(index - right_front)
         }
         if !left_value.eq(right_value) {
             return false
@@ -163,10 +163,10 @@ impl<T> Deque<T> {
     /// Peeks at the front element without removing it.
     fn front(self: Deque<T>) -> Option<T> {
         if self.front_items.len() > 0 {
-            return Option::Some(get_unchecked(self.front_items, self.front_items.len() - 1))
+            return Option::Some(self.front_items.get_unchecked(self.front_items.len() - 1))
         }
         if self.back_items.len() > 0 {
-            return Option::Some(get_unchecked(self.back_items, 0))
+            return Option::Some(self.back_items.get_unchecked(0))
         }
         Option::None
     }
@@ -174,10 +174,10 @@ impl<T> Deque<T> {
     /// Peeks at the back element without removing it.
     fn back(self: Deque<T>) -> Option<T> {
         if self.back_items.len() > 0 {
-            return Option::Some(get_unchecked(self.back_items, self.back_items.len() - 1))
+            return Option::Some(self.back_items.get_unchecked(self.back_items.len() - 1))
         }
         if self.front_items.len() > 0 {
-            return Option::Some(get_unchecked(self.front_items, 0))
+            return Option::Some(self.front_items.get_unchecked(0))
         }
         Option::None
     }

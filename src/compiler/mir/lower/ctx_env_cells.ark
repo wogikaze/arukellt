@@ -20,15 +20,15 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
     let fn_name = function_identity::MirFunction_name(func)
     let mut i = 0
     while i < ctx.cell_fn_names.len() {
-        if get_unchecked(ctx.cell_fn_names, i).eq(fn_name.clone()) {
+        if ctx.cell_fn_names.get_unchecked(i).eq(fn_name.clone()) {
             out.push(inst_struct_set::MirInst_struct_set_named_idx(
-                    get_unchecked(ctx.cell_env_locals, i),
-                    get_unchecked(ctx.cell_local_indices, i),
-                    get_unchecked(ctx.cell_env_names, i).clone(),
-                    get_unchecked(ctx.cell_offsets, i),
-                    get_unchecked(ctx.cell_field_indices, i),
-                    get_unchecked(ctx.cell_totals, i),
-                    get_unchecked(ctx.cell_vts, i)
+                    ctx.cell_env_locals.get_unchecked(i),
+                    ctx.cell_local_indices.get_unchecked(i),
+                    ctx.cell_env_names.get_unchecked(i).clone(),
+                    ctx.cell_offsets.get_unchecked(i),
+                    ctx.cell_field_indices.get_unchecked(i),
+                    ctx.cell_totals.get_unchecked(i),
+                    ctx.cell_vts.get_unchecked(i)
                 ))
         }
         i = i + 1
@@ -41,7 +41,7 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
 fn ctx_has_env_cell(rebind_flags: Vec<i32>) -> i32 {
     let mut i = 0
     while i < rebind_flags.len() {
-        if get_unchecked(rebind_flags, i) != 0 {
+        if rebind_flags.get_unchecked(i) != 0 {
             return 1
         }
         i = i + 1

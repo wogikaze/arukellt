@@ -4423,6 +4423,10 @@ def render_stdlib_eradication(
         if _MONOMORPHIC_SUFFIX.search(e.get("name", ""))
     )
     without_decl = manifest_entries_without_decl(manifest, {d["name"] for d in declarations})
+    retained_rules = [r for r in eradication.get("rules", []) if r.get("retained_exception")]
+    retained_entries = [
+        e for e, r in resolved + source_resolved if r.get("retained_exception")
+    ]
 
     lines = [
         "# Stdlib Free-Function Eradication (ADR-046)",
@@ -4459,6 +4463,7 @@ def render_stdlib_eradication(
         f"| `prelude_wrapper` entries | {prelude_wrappers} | 0 |",
         f"| Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | {monomorphic} | 0 |",
         f"| `intrinsic-only` bridges (non-public) | {counts.get('intrinsic-only', 0)} | — |",
+        f"| ADR retained exceptions (not must-delete) | {len(retained_entries)} | — |",
         "",
         "## Classification",
         "",
@@ -4471,6 +4476,31 @@ def render_stdlib_eradication(
         "| `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | "
         f"{counts.get('intrinsic-only', 0)} |",
         "",
+    ]
+
+    if retained_rules:
+        lines.extend([
+            "## Retained Exceptions",
+            "",
+            "Documented ADR exceptions stay outside the must-delete work. The",
+            "`retained_exception` field on the rule records the binding ADR; the",
+            "symbols are not counted as `must delete`.",
+            "",
+            "| Rule | ADR | Symbols |",
+            "|------|-----|---------|",
+        ])
+        for rule in retained_rules:
+            names = sorted(
+                e.get("name", "?") for e, r in resolved + source_resolved
+                if r is rule
+            )
+            lines.append(
+                f"| {rule_label(rule)} | {rule.get('retained_exception')} | "
+                f"{', '.join('`' + n + '`' for n in names)} |"
+            )
+        lines.append("")
+
+    lines.extend([
         "## Execution Rules",
         "",
         "Rules evaluate in order; the first match wins. Owners are tracking issues.",
@@ -4479,7 +4509,7 @@ def render_stdlib_eradication(
         "",
         "| Rule | Class | Owner | Manifest | Source | Replacement |",
         "|------|-------|-------|----------|--------|-------------|",
-    ]
+    ])
     for rule in eradication.get("rules", []):
         lines.append(
             f"| {rule_label(rule)} | `{rule.get('class', '?')}` | "

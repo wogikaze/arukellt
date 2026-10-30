@@ -123,7 +123,7 @@ fn __core_format_i32_impl(value: i32) -> String {
     }
     let mut index = reversed.len()
     while index > 0 {
-        bytes.push(get_unchecked(reversed, index - 1))
+        bytes.push(reversed.get_unchecked(index - 1))
         index = index - 1
     }
     RawString::from_bytes(bytes)
@@ -148,7 +148,7 @@ fn __core_format_i64_impl(value: i64) -> String {
     }
     let mut index = reversed.len()
     while index > 0 {
-        bytes.push(get_unchecked(reversed, index - 1))
+        bytes.push(reversed.get_unchecked(index - 1))
         index = index - 1
     }
     RawString::from_bytes(bytes)

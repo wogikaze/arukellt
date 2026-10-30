@@ -1,5 +1,6 @@
 use std::host::stdio::Stdio
-use std::prelude::Box
+use std::prelude::{Box}
+use std::collections::vec
 
 fn main() {
     let boxed: Box<i32> = Box::new(42)

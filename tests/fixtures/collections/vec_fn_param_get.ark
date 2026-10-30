@@ -25,6 +25,6 @@ fn main() {
     }
     let mut w = Vec::new<fn(i32) -> i32>()
     w.push(double)
-    let g = get_unchecked(w, 0)
+    let g = w.get_unchecked(0)
     Stdio::println((g(7)).to_string())
 }

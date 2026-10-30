@@ -1,6 +1,5 @@
 use std::host::clock::Clock
 use std::host::stdio::Stdio
-use std::prelude::{get_unchecked}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override is disabled; --time / report_flag remains the supported
@@ -108,7 +107,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
         let mut best_ms = -1
         let mut i = 0
         while i < n {
-            let ms = get_unchecked(wall_ms, i)
+            let ms = wall_ms.get_unchecked(i)
             if ms > best_ms {
                 best_ms = ms
                 best = i
@@ -120,7 +119,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
         }
         wall_ms.set(best, -1)
         Stdio::eprintln(
-            "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(get_unchecked(wall_name, best).clone().concat(" ".concat(best_ms.to_string().concat("ms"))))))
+            "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(wall_name.get_unchecked(best).clone().concat(" ".concat(best_ms.to_string().concat("ms"))))))
         )
         rank = rank + 1
     }

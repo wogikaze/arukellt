@@ -1,5 +1,5 @@
 use std::test::Test
-use std::prelude::{filter_i32}
+use std::core::iter
 fn is_even(x: i32) -> bool {
     x % 2 == 0
 }
@@ -11,7 +11,7 @@ fn main() {
     v.push(3)
     v.push(4)
     v.push(5)
-    let evens: Vec<i32> = filter_i32(v, is_even)
+    let evens: Vec<i32> = v.iter().filter(is_even).collect()
     Test::assert_eq_i32(evens.len(), 2)
     Test::assert_eq_i32(evens.get_unchecked(0), 2)
     Test::assert_eq_i32(evens.get_unchecked(1), 4)

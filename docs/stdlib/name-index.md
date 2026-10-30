@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 8
-- **Historical/deprecated names:** 6
-- **Total entries:** 14
+- **Canonical names:** 7
+- **Historical/deprecated names:** 0
+- **Total entries:** 7
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -26,7 +26,6 @@ Current public API names, sorted alphabetically.
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
-| `filter_i32` | `prelude` | `provisional` | Collections |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
 
@@ -36,14 +35,7 @@ Current public API names, sorted alphabetically.
 
 Old or deprecated names that have been superseded. Each entry links to its canonical replacement and the migration guide.
 
-| Old Name | Replacement | Category | Migration Guide |
-|----------|-------------|----------|-----------------|
-| ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
+_No deprecated names at this time._
 
 ---
 
@@ -58,12 +50,5 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fd_fdstat_errno` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
-| `filter_i32` | ✅ `provisional` | `prelude` | Collections |
-| ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
-| ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
-| ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
-| ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
-| ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
-| ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |

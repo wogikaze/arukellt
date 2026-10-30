@@ -62,7 +62,7 @@ fn wit_collect_bindings(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<WitI
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_wit_import(d) {
             wit_push_bindings_for_import(bindings, wit_paths, ast_access::node_text(d), wit_import_alias(d))
         }
@@ -111,7 +111,7 @@ fn wit_push_bindings_for_doc(mut bindings: Vec<WitImportBinding>, alias: String,
     let wit_import_id = wit_surface::wit_import_id(doc)
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
     for fi in 0..funcs.len() {
-        let func = get_unchecked(funcs, fi)
+        let func = funcs.get_unchecked(fi)
         bindings.push(WitImportBinding_new(
                 wit_register::wit_binding_type_sig(func, doc),
                 interface_id.clone(),

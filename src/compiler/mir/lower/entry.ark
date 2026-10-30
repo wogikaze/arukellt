@@ -273,7 +273,7 @@ fn clone_export_roots(export_roots: Vec<String>) -> Vec<String> {
     let mut cloned = Vec::new<String>()
     let mut i = 0
     while i < export_roots.len() {
-        cloned.push(get_unchecked(export_roots, i).clone())
+        cloned.push(export_roots.get_unchecked(i).clone())
         i = i + 1
     }
     cloned

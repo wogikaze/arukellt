@@ -2,7 +2,7 @@ use typechecker::contract_env_record
 use typechecker::contract_typevar_record
 
 fn type_env_take_next_var_id(mut env: TypeEnv) -> i32 {
-    let id = get_unchecked(env.var_id_box, 0)
+    let id = env.var_id_box.get_unchecked(0)
     env.var_id_box.set(0, id + 1)
     id
 }
@@ -16,5 +16,5 @@ fn type_env_var_count(env: TypeEnv) -> i32 {
 }
 
 fn type_env_var_at(env: TypeEnv, index: i32) -> TypeVar {
-    get_unchecked(env.vars, index)
+    env.vars.get_unchecked(index)
 }

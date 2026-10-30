@@ -23,26 +23,10 @@ pub fn deprecated_use_message(path: String) -> String {
 // ── Deprecated bare prelude calls ──────────────────────────────────────
 
 pub fn deprecated_call_message(name: String) -> String {
-    let vec = deprecated_vec_call_message(name.clone())
-    if vec.len() > 0 {
-        return vec
-    }
     String_new()
 }
 
 // ── Deprecated qualified path calls (cmp::min → a.cmp(b)) ──────────────
-fn deprecated_vec_call_message(name: String) -> String {
-    if name.clone().eq("get") {
-        return "use the Vec method `v.get(idx)` instead"
-    }
-    if name.clone().eq("get_unchecked") {
-        return "use the Vec method `v.get_unchecked(idx)` instead"
-    }
-    if name.clone().eq("slice_len") {
-        return "use the Slice method `view.len()` instead"
-    }
-    String_new()
-}
 
 // ── Deprecated qualified path calls (math::abs_i32 → x.abs()) ──────────
 
@@ -117,15 +101,13 @@ test mod "deprecated" {
         assert(deprecated_qualified_call_message("seq::min_by_key").len() == 0)
         assert(deprecated_qualified_call_message("seq::max_by_key").len() == 0)
     }
-    test "vec_frees_warn_w0009" {
-        assert(deprecated_call_message("get").len() > 0)
-        assert(deprecated_call_message("get_unchecked").len() > 0)
-        assert(deprecated_call_message("slice_len").len() > 0)
-    }
-    test "retired slice frees have no w0009 entry" {
-        // as_slice / slice_get were deleted with E0100 hints
-        // (wave/slice-abi); resolver::removed_names owns them now.
+    test "retired vec intrinsic-compat frees have no w0009 entry" {
+        // get / get_unchecked / as_slice / slice_len / slice_get were deleted
+        // with E0100 hints (wave/seq-fd-remain).
+        assert(deprecated_call_message("get").len() == 0)
+        assert(deprecated_call_message("get_unchecked").len() == 0)
         assert(deprecated_call_message("as_slice").len() == 0)
+        assert(deprecated_call_message("slice_len").len() == 0)
         assert(deprecated_call_message("slice_get").len() == 0)
     }
     test "retired vec mutation frees have no w0009 entry" {

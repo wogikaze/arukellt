@@ -14,8 +14,8 @@ fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, t
     let module_count = module_names.len()
     let mut i = 0
     while i < module_count {
-        let decl_count = get_unchecked(module_decl_counts, i)
-        infos.push(ModInfo_new(get_unchecked(module_names, i), decl_offset, decl_count))
+        let decl_count = module_decl_counts.get_unchecked(i)
+        infos.push(ModInfo_new(module_names.get_unchecked(i), decl_offset, decl_count))
         decl_offset = decl_offset + decl_count
         i = i + 1
     }

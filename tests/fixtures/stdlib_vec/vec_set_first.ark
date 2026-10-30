@@ -6,7 +6,7 @@ fn main() {
     v.push(20)
     v.push(30)
     v.set(0, 99)
-    Test::assert_eq_i32(get_unchecked(v, 0), 99)
-    Test::assert_eq_i32(get_unchecked(v, 1), 20)
-    Test::assert_eq_i32(get_unchecked(v, 2), 30)
+    Test::assert_eq_i32(v.get_unchecked(0), 99)
+    Test::assert_eq_i32(v.get_unchecked(1), 20)
+    Test::assert_eq_i32(v.get_unchecked(2), 30)
 }

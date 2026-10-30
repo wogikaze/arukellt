@@ -31,7 +31,7 @@ impl io::Write for OneByteWriter {
         if data.len() == 0 {
             return Ok(0)
         }
-        self.bytes.push(get_unchecked(data, 0))
+        self.bytes.push(data.get_unchecked(0))
         Ok(1)
     }
 
@@ -76,8 +76,8 @@ fn main() {
         Result::Ok(inner) => {
             let bytes: Vec<i32> = inner.into_bytes()
             Stdio::println((bytes.len()).to_string())
-            Stdio::println((get_unchecked(bytes, 0)).to_string())
-            Stdio::println((get_unchecked(bytes, 6)).to_string())
+            Stdio::println((bytes.get_unchecked(0)).to_string())
+            Stdio::println((bytes.get_unchecked(6)).to_string())
         },
         Result::Err(err) => Stdio::println(err.message()),
     }

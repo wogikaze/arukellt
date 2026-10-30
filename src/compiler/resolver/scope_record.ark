@@ -20,13 +20,13 @@ fn scope_symbol_count(scope: Scope) -> i32 {
 }
 
 fn scope_symbol_at(scope: Scope, index: i32) -> Symbol {
-    get_unchecked(scope.symbols, index)
+    scope.symbols.get_unchecked(index)
 }
 
 fn scope_push_symbol(mut scope: Scope, sym: Symbol) {
     scope.names.push(symbol_record::symbol_name(sym))
     scope.symbols.push(sym)
-    scope_hash_set(scope, get_unchecked(scope.names, scope.names.len() - 1))
+    scope_hash_set(scope, scope.names.get_unchecked(scope.names.len() - 1))
 }
 
 fn scope_clear_symbols(mut scope: Scope) {
@@ -45,7 +45,7 @@ fn scope_find_symbol_index(scope: Scope, name: String) -> i32 {
     if slot < 0 {
         return 0 - 1
     }
-    let bucket = get_unchecked(scope.name_buckets, slot)
+    let bucket = scope.name_buckets.get_unchecked(slot)
     if bucket == 0 {
         return 0 - 1
     }
@@ -74,7 +74,7 @@ fn scope_hash_grow(mut scope: Scope) {
     let count = scope.names.len()
     let mut i = 0
     while i < count {
-        let slot = scope_hash_probe_slot(scope, get_unchecked(scope.names, i))
+        let slot = scope_hash_probe_slot(scope, scope.names.get_unchecked(i))
         if slot >= 0 {
             scope.name_buckets.set(slot, i + 1)
         }
@@ -115,11 +115,11 @@ fn scope_hash_probe_slot(scope: Scope, name: String) -> i32 {
     let mut slot = hash % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = get_unchecked(scope.name_buckets, slot)
+        let bucket = scope.name_buckets.get_unchecked(slot)
         if bucket == 0 {
             return slot
         }
-        let key = get_unchecked(scope.names, bucket - 1)
+        let key = scope.names.get_unchecked(bucket - 1)
         let mut same = key.len() == name_len
         if same {
             let mut i = 0
