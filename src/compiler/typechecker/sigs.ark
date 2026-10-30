@@ -55,22 +55,30 @@ fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
 // Type-owned heads (`Vec::new`) are excluded from the leaf fallback so an
 // unrelated bare `new` cannot supply a function type.
 fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    let mut sig = lookup_fn_sig(env, fn_sigs, name.clone())
+    let mut sig = sig_lookup::lookup_declared_fn_sig(env, fn_sigs, name.clone())
     if contract_fn_sig::FnSig_has_name(sig) {
         return sig
     }
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut i = 0
     while i < variants.len() {
-        let variant_sig = lookup_fn_sig(env, fn_sigs, variants.get_unchecked(i).clone())
+        let variant_sig = sig_lookup::lookup_declared_fn_sig(env, fn_sigs, variants.get_unchecked(i).clone())
         if contract_fn_sig::FnSig_has_name(variant_sig) {
             return variant_sig
         }
         i = i + 1
     }
+    // The leaf fallback drops a module prefix. In a resolver-processed entry
+    // body only a bare declaration identity (own decl / prelude) may answer;
+    // a loaded-module body keeps the flat lookup until its calls carry resolver
+    // identities (#934).
     let leaf = names::unqualified_type_name(name.clone())
     if !leaf.clone().eq(name.clone()) && !is_type_owned_name(name.clone()) {
-        let leaf_sig = lookup_fn_sig(env, fn_sigs, leaf)
+        let leaf_sig = if sig_lookup::is_entry_body(env) {
+            sig_lookup::lookup_bare_identity(env, fn_sigs, leaf)
+        } else {
+            sig_lookup::lookup_fn_sig(env, fn_sigs, leaf)
+        }
         if contract_fn_sig::FnSig_has_name(leaf_sig) {
             return leaf_sig
         }

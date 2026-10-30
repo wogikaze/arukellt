@@ -2,13 +2,15 @@ use collections::name_index
 use corehir::raw_dto
 use mir::lower::ctx_types
 
-// Register the checker's per-call receiver-owner table on the lowering ctx
-// (#933). The key carries the source body identity as well as the span, so a
-// call in a loaded module never aliases a same-offset call in another file.
+// Register the checker's per-call resolution table on the lowering ctx (#933).
+// The key carries the source body identity as well as the span, so a call in a
+// loaded module never aliases a same-offset call in another file.
 fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall>) {
     let count = calls.len()
     ctx.resolved_call_index = name_index::NameIndex_new(count)
     ctx.resolved_call_owners = Vec::new<String>()
+    ctx.resolved_call_function_ids = Vec::new<String>()
+    ctx.resolved_call_mono_ids = Vec::new<String>()
     let mut i = 0
     while i < count {
         let call = calls.get_unchecked(i)
@@ -20,7 +22,9 @@ fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall
         )
         if name_index::name_index_get(ctx.resolved_call_index, key.clone()) < 0 {
             name_index::name_index_set(ctx.resolved_call_index, key, ctx.resolved_call_owners.len())
-            ctx.resolved_call_owners.push(raw_dto::CoreHirResolvedCall_owner_name(call))
+            ctx.resolved_call_owners.push(raw_dto::CoreHirResolvedCall_owner_name(call.clone()))
+            ctx.resolved_call_function_ids.push(raw_dto::CoreHirResolvedCall_function_id(call.clone()))
+            ctx.resolved_call_mono_ids.push(raw_dto::CoreHirResolvedCall_mono_instance_id(call))
         }
         i = i + 1
     }
@@ -31,12 +35,11 @@ fn ctx_set_body_identity(mut ctx: LowerCtx, decl_index: i32, child_index: i32) {
     ctx.current_body_child_index = child_index
 }
 
-// Owner recorded by the checker for this call site, or "" when the site has
-// no resolution. Callers must treat "" as "not a resolved prelude callable"
-// and keep the original callee instead of guessing an owner.
-fn ctx_resolved_call_owner(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+// Slot of the checker resolution for this call site, or -1 when the site has
+// no resolution.
+fn ctx_resolved_call_slot(ctx: LowerCtx, span_start: i32, callee_name: String) -> i32 {
     if ctx.current_body_decl_index < 0 {
-        return String_new()
+        return 0 - 1
     }
     let key = resolved_call_key(
         ctx.current_body_decl_index,
@@ -46,9 +49,41 @@ fn ctx_resolved_call_owner(ctx: LowerCtx, span_start: i32, callee_name: String) 
     )
     let index = name_index::name_index_get(ctx.resolved_call_index, key)
     if index < 0 || index >= ctx.resolved_call_owners.len() {
+        return 0 - 1
+    }
+    index
+}
+
+// Owner recorded by the checker for this call site, or "" when the site has
+// no resolution. Callers must treat "" as "not a resolved prelude callable"
+// and keep the original callee instead of guessing an owner.
+fn ctx_resolved_call_owner(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+    let index = ctx_resolved_call_slot(ctx, span_start, callee_name)
+    if index < 0 {
         return String_new()
     }
     ctx.resolved_call_owners.get_unchecked(index).clone()
+}
+
+// Declaration identity the checker selected for this call site, or "" when the
+// site has no resolution. Lowering binds this FunctionId instead of
+// re-resolving the callee name (#934 / #936).
+fn ctx_resolved_call_function_id(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+    let index = ctx_resolved_call_slot(ctx, span_start, callee_name)
+    if index < 0 {
+        return String_new()
+    }
+    ctx.resolved_call_function_ids.get_unchecked(index).clone()
+}
+
+// Mono instance the checker minted for this generic call site, or "" for a
+// non-generic call.
+fn ctx_resolved_call_mono_instance_id(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+    let index = ctx_resolved_call_slot(ctx, span_start, callee_name)
+    if index < 0 {
+        return String_new()
+    }
+    ctx.resolved_call_mono_ids.get_unchecked(index).clone()
 }
 
 fn resolved_call_key(decl_index: i32, child_index: i32, span_start: i32, callee_name: String) -> String {

@@ -2,22 +2,24 @@ use corehir::raw_dto
 use typechecker::contract_resolved_call
 use typechecker::contract_result_state
 
-// Convert the checker's per-call receiver-owner resolutions into the CoreHIR
-// handoff table. Only the calls the checker actually resolved are present;
-// lowering must not fall back to a syntactic callee scan (#933).
+// Convert the checker's per-call resolutions into the CoreHIR handoff table.
+// Only the calls the checker actually resolved are present; lowering must not
+// fall back to a syntactic callee scan (#933).
 fn resolved_calls_from_check_result(check_result: TypeCheckResult) -> Vec<CoreHirResolvedCall> {
-    let owners = contract_result_state::typecheck_result_resolved_call_owners(check_result)
+    let resolved = contract_result_state::typecheck_result_resolved_calls(check_result)
     let mut calls = Vec::new<CoreHirResolvedCall>()
-    let count = owners.len()
+    let count = resolved.len()
     let mut i = 0
     while i < count {
-        let owner = owners.get_unchecked(i)
+        let call = resolved.get_unchecked(i)
         calls.push(raw_dto::CoreHirResolvedCall_new(
-                contract_resolved_call::ResolvedCallOwner_decl_index(owner.clone()),
-                contract_resolved_call::ResolvedCallOwner_body_child_index(owner.clone()),
-                contract_resolved_call::ResolvedCallOwner_span_start(owner.clone()),
-                contract_resolved_call::ResolvedCallOwner_callee_name(owner.clone()),
-                contract_resolved_call::ResolvedCallOwner_owner_name(owner)
+                contract_resolved_call::ResolvedCall_decl_index(call.clone()),
+                contract_resolved_call::ResolvedCall_body_child_index(call.clone()),
+                contract_resolved_call::ResolvedCall_span_start(call.clone()),
+                contract_resolved_call::ResolvedCall_callee_name(call.clone()),
+                contract_resolved_call::ResolvedCall_owner_name(call.clone()),
+                contract_resolved_call::ResolvedCall_function_id(call.clone()),
+                contract_resolved_call::ResolvedCall_mono_instance_id(call)
             ))
         i = i + 1
     }

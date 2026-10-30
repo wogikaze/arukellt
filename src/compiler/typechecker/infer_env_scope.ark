@@ -12,5 +12,9 @@ fn borrow_generic_infer_env(parent: TypeEnv) -> TypeEnv {
     let mut env = contract_env_record::TypeEnv_new()
     reset_infer_env(env)
     env.var_id_box = parent.var_id_box
+    // Nested calls in generic arguments resolve through the same declaration
+    // identities as the parent body and must keep its entry-body boundary.
+    env.bare_fn_sig_index = parent.bare_fn_sig_index
+    env.entry_decl_start = parent.entry_decl_start
     env
 }

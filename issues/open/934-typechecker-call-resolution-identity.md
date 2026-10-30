@@ -46,7 +46,7 @@ signature. Ambiguity is a diagnostic, never "first match by name".
 
 - [ ] Signature lookup is keyed by module-qualified symbol identity (and impl
       for methods / associated functions); no bare-name fallback.
-- [ ] The checker records the resolved FunctionId (and MonoInstanceId for
+- [x] The checker records the resolved FunctionId (and MonoInstanceId for
       generic calls) per call node and exposes it in `TypeCheckResult` for
       #933.
 - [x] Two modules exporting the same function name and calling each other's
@@ -191,3 +191,89 @@ call node in `TypeCheckResult`.
   `ARUKELLT_SELFHOST_WASM=<build-dir>/selfhost/arukellt-s2-runtime.wasm`
   (the documented override). Without it the step lints with the pinned
   bootstrap and reports the pre-fix fixture error.
+
+## Update (2026-10-31, `wave/decl-identity-final`) — entry-body declaration identity + checked call table
+
+### Item 1 — a resolver-processed entry body resolves bare names by declaration identity
+
+The checker resolved every body against one flat `NameIndex` built from all
+loaded modules and the entry module, so a bare call bound whichever declaration
+was registered first. `typechecker/entry.ark` now builds a second index for the
+bodies the resolver processed:
+
+- `bare_fn_sig_index` holds only the entry module's own top-level fn/const
+  decls and prelude decls. The entry decl is inserted first, so a local
+  declaration shadows a same-named prelude declaration; declaration order in
+  the flat index never decides.
+- `TypeEnv.entry_decl_start` records the entry module's first decl index (the
+  loaded decl count); `sig_lookup::is_entry_body` gates the strict path.
+- `sig_lookup::lookup_declared_fn_sig` is now the lookup used by
+  `call_fn.ark` (initial name and callee-spelling variants), `call_method.ark`
+  (the free/prelude fallback, `vec_method_declaration`, and the
+  `get_unchecked` anchor), and `sigs.ark` (function-value resolution). In an
+  entry body a bare name can no longer bind a loaded module's declaration.
+- The prefix-strip fallback in `call_fn.ark` and the leaf fallback in
+  `sigs.ark` are loaded-module-only now: a resolver-processed body keeps the
+  whole identity the resolver accepted instead of dropping the module
+  segment.
+
+Fixture `tests/fixtures/modules/bare_decl_shadow/`: `import shapes` loads a
+`measure(String) -> String` before the entry module's `measure(i32) -> i32`.
+The pinned compiler binds the imported declaration and rejects the fixture with
+`return type mismatch: 'shadow_probe' declared to return i32 but body returns
+String`; the changed compiler accepts it and the run fixture prints
+`shapes:x`. The probe is deliberately unreachable from `main` because MIR's
+flat module still cannot emit a call whose callee shares a bare name with a
+loaded declaration; type-checking the probe is the user-visible regression
+contract, emitting it is the #933 consumption work.
+
+Remaining item 1 blockers:
+
+- Loaded-module bodies are still not resolver-processed, so they keep the flat
+  bare-name lookup (the compiler source itself calls `infer_expr` and friends
+  bare across `typechecker/`). Removing that fallback needs module-graph
+  resolution of loaded bodies, not a local checker change.
+- Non-conversion impl methods still share the flat `Owner::method` key
+  (`entry.ark::push_sig_index_key`); disambiguating them needs a qualified
+  impl identity in the signature spine (#940 owns the type side).
+- MIR keys declarations by bare name in its flat module, so a call whose
+  callee collides with a loaded declaration has no reachable FunctionId yet
+  (see the fixture note). The checked call table below is the prerequisite for
+  closing this.
+
+### Item 2 — the checked program carries the resolved FunctionId and MonoInstanceId
+
+`ResolvedCallOwner` becomes `ResolvedCall` with `function_id` and
+`mono_instance_id`; `TypeCheckResult.resolved_calls` exposes it:
+
+- concrete free/associated calls record `FnSig_name(selected_sig)`, including
+  the conversion impl selected from the source argument;
+- generic free and method calls record the declaration name and the minted
+  `MonoInstance` mangled name (`push__i32`, `HashMap::insert__String__i32`);
+- bound trait method calls record the resolved trait method signature;
+- `len` records the owner-qualified `String::len` / `Vec::len` FunctionId.
+
+`CoreHirResolvedCall` carries both fields, `mir/lower/ctx_resolved_calls`
+indexes them beside the owner, and `ctx_resolved_call_function_id` /
+`ctx_resolved_call_mono_instance_id` are the lowering accessors. `len` and
+`pop` now lower from the recorded FunctionId instead of recomposing the
+owner-qualified spelling (the owner remains a fallback for records without
+one), so `stdlib_vec/prelude_call_owner_untracked_receiver` exercises the
+FunctionId path.
+
+Calls without a callee declaration intentionally record no FunctionId: enum
+variant constructors, the compiler-provided polymorphic `clone`, and the
+intrinsic fallbacks.
+
+### Evidence
+
+- `selfhost build-compiler`: PASS (pin `56ff0808`, s2 = `1dc9f1c856e2…`).
+- `verify fixtures`: PASS=1970 FAIL=0 COMPILE_VALIDATE=1970 EXECUTED=114
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane`: PASS (quality changed; lint checked=21 failed=0).
+- `docs check`: 6/6 PASS.
+- `selfhost diag-parity`: PASS.
+- `selfhost fixpoint`: s2 == s3 =
+  `1dc9f1c856e20201019f61704d35e596a21f4c1d991d5f6c6641ea89ac7be67b`
+  on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.

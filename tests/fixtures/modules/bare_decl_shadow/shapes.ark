@@ -1,0 +1,11 @@
+//! A bare call in the entry module must bind the entry module's own
+//! declaration, not a same-named declaration from an imported module.
+//!
+//! Loaded modules are listed before the entry module, so a flat signature
+//! index keyed by bare name binds `shapes::measure(String) -> String` first.
+//! The entry module's `measure(i32) -> i32` is the declaration the resolver
+//! accepted for the bare name; resolution must use that declaration identity.
+
+pub fn measure(label: String) -> String {
+    String_from("shapes:").concat(label)
+}

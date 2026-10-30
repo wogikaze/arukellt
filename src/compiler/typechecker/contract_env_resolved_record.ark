@@ -1,39 +1,57 @@
 use typechecker::contract_env_record
 use typechecker::contract_resolved_call
 
-fn type_env_resolved_call_owner_count(env: TypeEnv) -> i32 {
-    env.resolved_call_owners.len()
+fn type_env_resolved_call_count(env: TypeEnv) -> i32 {
+    env.resolved_calls.len()
 }
 
-fn type_env_resolved_call_owner_at(env: TypeEnv, index: i32) -> ResolvedCallOwner {
-    env.resolved_call_owners.get_unchecked(index)
+fn type_env_resolved_call_at(env: TypeEnv, index: i32) -> ResolvedCall {
+    env.resolved_calls.get_unchecked(index)
 }
 
-// The checker may infer the same call more than once (the return-contract
-// pass re-infers the body), so the same body/span/callee must not append a
-// second resolution.
-fn type_env_record_resolved_call_owner(mut env: TypeEnv, span_start: i32, callee_name: String, owner_name: String) {
+// Record or complete the resolution of one call site. The checker may infer
+// the same call more than once (the return-contract pass re-infers the body)
+// and generic calls learn their FunctionId only after the owner, so an
+// existing record for the site is completed field by field instead of
+// duplicated (#933 / #934).
+fn type_env_record_resolved_call(
+    mut env: TypeEnv,
+    span_start: i32,
+    callee_name: String,
+    owner_name: String,
+    function_id: String,
+    mono_instance_id: String
+) {
     if env.current_decl_index < 0 {
         return
     }
-    let count = env.resolved_call_owners.len()
+    let count = env.resolved_calls.len()
     let mut i = 0
     while i < count {
-        let existing = env.resolved_call_owners.get_unchecked(i)
+        let existing = env.resolved_calls.get_unchecked(i)
         let same_site = existing.decl_index == env.current_decl_index &&
         existing.body_child_index == env.current_body_child_index &&
         existing.span_start == span_start
         if same_site && existing.callee_name.clone().eq(callee_name.clone()) {
+            let merged = contract_resolved_call::ResolvedCall_completed(
+                existing,
+                owner_name,
+                function_id,
+                mono_instance_id
+            )
+            env.resolved_calls.set(i, merged)
             return
         }
         i = i + 1
     }
-    env.resolved_call_owners.push(contract_resolved_call::ResolvedCallOwner_new(
+    env.resolved_calls.push(contract_resolved_call::ResolvedCall_new(
             env.current_decl_index,
             env.current_body_child_index,
             span_start,
             callee_name,
-            owner_name
+            owner_name,
+            function_id,
+            mono_instance_id
         ))
 }
 

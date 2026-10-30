@@ -1,0 +1,28 @@
+//! Regression guard for #934 item 1: declaration identity, not declaration
+//! order, decides a bare call.
+//!
+//! `import shapes` loads a same-named `measure` with a String contract before
+//! the entry module's `measure(i32)`. The bare `measure(41)` below must bind
+//! the entry declaration; binding the imported one is E0200 at the argument.
+//!
+//! The probe stays unreachable from `main`: MIR's flat module still keys every
+//! declaration by bare name, so emitting a call whose callee shares a bare
+//! name with a loaded declaration needs the per-call FunctionId handoff that
+//! follows this checker change (#933). The probe is still type-checked, so the
+//! declaration-identity contract is enforced at compile time.
+
+use std::host::stdio::Stdio
+import shapes
+
+fn measure(value: i32) -> i32 {
+    value + 1
+}
+
+fn shadow_probe() -> i32 {
+    measure(41)
+}
+
+fn main() {
+    let label: String = shapes::measure(String_from("x"))
+    Stdio::println(label)
+}

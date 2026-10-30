@@ -106,6 +106,8 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         prop_cache: post_pass_callee_cache::callee_prop_cache_build(m),
         resolved_call_index: name_index::NameIndex_empty(),
         resolved_call_owners: Vec::new<String>(),
+        resolved_call_function_ids: Vec::new<String>(),
+        resolved_call_mono_ids: Vec::new<String>(),
         current_body_decl_index: 0 - 1,
         current_body_child_index: 0 - 1,
         emit_ctx: ctx_record::SelfEmitCtx_new(
