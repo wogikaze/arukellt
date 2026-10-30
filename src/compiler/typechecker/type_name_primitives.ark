@@ -25,5 +25,12 @@ fn resolve_primitive_type_name(name: String) -> TypeInfo {
     if name.clone().eq("char") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_CHAR())
     }
+    // Compiler-internal print marker. It appears only as the type argument of
+    // `String<__Printable>` in the stdio declaration; the MIR sees the String
+    // base name and representation, and the checker uses the argument to
+    // recognize the emitter's scalar-to-String conversion boundary.
+    if name.clone().eq("__Printable") {
+        return contract_type_constructors::TypeInfo_named(commands::TY_STRUCT(), "__Printable")
+    }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
 }

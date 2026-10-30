@@ -26,17 +26,24 @@ impl Stdio {
     }
 
     /// Writes a string to stdout without appending a newline.
-    fn print(s: String) {
+    ///
+    /// `String<__Printable>` is the declared print boundary: the emitter
+    /// converts String, char, bool, i32, i64 and f64 arguments to String before
+    /// this call, so the parameter keeps those source types legal without
+    /// pretending a scalar is already a String. `__Printable` is an internal
+    /// marker type argument; the representation stays String and the
+    /// typechecker owns the accepted set.
+    fn print(s: String<__Printable>) {
         __intrinsic_print(s)
     }
 
     /// Writes a string to stdout and appends a newline.
-    fn println(s: String) {
+    fn println(s: String<__Printable>) {
         __intrinsic_println(s)
     }
 
     /// Writes a string to stderr and appends a newline.
-    fn eprintln(s: String) {
+    fn eprintln(s: String<__Printable>) {
         __intrinsic_eprintln(s)
     }
 }

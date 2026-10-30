@@ -13,6 +13,13 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         return type_ann_node::type_ann_function_ref_name(ann)
     }
     if type_ann_node::type_ann_is_generic(ann) {
+        // `String<__Printable>` is the checker-only print boundary marker;
+        // MIR must keep the plain String name/representation so the emitted
+        // function ABI stays a String reference.
+        if ann_name.clone().eq("String") ||
+        ann_name.clone().starts_with(String_from("String<")) {
+            return String_from("String")
+        }
         if ann_name.clone().eq("Vec") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(ann, 1)

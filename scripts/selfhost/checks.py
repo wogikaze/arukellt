@@ -374,6 +374,28 @@ def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
             path.write_text(patched, encoding="utf-8")
 
 
+def _patch_bootstrap_printable_boundary(overlay_root: Path) -> None:
+    """Spell the print boundary as String for the pinned compiler.
+
+    The checked-in ``Stdio::print(s: String<__Printable>)`` marks the emitter's
+    scalar-to-String conversion boundary. The pin predates the marker: it would
+    type the parameter as an unknown struct, while its own print lowering still
+    passes the converted String, so the stage-2 function ABI would not match the
+    call sites. The pin only has to build the compiler, so spell the boundary as
+    ``String`` in the overlay. Delete this patch when the pin knows the
+    ``__Printable`` marker (the next pin refresh).
+    """
+    stdio = overlay_root / "std" / "host" / "stdio.ark"
+    if not stdio.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing std/host/stdio.ark for the print boundary"
+        )
+    text = stdio.read_text(encoding="utf-8")
+    if "String<__Printable>" not in text:
+        return
+    stdio.write_text(text.replace("String<__Printable>", "String"), encoding="utf-8")
+
+
 def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
     """Reject an overlay that leaves a host clock read in an i32 timing slot.
 
@@ -4888,6 +4910,7 @@ def _prepare_flattened_selfhost_source_locked(
         shutil.copyfile(source_path, dest_path)
     _patch_bootstrap_wit_type_paths(overlay_root)
     _patch_bootstrap_host_env_paths(overlay_root)
+    _patch_bootstrap_printable_boundary(overlay_root)
     _assert_bootstrap_overlay_clock_reads_stubbed(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():

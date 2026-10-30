@@ -1914,9 +1914,9 @@ the ADR-014 migration window and are not the recommended source form.
 
 | Signature | Description |
 |-----------|-------------|
-| `print(s: String)` | Print without newline |
-| `println(s: String)` | Print with newline |
-| `eprintln(s: String)` | Print to stderr |
+| `Stdio::print(s)` | Print without newline. Accepts String, char, bool, i32, i64 or f64; scalar arguments are converted to String at the call. |
+| `Stdio::println(s)` | Print with newline. Same argument boundary as `print`. |
+| `Stdio::eprintln(s)` | Print to stderr. Same argument boundary as `print`. |
 
 ### 9.16 Host — File System (`std::host::fs`)
 
