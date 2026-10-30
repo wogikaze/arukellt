@@ -468,6 +468,76 @@ the bare `push` CoreOp alias. Those stay behind #935 and the #933 handoff;
 narrowing them without declaration identity would only move the false-pass to
 another name. Items 1, 3 (HashMap emitter) and 4 are unchanged.
 
+## Update (2026-10-31, `wave/decl-less-intrinsics`) — string/stdin/fs intrinsics have real declarations
+
+The remaining declaration-less intrinsics in `builtins::builtin_call_return_type`
+(apart from the two compiler-owned families below) now have sealed prelude
+declarations:
+
+- `std/prelude.ark` declares `__intrinsic_string_from_bytes(Vec<i32>) -> String`,
+  `__intrinsic_stdin_read_to_string() -> String`,
+  `__runtime_abi_fs_read_file(String) -> Result<String, String>`,
+  `__runtime_abi_fs_write_file(String, String) -> Result<(), String>` and
+  `__runtime_abi_fs_write_bytes(String, Vec<i32>) -> Result<(), String>`.
+  Each keeps a placeholder body that traps; MIR lowering already defers these
+  names through their `data/core-ops.toml` aliases, so the intrinsic handlers
+  still own the implementation. The declarations are the call contract: a
+  direct call now types from the signature and unifies every argument on the
+  ordinary concrete-call path (E0200 at the argument, E0203 for arity).
+- `src/compiler/typechecker/builtins.ark`: the four String-returning entries
+  and the three fs-returning entries are deleted. `string_from_bytes` and
+  `bytes::string_from_bytes` were retired names (E0100 migration hints), so
+  those entries were dead; the five live names resolve through the new
+  declarations instead.
+
+Remaining name-keyed return typing and why a declaration is not the right
+form yet:
+
+- `builtins_hash::hashmap_builtin_return_type` keeps the non-public `__hm_*`
+  storage bridge (5 key/value families × 12 operations) and the T3-only
+  `i31_box`/`__intrinsic_i31_box` pair. A declaration cannot be sealed today:
+  neither family has a `data/core-ops.toml` alias, and the wasm emitters lower
+  them by spelling. `mir_should_defer_stdlib_body` only defers names with a
+  CoreOp binding, and the pinned bootstrap compiler's deferral table is baked
+  into its wasm, so a prelude declaration would be lowered as a real function
+  (the placeholder body) instead of binding the bridge. Sealing them first
+  needs the #933 FunctionId → CoreOp handoff; hand-writing 60 stubs would also
+  duplicate the resolver registry and the target bucket ABI.
+- `builtins_simd::simd_builtin_call_return_type` keeps the `__simd_*` /
+  `__wasm_v128_*` lane families (237 spellings used by `std/simd`). Most have
+  CoreOp aliases, so declarations could be sealed, but each spelling has a
+  lane- and operation-specific signature (`splat`, `extract_lane`,
+  `replace_lane`, shifts, mask results, 16-argument `v128_const`) on the target
+  `v128` ABI, and the resolver registry is the spelling authority. A prelude
+  declaration per spelling would duplicate that 237-name registry; the family
+  derivation stays until SIMD gets nominal CoreOp signatures (ADR-037). This is
+  a deliberate residual, not a claim that no declaration is expressible.
+
+Fixtures:
+
+- `diagnostics/intrinsic_call_arg_type{,_wasm32}` assert E0200 for
+  `__intrinsic_string_from_bytes(1)`, `__runtime_abi_fs_read_file(1)`,
+  `__runtime_abi_fs_write_file(1, 2)` (both argument positions) and
+  `__runtime_abi_fs_write_bytes(String, i32)` on `wasm32-gc` and `wasm32`.
+- `intrinsics/intrinsic_declarations{,_wasm32}` call all five declarations with
+  the declared types, round-trip a file through the fs intrinsics and observe
+  the runner's closed stdin, on both targets.
+
+Evidence (current s2):
+
+- `selfhost build-compiler`: PASS, 52.6s.
+- `verify fixtures`: PASS=1969 FAIL=0 COMPILE_VALIDATE=1969 EXECUTED=114
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane`, `docs check` 6/6, `selfhost diag-parity`, `selfhost fixpoint`.
+- Fixpoint s2 == s3 = `9595ade34d486de362eba4a23ff8a18d57afb06360bdf8b08ab7971d2cccfc82`
+  on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+
+Acceptance movement: item 2 moves for the string/stdin/fs names (their
+name-keyed return-table entries are gone and their arguments are checked).
+Items 1, 3 and 4 are unchanged; the two family derivations above remain with
+the reasons recorded here.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

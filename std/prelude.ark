@@ -180,6 +180,37 @@ impl Std {
     }
 }
 
+// Sealed declarations for the intrinsic bridges that std and the compiler call
+// by name. Each name is registered as a resolver builtin and bound to a CoreOp
+// alias, so MIR lowering defers the placeholder body and emits the intrinsic
+// handler. The declaration is the call contract the typechecker unifies
+// against; without it the call was typed by a name-keyed return table and its
+// arguments were never checked (#936).
+fn __intrinsic_string_from_bytes(_bytes: Vec<i32>) -> String {
+    Std::panic(String_new())
+    String_new()
+}
+
+fn __intrinsic_stdin_read_to_string() -> String {
+    Std::panic(String_new())
+    String_new()
+}
+
+fn __runtime_abi_fs_read_file(_path: String) -> Result<String, String> {
+    Std::panic(String_new())
+    Err(String_new())
+}
+
+fn __runtime_abi_fs_write_file(_path: String, _contents: String) -> Result<(), String> {
+    Std::panic(String_new())
+    Err(String_new())
+}
+
+fn __runtime_abi_fs_write_bytes(_path: String, _bytes: Vec<i32>) -> Result<(), String> {
+    Std::panic(String_new())
+    Err(String_new())
+}
+
 // =============================================================================
 // Legacy compatibility bodies. The remaining private `__core_*` functions are
 // core-op fallbacks; their public prelude wrappers were deleted in the
