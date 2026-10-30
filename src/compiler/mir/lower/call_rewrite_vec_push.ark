@@ -36,7 +36,7 @@ fn mir_rewrite_vec_push(
     second_arg_idx: i32,
     stage_call_args: bool
 ) -> MirVecPushRewrite {
-    let mut rewritten = callee_name
+    let mut rewritten = callee_name.clone()
     let mut push_i64_needs_extend = false
     let mut is_owner_resolved_push = false
     if is_prelude_push_name(rewritten.clone()) && span_start != 0 {
