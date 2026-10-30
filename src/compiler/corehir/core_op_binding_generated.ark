@@ -1,5 +1,4 @@
-// Generated from data/core-ops.toml legacy_bindings +
-// legacy_binding_patterns + std/manifest.toml.
+// Generated from data/core-ops.toml legacy_bindings + std/manifest.toml.
 // Compact table + index. Do not edit by hand.
 
 use std::prelude::{byte_at, substring}
@@ -8,10 +7,6 @@ use corehir::table_blob
 
 fn core_op_binding_count() -> i32 {
     652
-}
-
-fn core_op_binding_pattern_count() -> i32 {
-    0
 }
 
 fn core_op_binding_callee_off_hex_chunk(chunk: i32) -> String {
@@ -342,18 +337,6 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
     return out
 }
 
-fn core_op_binding_pattern_at(index: i32) -> String {
-    return String_new()
-}
-
-fn core_op_binding_pattern_core_op_id_at(index: i32) -> String {
-    return String_new()
-}
-
-fn core_op_binding_pattern_requires_nonempty_suffix_at(index: i32) -> bool {
-    return true
-}
-
 fn core_op_binding_bucket_hex_chunk(chunk: i32) -> String {
     if chunk == 0 { return "ffffffffc9010000fffffffffffffffffffffffffffffffff7000000ffffffff78020000ffffffffffffffffffffffffffffffffffffffff3f010000ffffffffffffffffffffffff" }
     if chunk == 1 { return "ffffffff19020000ffffffffffffffffffffffff4d020000ffffffffffffffff47020000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
@@ -514,40 +497,10 @@ fn core_op_binding_lookup_callee(name: String) -> i32 {
     return 0 - 1
 }
 
-fn core_op_binding_core_op_id_for_callee_exact(callee: String) -> String {
+fn core_op_binding_core_op_id_for_callee(callee: String) -> String {
     let index = core_op_binding_lookup_callee(callee.clone())
     if index < 0 {
         return String_new()
     }
     return core_op_binding_core_op_id_at(index)
-}
-
-fn core_op_binding_core_op_id_for_callee_family(callee: String) -> String {
-    let count = core_op_binding_pattern_count()
-    let mut i = 0
-    while i < count {
-        let pattern = core_op_binding_pattern_at(i)
-        if starts_with(callee.clone(), pattern.clone()) {
-            let suffix_len = len(callee) - len(pattern)
-            if core_op_binding_pattern_requires_nonempty_suffix_at(i) && suffix_len <= 0 {
-                i = i + 1
-                continue
-            }
-            return core_op_binding_pattern_core_op_id_at(i)
-        }
-        i = i + 1
-    }
-    return String_new()
-}
-
-fn core_op_binding_core_op_id_for_callee(callee: String) -> String {
-    return core_op_binding_core_op_id_for_callee_exact(callee.clone())
-}
-
-fn core_op_binding_core_op_id_for_callee_exact_then_family(callee: String) -> String {
-    let exact = core_op_binding_core_op_id_for_callee_exact(callee.clone())
-    if len(exact) > 0 {
-        return exact
-    }
-    return core_op_binding_core_op_id_for_callee_family(callee.clone())
 }

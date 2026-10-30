@@ -172,25 +172,3 @@ def emit_string_table(name: str, values: list[str]) -> list[str]:
         ]
     )
     return lines
-
-
-def emit_bool_table(name: str, values: list[bool], default: bool = False) -> list[str]:
-    at_name = f"{name}_at"
-    if not values:
-        return [
-            f"fn {at_name}(index: i32) -> bool {{",
-            f"    return {'true' if default else 'false'}",
-            "}",
-            "",
-        ]
-    flag_name = f"{name}_flag"
-    lines = emit_i32_table(flag_name, [1 if value else 0 for value in values], default=1 if default else 0)
-    lines.extend(
-        [
-            f"fn {at_name}(index: i32) -> bool {{",
-            f"    return {flag_name}_at(index) != 0",
-            "}",
-            "",
-        ]
-    )
-    return lines
