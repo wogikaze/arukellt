@@ -193,14 +193,15 @@ fn return_index_type_name_for_impl(
         return type_name
     }
     let replaced = replace_self_in_type_name(type_name, self_name)
-    // A concrete HashSet<T> value is stored as its flat Vec<i32> / Vec<String>
-    // store. Emitting the nominal spelling here would make the MIR signature
-    // (and every call destination typed from it) a struct ref instead of the
-    // store alias that the method body actually returns (#917).
+    // A concrete HashSet<T> value is stored as its flat vec:i32 alias or as
+    // the String-keyed map's bucket store. Emitting the nominal spelling here
+    // would make the MIR signature (and every call destination typed from it)
+    // a struct ref instead of the store alias that the method body actually
+    // returns (#917).
     if replaced.clone().starts_with("HashSet") {
         let owner_name = decl_impl_target::impl_self_type_name(impl_node, known_type_names)
         if owner_name.clone().eq("HashSet_String") {
-            return String_from("vec:String")
+            return String_from("hashmap:si32")
         }
         if owner_name.clone().eq("HashSet_i32") {
             return String_from("vec:i32")

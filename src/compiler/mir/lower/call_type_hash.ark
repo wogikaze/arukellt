@@ -204,18 +204,19 @@ fn is_hash_vec_string_result(callee_name: String) -> bool {
     if callee_eq(callee_name.clone(), "hash_str_fn::hashmap_str_fn_keys") {
         return true
     }
-    // HashSet<String> set algebra returns a fresh Vec<String> store. The
-    // helpers are private to hash_string, so only the prefixed spelling exists.
+    false
+}
+
+// HashSet<String> set algebra returns a fresh String-keyed map store. The
+// helpers are private to hash_string, so only the prefixed spelling exists.
+fn is_hashset_str_store_result(callee_name: String) -> bool {
     if callee_eq(callee_name.clone(), "hash_string::hashset_str_union") {
         return true
     }
     if callee_eq(callee_name.clone(), "hash_string::hashset_str_intersection") {
         return true
     }
-    if callee_eq(callee_name.clone(), "hash_string::hashset_str_difference") {
-        return true
-    }
-    false
+    callee_eq(callee_name.clone(), "hash_string::hashset_str_difference")
 }
 
 // values()/entries() snapshot results: the callee name fixes the Vec element
@@ -510,12 +511,15 @@ fn mark_hash_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32)
     if is_hash_vec_string_result(callee_name.clone()) {
         mark_hash_type_ref(ctx, dest, "vec:String")
     }
+    if is_hashset_str_store_result(callee_name.clone()) {
+        mark_hash_type_ref(ctx, dest, "hashmap:si32")
+    }
     let snapshot_ty = hash_snapshot_vec_type_name(callee_name.clone())
     if len(snapshot_ty) > 0 {
         mark_hash_type_ref(ctx, dest, snapshot_ty)
     }
     if callee_eq(callee_name.clone(), "hashset_str_new") {
-        mark_hash_type_ref(ctx, dest, "vec:String")
+        mark_hash_type_ref(ctx, dest, "hashmap:si32")
     }
     mark_hash_query_result_type(ctx, callee_name, dest)
 }

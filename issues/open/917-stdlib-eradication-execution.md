@@ -1810,3 +1810,53 @@ classified there, in dependency-safe waves.
   parity remain deferred with the collection iterator design. The
   `HashSet<String>` capacity boundary and the pair-generic
   `removed_hashmap_adapter*` hint are unchanged.
+
+### Landed slice (wave/hashset-capacity, 2026-10-30)
+
+- **Feasibility**: yes. The String set store functions already lowered to a
+  linear `Vec<String>`, but the String-keyed `HashMap<String, i32>` store in
+  `hash_string.ark` owns a real open-addressing bucket layout
+  (`keys`/`values`/`flags` arrays behind the `__hm_si_*` bridge) and its
+  capacity / rehash group landed in 934f224dd. Set membership is exactly the
+  map's key probe, so the String set can be a key view over that store with
+  the value slot fixed at 0; no new runtime primitive was needed. The
+  representation flip was validated against the existing String-set fixtures
+  on wasm32 and wasm32-gc before the capacity surface was exposed.
+- **Landed**: `capacity`, `reserve`, `try_reserve`, and `shrink_to_fit` now
+  lower for `HashSet<String>`; `clear`, `extend`, `to_vec`, the set algebra,
+  and the ADR-086 trait impls move to the same bucket store. `HashSet<i32>`
+  also gains `try_reserve`, so both element families expose the same capacity
+  group. `HashSet<String>::to_vec`, `Clone`, `Debug`, and iteration snapshot in
+  bucket order, which is implementation-defined.
+- **Lowering**: `hashset_str_*` store targets take `HashMap<String, i32>` and
+  delegate to the map helpers (`hashmap_str_contains`, `hashmap_str_set`,
+  `hashmap_str_remove`, `hashmap_str_capacity`, `hashmap_str_reserve`,
+  `hashmap_str_try_reserve`, `hashmap_str_shrink_to_fit`,
+  `hashmap_str_clear`, `hashmap_str_i32_keys`). The compiler maps the String
+  set storage alias from `vec:String` to `hashmap:si32` in
+  `param_shape_local`, `return_type_name`, `return_typeinfo_names`,
+  `call_type_fallback`, `call_type_hash`, and `call_rewrite_hashset`; GC
+  signature overrides in `sections_types_gc_override` emit the
+  `hashmap_str_i32` ref for the set store and return positions;
+  `ctx_gc_type_locals` no longer forces every Vec intrinsic in
+  `hashset_str_*` to String.
+- **Removed**: the `HashSet<String>` capacity E0200 boundary and its nine
+  diagnostics files (`hashset_string_capacity*`,
+  `hashset_string_reserve*`, `hashset_string_shrink_to_fit*`). The family
+  guard remains for future family-specific methods.
+- **Fixtures**: added dual-target
+  `stdlib_hashset/hashset_string_capacity` (+ `_wasm32`), and extended
+  `hashset_family_split`, `hashset_methods`, and their `_wasm32` variants with
+  String capacity / `try_reserve` assertions. Registry 3591 -> **3589**.
+- **Verification**: `verify fixtures` **1936/1936** compile+validate PASS
+  (111 runtime executed, 41/41 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `selfhost build-compiler` 58.4 s; `docs check` 6/6;
+  `selfhost diag-parity` PASS; `verify lane` PASS; ADR-029 fixpoint PASS,
+  s2 == s3 sha256
+  `d6df7faabcc069bdf3f534c298fa08764e4b1a1c70e52f7209e6f2a549348895`
+  (pinned base `56ff0808…`). The new capacity fixture and the updated family
+  split fixture ran on wasm32-gc as P2 components and on `--target wasm32`.
+- **Residuals**: `HashSet::with_capacity` is not part of the source surface
+  yet, so construction still starts at the store default; borrowed
+  `entry` / `iter` / `retain`, `FromIterator` parity, and a true unit-value
+  (`()`) set representation remain deferred.

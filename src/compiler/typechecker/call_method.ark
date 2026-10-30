@@ -219,10 +219,10 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
 // `impl HashSet<i32>` and `impl HashSet<String>` are separate method surfaces
 // over different stores. The mangled owner already carries the receiver's
 // family (`HashSet_String`), so a name that exists only under the other family
-// must stop here instead of continuing into bare-name and Vec lookups. Those
-// lookups lower the i32 bucket helpers (`hashset_capacity` / `hashset_reserve`
-// / `hashset_shrink_to_fit`) over the linear Vec<String> store, which has no
-// bucket layout (#917).
+// must stop here instead of continuing into bare-name and Vec lookups that
+// would run the wrong store. The capacity group is now declared on both
+// families because the String set shares the String-keyed map's bucket
+// layout; the guard remains for future family-specific methods (#917).
 fn reject_hashset_method_outside_family(
     mut env: TypeEnv,
     fn_sigs: Vec<FnSig>,

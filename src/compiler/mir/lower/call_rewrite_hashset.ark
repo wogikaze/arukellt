@@ -2,11 +2,12 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_return_type
 
 // `impl HashSet<i32>` / `impl HashSet<String>` are the concrete type surfaces
-// over the flat stores in std::collections.hash and hash_string. Calls can
-// arrive as the monomorphized constructor (HashSet__new__i32), as an impl
-// method (HashSet_i32::insert), or as a bare method name. The HashSet local
-// marker distinguishes `len` / `is_empty` from the Vec core-op rewrites that
-// share those names, and selects the i32 or String store (#917).
+// over the flat vec:i32 store in std::collections.hash and the
+// HashMap<String, i32> bucket store in hash_string. Calls can arrive as the
+// monomorphized constructor (HashSet__new__i32), as an impl method
+// (HashSet_i32::insert), or as a bare method name. The HashSet local marker
+// distinguishes `len` / `is_empty` from the Vec core-op rewrites that share
+// those names, and selects the i32 or String store (#917).
 fn hashset_constructor_family(callee_name: String) -> String {
     if callee_name.clone().eq(String_from("HashSet__new__i32")) ||
     callee_name.clone().eq(String_from("HashSet::new__i32")) ||
@@ -33,7 +34,7 @@ fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
 }
 
 // Constructor target type for the AST edge walk: the store function returns
-// Vec<i32> / Vec<String>, but the source expression keeps the set type so
+// vec:i32 / hashmap:si32, but the source expression keeps the set type so
 // receiver-type dispatch still sees a HashSet (#917).
 fn mir_hashset_constructor_type_name(callee_name: String) -> String {
     if callee_name.clone().eq(String_from("HashSet__new__i32")) ||
@@ -54,6 +55,7 @@ fn hashset_family_for_type(type_name: String) -> String {
     }
     if type_name.clone().eq(String_from("HashSet<String>")) ||
     type_name.clone().eq(String_from("HashSet_String")) ||
+    type_name.clone().eq(String_from("hashmap:si32")) ||
     type_name.clone().eq(String_from("vec:String")) {
         return String_from("String")
     }
@@ -154,6 +156,9 @@ fn hashset_i32_method_target(method: String) -> String {
     if method.clone().eq(String_from("reserve")) {
         return String_from("hashset_reserve")
     }
+    if method.clone().eq(String_from("try_reserve")) {
+        return String_from("hashset_try_reserve")
+    }
     if method.clone().eq(String_from("shrink_to_fit")) {
         return String_from("hashset_shrink_to_fit")
     }
@@ -171,9 +176,9 @@ fn hashset_str_method_target(method: String) -> String {
         return String_from("hashset_str_new")
     }
     // ADR-086 trait methods for the String store. As with the i32 family, the
-    // flat Vec<String> alias would otherwise win the method rewrite, so route
-    // them to the concrete impls. `to_vec` is the snapshot accessor those
-    // impls share; it lives in hash_string as a private lowering target.
+    // hashmap:si32 alias or Vec cursor would otherwise win the method rewrite,
+    // so route them to the concrete impls. `to_vec` is the snapshot accessor
+    // those impls share; it lives in hash_string as a private lowering target.
     if method.clone().eq(String_from("clone")) {
         return String_from("HashSet_String::clone")
     }
@@ -200,6 +205,21 @@ fn hashset_str_method_target(method: String) -> String {
     }
     if method.clone().eq(String_from("difference")) {
         return String_from("hash_string::hashset_str_difference")
+    }
+    // The capacity group shares the String-keyed map's bucket counters and
+    // load-factor rehash. The targets are bare store names, like the
+    // membership functions.
+    if method.clone().eq(String_from("capacity")) {
+        return String_from("hashset_str_capacity")
+    }
+    if method.clone().eq(String_from("reserve")) {
+        return String_from("hashset_str_reserve")
+    }
+    if method.clone().eq(String_from("try_reserve")) {
+        return String_from("hashset_str_try_reserve")
+    }
+    if method.clone().eq(String_from("shrink_to_fit")) {
+        return String_from("hashset_str_shrink_to_fit")
     }
     if method.clone().eq(String_from("clear")) {
         return String_from("hash_string::hashset_str_clear")
@@ -280,11 +300,11 @@ fn is_hashset_returning_target(callee_name: String) -> bool {
     len(hashset_returning_family(callee_name)) > 0
 }
 
-// The `for` desugar resolves the iterator owner from the flat local type
-// (`vec:i32` / `vec:String`), which would pick the Vec cursor over the set's
-// snapshot. The HashSet marker selects the concrete IntoIterator impl for
-// both stores; that impl snapshots through `to_vec` and hides the bucket
-// layout of the i32 store from the loop.
+// The `for` desugar resolves the iterator owner from the storage alias
+// (`vec:i32` / `hashmap:si32`), which would pick the container's own cursor
+// over the set's snapshot. The HashSet marker selects the concrete
+// IntoIterator impl for both stores; that impl snapshots through `to_vec` and
+// hides the bucket layout from the loop.
 fn hashset_into_iter_target(family: String) -> String {
     if family.clone().eq(String_from("i32")) {
         return String_from("HashSet_i32::into_iter")
@@ -312,8 +332,8 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
         // A marked receiver fixes the family for its whole method surface.
         // Do not continue into the spelling-derived table below: mono lookup
         // can rewrite a String-set call to `HashSet__reserve__i32`, whose i32
-        // bucket target would then run over the linear Vec<String> store. An
-        // empty result leaves the call unresolved instead of crossing
+        // flat-store target would then run over the String-keyed bucket store.
+        // An empty result leaves the call unresolved instead of crossing
         // families (#917).
         return hashset_method_target_for_family(
             family.clone(),
@@ -337,7 +357,8 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
         // These names have no Vec counterpart; `len` / `is_empty` do, and the
         // String store's own `hashset_str_len` body calls `len(s)`, so they
         // stay marker-only to avoid rewriting the implementation to itself.
-        if receiver_type.clone().eq(String_from("vec:String")) {
+        if receiver_type.clone().eq(String_from("vec:String")) ||
+        receiver_type.clone().eq(String_from("hashmap:si32")) {
             return hashset_str_method_target(method)
         }
         if receiver_type.clone().eq(String_from("vec:i32")) {
@@ -376,11 +397,11 @@ fn mark_hashset_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     if len(returning_family.clone()) > 0 {
         ctx_api_local_types::ctx_mark_hashset_local(ctx, dest, returning_family.clone())
         // The concrete impl declares `HashSet<T>` as its return type, but the
-        // value is the flat Vec store. Without the store alias the generic
-        // fallback resolves `HashSet<i32>` as a String-like ref and the call
-        // result cannot be passed to the store functions (#917).
+        // value is the store alias. Without it the generic fallback resolves
+        // `HashSet<String>` as a String-like ref and the call result cannot be
+        // passed to the store functions (#917).
         if returning_family.clone().eq(String_from("String")) {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("hashmap:si32"))
         } else {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
         }
@@ -413,10 +434,12 @@ test mod "hashset_rewrite" {
         assert(hashset_method_target_for_family("String", "difference") == "hash_string::hashset_str_difference")
         assert(hashset_method_target_for_family("String", "clear") == "hash_string::hashset_str_clear")
         assert(hashset_method_target_for_family("String", "extend") == "hash_string::hashset_str_extend")
-        // The String store has no bucket capacity to report or reserve.
-        assert(len(hashset_method_target_for_family("String", "capacity")) == 0)
-        assert(len(hashset_method_target_for_family("String", "reserve")) == 0)
-        assert(len(hashset_method_target_for_family("String", "shrink_to_fit")) == 0)
+        // The String set shares the String-keyed map's bucket counters.
+        assert(hashset_method_target_for_family("String", "capacity") == "hashset_str_capacity")
+        assert(hashset_method_target_for_family("String", "reserve") == "hashset_str_reserve")
+        assert(hashset_method_target_for_family("String", "try_reserve") == "hashset_str_try_reserve")
+        assert(hashset_method_target_for_family("String", "shrink_to_fit") == "hashset_str_shrink_to_fit")
+        assert(hashset_method_target_for_family("i32", "try_reserve") == "hashset_try_reserve")
     }
     test "into_iter_targets" {
         assert(hashset_into_iter_target("i32") == "HashSet_i32::into_iter")

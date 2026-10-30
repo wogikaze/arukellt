@@ -16,6 +16,29 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `HashSet<String>` の bucket capacity 表面 (#917, wave/hashset-capacity)
+
+- **Changed**: `HashSet<String>` を独立した `Vec<String>` facade から、
+  String-keyed `HashMap<String, i32>` bucket store の key view へ移した。
+  membership は同じ keys/flags 配列を使い、value slot は常に 0、capacity 群は
+  map の counters と 0.75 load-factor rehash を共有する。`capacity` /
+  `reserve` / `try_reserve` / `shrink_to_fit` を `HashSet<String>` に追加し、
+  既存の `clear` / `extend` / set algebra も同じ store 上で lower する。
+  `HashSet<i32>` にも `try_reserve` を追加し、両 element family の capacity
+  表面を揃えた。
+- **Contract**: `try_reserve` の `true` は reserve 完了を意味する。String set の
+  `to_vec` / `IntoIterator` / `Clone` / `Debug` は bucket order
+  （implementation-defined）で snapshot し、順序は保証しない。
+- **Removed**: `HashSet<String>` の capacity に対する E0200 境界と、診断
+  fixture `diagnostics/hashset_string_capacity*` /
+  `hashset_string_reserve` / `hashset_string_shrink_to_fit`。family 分岐の
+  拒否機構自体は将来の family 固有 method 用に残る。
+- **Fixtures**: `stdlib_hashset/hashset_string_capacity` と
+  `_wasm32` variant を追加し、`hashset_family_split` / `hashset_methods` を
+  両 family の capacity coverage へ更新した。
+- **Residual**: borrow-based `entry` / `iter` / `retain` /
+  `FromIterator` parity と、`with_capacity` 付き `HashSet` 構築は未対応。
+
 ## 2026-10-30 — `HashMap<K, V>` capacity / bulk surface の全 pair 展開 (#917, wave/hashmap-generic)
 
 - **Changed**: `with_capacity` / `capacity` / `reserve` / `try_reserve` /

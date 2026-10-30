@@ -108,6 +108,7 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
         // own `len` / `is_empty` stay on the hash store (#917).
         let mut family = String_from("i32")
         if local_type_name.clone().eq(String_from("vec:String")) ||
+        local_type_name.clone().eq(String_from("hashmap:si32")) ||
         p_type_name.clone().starts_with(String_from("HashSet<String>")) ||
         p_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")
@@ -188,14 +189,16 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
     ctx_push_func_param(ctx, local_factory::MirLocal_new("self", self_vt, self_sig_type_name.clone()))
     ctx_set_local_type(ctx, self_local, self_local_type_name.clone())
     if struct_name.clone().starts_with("HashSet") {
-        // The set receiver is a flat Vec alias. The marker is what keeps
-        // `len` / `is_empty` on the hash store instead of the Vec core-op
-        // rewrites; the element family selects the i32 or String store.
+        // The set receiver is a store alias. The marker keeps `len` /
+        // `is_empty` on the hash store instead of the Vec core-op rewrites;
+        // the element family selects the vec:i32 or hashmap:si32 store.
         // Concrete impl owners reach here as HashSet_i32 / HashSet_String,
         // generic shells as HashSet (#917).
         let mut family = String_from("i32")
         if self_type_name.clone().eq(String_from("vec:String")) ||
+        self_type_name.clone().eq(String_from("hashmap:si32")) ||
         local_type_name.clone().eq(String_from("vec:String")) ||
+        local_type_name.clone().eq(String_from("hashmap:si32")) ||
         self_type_name.clone().starts_with(String_from("HashSet<String>")) ||
         self_type_name.clone().starts_with(String_from("HashSet_String")) {
             family = String_from("String")

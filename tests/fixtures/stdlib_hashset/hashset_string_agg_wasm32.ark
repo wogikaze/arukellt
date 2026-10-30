@@ -1,4 +1,4 @@
-// HashSet<String> aggregate set algebra over the Vec<String> store (#917).
+// HashSet<String> aggregate set algebra over the String-keyed map bucket store (#917).
 use std::collections::hash_set::HashSet
 use std::test::Test
 

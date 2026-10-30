@@ -46,6 +46,7 @@ fn main() {
     let capacity_before: i32 = s.capacity()
     s.reserve(20)
     Test::assert_true(s.capacity() > capacity_before)
+    Test::assert_true(s.try_reserve(1))
     Test::assert_eq_i32(s.len(), 2)
     s.shrink_to_fit()
     Test::assert_eq_i32(s.len(), 2)
@@ -96,6 +97,15 @@ fn main() {
     Test::assert_false(words.contains("cherry"))
     Test::assert_true(words.remove("banana"))
     Test::assert_false(words.remove("banana"))
+    Test::assert_eq_i32(words.len(), 1)
+    Test::assert_true(words.contains("apple"))
+
+    let word_capacity: i32 = words.capacity()
+    words.reserve(20)
+    Test::assert_true(words.capacity() > word_capacity)
+    Test::assert_true(words.try_reserve(1))
+    Test::assert_eq_i32(words.len(), 1)
+    words.shrink_to_fit()
     Test::assert_eq_i32(words.len(), 1)
     Test::assert_true(words.contains("apple"))
 }

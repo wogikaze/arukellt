@@ -1,0 +1,38 @@
+// HashSet<String> is a key view over the String-keyed HashMap bucket store,
+// so the capacity group reports and rehashes the real bucket arrays (#917).
+use std::collections::hash_set::HashSet
+use std::test::Test
+
+fn main() {
+    let mut s: HashSet<String> = HashSet::new<String>()
+    Test::assert_true(s.capacity() >= 1)
+
+    let before: i32 = s.capacity()
+    Test::assert_true(s.insert("red"))
+    s.reserve(20)
+    Test::assert_true(s.capacity() > before)
+    Test::assert_eq_i32(s.len(), 1)
+    Test::assert_true(s.contains("red"))
+    Test::assert_true(s.try_reserve(1))
+
+    let grown: i32 = s.capacity()
+    s.shrink_to_fit()
+    Test::assert_true(s.capacity() <= grown)
+    Test::assert_eq_i32(s.len(), 1)
+    Test::assert_true(s.contains("red"))
+
+    // Growth keeps every member reachable through the bucket probe.
+    let mut many: HashSet<String> = HashSet::new<String>()
+    let mut index: i32 = 0
+    while index < 40 {
+        let _ = many.insert("value".concat(index.to_string()))
+        index = index + 1
+    }
+    Test::assert_eq_i32(many.len(), 40)
+    Test::assert_true(many.contains("value0"))
+    Test::assert_true(many.contains("value39"))
+
+    s.clear()
+    Test::assert_true(s.is_empty())
+    Test::assert_eq_i32(s.len(), 0)
+}

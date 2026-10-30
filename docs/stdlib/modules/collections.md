@@ -135,21 +135,18 @@ _No manifest-backed functions in this module._
 std::collections::hash_set — `HashSet<i32>` / `HashSet<String>` type surface
 
 `HashSet::new<T>()` plus the receiver methods are the canonical spelling for
-the flat `i32` set store in `std::collections::hash` and the `Vec<String>`
-facade in `std::collections::hash_string`. MIR rewrites the shell calls to
-the store functions, so the shell bodies never recurse at runtime.
+the flat `i32` set store in `std::collections::hash` and the String-keyed
+bucket store in `std::collections::hash_string`. MIR rewrites the shell
+calls to the store functions, so the shell bodies never recurse at runtime.
 
 The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
-`capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend`) are available on
-`HashSet<i32>`. `HashSet<String>` exposes the membership surface, the
-`to_vec` snapshot that backs its trait impls, and `union` / `intersection`
-/ `difference` / `clear` / `extend` over the `Vec<String>` store.
-`capacity` / `reserve` / `shrink_to_fit` stay `i32`-only: the String store
-is a linear `Vec<String>` with no bucket layout, so it has no capacity to
-report or reserve. Method lookup is family-aware and rejects those calls
-on `HashSet<String>` with `E0200` instead of resolving the i32 impl. Both
-element families implement
-`FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and `Debug`.
+`capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`)
+are available on both element families. `HashSet<String>` is a key view
+over the `HashMap<String, i32>` bucket store: membership uses the same
+keys/flags arrays, the value slot is always 0, and the capacity group
+reuses the map's 0.75 load-factor machinery. Both element families
+implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
+`Debug`.
 
 The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 #917; this module's only public symbols are `HashSet` and its methods.
@@ -161,7 +158,7 @@ required.
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
+| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
 
 _No manifest-backed functions in this module._
 

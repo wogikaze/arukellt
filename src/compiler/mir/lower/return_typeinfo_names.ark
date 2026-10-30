@@ -241,6 +241,12 @@ fn mir_struct_return_type_name_from_type_info(ty: TypeInfo) -> String {
         return mir_vec_return_type_name_from_type_info(ty)
     }
     if name.clone().eq(String_from("HashSet")) {
+        if typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
+            let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+            if mir_return_tag_from_type_info(elem) == 5 {
+                return String_from("hashmap:si32")
+            }
+        }
         return mir_vec_return_type_name_from_type_info(ty)
     }
     if name.clone().eq(String_from("HashMap")) {

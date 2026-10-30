@@ -2321,8 +2321,8 @@ replacement for the old `*_insert` adapters.
 ### HashSet<i32> / HashSet<String> Methods
 
 `HashSet<i32>` is the canonical surface for membership and aggregate
-operations over the flat hash set store, and `HashSet<String>` covers the
-membership lane over the `Vec<String>` store (#917). The 20
+operations over the flat hash store, and `HashSet<String>` is a key view over
+the String-keyed `HashMap` bucket store (#917). The 20
 `hash_set::hashset_i32_*` / `hash_set::hashset_str_*` adapters were retired on
 2026-10-27; qualified calls now fail resolution with an E0100 hint that points
 at the method surface.
@@ -2364,16 +2364,15 @@ for both families, so `for value in set` yields the set members, not the flat
 bucket layout.
 
 `HashSet<String>` also covers `union`, `intersection`, `difference`, `clear`,
-and `extend` over the same `Vec<String>` store. The algebra returns a new set
-and leaves both operands intact, and `extend` inserts from a snapshot, so
-`s.extend(s)` terminates. `capacity` / `reserve` / `shrink_to_fit` remain
-`i32`-only: the String store is a linear `Vec<String>` with no bucket layout,
-so it has no capacity to report or reserve. Method lookup is family-aware, so
-a call on a `HashSet<String>` is rejected at typecheck with `E0200`
-(``method `capacity` is not available on `HashSet<String>`; it is defined only
-for `HashSet<i32>```) instead of resolving to the i32 store helper and
-trapping at runtime. There is no `hash_set::` replacement gap here — those
-adapters were retired with the rest.
+and `extend` over the same bucket store. The algebra returns a new set and
+leaves both operands intact, and `extend` inserts from a snapshot, so
+`s.extend(s)` terminates. Both element families expose `capacity`,
+`reserve`, `try_reserve`, and `shrink_to_fit`; for `HashSet<String>` they
+reuse the String-keyed map's bucket counters and 0.75 load-factor rehash, so
+no call resolves to a mismatched store helper. `try_reserve` returns `bool`
+and `true` means the reserve completed, matching `HashMap`. There is no
+`hash_set::` replacement gap here — those adapters were retired with the
+rest.
 
 **Before:**
 

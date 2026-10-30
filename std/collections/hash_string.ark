@@ -13,6 +13,12 @@
 //! Linear-target stores share the flat bucket layout, so those targets reach
 //! the same counters through the `__hm_*` bridge; wasm32-gc allocates and
 //! adopts its parallel arrays through the same bridge.
+//!
+//! `HashSet<String>` is a key view over that same `HashMap<String, i32>`
+//! store: its membership operations use the keys/flags arrays, the value slot
+//! is always 0, and its capacity group delegates to the map targets. The set
+//! surface therefore has a real bucket capacity rather than a parallel
+//! `Vec<String>` facade.
 
 use std::core::hash
 fn hm_si_clear_slots(m: HashMap<String, i32>, cap: i32) {
@@ -979,106 +985,81 @@ fn hashmap_str_str_extend(m: HashMap<String, String>, other: HashMap<String, Str
     }
 }
 
-// ─── HashSet<String> API (linear scan over Vec<String>) ──────────────────────
+// ─── HashSet<String> — key view over the HashMap<String, i32> bucket store ──
+// The set keeps no separate layout: membership lives in the same keys/flags
+// arrays as HashMap<String, i32>, the value slot is always 0, and capacity /
+// reserve / try_reserve / shrink_to_fit reuse the map's 0.75 load-factor
+// machinery. These are private MIR lowering targets for `impl HashSet<String>`,
+// not public free functions (ADR-046).
 
-fn vec_string_index_of(items: Vec<String>, value: String) -> i32 {
-    let mut i: i32 = 0
-    while i < len(items) {
-        if get_unchecked(items, i).eq(value) {
-            return i
-        }
-        i = i + 1
-    }
-    -1
+fn hashset_str_new() -> HashMap<String, i32> {
+    hashmap_str_i32_new()
 }
 
-fn vec_string_remove_at(mut items: Vec<String>, index: i32) {
-    let n: i32 = len(items)
-    let mut i: i32 = index
-    while i < n - 1 {
-        set(items, i, get_unchecked(items, i + 1))
-        i = i + 1
-    }
-    let _last: Option<String> = pop(items)
-}
-
-fn hashset_str_new() -> Vec<String> {
-    Vec::new<String>()
-}
-
-fn hashset_str_insert(mut s: Vec<String>, value: String) -> bool {
-    if vec_string_index_of(s, value.clone()) >= 0 {
+fn hashset_str_insert(m: HashMap<String, i32>, value: String) -> bool {
+    if hashmap_str_contains(m, value.clone()) {
         false
     } else {
-        push(s, value)
+        let _stored: bool = hashmap_str_set(m, value, 0)
         true
     }
 }
 
-fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
-    vec_string_index_of(s, value) >= 0
+fn hashset_str_contains(m: HashMap<String, i32>, value: String) -> bool {
+    hashmap_str_contains(m, value)
 }
 
-fn hashset_str_remove(mut s: Vec<String>, value: String) -> bool {
-    let idx: i32 = vec_string_index_of(s, value)
-    if idx < 0 {
-        false
-    } else {
-        vec_string_remove_at(s, idx)
-        true
+fn hashset_str_remove(m: HashMap<String, i32>, value: String) -> bool {
+    match hashmap_str_remove(m, value) {
+        Option::Some(_) => true,
+        Option::None => false,
     }
 }
 
-fn hashset_str_len(s: Vec<String>) -> i32 {
-    len(s)
+fn hashset_str_len(m: HashMap<String, i32>) -> i32 {
+    hashmap_str_len(m)
 }
 
-fn hashset_str_is_empty(s: Vec<String>) -> bool {
-    len(s) == 0
+fn hashset_str_is_empty(m: HashMap<String, i32>) -> bool {
+    hashmap_str_is_empty(m)
 }
 
-/// Snapshot the `Vec<String>` set store for `HashSet<String>::to_vec` and the
-/// `IntoIterator` / `Clone` / `Debug` impls. Elements are cloned so a caller
-/// cannot observe later set mutation through the returned Vec. The order is
-/// the store's insertion order, not a hash bucket layout.
-fn hashset_str_to_vec(s: Vec<String>) -> Vec<String> {
-    let mut result: Vec<String> = Vec::new<String>()
+/// Snapshot the set members for `HashSet<String>::to_vec` and the
+/// `IntoIterator` / `Clone` / `Debug` impls. The keys are copied out of the
+/// occupied slots, so a caller cannot observe later set mutation through the
+/// returned Vec. The order is the store's bucket order, not insertion order.
+fn hashset_str_to_vec(m: HashMap<String, i32>) -> Vec<String> {
+    hashmap_str_i32_keys(m)
+}
+
+// ─── HashSet<String> aggregate and capacity operations ─────────────────────
+// The set-algebra helpers build a fresh key store from both operands; neither
+// operand is mutated. They are private MIR lowering targets for the
+// `impl HashSet<String>` methods, not public free functions (ADR-046).
+
+fn hashset_str_union(a: HashMap<String, i32>, b: HashMap<String, i32>) -> HashMap<String, i32> {
+    let mut result: HashMap<String, i32> = hashset_str_new()
+    let ak: Vec<String> = hashmap_str_i32_keys(a)
     let mut i: i32 = 0
-    while i < len(s) {
-        push(result, get_unchecked(s, i).clone())
+    while i < len(ak) {
+        let _ = hashset_str_insert(result, get_unchecked(ak, i))
         i = i + 1
     }
-    result
-}
-
-// ─── HashSet<String> aggregate operations ──────────────────────────────────
-// The set-algebra helpers build a fresh store from both operands; neither
-// operand is mutated, so elements enter the result through `clone`. They are
-// private MIR lowering targets for the `impl HashSet<String>` methods, not
-// public free functions (ADR-046). `capacity` / `reserve` / `shrink_to_fit`
-// have no counterpart here: the String store is a linear `Vec<String>` with no
-// bucket layout, so there is no capacity to report or reserve.
-
-fn hashset_str_union(a: Vec<String>, b: Vec<String>) -> Vec<String> {
-    let mut result: Vec<String> = hashset_str_new()
-    let mut i: i32 = 0
-    while i < len(a) {
-        let _ = hashset_str_insert(result, get_unchecked(a, i).clone())
-        i = i + 1
-    }
+    let bk: Vec<String> = hashmap_str_i32_keys(b)
     let mut j: i32 = 0
-    while j < len(b) {
-        let _ = hashset_str_insert(result, get_unchecked(b, j).clone())
+    while j < len(bk) {
+        let _ = hashset_str_insert(result, get_unchecked(bk, j))
         j = j + 1
     }
     result
 }
 
-fn hashset_str_intersection(a: Vec<String>, b: Vec<String>) -> Vec<String> {
-    let mut result: Vec<String> = hashset_str_new()
+fn hashset_str_intersection(a: HashMap<String, i32>, b: HashMap<String, i32>) -> HashMap<String, i32> {
+    let mut result: HashMap<String, i32> = hashset_str_new()
+    let ak: Vec<String> = hashmap_str_i32_keys(a)
     let mut i: i32 = 0
-    while i < len(a) {
-        let value: String = get_unchecked(a, i)
+    while i < len(ak) {
+        let value: String = get_unchecked(ak, i)
         if hashset_str_contains(b, value.clone()) {
             let _ = hashset_str_insert(result, value)
         }
@@ -1087,11 +1068,12 @@ fn hashset_str_intersection(a: Vec<String>, b: Vec<String>) -> Vec<String> {
     result
 }
 
-fn hashset_str_difference(a: Vec<String>, b: Vec<String>) -> Vec<String> {
-    let mut result: Vec<String> = hashset_str_new()
+fn hashset_str_difference(a: HashMap<String, i32>, b: HashMap<String, i32>) -> HashMap<String, i32> {
+    let mut result: HashMap<String, i32> = hashset_str_new()
+    let ak: Vec<String> = hashmap_str_i32_keys(a)
     let mut i: i32 = 0
-    while i < len(a) {
-        let value: String = get_unchecked(a, i)
+    while i < len(ak) {
+        let value: String = get_unchecked(ak, i)
         if !hashset_str_contains(b, value.clone()) {
             let _ = hashset_str_insert(result, value)
         }
@@ -1100,19 +1082,33 @@ fn hashset_str_difference(a: Vec<String>, b: Vec<String>) -> Vec<String> {
     result
 }
 
-fn hashset_str_clear(mut s: Vec<String>) {
-    while len(s) > 0 {
-        let _ = pop(s)
-    }
+fn hashset_str_capacity(m: HashMap<String, i32>) -> i32 {
+    hashmap_str_capacity(m)
 }
 
-fn hashset_str_extend(mut s: Vec<String>, other: Vec<String>) {
-    // Insert from a snapshot: growing the destination while iterating the
+fn hashset_str_reserve(m: HashMap<String, i32>, additional: i32) {
+    hashmap_str_reserve(m, additional)
+}
+
+fn hashset_str_try_reserve(m: HashMap<String, i32>, additional: i32) -> bool {
+    hashmap_str_try_reserve(m, additional)
+}
+
+fn hashset_str_shrink_to_fit(m: HashMap<String, i32>) {
+    hashmap_str_shrink_to_fit(m)
+}
+
+fn hashset_str_clear(m: HashMap<String, i32>) {
+    hashmap_str_clear(m)
+}
+
+fn hashset_str_extend(m: HashMap<String, i32>, other: HashMap<String, i32>) {
+    // Insert from a key snapshot: growing the destination while iterating the
     // source would not terminate for `s.extend(s)`.
-    let incoming: Vec<String> = hashset_str_to_vec(other)
+    let incoming: Vec<String> = hashmap_str_i32_keys(other)
     let mut i: i32 = 0
     while i < len(incoming) {
-        let _ = hashset_str_insert(s, get_unchecked(incoming, i))
+        let _ = hashset_str_insert(m, get_unchecked(incoming, i))
         i = i + 1
     }
 }

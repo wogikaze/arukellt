@@ -123,7 +123,10 @@ fn fn_param_local_type_name(
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
             if decl_ann_name::decl_ann_is_name(elem, String_from("String")) {
-                return String_from("vec:String")
+                // The String set shares the String-keyed map's bucket store,
+                // so its storage alias is hashmap:si32. Only the i32 set keeps
+                // the flat vec:i32 layout (#917).
+                return String_from("hashmap:si32")
             }
             return String_from("vec:i32")
         }
@@ -211,7 +214,10 @@ fn method_param_local_type_name(
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
             if decl_ann_name::decl_ann_is_name(elem, String_from("String")) {
-                return String_from("vec:String")
+                // The String set shares the String-keyed map's bucket store,
+                // so its storage alias is hashmap:si32. Only the i32 set keeps
+                // the flat vec:i32 layout (#917).
+                return String_from("hashmap:si32")
             }
             return String_from("vec:i32")
         }

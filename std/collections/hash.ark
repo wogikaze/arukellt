@@ -535,6 +535,12 @@ fn hashset_reserve(mut s: Vec<i32>, additional: i32) {
     hashmap_reserve(s, additional)
 }
 
+/// Fallible reserve facade over the flat store. The store has no recoverable
+/// allocation-error channel, so `true` means the reserve completed.
+fn hashset_try_reserve(mut s: Vec<i32>, additional: i32) -> bool {
+    hashmap_try_reserve(s, additional)
+}
+
 /// Shrink the set to the minimum capacity preserving the load-factor invariant.
 fn hashset_shrink_to_fit(mut s: Vec<i32>) {
     hashmap_shrink_to_fit(s)

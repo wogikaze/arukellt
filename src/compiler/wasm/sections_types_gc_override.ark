@@ -10,10 +10,10 @@ fn gc_param_is_scalar_type_name(type_name: String) -> bool {
     type_name.clone().eq("u32")
 }
 
-// The String set-algebra helpers take a second Vec<String> operand. Their
-// "hashset_str_" prefix only restates param 0, so the second operand would
-// otherwise fall through to the scalar signature. `insert` / `remove` take a
-// String second param and must not match.
+// The String set-algebra helpers take a second String-keyed map operand
+// (the set's bucket store). Their "hashset_str_" prefix only restates param 0,
+// so the second operand would otherwise fall through to the scalar signature.
+// `insert` / `remove` take a String second param and must not match.
 fn gc_is_hashset_str_pair_store(fn_name: String) -> bool {
     fn_name.clone().ends_with(String_from("hashset_str_union")) ||
     fn_name.clone().ends_with(String_from("hashset_str_intersection")) ||
@@ -21,7 +21,8 @@ fn gc_is_hashset_str_pair_store(fn_name: String) -> bool {
     fn_name.clone().ends_with(String_from("hashset_str_extend"))
 }
 
-// Typed HashMap<i32,i32> / HashSet<i32> wrappers pass container refs in params 0/1.
+// Typed HashMap<i32,i32> / HashSet<i32> wrappers pass container refs in params
+// 0/1; HashSet<String> passes the hashmap:si32 bucket store.
 fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name: String) -> String {
     if param_idx < 0 || param_idx > 1 {
         return String_new()
@@ -30,7 +31,7 @@ fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name:
         return String_new()
     }
     if gc_is_hashset_str_pair_store(fn_name.clone()) {
-        return sections_types_gc::gc_vec_string_type_sig()
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
     if fn_name.clone().contains("hashset_i32_") ||
     fn_name.clone().contains("hashmap_i32_i32_") ||
@@ -112,8 +113,14 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
         fn_name.clone().eq("hashmap_with_capacity") {
             return String_new()
         }
-        // hashset_str_* and hash_vec_string_* functions take Vec<String>, not Vec<i32>.
-        if fn_name.clone().starts_with("hashset_str_") || fn_name.clone().starts_with("hash_vec_string_") {
+        // HashSet<String> operates on the hashmap:si32 bucket store. The
+        // Vec<String> snapshot helpers keep the vec:string signature.
+        if fn_name.clone().starts_with("hashset_str_") ||
+        fn_name.clone().starts_with("hash_string::hashset_str_") {
+            return sections_types_gc::gc_hashmap_str_i32_type_sig()
+        }
+        if fn_name.clone().starts_with("hash_vec_string_") ||
+        fn_name.clone().starts_with("hash_string::hash_vec_string_") {
             return sections_types_gc::gc_vec_string_type_sig()
         }
         return sections_types_gc::gc_vec_type_sig()
@@ -159,9 +166,8 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
         return String_new()
     }
     // ADR-086 HashSet trait impls return the source set type, whose storage
-    // is the flat Vec alias; emit the alias ref so the body's vec value
-    // matches the declared return (#917). The String family returns the
-    // Vec<String> alias, which is a different GC ref type.
+    // is vec:i32 or hashmap:si32; emit the store ref so the body value matches
+    // the declared return (#917). The two families use different GC ref types.
     if fn_name.clone().eq("HashSet_i32::clone") ||
     fn_name.clone().eq("HashSet_i32::union") ||
     fn_name.clone().eq("HashSet_i32::intersection") ||
@@ -174,7 +180,7 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
     fn_name.clone().eq("HashSet_String::intersection") ||
     fn_name.clone().eq("HashSet_String::difference") ||
     fn_name.clone().starts_with("HashSet_String::from_iter__") {
-        return sections_types_gc::gc_vec_string_type_sig()
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
     if fn_name.clone().eq("hashmap_new") ||
     fn_name.clone().starts_with("hashmap_new__") ||
