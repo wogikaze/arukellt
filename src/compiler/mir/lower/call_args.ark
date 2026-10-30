@@ -35,7 +35,7 @@ fn mir_convert_print_arg_to_string(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32
     call_arg_print_convert::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
 }
 
-fn mir_stage_call_arg(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+fn mir_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
     mir_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, true)
 }
 
@@ -44,7 +44,7 @@ fn mir_stage_call_arg(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i
 // `local_set_from` would let the emitter's copy peephole consume an earlier
 // producer of the same local that the enclosing call still needs
 // (`v.push(get_unchecked(v, 0))` lost the push receiver).
-fn mir_stage_call_arg_from_local(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+fn mir_stage_call_arg_from_local(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
     mir_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, false)
 }
 

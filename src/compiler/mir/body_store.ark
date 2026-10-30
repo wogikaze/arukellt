@@ -751,7 +751,7 @@ fn mir_body_compute_return_variant_slot(f: MirFunction) -> i32 {
 }
 
 fn mir_body_function_inst_count(f: MirFunction) -> i32 {
-    let total = 0
+    let mut total = 0
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {

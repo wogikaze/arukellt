@@ -500,9 +500,11 @@ BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-pinned-bootstrap.wasm"
 S2_RUNTIME_WASM_REL = ".build/selfhost/arukellt-s2-runtime.wasm"
 CLOCK_S2_WASM_REL = ".build/selfhost/arukellt-s2-clock.wasm"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
-# The pin predates #951 and the flat overlay strips `mut` parameter modes, so
-# the self-compile stage must run with the pre-ADR-088 permissive body binding.
-# User compilations keep the strict rule; see docs/compiler/bootstrap.md.
+# The legacy core trust-anchor/override pins predate #951 and the flat overlay
+# strips `mut` parameter modes for them, so an s2 stage-3 build from that
+# stripped overlay must run with the pre-ADR-088 permissive body binding.
+# The official gc pin and the checked-in source use the real modes.  User
+# compilations keep the strict rule; see docs/compiler/bootstrap.md.
 BOOTSTRAP_SHARED_PARAM_FLAG = "--bootstrap-allow-shared-param-mutation"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
 WASI_P2_WIT_REL = Path("scripts/selfhost/wit/deps/wasi-cli-0.2.0/wit")
@@ -679,7 +681,7 @@ use mir_module_functions
 use mir_opt_gc_hint
 use mir_opt_stdlib_inline
 
-pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+pub fn optimize_module(mut m: MirModule, opt_level: i32, target: String) -> MirModule {
     let _target = target
     // #851 Phase 3 fused emit: bodies already optimized+emitted in the
     // lowering drain; mutating MIR here would diverge from emitted bytes.
@@ -694,10 +696,10 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
         return m
     }
     let fn_count = mir_module_functions::MirModule_function_count(m)
-    let updated = Vec::new<MirFunction>()
+    let mut updated = Vec::new<MirFunction>()
     let mut fi = 0
     while fi < fn_count {
-        let f = mir_module_functions::MirModule_function_at(m, fi)
+        let mut f = mir_module_functions::MirModule_function_at(m, fi)
         mir_opt_gc_hint::run_gc_hint(f)
         push(updated, f)
         fi = fi + 1
@@ -708,7 +710,7 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 
 // Per-fn form used by the fused in-loop emit drain (#851 Phase 3): same
 // pass sequence as optimize_module applied to one function.
-pub fn optimize_fn(m: MirModule, f: MirFunction, opt_level: i32, target: String) -> MirFunction {
+pub fn optimize_fn(mut m: MirModule, mut f: MirFunction, opt_level: i32, target: String) -> MirFunction {
     let _target = target
     if opt_level >= 1 {
         mir_opt_stdlib_inline::stdlib_inline_fn(m, f)
@@ -3623,12 +3625,12 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     String_new()
 }
 
-pub fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String>) {
+pub fn ctx_set_mono_type_params(mut ctx: LowerCtx, names: Vec<String>, types: Vec<String>) {
     ctx.mono_type_param_names = names
     ctx.mono_type_param_types = types
 }
 
-pub fn ctx_set_mono_type_projection(ctx: LowerCtx, generic_name: String, concrete_name: String) {
+pub fn ctx_set_mono_type_projection(mut ctx: LowerCtx, generic_name: String, concrete_name: String) {
     if len(generic_name) == 0 || len(concrete_name) == 0 || generic_name.clone().eq(concrete_name.clone()) {
         return
     }
@@ -3636,7 +3638,7 @@ pub fn ctx_set_mono_type_projection(ctx: LowerCtx, generic_name: String, concret
     push(ctx.mono_type_param_types, concrete_name)
 }
 
-pub fn ctx_clear_mono_type_params(ctx: LowerCtx) {
+pub fn ctx_clear_mono_type_params(mut ctx: LowerCtx) {
     ctx.mono_type_param_names = Vec_new_String()
     ctx.mono_type_param_types = Vec_new_String()
 }
@@ -3958,7 +3960,7 @@ fn stub_base_payload_projection(ctx: LowerCtx, base: String) -> String {
 }
 
 pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
-    let result = Vec_new_String()
+    let mut result = Vec_new_String()
     let func = mir_lower_ctx_current_storage::ctx_current_func_value(ctx)
     let local_count = mir_function_locals_view::MirFunction_local_count(func)
     let mut i = 0
@@ -3990,7 +3992,7 @@ pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
 }
 
 fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let mut result = Vec_new_String()
     if starts_with(ty_name.clone(), String_from("?")) {
         let stripped = substring(ty_name.clone(), 1, len(ty_name))
         if !contains(stripped.clone(), String_from(":")) {
@@ -4079,7 +4081,7 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
 
 // Split `A<B, C<D,E>>` argument text on top-level commas only.
 fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
-    let args = Vec_new_String()
+    let mut args = Vec_new_String()
     let mut depth = 0
     let mut seg_start = 0
     let n = len(inner)
@@ -4116,7 +4118,7 @@ fn ctx_local_type_is_var_wrapper(ty_name: String) -> bool {
 // segments contribute only when they are plain type variables (T, E).
 // Splits only on top-level colons so Pair<I::Item,T> arguments stay whole;
 // composite segments recurse so nested variables are still found.
-fn ctx_push_colon_var_segments(stripped: String, result: Vec<String>) {
+fn ctx_push_colon_var_segments(stripped: String, mut result: Vec<String>) {
     let mut segment_start = 0
     let mut i = 0
     let n = len(stripped)
@@ -4139,7 +4141,7 @@ fn ctx_push_colon_var_segments(stripped: String, result: Vec<String>) {
     }
 }
 
-fn ctx_push_var_segment(segment: String, is_arg: bool, result: Vec<String>) {
+fn ctx_push_var_segment(segment: String, is_arg: bool, mut result: Vec<String>) {
     if !is_arg {
         return
     }
@@ -4158,7 +4160,7 @@ fn ctx_push_var_segment(segment: String, is_arg: bool, result: Vec<String>) {
 // Push the ;-separated segments of a fnsig: local spelling. Every
 // segment is a type position (unlike colon wrappers whose first segment
 // is the wrapper name), so each one contributes its variables.
-fn ctx_push_fnsig_var_segments(ty_name: String, result: Vec<String>) {
+fn ctx_push_fnsig_var_segments(ty_name: String, mut result: Vec<String>) {
     let rest = substring(ty_name.clone(), 6, len(ty_name))
     let mut seg_start = 0
     let n = len(rest)
@@ -4193,7 +4195,7 @@ fn stub_mono_name_has_separator(name: String) -> bool {
     false
 }
 
-pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
+pub fn ctx_setup_mono_type_params_by_ordinal(mut ctx: LowerCtx, mangled_name: String) {
     if !stub_mono_name_has_separator(mangled_name.clone()) {
         ctx_setup_mono_type_params_leaf_instance(ctx, mangled_name)
         return
@@ -4207,7 +4209,7 @@ pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String
 // every later ordinal (#946). Kept in sync with the product
 // ctx_setup_mono_type_params_by_ordinal_declared.
 pub fn ctx_setup_mono_type_params_by_ordinal_declared(
-    ctx: LowerCtx,
+    mut ctx: LowerCtx,
     mangled_name: String,
     declared_names: Vec<String>
 ) {
@@ -4222,7 +4224,7 @@ pub fn ctx_setup_mono_type_params_by_ordinal_declared(
     stub_apply_mono_ordinal_map(ctx, mangled_name, type_var_names)
 }
 
-fn stub_apply_mono_ordinal_map(ctx: LowerCtx, mangled_name: String, type_var_names: Vec<String>) {
+fn stub_apply_mono_ordinal_map(mut ctx: LowerCtx, mangled_name: String, type_var_names: Vec<String>) {
     if len(type_var_names) == 0 {
         ctx_clear_mono_type_params(ctx)
         return
@@ -4235,8 +4237,8 @@ fn stub_apply_mono_ordinal_map(ctx: LowerCtx, mangled_name: String, type_var_nam
         let safe_mangled = mir_mono_names::mono_safe_name(inst_mangled)
         if safe_mangled.clone().eq(mangled_name.clone()) {
             let arg_count = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_count(inst)
-            let names = Vec_new_String()
-            let types = Vec_new_String()
+            let mut names = Vec_new_String()
+            let mut types = Vec_new_String()
             let mut j = 0
             while j < arg_count && j < len(type_var_names) {
                 let ty = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_at(inst, j)
@@ -4310,7 +4312,7 @@ pub fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i3
 // When the instance list holds exactly one distinct non-marker instance
 // whose leaf fn name matches, its type arguments bind this body's type
 // variables; zero or multiple matches leave the map untouched.
-pub fn ctx_setup_mono_type_params_leaf_instance(ctx: LowerCtx, emit_name: String) {
+pub fn ctx_setup_mono_type_params_leaf_instance(mut ctx: LowerCtx, emit_name: String) {
     let type_var_names = ctx_collect_type_var_names(ctx)
     if len(type_var_names) == 0 {
         return
@@ -4321,8 +4323,8 @@ pub fn ctx_setup_mono_type_params_leaf_instance(ctx: LowerCtx, emit_name: String
     }
     let inst = get_unchecked(ctx.mono_instances, matched_index)
     let arg_count = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_count(inst)
-    let names = Vec_new_String()
-    let types = Vec_new_String()
+    let mut names = Vec_new_String()
+    let mut types = Vec_new_String()
     let mut j = 0
     while j < arg_count && j < len(type_var_names) {
         let ty = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_at(inst, j)
@@ -4401,7 +4403,7 @@ fn ctx_assoc_next_return_type_name(ctx: LowerCtx, fn_name: String) -> String {
 // `Base<args>` spells `Base__next__arg` per mono instance; the underscore
 // spelling `Base_arg` tries the raw rest and the `__`-separated form.
 fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
-    let names = Vec_new_String()
+    let mut names = Vec_new_String()
     let lt = index_of(owner.clone(), String_from("<"))
     if lt > 0 && ends_with(owner.clone(), String_from(">")) {
         let base = substring(owner.clone(), 0, lt)
@@ -4957,7 +4959,12 @@ def _prepare_flattened_selfhost_source_locked(
             )
         shutil.copyfile(core_src, core_dst / core_rel)
     _patch_bootstrap_numeric_conversion_bridge(overlay_root)
-    _strip_bootstrap_param_modes(overlay_root)
+    # The official gc pin parses and checks the #951 parameter modes, so the
+    # gc path gets the real modes from the checked-in source.  The legacy core
+    # trust-anchor/override pins predate the mode syntax and can only parse
+    # the stripped overlay; strip only when one of those is the selected pin.
+    if _find_gc_pin(root) is None:
+        _strip_bootstrap_param_modes(overlay_root)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
@@ -5106,24 +5113,25 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
 
 
 def _strip_bootstrap_param_modes(overlay_root: Path) -> None:
-    """Strip ADR-088 parameter modes from the flat bootstrap overlay.
+    """Strip ADR-088 parameter modes for the legacy core overlay path.
 
     The core trust-anchor/override pins (``a2803831…``, ``8df2698c…``) predate
     the #951 parser, so they reject ``mut p`` / ``mut self`` / ``|mut v|`` /
-    ``fn(mut T)`` even though the checked-in source now uses them. Those pins
-    only have to parse the compiler enough to build s2: their typechecker binds
-    every parameter mutable and never enforces the callee-side rule, so
-    removing the mode token from the overlay copies leaves the same parameter
-    list and body. The official gc pin now includes parser #951, but the flat
-    overlay is shared with the core pins, so the strip remains to keep the
-    stage-2 source and emitted s2 byte-identical across pins. s2 compiles the
-    real checked-in source for fixtures; the self-compile stage reuses the
-    stripped overlay with ``BOOTSTRAP_SHARED_PARAM_FLAG``.
+    ``fn(mut T)``. Those pins only have to parse the compiler enough to build
+    s2: their typechecker binds every parameter mutable and never enforces the
+    callee-side rule, so removing the mode token from the overlay copies leaves
+    the same parameter list and body.
 
-    Delete condition: the core trust-anchor/override pins are retired, or the
-    overlay becomes pin-aware and ships real modes to the #951-capable gc pin.
-    Probe with ``fn bump(mut p: Point)`` and remove the patch when every
-    supported pin accepts it.
+    The official gc pin parses and checks the modes, and #951/#943's call-site
+    migration made the checked-in source and the generated overlay stubs
+    mode-clean, so ``_prepare_flattened_selfhost_source_locked`` calls this only
+    when the selected pin is a legacy core module. The gc path and the s2 built
+    from it see the real modes, without ``BOOTSTRAP_SHARED_PARAM_FLAG``.
+
+    Delete condition: the core trust-anchor/override pins are retired, or every
+    supported pin accepts modes. Probe with ``fn bump(mut p: Point)`` and a
+    shared-parameter assignment; remove this function and its conditional call
+    when the probe passes for all supported pins.
     """
     for path in sorted(overlay_root.rglob("*.ark")):
         text = path.read_text(encoding="utf-8")
@@ -5429,9 +5437,10 @@ def _compile_with_gc_pin(
 
     The component is JIT-compiled on every invocation unless an AOT image is
     reused, which costs seconds at this size, so use the same cwasm cache as
-    the core paths. The flat overlay strips parameter modes, so a gc pin that
-    was built from the current source needs the pre-ADR-088 permissive body
-    binding; the core pins predate that flag and do not take the gc path.
+    the core paths.  The gc pin parses and checks the #951 parameter modes, so
+    the overlay carries the real modes and the migrated bodies need no
+    permissive body binding (``BOOTSTRAP_SHARED_PARAM_FLAG`` is reserved for the
+    legacy core/s2 fallback whose overlay is still stripped).
     """
     workspace = _prepare_bootstrap_workspace(root)
     guest_out = "bootstrap-out.wasm"
@@ -5454,7 +5463,6 @@ def _compile_with_gc_pin(
         BOOTSTRAP_EMIT_TARGET,
         "--wasi-version",
         BOOTSTRAP_EMIT_WASI_VERSION,
-        BOOTSTRAP_SHARED_PARAM_FLAG,
         "-o",
         guest_out,
     ]

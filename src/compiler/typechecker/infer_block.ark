@@ -29,12 +29,17 @@ fn infer_block_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>
                 let return_value = ast_access::node_child_at(child, 0)
                 closure_capture::closure_capture_escape(env, scope, return_value)
                 ownership::check_borrowed_box_escape(env, scope, return_value)
+                // Hoist the expected type: `env` is also the mutable receiver
+                // of the mode check, so reading `env.current_fn_return_type`
+                // in the same call would pass the same root place twice
+                // (E0224).
+                let expected = env.current_fn_return_type
                 param_mode::check_fn_type_value(
                     env,
                     scope,
                     fn_sigs,
                     return_value,
-                    env.current_fn_return_type,
+                    expected,
                     TypeInfo_simple(commands::TY_UNKNOWN()),
                     String_from("a function with a `mut` parameter cannot be returned as a shared function type")
                 )

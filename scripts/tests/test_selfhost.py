@@ -159,7 +159,7 @@ class TestPinAwareCaches(unittest.TestCase):
 
 
 class TestGcPinCompilePath(unittest.TestCase):
-    """The gc-host pin compile must reuse AOT and pass the overlay-mode flag."""
+    """The gc-host pin compile reuses AOT and needs no permissive overlay flag."""
 
     def _compile_argv(self, *, aot: bool) -> list[str]:
         sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -190,13 +190,15 @@ class TestGcPinCompilePath(unittest.TestCase):
         argv = self._compile_argv(aot=True)
         self.assertIn("--allow-precompiled", argv)
 
-    def test_gc_pin_compile_passes_shared_param_overlay_flag(self) -> None:
+    def test_gc_pin_compile_omits_permissive_overlay_flag(self) -> None:
+        """The mode-migrated overlay reaches the gc pin with its real modes,
+        so the pre-#951 permissive body binding must not be needed there."""
         sys.path.insert(0, str(REPO_ROOT / "scripts"))
         from selfhost import checks
 
         for aot in (True, False):
             argv = self._compile_argv(aot=aot)
-            self.assertIn(checks.BOOTSTRAP_SHARED_PARAM_FLAG, argv)
+            self.assertNotIn(checks.BOOTSTRAP_SHARED_PARAM_FLAG, argv)
 
 
 if __name__ == "__main__":

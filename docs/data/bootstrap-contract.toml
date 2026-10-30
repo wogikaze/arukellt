@@ -26,7 +26,7 @@ comparison = "n/a"
 [[stages]]
 id = "build_s2"
 name = "current_selfhost"
-description = "Pinned gc component compiles src/compiler/main.ark → s2 under the 8192-page memory32 contract in ~30-34 s warm (stage-2 only, AOT-cached; the mode-stripped overlay runs with --bootstrap-allow-shared-param-mutation)"
+description = "Pinned gc component compiles src/compiler/main.ark → s2 under the 8192-page memory32 contract in ~30-34 s warm (stage-2 only, AOT-cached; the overlay carries the real parameter modes and needs no permissive body binding)"
 artifact = ".build/selfhost/arukellt-s2.wasm"
 command = "python3 scripts/manager.py selfhost build-compiler"
 comparison = "build succeeds"

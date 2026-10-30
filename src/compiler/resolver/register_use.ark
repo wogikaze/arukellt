@@ -27,7 +27,7 @@ fn register_use_decl(mut ctx: ResolveCtx, d: AstNode) {
 // and each member of a braced group (`use std::prelude::{eq, Box_new}`): the
 // parser keeps the first group member as the declaration path and the rest as
 // child use nodes, so every path has to be checked on its own.
-fn try_reject_retired_prelude_import(ctx: ResolveCtx, d: AstNode) -> bool {
+fn try_reject_retired_prelude_import(mut ctx: ResolveCtx, d: AstNode) -> bool {
     let use_path = ast_access::node_text(d)
     let parent = paths::use_module_parent_path(use_path.clone())
     if !eq(parent.clone(), "std::prelude") && !eq(parent.clone(), "prelude") {

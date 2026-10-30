@@ -222,7 +222,7 @@ fn resolve_module_qualified_associated_fn(
 // program traps on first use instead of failing to compile. Report the missing
 // import here. Impl methods are not bare scope symbols, so the loaded module
 // registration is the signal that the `TryFrom` impls are available.
-fn reject_unloaded_try_from(ctx: ResolveCtx, path: String, symbol_part: String) {
+fn reject_unloaded_try_from(mut ctx: ResolveCtx, path: String, symbol_part: String) {
     if !symbol_part.clone().eq(String_from("try_from")) {
         return
     }
