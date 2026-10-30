@@ -1,10 +1,11 @@
+use std::test::Test
 use std::host::stdio::Stdio
 use std::random::Rng
-use std::prelude::{assert_eq}
+use std::test::Test
 fn main() {
-    assert_eq(Rng::new(99).range(10, 20), 19)
-    assert_eq(Rng::new(99).range(10, 10), 10)
-    assert_eq(Rng::new(99).range(12, 8), 12)
-    assert_eq(Rng::new(99).range(-4, 3), 0)
+    Test::assert_eq_i32(Rng::new(99).range(10, 20), 19)
+    Test::assert_eq_i32(Rng::new(99).range(10, 10), 10)
+    Test::assert_eq_i32(Rng::new(99).range(12, 8), 12)
+    Test::assert_eq_i32(Rng::new(99).range(-4, 3), 0)
     Stdio::println("random_range ok")
 }

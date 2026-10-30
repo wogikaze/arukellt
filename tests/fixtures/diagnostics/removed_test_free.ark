@@ -1,3 +1,4 @@
+use std::test::Test
 // E0100: the 18 std::test assertion / expectation frees were deleted after the
 // ADR-087 Wave 1 window; each old qualified call names the Test replacement.
 use std::test
@@ -7,7 +8,7 @@ fn main() {
     let _ = test::assert_false(1 == 2)
     let _ = test::assert_eq_debug(1, 1)
     let _ = test::assert_eq_i32(1 + 1, 2)
-    let _ = test::assert_eq_i64(2i64, 2i64)
+    let _ = Test::assert_eq_i64(2i64, 2i64)
     let _ = test::assert_eq_f64(1.5, 1.5)
     let _ = test::assert_eq_string("a", "a")
     let _ = test::assert_eq_bool(true, true)

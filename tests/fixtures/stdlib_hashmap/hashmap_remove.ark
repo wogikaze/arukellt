@@ -1,8 +1,9 @@
+use std::test::Test
 use std::host::stdio::Stdio
-use std::prelude::{assert_eq}
+use std::test::Test
 fn expect_some(v: Option<i32>, expected: i32) {
     match v {
-        Option::Some(x) => assert_eq(x, expected),
+        Option::Some(x) => Test::assert_eq_i32(x, expected),
         None => assert(false),
     }
 }
@@ -19,37 +20,37 @@ fn main() {
     let _ = m.insert(1, 10)
     let _ = m.insert(2, 20)
     let _ = m.insert(3, 30)
-    assert_eq(m.len(), 3)
+    Test::assert_eq_i32(m.len(), 3)
 
     // Remove present key returns Some(old value).
     expect_some(m.remove(2), 20)
     assert(!m.contains_key(2))
-    assert_eq(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
     // Remaining keys are still accessible.
     expect_some(m.get(1), 10)
     expect_some(m.get(3), 30)
 
     // Remove absent key returns None, size unchanged.
     expect_none(m.remove(999))
-    assert_eq(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 
     // remove_entry returns Some((key, value)) or None.
     match m.remove_entry(1) {
         Option::Some((k, v)) => {
-            assert_eq(k, 1)
-            assert_eq(v, 10)
+            Test::assert_eq_i32(k, 1)
+            Test::assert_eq_i32(v, 10)
         },
         None => assert(false),
     }
     assert(!m.contains_key(1))
-    assert_eq(m.len(), 1)
+    Test::assert_eq_i32(m.len(), 1)
 
     expect_none_option_pair(m.remove_entry(4242))
 
     // clear resets the map.
     m.clear()
     assert(m.is_empty())
-    assert_eq(m.len(), 0)
+    Test::assert_eq_i32(m.len(), 0)
     assert(!m.contains_key(3))
 
     Stdio::println("OK")
