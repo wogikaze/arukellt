@@ -111,7 +111,7 @@ fn ctx_type_name_is_generic_enum_instance(ctx: LowerCtx, type_name: String) -> b
 // name as an unsubstituted type variable, so the collapsed spelling makes a
 // constructor like `Wrap<T>::new` return the mono key (`i32`) instead of the
 // enum reference. Storage positions keep the bare spelling.
-fn ctx_maybe_enum_return_type_name_keep_instance(ctx: LowerCtx, type_name: String) -> String {
+fn ctx_maybe_enum_return_type_name_keep_instance(mut ctx: LowerCtx, type_name: String) -> String {
     if ctx_type_name_is_generic_enum_instance(ctx, type_name.clone()) {
         return String_from("enum:").concat(type_name)
     }

@@ -32,13 +32,13 @@ fn mir_core_convert_print_arg_to_string(mut ctx: LowerCtx, arg: CoreHirExpr, arg
     core_call_arg_print_convert::mir_core_convert_print_arg_to_string(ctx, arg, arg_idx)
 }
 
-fn mir_core_stage_call_arg(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+fn mir_core_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
     mir_core_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, true)
 }
 
 // See call_args::mir_stage_call_arg_from_local: ident/constant sources are not
 // lowered, so the staged copy must produce the value itself.
-fn mir_core_stage_call_arg_from_local(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
+fn mir_core_stage_call_arg_from_local(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
     mir_core_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, false)
 }
 

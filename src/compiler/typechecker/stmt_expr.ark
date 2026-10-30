@@ -40,12 +40,16 @@ fn check_return_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig
         if env.is_ownership_tracking_enabled {
             closure_capture::closure_capture_escape(env, scope, child)
             ownership::check_borrowed_box_escape(env, scope, child)
+            // Hoist the expected type: `env` is also the mutable receiver of
+            // the mode check, so reading `env.current_fn_return_type` in the
+            // same call would pass the same root place twice (E0224).
+            let expected = env.current_fn_return_type
             param_mode::check_fn_type_value(
                 env,
                 scope,
                 fn_sigs,
                 child,
-                env.current_fn_return_type,
+                expected,
                 inferred_ty,
                 String_from("a function with a `mut` parameter cannot be returned as a shared function type")
             )

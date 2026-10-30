@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-29
+Updated: 2026-10-31
 ID: 951
 Track: typecheck
 Depends on: none
@@ -458,9 +458,12 @@ match residual is diagnosed below.
 1. Callee-side rule (ADR-088 §2/§3): landed in the 2026-10-29 slice.
    `body_params` binds by `FnSig_param_is_mut`, E0226 rejects assignment
    through a shared parameter or shared `self`, and the corpus is migrated.
-   The self-compile stage uses the bootstrap `mut`-mode strip and the internal
-   `--bootstrap-allow-shared-param-mutation` option because the pin and the
-   flat overlay predate the mode parser; user code and fixtures are strict.
+   Since the 2026-10-31 call-site slice the gc-pin self-compile carries the
+   real modes and no longer passes `--bootstrap-allow-shared-param-mutation`;
+   the `mut`-mode overlay strip is pin-aware and only runs for the legacy
+   pre-#951 core trust-anchor/override pins. User code and fixtures are
+   strict. Delete the strip when the core pins are retired (probe in
+   `docs/compiler/bootstrap.md`).
 2. Function-type mode (ADR-088 §7): implemented for parsing, `TY_FN`
    modes, calls through function values, shared→`mut` assignment at
    annotated `let` bindings, and the reverse-direction check at
@@ -521,3 +524,81 @@ match residual is diagnosed below.
 - `python3 scripts/manager.py selfhost fixpoint`: PASS — stage 3 was
   rebuilt from s2 and `sha256(s2) == sha256(s3)` =
   `b95fb1b300b4cca365426456394451d581bcdac4cc35701b9ea971da6d8e7913`.
+
+## Implementation (2026-10-31, call-site migration and pin-aware strip)
+
+Fifth slice: the overlay mode strip is removed from the gc path. The
+2026-10-29 body migration declared `mut` on every mutating parameter and
+receiver, but the compiler source still had call sites that passed immutable
+places to those parameters (E0223), passed one place to a `mut` parameter and
+another argument of the same call (E0224), and assigned through a remaining
+shared parameter (E0226). The strip hid them because the overlay copy had no
+modes; with the strip disabled the current s2 reported **31 E0223, 2 E0224,
+4 E0226**, plus one E0207 (`total` assigned through an immutable `let`).
+
+Enumeration: `_strip_bootstrap_param_modes` is skipped, the overlay is
+regenerated, and s2 checks the flat overlay with the real modes. Diagnostics
+from imported modules are rendered against the entry file, so the owning
+module was recovered from the raw span offsets (the padded-entry-source
+technique) and confirmed against each call site's callee signature.
+
+### Real source
+
+- `corehir/return_type_name.ark`: `let mut names` for the impl-method
+  parameter list that is pushed into.
+- `resolver/expr_path.ark`, `resolver/register_use.ark`,
+  `mir/lower/ctx_struct_layout.ark`: `mut ctx` on the functions that report a
+  resolve error or delegate to a `mut ctx` helper. Callers already hold
+  `mut ctx`.
+- `mir/lower/call_args.ark` and `mir/lower/core_call_args.ark`: the staging
+  wrappers now declare `mut staged_arg_locals`; every caller already passes a
+  `let mut` vector or a `mut` parameter.
+- `typechecker/infer_block.ark`, `typechecker/stmt_expr.ark`: hoist
+  `env.current_fn_return_type` into a local before
+  `param_mode::check_fn_type_value(env, …)`, so the mutable `env` receiver and
+  the expected-type argument no longer name the same root place (E0224). The
+  hoist is behavior-neutral.
+- `mir/body_store.ark`: `let mut total`.
+
+### Generated overlay stubs
+
+The overlay replaces the static-dispatch `ctx_mono_type_params` module and the
+whole `mir_opt` namespace with stubs; those stub templates are part of the
+bootstrap adapter (`scripts/selfhost/checks.py`), not checked-in `.ark`. They
+now match the strict mode rules: `mut ctx` on the seven functions that assign
+through the context or delegate to one that does, `mut` on the vectors those
+functions push into, and `mut m` / `mut f` / `mut updated` in the `mir_opt`
+stub. No stub body was suppressed or removed.
+
+### Overlay mode strip
+
+`_strip_bootstrap_param_modes` is now called only when the selected pin is a
+legacy core module (`_find_gc_pin(root) is None`). The official gc pin parses
+and checks the modes, so it compiles the real modes; the legacy core pins keep
+the stripped overlay and the internal `--bootstrap-allow-shared-param-mutation`
+body binding. The gc-pin compile path no longer passes that option. Deletion
+condition for the strip: the core trust-anchor/override pins are retired or
+every supported pin accepts modes (probe in `docs/compiler/bootstrap.md`).
+
+### Verification (2026-10-31)
+
+- Overlay check with the strip disabled: `check main.ark` under s2 exits 0
+  with zero `error[...]` lines (31/2/4 → 0).
+- Direct pinned-gc compile of the unstripped overlay **without**
+  `--bootstrap-allow-shared-param-mutation`: PASS, 32.8 s, 11 269 890 bytes.
+- `python3 scripts/manager.py selfhost build-compiler`: PASS, 54.1 s.
+- `python3 scripts/manager.py verify fixtures`: PASS — PASS=1969 FAIL=0,
+  `test:` PASS=43 FAIL=0; 114 runtime smoke, 2 native-cpp contracts delegated.
+- `python3 scripts/manager.py selfhost diag-parity`: PASS.
+- `python3 scripts/manager.py selfhost fixpoint`: PASS —
+  `sha256(s2) == sha256(s3) = 3620251231943dc0efa5c0d6f91e7484733b88722361c38800ded498fda6cd05`
+  (pinned base `56ff0808…`).
+- `python3 scripts/manager.py verify lane`: PASS (9 changed files, lint 0
+  failed, fmt 2000/0).
+- `python3 scripts/manager.py docs check`: 6/6 PASS.
+- `python3 scripts/manager.py fmt --check`: checked=2000 failed=0.
+- `python3 -m unittest scripts.tests.test_selfhost`: 14 tests OK.
+- Legacy core path probe: with `ARUKELLT_PINNED_WASM=…-core.wasm` the
+  regenerated overlay still has the mode token stripped
+  (`fn ctx_set_mono_type_params(    ctx: …)`) and the `let mut` body fixes
+  survive.

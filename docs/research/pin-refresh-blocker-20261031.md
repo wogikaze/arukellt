@@ -129,10 +129,16 @@ in `bootstrap/PROVENANCE.md`.
 
 1. **gc self-build invalid core** (`func 1516`,
    `expected (ref null $type) but nothing on stack`): the refresh blocker.
-2. **v2 ownership migration**: the one `mir_rewrite_vec_push` E0212 is fixed;
-   the rest of the source is not `mut`-parameter-clean under the v2 checker, so
-   the overlay mode strip stays.
+2. **v2 ownership migration**: resolved later on 2026-10-31
+   (`wave/ownership-mut-migrate`). The call-site migration (8 real-source
+   E0223 + 2 E0224 + 1 E0207, plus the 23 E0223 / 4 E0226 in the generated
+   overlay stubs) leaves the s2 overlay check clean, and the mode strip is
+   now pin-aware: it runs only for the legacy core pins, so the gc pin builds
+   the real modes without the permissive body-binding flag. The gc
+   self-build/reproduction blocker is still residual 1.
 3. **Pin generation**: `56ff0808…` remains the official pin. The rebased
    `8df2698c…` core pin is superseded and must not be installed.
-4. **Shims**: all listed in `docs/compiler/bootstrap.md` and
-   `scripts/selfhost/checks.py` remain; their deletion conditions are unchanged.
+4. **Shims**: the mode strip is now pin-aware (gc path keeps the real modes);
+   the other shims listed in `docs/compiler/bootstrap.md` and
+   `scripts/selfhost/checks.py` remain, with their deletion conditions
+   unchanged.

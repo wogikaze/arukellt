@@ -181,14 +181,15 @@ parameter or receiver declares `mut` and its callers provide `let mut` or
 `mut` places. The stdlib declares `mut` on `push`, `set`, `pop`, `insert`,
 `clear`, `remove`, and the collection setters, with no name-based exemption.
 
-The core trust-anchor/override pins predate the #951 parser, so the shared
-flat overlay strips the mode token from the copy `build-compiler` compiles,
-and fixpoint stage 3 passes the internal
-`--bootstrap-allow-shared-param-mutation` option because that overlay has no
-modes. The official gc pin includes #951, but the overlay is shared so the
-stage-2 source stays identical across pins. User programs, fixtures, and the
-analysis pipeline are strict. Both bootstrap shims and their deletion
-conditions are recorded in
+Overlay mode handling is pin-aware. The official gc pin receives the real
+`mut` modes: #951/#943's call-site migration made the checked-in source and
+the generated overlay stubs mode-clean, so the gc `build-compiler` / stage-3
+path no longer passes `--bootstrap-allow-shared-param-mutation`. The legacy
+core trust-anchor/override pins predate the #951 parser, so
+`_strip_bootstrap_param_modes` runs only when one of those is the selected
+pin, and the stripped core fallback keeps the permissive body binding. User
+programs, fixtures, and the analysis pipeline are strict. Both bootstrap
+shims and their deletion conditions are recorded in
 [compiler/bootstrap.md](../compiler/bootstrap.md).
 
 A borrowed `Box<T>` parameter is a call-scoped borrow of a unique owner, so

@@ -79,12 +79,13 @@ artifact.
 accelerator**, not a change of the stage-2 output target. Flipping the emitted
 target stays gated on ADR-053's <=10 s overlay acceptance.
 
-The flat overlay strips `mut` parameter modes so the pre-#951 core
-trust-anchor/override pins can compile it. The shared overlay is therefore
-mode-free, and both self-compile stages pass
-`--bootstrap-allow-shared-param-mutation`. The official gc pin includes #951
-and would accept the real modes, but the strip keeps the stage-2 source and
-emitted s2 identical across pins. The Python compile path passes the flag and
+Overlay mode handling is pin-aware. The official gc pin includes #951 and
+compiles the real `mut` modes: #951/#943's call-site migration made the source
+and the generated overlay stubs mode-clean, so the gc stage-2/stage-3 path
+does not pass `--bootstrap-allow-shared-param-mutation`. The flat overlay
+strips `mut` parameter modes only when a pre-#951 core
+trust-anchor/override pin is the selected pin; that stripped fallback is the
+only path that keeps the permissive body binding. The Python compile path
 reuses the shared AOT image cache for the component.
 
 ## Previous core pin (recoverable)

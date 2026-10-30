@@ -40,21 +40,19 @@ stay identical across pins. Delete both when the core pins are retired (or the
 overlay becomes pin-aware); the function docstrings carry the probe that must
 validate the lowering first.
 
-The flat overlay still strips the #951 parameter modes so the pre-#951 core
-trust-anchor/override pins can compile the same overlay as the official gc pin.
-`_strip_bootstrap_param_modes` removes the mode token from the overlay copies
-only; the checked-in source keeps the real modes, and s2 compiles the real tree
-for fixtures with the strict callee-side rule. The official gc pin includes
-#951 and understands modes, but the stripped overlay keeps the stage-2 build
-identical across pins.
-
-Both self-compile stages run the stripped overlay with
-`--bootstrap-allow-shared-param-mutation`, an internal self-compile option that
-restores the pre-#951 permissive body binding for that compilation only. User
-programs, fixtures, and the analysis pipeline never pass it and keep the
-strict rule. Delete both the overlay strip and the option when the core pins
-are retired (or the overlay becomes pin-aware); probe with
-`fn bump(mut p: Point)` and a shared-parameter assignment before removing them.
+Overlay mode handling is pin-aware. The official gc pin parses and checks the
+#951 parameter modes, so it compiles the overlay with the real modes:
+#951/#943's call-site migration made the checked-in source and the generated
+overlay stubs mode-clean, and the gc path no longer passes
+`--bootstrap-allow-shared-param-mutation`. The legacy core
+trust-anchor/override pins predate the mode syntax, so
+`_strip_bootstrap_param_modes` removes the mode token only when one of those is
+the selected pin; that stripped overlay is the only path that still uses the
+permissive body-binding option (an s2 stage-3 build on the core fallback).
+User programs, fixtures, and the analysis pipeline never pass the option and
+keep the strict rule. Delete `_strip_bootstrap_param_modes` and the option when
+the core pins are retired; probe with `fn bump(mut p: Point)` and a
+shared-parameter assignment before removing them.
 
 The isolated WIT parser closure in that overlay also normalizes qualified type
 names (`types::WitType`, `ast::WitNode`, and related record types) to the flat

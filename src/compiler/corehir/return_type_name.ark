@@ -156,7 +156,7 @@ fn return_declared_type_params(
     method_node: AstNode,
     known_type_names: Vec<String>
 ) -> Vec<String> {
-    let names = decl_impl_target::effective_impl_param_names(impl_node, known_type_names)
+    let mut names = decl_impl_target::effective_impl_param_names(impl_node, known_type_names)
     let method_names = frontend_fns::build_fn_type_params(method_node)
     let count = method_names.len()
     let mut i = 0
