@@ -7,7 +7,9 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 import tempfile
+import threading
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
@@ -17,6 +19,11 @@ try:
 except ImportError:  # manager.py executes with scripts/ on sys.path
     from quality.metrics import run_metrics_report
     from quality.structure import quality_contract_findings, run_structure
+
+try:
+    from lib.build_paths import build_dir as _build_dir
+except ImportError:  # `python3 -m unittest` imports this module as scripts.quality.checks
+    from scripts.lib.build_paths import build_dir as _build_dir
 
 try:
     import tomllib
@@ -151,21 +158,54 @@ def _empty_selection_failure(root: Path, selected: list[str], label: str) -> int
     return 1
 
 
+def _tool_compiler_wasm(root: Path) -> Path | None:
+    """Return the selfhost compiler wasm fmt/lint subprocesses should use.
+
+    Prefer the runtime artifact: large in-tree generated sources make parallel
+    fmt batches memory-hungry, and ``arukellt-s2-runtime.wasm`` is the artifact
+    built for direct execution. Resolution starts at the build dir
+    (``ARUKELLT_BUILD_DIR`` when set) so a lane worktree lints with its own s2
+    instead of silently falling back to the pinned bootstrap.
+    """
+    selfhost = _build_dir(root) / "selfhost"
+    for name in ("arukellt-s2-runtime.wasm", "arukellt-s2.wasm"):
+        candidate = selfhost / name
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+_tool_compiler_notice_lock = threading.Lock()
+_tool_compiler_notice_shown = False
+
+
+def _note_missing_tool_compiler(root: Path) -> None:
+    """Explain a bootstrap fallback once per process, not once per lint worker."""
+    global _tool_compiler_notice_shown
+    with _tool_compiler_notice_lock:
+        if _tool_compiler_notice_shown:
+            return
+        _tool_compiler_notice_shown = True
+    print(
+        f"note: no selfhost compiler under {_build_dir(root) / 'selfhost'}; "
+        "fmt/lint run with the pinned bootstrap. "
+        "Build one with: python3 scripts/manager.py selfhost build-compiler",
+        file=sys.stderr,
+    )
+
+
 def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, timeout: int = 60) -> ToolResult:
     if dry_run:
         return ToolResult(path, command, 0, "DRY-RUN: " + " ".join(command))
     env = os.environ.copy()
-    # Prefer the heap-patched s2-runtime (4 GiB) when present. The unpatched
-    # s2 wasm is capped at 512 MiB and OOMs under parallel fmt batches once
-    # large generated sources (e.g. core_op_registry_generated) are in-tree.
-    # Callers may still override via ARUKELLT_SELFHOST_WASM.
-    if "ARUKELLT_SELFHOST_WASM" not in env:
-        s2_runtime = root / ".build/selfhost/arukellt-s2-runtime.wasm"
-        current_s2 = root / ".build/selfhost/arukellt-s2.wasm"
-        if s2_runtime.is_file():
-            env["ARUKELLT_SELFHOST_WASM"] = str(s2_runtime)
-        elif current_s2.is_file():
-            env["ARUKELLT_SELFHOST_WASM"] = str(current_s2)
+    # Callers may override via ARUKELLT_SELFHOST_WASM; an empty value behaves
+    # like unset so a stale exported value does not pin the wrong compiler.
+    if not env.get("ARUKELLT_SELFHOST_WASM", "").strip():
+        compiler_wasm = _tool_compiler_wasm(root)
+        if compiler_wasm is None:
+            _note_missing_tool_compiler(root)
+        else:
+            env["ARUKELLT_SELFHOST_WASM"] = str(compiler_wasm)
     try:
         result = subprocess.run(
             command,
@@ -541,10 +581,10 @@ def _save_fmt_cache(root: Path, entries: dict[str, dict[str, str]]) -> None:
 
 def _formatter_tool_id(root: Path) -> str:
     """Identity of the formatter binary; a compiler rebuild invalidates the cache."""
+    compiler = _tool_compiler_wasm(root)
     candidates = [
         os.environ.get("ARUKELLT_SELFHOST_WASM", ""),
-        str(root / ".build/selfhost/arukellt-s2-runtime.wasm"),
-        str(root / ".build/selfhost/arukellt-s2.wasm"),
+        str(compiler) if compiler is not None else "",
         str(root / "bootstrap/arukellt-selfhost.wasm"),
     ]
     for candidate in candidates:

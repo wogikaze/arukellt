@@ -47,6 +47,12 @@ Selfhost artifact isolation: unset `ARUKELLT_BUILD_DIR` uses `<worktree>/.build`
 (already per-worktree). Set `ARUKELLT_BUILD_DIR` when multiple agents share one
 checkout and must not share locks or wasm outputs.
 
+The fmt/lint subprocesses behind `verify lane` resolve their compiler from
+`<build-dir>/selfhost` (`arukellt-s2-runtime.wasm`, then `arukellt-s2.wasm`), so
+a lane lints with its own s2. When that compiler is absent they print a note and
+fall back to the pinned `bootstrap/arukellt-selfhost.wasm`; `ARUKELLT_SELFHOST_WASM`
+still overrides the resolution explicitly.
+
 The structured command registry is
 [`../data/verification-commands.toml`](../data/verification-commands.toml).
 `verify component` and `verify --component` are compatibility aliases for
