@@ -18,7 +18,7 @@
 use std::host::stdio::Stdio
 
 fn count_items<T>(v: Vec<T>) -> i32 {
-    len(v)
+    v.len()
 }
 
 fn main() {

@@ -1,7 +1,7 @@
 use std::host::stdio::Stdio
 
 fn first<T>(v: Vec<T>) -> Option<T> {
-    if len(v) > 0 {
+    if v.len() > 0 {
         Some(get_unchecked(v, 0))
     } else {
         None

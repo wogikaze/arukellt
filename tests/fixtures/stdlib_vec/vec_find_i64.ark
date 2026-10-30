@@ -6,7 +6,7 @@ fn is_hundred(x: i64) -> bool {
 
 fn find_hundred(v: Vec<i64>) -> Option<i64> {
     // Inline find: prelude find_i64 still produces invalid GC wasm (#807).
-    let n = len(v)
+    let n = v.len()
     let mut i = 0
     while i < n {
         let x = get_unchecked(v, i)

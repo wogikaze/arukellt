@@ -13,7 +13,7 @@ fn layout_variant_name(variant: CoreHirLayoutVariant) -> String {
 }
 
 fn layout_variant_payload_type_count(variant: CoreHirLayoutVariant) -> i32 {
-    len(variant.payload_type_names)
+    variant.payload_type_names.len()
 }
 
 fn layout_variant_payload_type_name_at(variant: CoreHirLayoutVariant, index: i32) -> String {
@@ -21,7 +21,7 @@ fn layout_variant_payload_type_name_at(variant: CoreHirLayoutVariant, index: i32
 }
 
 fn layout_variant_payload_field_name_at(variant: CoreHirLayoutVariant, index: i32) -> String {
-    if index < len(variant.payload_field_names) {
+    if index < variant.payload_field_names.len() {
         return get_unchecked(variant.payload_field_names, index)
     }
     ""

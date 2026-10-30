@@ -3,6 +3,6 @@ use std::test
 
 fn main() {
     let s = String_from("aaaaaaaaaa")
-    Test::assert_eq_i32(len(s), 10)
+    Test::assert_eq_i32(s.len(), 10)
     Test::assert_eq_string(s.replace(String_from("a"), String_from("b")), "bbbbbbbbbb")
 }

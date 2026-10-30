@@ -160,7 +160,7 @@ fn gc_layout_table_no_entry() -> i32 {
 // Index of the first entry whose key matches, or -1.
 fn gc_layout_table_entry_index_by_key(table: GcLayoutTable, key: GcLayoutKey) -> i32 {
     let raw = type_id::TypeId_raw(key.type_id)
-    if raw < 0 || raw >= len(table.head_by_type_id) {
+    if raw < 0 || raw >= table.head_by_type_id.len() {
         return gc_layout_table_no_entry()
     }
     let mut i = get_unchecked(table.head_by_type_id, raw)
@@ -180,7 +180,7 @@ fn gc_layout_table_link_entry(mut table: GcLayoutTable, key: GcLayoutKey, entry_
         push(table.next_same_type_id, gc_layout_table_no_entry())
         return
     }
-    while len(table.head_by_type_id) <= raw {
+    while table.head_by_type_id.len() <= raw {
         push(table.head_by_type_id, gc_layout_table_no_entry())
     }
     push(table.next_same_type_id, get_unchecked(table.head_by_type_id, raw))
@@ -216,7 +216,7 @@ fn gc_layout_table_register_key(
         }
         return existing
     }
-    let entry_index = len(table.entries)
+    let entry_index = table.entries.len()
     let id = GcLayoutId { raw: table.next_id }
     table.next_id = table.next_id + 1
     let entry = GcLayoutEntry {
@@ -268,7 +268,7 @@ fn gc_layout_table_missing_entry() -> GcLayoutEntry {
 }
 
 fn gc_layout_table_entry_by_id(table: GcLayoutTable, id: GcLayoutId) -> GcLayoutEntry {
-    if id.raw < 0 || id.raw >= len(table.entries) {
+    if id.raw < 0 || id.raw >= table.entries.len() {
         return gc_layout_table_missing_entry()
     }
     get_unchecked(table.entries, id.raw)

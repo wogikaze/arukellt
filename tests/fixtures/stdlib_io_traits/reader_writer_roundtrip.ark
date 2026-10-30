@@ -67,16 +67,16 @@ fn read_report<T: io::Read>(mut source: T) -> Result<ReadReport, io::IoError> {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
     }
-    let first_byte0: i32 = if len(first) > 0 { get_unchecked(first, 0) } else { 0 }
-    let first_byte1: i32 = if len(first) > 1 { get_unchecked(first, 1) } else { 0 }
-    let rest_byte0: i32 = if len(rest) > 0 { get_unchecked(rest, 0) } else { 0 }
+    let first_byte0: i32 = if first.len() > 0 { get_unchecked(first, 0) } else { 0 }
+    let first_byte1: i32 = if first.len() > 1 { get_unchecked(first, 1) } else { 0 }
+    let rest_byte0: i32 = if rest.len() > 0 { get_unchecked(rest, 0) } else { 0 }
     Ok(ReadReport {
-            first_len: len(first),
+            first_len: first.len(),
             first_byte0: first_byte0,
             first_byte1: first_byte1,
-            rest_len: len(rest),
+            rest_len: rest.len(),
             rest_byte0: rest_byte0,
-            eof_len: len(at_eof),
+            eof_len: at_eof.len(),
         })
 }
 
@@ -94,7 +94,7 @@ fn main() {
         Stdio::println("flush failed")
     }
     let bytes: Vec<i32> = bytes_handoff.sink.into_bytes()
-    Stdio::println((len(bytes)).to_string())
+    Stdio::println((bytes.len()).to_string())
     Stdio::println((get_unchecked(bytes, 0)).to_string())
     Stdio::println((get_unchecked(bytes, 4)).to_string())
 
@@ -121,7 +121,7 @@ fn main() {
     let from_bytes: Reader = Reader::from_bytes(payload())
     Stdio::println((from_bytes.len()).to_string())
     let image: Vec<i32> = from_bytes.into_bytes()
-    Stdio::println(len(image).to_string())
+    Stdio::println(image.len().to_string())
     Stdio::println((get_unchecked(image, 2)).to_string())
 
     let mut empty: Reader = Reader::new()

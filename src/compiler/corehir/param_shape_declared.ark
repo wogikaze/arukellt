@@ -14,7 +14,7 @@ struct CoreHirNominalTypes {
 fn corehir_nominal_types_from_decls(decls: Vec<AstNode>) -> CoreHirNominalTypes {
     let mut structs = Vec::new<String>()
     let mut enums = Vec::new<String>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
@@ -32,13 +32,13 @@ fn corehir_nominal_types_from_decls(decls: Vec<AstNode>) -> CoreHirNominalTypes 
 // name is a declared type, not an inferred parameter, in every layer.
 fn corehir_nominal_type_names(types: CoreHirNominalTypes) -> Vec<String> {
     let mut names = Vec::new<String>()
-    let struct_count = len(types.structs)
+    let struct_count = types.structs.len()
     let mut i = 0
     while i < struct_count {
         push(names, get_unchecked(types.structs, i))
         i = i + 1
     }
-    let enum_count = len(types.enums)
+    let enum_count = types.enums.len()
     let mut j = 0
     while j < enum_count {
         push(names, get_unchecked(types.enums, j))
@@ -61,7 +61,7 @@ fn corehir_nominal_types_contains(types: CoreHirNominalTypes, name: String) -> b
 }
 
 fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool {
-    let count = len(names)
+    let count = names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(names, i).eq(name.clone()) {
@@ -77,7 +77,7 @@ fn corehir_nominal_type_list_contains(names: Vec<String>, name: String) -> bool 
 fn corehir_declared_type_param_contains(type_params: Vec<String>, name: String) -> bool {
     let mut bare = name.clone()
     if bare.clone().starts_with("?") {
-        bare = bare.slice(1, len(bare))
+        bare = bare.slice(1, bare.len())
     }
     corehir_nominal_type_list_contains(type_params, bare)
 }

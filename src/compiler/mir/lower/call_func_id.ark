@@ -22,7 +22,7 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
     if !function_id::function_id_is_valid(fid) {
         let variants = callee_spelling::callee_spelling_variants(symbol.clone())
         let mut vi = 0
-        while vi < len(variants) {
+        while vi < variants.len() {
             let variant = get_unchecked(variants, vi).clone()
             let variant_fid = signature_registry::signature_registry_lookup_by_mangled(
                 registry,
@@ -34,7 +34,7 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
                     registry,
                     function_id::FunctionId_raw(variant_fid)
                 )
-                vi = len(variants)
+                vi = variants.len()
             } else {
                 vi = vi + 1
             }

@@ -49,7 +49,7 @@ fn MirInstDraft_str_val(inst: MirInstDraft) -> String { inst.str_val.clone() }
 fn MirInstDraft_val_type(inst: MirInstDraft) -> i32 { inst.val_type }
 fn MirInstDraft_func_id_raw(inst: MirInstDraft) -> i32 { inst.func_id_raw }
 fn MirInstDraft_result_types(inst: MirInstDraft) -> Vec<MirValueType> { inst.result_types }
-fn MirInstDraft_result_type_count(inst: MirInstDraft) -> i32 { len(inst.result_types) }
+fn MirInstDraft_result_type_count(inst: MirInstDraft) -> i32 { inst.result_types.len() }
 fn MirInstDraft_result_type_at(inst: MirInstDraft, index: i32) -> MirValueType {
     get_unchecked(inst.result_types, index)
 }

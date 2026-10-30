@@ -69,7 +69,7 @@ fn diag_hex_byte(b: i32) -> String {
 }
 
 fn diag_json_escape(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut out = String_new()
     let mut i = 0
     while i < n {

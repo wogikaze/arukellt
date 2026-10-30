@@ -41,7 +41,7 @@ fn mark_clone_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
         return false
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if len(arg_type) == 0 {
+    if arg_type.len() == 0 {
         // Identity clone with an unnamed arg: keep the arg's storage class
         // so the dest never adopts the callee's declared return layout.
         ctx_api_local_types::ctx_set_local_vt(

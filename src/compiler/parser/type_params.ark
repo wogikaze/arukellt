@@ -51,7 +51,7 @@ fn parse_generic_params(mut p: Parser) -> Vec<AstNode> {
 
 fn parse_generic_params_into_node(mut p: Parser, mut node: AstNode) {
     let params = parse_generic_params(p)
-    let count = len(params)
+    let count = params.len()
     let mut i = 0
     while i < count {
         core_ast_type_ann::AstNode_push_type_ann(node, get_unchecked(params, i))

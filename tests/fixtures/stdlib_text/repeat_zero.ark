@@ -10,6 +10,6 @@ fn main() {
     // Repeat once is the original string
     Test::assert_eq_string("hello".repeat(1), "hello")
     // Length checks
-    Test::assert_eq_i32(len("ab".repeat(3)), 6)
-    Test::assert_eq_i32(len("ab".repeat(0)), 0)
+    Test::assert_eq_i32("ab".repeat(3).len(), 6)
+    Test::assert_eq_i32("ab".repeat(0).len(), 0)
 }

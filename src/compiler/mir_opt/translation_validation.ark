@@ -76,11 +76,11 @@ fn mir_translation_inst_equal(a: MirInst, b: MirInst) -> bool {
 }
 
 fn mir_translation_vector_equal(a: Vec<MirInst>, b: Vec<MirInst>) -> bool {
-    if len(a) != len(b) {
+    if a.len() != b.len() {
         return false
     }
     let mut i = 0
-    while i < len(a) {
+    while i < a.len() {
         if !mir_translation_inst_equal(get_unchecked(a, i), get_unchecked(b, i)) {
             return false
         }
@@ -96,9 +96,9 @@ fn mir_translation_insert_only_valid(
 ) -> bool {
     let mut before_i = 0
     let mut after_i = 0
-    while after_i < len(after) {
+    while after_i < after.len() {
         let candidate = get_unchecked(after, after_i)
-        if before_i < len(before) &&
+        if before_i < before.len() &&
         mir_translation_inst_equal(get_unchecked(before, before_i), candidate) {
             before_i = before_i + 1
             after_i = after_i + 1
@@ -110,5 +110,5 @@ fn mir_translation_insert_only_valid(
         }
         return false
     }
-    before_i == len(before)
+    before_i == before.len()
 }

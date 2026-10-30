@@ -4,14 +4,14 @@ use std::host::stdio::Stdio
 fn main() {
     let row1 = csv::Csv::parse_row("name,age,city")
     let mut i = 0
-    while i < len(row1) {
+    while i < row1.len() {
         Stdio::println(get_unchecked(row1, i))
         i = i + 1
     }
     Stdio::println("---")
     let row2 = csv::Csv::parse_row("\"Smith, John\",30,\"New York\"")
     let mut j = 0
-    while j < len(row2) {
+    while j < row2.len() {
         Stdio::println(get_unchecked(row2, j))
         j = j + 1
     }

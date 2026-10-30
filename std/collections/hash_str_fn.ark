@@ -326,7 +326,7 @@ fn hashmap_str_fn_extend(
     other: HashMap<String, fn(i32) -> i32>
 ) {
     let mut pending: Vec<(String, fn(i32) -> i32)> = hashmap_str_fn_entries(other)
-    while len(pending) > 0 {
+    while pending.len() > 0 {
         match pending.pop() {
             Option::Some(pair) => {
                 let (key, value) = pair
@@ -344,7 +344,7 @@ fn hashmap_str_fn_retain(mut map: HashMap<String, fn(i32) -> i32>, keep: fn((Str
     let values: Vec<fn(i32) -> i32> = hashmap_str_fn_values(map)
     let mut drop_indices: Vec<i32> = Vec::new<i32>()
     let mut index: i32 = 0
-    while index < len(keys) {
+    while index < keys.len() {
         let key: String = get_unchecked(keys, index)
         let value: fn(i32) -> i32 = get_unchecked(values, index)
         if keep((key, value)) == false {
@@ -353,7 +353,7 @@ fn hashmap_str_fn_retain(mut map: HashMap<String, fn(i32) -> i32>, keep: fn((Str
         index = index + 1
     }
     let mut drop_index: i32 = 0
-    while drop_index < len(drop_indices) {
+    while drop_index < drop_indices.len() {
         let removed_index: i32 = get_unchecked(drop_indices, drop_index)
         let key: String = get_unchecked(keys, removed_index)
         let _ = hashmap_str_fn_remove(map, key)

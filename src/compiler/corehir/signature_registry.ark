@@ -23,7 +23,7 @@ fn SignatureRegistry_new() -> SignatureRegistry {
 }
 
 fn signature_registry_entry_count(registry: SignatureRegistry) -> i32 {
-    len(registry.entries)
+    registry.entries.len()
 }
 
 fn signature_registry_register(mut registry: SignatureRegistry, entry: SignatureEntry, mangled_name: String) -> FunctionId {
@@ -42,13 +42,13 @@ fn signature_registry_register(mut registry: SignatureRegistry, entry: Signature
 // that shares the bare name (strings::repeat vs stdlib repeat, #920) binds
 // the deferred decl's FunctionId and its own fid stays unmapped.
 fn signature_registry_mark_signature_only(mut registry: SignatureRegistry, index: i32) {
-    if index >= 0 && index < len(registry.signature_only) {
+    if index >= 0 && index < registry.signature_only.len() {
         set(registry.signature_only, index, true)
     }
 }
 
 fn signature_registry_is_signature_only(registry: SignatureRegistry, index: i32) -> bool {
-    if index >= 0 && index < len(registry.signature_only) {
+    if index >= 0 && index < registry.signature_only.len() {
         return get_unchecked(registry.signature_only, index)
     }
     false
@@ -83,7 +83,7 @@ fn signature_registry_lookup_by_mangled(registry: SignatureRegistry, mangled: St
 // forwarding call into recursion.
 fn signature_registry_register_alias(mut registry: SignatureRegistry, alias: String, target: FunctionId) {
     let raw = FunctionId_raw(target)
-    if raw < 0 || raw >= len(registry.entries) {
+    if raw < 0 || raw >= registry.entries.len() {
         return
     }
     // Qualified aliases must rebind an existing short-name collision.  The
@@ -127,7 +127,7 @@ fn signature_registry_register_core_op_alias(
 
 fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) -> SignatureEntry {
     let raw = FunctionId_raw(id)
-    if raw >= 0 && raw < len(registry.entries) {
+    if raw >= 0 && raw < registry.entries.len() {
         return get_unchecked(registry.entries, raw)
     }
     signature_entry::SignatureEntry_new(
@@ -146,7 +146,7 @@ fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) 
 }
 
 fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {
-    let count = len(registry.entries)
+    let count = registry.entries.len()
     let mut total = 0
     let mut i = 0
     while i < count {
@@ -160,7 +160,7 @@ fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {
 }
 
 fn signature_registry_builtin_count(registry: SignatureRegistry) -> i32 {
-    let count = len(registry.entries)
+    let count = registry.entries.len()
     let mut total = 0
     let mut i = 0
     while i < count {

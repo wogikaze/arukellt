@@ -34,7 +34,7 @@ fn MonoInstanceTable_new() -> MonoInstanceTable {
 }
 
 fn mono_instance_table_entry_count(table: MonoInstanceTable) -> i32 {
-    len(table.entries)
+    table.entries.len()
 }
 
 fn mono_instance_table_register(mut table: MonoInstanceTable, entry: MonoInstanceEntry) -> MonoInstanceId {
@@ -49,7 +49,7 @@ fn mono_instance_table_entry_at(table: MonoInstanceTable, index: i32) -> MonoIns
 }
 
 fn mono_instance_table_find_by_mangled(table: MonoInstanceTable, mangled: String) -> i32 {
-    let count = len(table.entries)
+    let count = table.entries.len()
     let mut i = 0
     while i < count {
         let entry = get_unchecked(table.entries, i)
@@ -91,7 +91,7 @@ fn mono_instance_entry_param_types(entry: MonoInstanceEntry) -> Vec<MirValueType
 }
 
 fn mono_instance_entry_return_count(entry: MonoInstanceEntry) -> i32 {
-    len(entry.instantiated_return_types)
+    entry.instantiated_return_types.len()
 }
 
 fn mono_instance_entry_signature_id(entry: MonoInstanceEntry) -> FunctionId {

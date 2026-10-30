@@ -37,7 +37,7 @@ fn MirStrPool_new() -> MirStrPool {
 }
 
 fn mir_str_pool_find(pool: MirStrPool, text: String) -> i32 {
-    let n = len(pool.strings)
+    let n = pool.strings.len()
     if n >= str_pool_linear_limit() {
         return name_index::name_index_get(pool.index, text)
     }
@@ -52,7 +52,7 @@ fn mir_str_pool_find(pool: MirStrPool, text: String) -> i32 {
 }
 
 fn mir_str_pool_build_index(mut pool: MirStrPool) {
-    let n = len(pool.strings)
+    let n = pool.strings.len()
     pool.index = name_index::NameIndex_new(n * 2)
     let mut i = 0
     while i < n {
@@ -62,14 +62,14 @@ fn mir_str_pool_build_index(mut pool: MirStrPool) {
 }
 
 fn mir_local_intern_string(mut pool: MirStrPool, text: String) -> i32 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 0 - 1
     }
     let found = mir_str_pool_find(pool, text.clone())
     if found >= 0 {
         return found
     }
-    let id = len(pool.strings)
+    let id = pool.strings.len()
     push(pool.strings, text.clone())
     if id + 1 == str_pool_linear_limit() {
         mir_str_pool_build_index(pool)
@@ -80,7 +80,7 @@ fn mir_local_intern_string(mut pool: MirStrPool, text: String) -> i32 {
 }
 
 fn mir_local_pool_string(pool: MirStrPool, id: i32) -> String {
-    if id < 0 || id >= len(pool.strings) {
+    if id < 0 || id >= pool.strings.len() {
         return String_new()
     }
     get_unchecked(pool.strings, id).clone()
@@ -167,7 +167,7 @@ fn mir_local_is_string_or_untyped(local: MirLocal, table: TypeTable) -> bool {
     if mir_local_is_string_type(local, table) {
         return true
     }
-    mir_local_type_id_raw(local) < 0 && len(mir_local_type_name(local)) == 0
+    mir_local_type_id_raw(local) < 0 && mir_local_type_name(local).len() == 0
 }
 
 fn mir_local_type_name(local: MirLocal) -> String {

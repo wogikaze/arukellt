@@ -20,7 +20,7 @@ fn CoreHirBodyBuilder_new() -> CoreHirBodyTable {
 }
 
 fn corehir_body_builder_push_expr(mut builder: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
-    let index = len(builder.exprs)
+    let index = builder.exprs.len()
     push(builder.exprs, expr)
     index
 }
@@ -34,7 +34,7 @@ fn corehir_body_builder_push_method_body_root(mut builder: CoreHirBodyTable, roo
 }
 
 fn corehir_body_builder_begin_fn_contracts(builder: CoreHirBodyTable) -> i32 {
-    len(builder.contract_roots)
+    builder.contract_roots.len()
 }
 
 fn corehir_body_builder_push_fn_contract(
@@ -50,7 +50,7 @@ fn corehir_body_builder_push_fn_contract(
 
 fn corehir_body_builder_end_fn_contracts(mut builder: CoreHirBodyTable, start: i32) {
     push(builder.fn_contract_starts, start)
-    push(builder.fn_contract_counts, len(builder.contract_roots) - start)
+    push(builder.fn_contract_counts, builder.contract_roots.len() - start)
 }
 
 // Explicit fail-closed handoff from construction capability to the frozen

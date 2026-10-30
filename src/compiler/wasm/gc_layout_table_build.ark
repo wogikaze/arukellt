@@ -19,13 +19,13 @@ fn gc_layout_plan_type_index(
         return gc_type_base + source_value
     }
     if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() {
-        if source_value < 0 || source_value >= len(gc_struct_type_map) {
+        if source_value < 0 || source_value >= gc_struct_type_map.len() {
             return 0 - 1
         }
         return get_unchecked(gc_struct_type_map, source_value)
     }
     if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
-        if source_value < 0 || source_value >= len(gc_enum_variant_type_map) {
+        if source_value < 0 || source_value >= gc_enum_variant_type_map.len() {
             return 0 - 1
         }
         return get_unchecked(gc_enum_variant_type_map, source_value)
@@ -87,10 +87,10 @@ fn gc_layout_table_drain_plan(
     // drain re-walked every stuck binding for every pushed function.
     let state_changed = mir.gc_canon_version != table.drain_version_seen ||
     gc_type_base != table.drain_base_seen ||
-    len(table.plan_pending) != table.drain_pending_seen
-    if len(table.plan_pending) > 0 && (final_pass || state_changed) {
+    table.plan_pending.len() != table.drain_pending_seen
+    if table.plan_pending.len() > 0 && (final_pass || state_changed) {
         let mut still_pending = Vec::new<i32>()
-        let pending_count = len(table.plan_pending)
+        let pending_count = table.plan_pending.len()
         let mut p = 0
         while p < pending_count {
             let index = get_unchecked(table.plan_pending, p)
@@ -128,5 +128,5 @@ fn gc_layout_table_drain_plan(
     }
     table.drain_version_seen = mir.gc_canon_version
     table.drain_base_seen = gc_type_base
-    table.drain_pending_seen = len(table.plan_pending)
+    table.drain_pending_seen = table.plan_pending.len()
 }

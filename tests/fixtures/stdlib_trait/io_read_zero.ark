@@ -7,7 +7,7 @@ fn main() {
     push(data, 2)
     let mut r: io::Reader = io::Reader::from_bytes(data)
     match r.read(0) {
-        Result::Ok(read) => Test::assert_eq_i32(len(read), 0),
+        Result::Ok(read) => Test::assert_eq_i32(read.len(), 0),
         Result::Err(e) => Std::panic(e.message()),
     }
     match r.position() {

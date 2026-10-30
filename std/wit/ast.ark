@@ -79,15 +79,15 @@ impl WitNode {
     /// (package, world, interface).  Returns 0 for leaf nodes.
     fn child_count(self: WitNode) -> i32 {
         match self {
-            WitNode::Package(_, items) => len(items),
-            WitNode::World(_, items) => len(items),
-            WitNode::Interface(_, items) => len(items),
-            WitNode::Record(_, fields) => len(fields),
-            WitNode::Enum(_, variants) => len(variants),
-            WitNode::Flags(_, members) => len(members),
-            WitNode::Variant(_, cases) => len(cases),
-            WitNode::Resource(_, fields) => len(fields),
-            WitNode::Func(_, params, _) => len(params),
+            WitNode::Package(_, items) => items.len(),
+            WitNode::World(_, items) => items.len(),
+            WitNode::Interface(_, items) => items.len(),
+            WitNode::Record(_, fields) => fields.len(),
+            WitNode::Enum(_, variants) => variants.len(),
+            WitNode::Flags(_, members) => members.len(),
+            WitNode::Variant(_, cases) => cases.len(),
+            WitNode::Resource(_, fields) => fields.len(),
+            WitNode::Func(_, params, _) => params.len(),
             WitNode::TypeAlias(_, _) |
             WitNode::Use(_, _) |
             WitNode::Import(_, _) |
@@ -101,21 +101,21 @@ impl WitNode {
     fn child_at(self: WitNode, index: i32) -> WitNode {
         match self {
             WitNode::Package(_, items) => {
-                if index < 0 || index >= len(items) {
+                if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
                     get_unchecked(items, index)
                 }
             },
             WitNode::World(_, items) => {
-                if index < 0 || index >= len(items) {
+                if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
                     get_unchecked(items, index)
                 }
             },
             WitNode::Interface(_, items) => {
-                if index < 0 || index >= len(items) {
+                if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
                     get_unchecked(items, index)
@@ -142,11 +142,11 @@ impl WitNode {
         match self {
             WitNode::Interface(name, _) => name.clone(),
             WitNode::Package(_, items) => {
-                for i in 0..len(items) {
+                for i in 0..items.len() {
                     match get_unchecked(items, i) {
                         WitNode::Interface(name, _) => return name.clone(),
                         WitNode::World(_, world_items) => {
-                            for j in 0..len(world_items) {
+                            for j in 0..world_items.len() {
                                 match get_unchecked(world_items, j) {
                                     WitNode::Interface(name, _) => return name.clone(),
                                     _ => {},
@@ -159,7 +159,7 @@ impl WitNode {
                 String_new()
             },
             WitNode::World(_, items) => {
-                for i in 0..len(items) {
+                for i in 0..items.len() {
                     match get_unchecked(items, i) {
                         WitNode::Interface(name, _) => return name.clone(),
                         _ => {},
@@ -185,14 +185,14 @@ impl WitNode {
     fn field_name_at(self: WitNode, index: i32) -> String {
         match self {
             WitNode::Record(_, fields) => {
-                if index < 0 || index >= len(fields) {
+                if index < 0 || index >= fields.len() {
                     String_new()
                 } else {
                     get_unchecked(fields, index).name.clone()
                 }
             },
             WitNode::Resource(_, fields) => {
-                if index < 0 || index >= len(fields) {
+                if index < 0 || index >= fields.len() {
                     String_new()
                 } else {
                     get_unchecked(fields, index).name.clone()
@@ -217,14 +217,14 @@ impl WitNode {
     fn field_type_at(self: WitNode, index: i32) -> types::WitType {
         match self {
             WitNode::Record(_, fields) => {
-                if index < 0 || index >= len(fields) {
+                if index < 0 || index >= fields.len() {
                     WitType::Unknown(0)
                 } else {
                     get_unchecked(fields, index).ty
                 }
             },
             WitNode::Resource(_, fields) => {
-                if index < 0 || index >= len(fields) {
+                if index < 0 || index >= fields.len() {
                     WitType::Unknown(0)
                 } else {
                     get_unchecked(fields, index).ty
@@ -249,7 +249,7 @@ impl WitNode {
     fn enum_variant_at(self: WitNode, index: i32) -> String {
         match self {
             WitNode::Enum(_, variants) => {
-                if index < 0 || index >= len(variants) {
+                if index < 0 || index >= variants.len() {
                     String_new()
                 } else {
                     get_unchecked(variants, index).clone()
@@ -275,7 +275,7 @@ impl WitNode {
     fn flags_member_at(self: WitNode, index: i32) -> String {
         match self {
             WitNode::Flags(_, members) => {
-                if index < 0 || index >= len(members) {
+                if index < 0 || index >= members.len() {
                     String_new()
                 } else {
                     get_unchecked(members, index).clone()
@@ -301,7 +301,7 @@ impl WitNode {
     fn variant_case_name_at(self: WitNode, index: i32) -> String {
         match self {
             WitNode::Variant(_, cases) => {
-                if index < 0 || index >= len(cases) {
+                if index < 0 || index >= cases.len() {
                     String_new()
                 } else {
                     get_unchecked(cases, index).name.clone()
@@ -327,7 +327,7 @@ impl WitNode {
     fn variant_case_has_payload(self: WitNode, index: i32) -> bool {
         match self {
             WitNode::Variant(_, cases) => {
-                if index < 0 || index >= len(cases) {
+                if index < 0 || index >= cases.len() {
                     return false
                 }
                 let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
@@ -356,7 +356,7 @@ impl WitNode {
     fn variant_case_type_at(self: WitNode, index: i32) -> types::WitType {
         match self {
             WitNode::Variant(_, cases) => {
-                if index < 0 || index >= len(cases) {
+                if index < 0 || index >= cases.len() {
                     return WitType::Unknown(0)
                 }
                 let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
@@ -384,7 +384,7 @@ impl WitNode {
     /// Return the func param count.
     fn func_param_count(self: WitNode) -> i32 {
         match self {
-            WitNode::Func(_, params, _) => len(params),
+            WitNode::Func(_, params, _) => params.len(),
             WitNode::Package(_, _) |
             WitNode::World(_, _) |
             WitNode::Interface(_, _) |
@@ -405,7 +405,7 @@ impl WitNode {
     fn func_param_name_at(self: WitNode, index: i32) -> String {
         match self {
             WitNode::Func(_, params, _) => {
-                if index < 0 || index >= len(params) {
+                if index < 0 || index >= params.len() {
                     String_new()
                 } else {
                     get_unchecked(params, index).name.clone()
@@ -431,7 +431,7 @@ impl WitNode {
     fn func_param_type_at(self: WitNode, index: i32) -> types::WitType {
         match self {
             WitNode::Func(_, params, _) => {
-                if index < 0 || index >= len(params) {
+                if index < 0 || index >= params.len() {
                     WitType::Unknown(0)
                 } else {
                     get_unchecked(params, index).ty
@@ -615,13 +615,13 @@ fn wit_import_package_version(package: String) -> String {
     if at < 0 {
         String_new()
     } else {
-        package.slice(at + 1, len(package))
+        package.slice(at + 1, package.len())
     }
 }
 
 fn wit_import_serialized_string_list(values: Vec<String>) -> String {
     let mut out = String_new()
-    for i in 0..len(values) {
+    for i in 0..values.len() {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
@@ -632,7 +632,7 @@ fn wit_import_serialized_string_list(values: Vec<String>) -> String {
 
 fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
     let mut out = String_new()
-    for i in 0..len(params) {
+    for i in 0..params.len() {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
@@ -643,7 +643,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
 
 fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
     let mut names = Vec::new<String>()
-    for i in 0..len(fields) {
+    for i in 0..fields.len() {
         push(names, get_unchecked(fields, i).name.clone())
     }
     wit_import_serialized_string_list(names)
@@ -651,7 +651,7 @@ fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
 
 fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
     let mut out = String_new()
-    for i in 0..len(fields) {
+    for i in 0..fields.len() {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
@@ -666,7 +666,7 @@ fn wit_import_serialized_enum_variants(variants: Vec<String>) -> String {
 
 fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> String {
     let mut names = Vec::new<String>()
-    for i in 0..len(cases) {
+    for i in 0..cases.len() {
         push(names, get_unchecked(cases, i).name.clone())
     }
     wit_import_serialized_string_list(names)
@@ -674,7 +674,7 @@ fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> Str
 
 fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> String {
     let mut out = String_new()
-    for i in 0..len(cases) {
+    for i in 0..cases.len() {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
@@ -705,7 +705,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
     out = String::concat(out, package_version)
     out = String::concat(out, String_from("|"))
     out = String::concat(out, String::concat(name, String_from(";")))
-    for i in 0..len(items) {
+    for i in 0..items.len() {
         match get_unchecked(items, i) {
             WitNode::Func(func_name, params, result) => {
                 let r: Option<types::WitType> = result
@@ -751,13 +751,13 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
 }
 
 fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> String {
-    for i in 0..len(items) {
+    for i in 0..items.len() {
         match get_unchecked(items, i) {
             WitNode::Interface(name, interface_items) => {
                 return wit_import_serialized_interface(package, name, interface_items)
             },
             WitNode::World(_, world_items) => {
-                for j in 0..len(world_items) {
+                for j in 0..world_items.len() {
                     match get_unchecked(world_items, j) {
                         WitNode::Interface(name, interface_items) => {
                             return wit_import_serialized_interface(package.clone(), name, interface_items)
@@ -776,7 +776,7 @@ fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> Stri
 
 /// Skip whitespace (space, tab, newline, carriage return).
 fn p_skip_ws(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = pos
     while i < n {
         let c = s.byte_at(i)
@@ -791,7 +791,7 @@ fn p_skip_ws(s: String, pos: i32) -> i32 {
 
 /// Skip whitespace and comments (`//` line comments and `/* */` block comments).
 fn p_skip_ws_comments(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = pos
     while i < n {
         let c = s.byte_at(i)
@@ -827,7 +827,7 @@ fn p_skip_ws_comments(s: String, pos: i32) -> i32 {
 /// Read an identifier-like word.  Stops at whitespace, `{}();:,<>=$@/-` etc.
 /// For WIT, kebab-case names include `-`, so we allow `-` in words.
 fn p_word(s: String, pos: i32) -> (String, i32) {
-    let n = len(s)
+    let n = s.len()
     let start = pos
     let mut i = pos
     while i < n {
@@ -844,7 +844,7 @@ fn p_word(s: String, pos: i32) -> (String, i32) {
 /// Read a path-like word that may include `:` and `/` and `@` and `.`.
 /// Used for package paths and use/import paths.
 fn p_path(s: String, pos: i32) -> (String, i32) {
-    let n = len(s)
+    let n = s.len()
     let start = pos
     let mut i = pos
     while i < n {
@@ -861,7 +861,7 @@ fn p_path(s: String, pos: i32) -> (String, i32) {
 /// Find a matching closing brace starting at `pos` (which should be `{`).
 /// Returns the index of the closing `}`, or -1 if not found.
 fn p_find_matching_brace(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     if pos >= n || s.byte_at(pos) != 123 {
         return 0 - 1
     }
@@ -933,7 +933,7 @@ fn p_type_name(name: String) -> types::WitType {
 /// and the position after the type.
 fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     let (word, p1) = p_word(s, i)
     i = p1
     if word.eq("list") {
@@ -1039,7 +1039,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
 fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
     let mut params = Vec::new<WitParam>()
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     while i < n {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 41 {
@@ -1065,22 +1065,22 @@ fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
 fn p_func(s: String, pos: i32) -> (WitNode, i32) {
     let (fname, p1) = p_word(s, pos)
     let mut i = p_skip_ws_comments(s, p1)
-    if i < len(s) && s.byte_at(i) == 58 {
+    if i < s.len() && s.byte_at(i) == 58 {
         i = p_skip_ws_comments(s, i + 1)
         let (kw, p2) = p_word(s, i)
         if kw.eq("func") {
             i = p_skip_ws_comments(s, p2)
-            if i < len(s) && s.byte_at(i) == 40 {
+            if i < s.len() && s.byte_at(i) == 40 {
                 let (params, p3) = p_params(s, i + 1)
                 i = p_skip_ws_comments(s, p3)
                 let mut result = Option::None
-                if i + 1 < len(s) && s.byte_at(i) == 45 && s.byte_at(i + 1) == 62 {
+                if i + 1 < s.len() && s.byte_at(i) == 45 && s.byte_at(i + 1) == 62 {
                     i = p_skip_ws_comments(s, i + 2)
                     let (ty, p4) = p_type(s, i)
                     result = Option::Some(ty)
                     i = p4
                 }
-                if i < len(s) && s.byte_at(i) == 59 {
+                if i < s.len() && s.byte_at(i) == 59 {
                     i = i + 1
                 }
                 return (WitNode::Func(fname, params, result), i)
@@ -1095,7 +1095,7 @@ fn p_func(s: String, pos: i32) -> (WitNode, i32) {
 fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
     let mut fields = Vec::new<WitField>()
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     while i < n {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 125 {
@@ -1121,14 +1121,14 @@ fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
 fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
     let mut variants = Vec::new<String>()
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     while i < n {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 125 {
             return (variants, i + 1)
         }
         let (vname, p1) = p_word(s, i)
-        if len(vname) > 0 {
+        if vname.len() > 0 {
             push(variants, vname)
         }
         i = p_skip_ws_comments(s, p1)
@@ -1144,7 +1144,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
 fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
     let mut cases = Vec::new<WitVariantCase>()
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     while i < n {
         i = p_skip_ws_comments(s, i)
         if i < n && s.byte_at(i) == 125 {
@@ -1174,7 +1174,7 @@ fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
 /// Returns the parsed `WitNode` and the position after it.
 fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     if i >= n {
         return (WitNode::Error(String_from("unexpected end of input")), i)
     }
@@ -1391,7 +1391,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
 fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
     let mut items = Vec::new<WitNode>()
     let mut i = p_skip_ws_comments(s, pos)
-    let n = len(s)
+    let n = s.len()
     while i < n {
         i = p_skip_ws_comments(s, i)
         if i >= n || s.byte_at(i) == 125 {
@@ -1424,7 +1424,7 @@ fn p_world(s: String, pos: i32) -> (WitNode, i32) {
     i = p_skip_ws_comments(s, p1)
     let (wname, p2) = p_word(s, i)
     i = p_skip_ws_comments(s, p2)
-    if i >= len(s) || s.byte_at(i) != 123 {
+    if i >= s.len() || s.byte_at(i) != 123 {
         return (WitNode::Error(String_from("expected { after world name")), i)
     }
     let close = p_find_matching_brace(s, i)
@@ -1447,7 +1447,7 @@ fn p_interface(s: String, pos: i32) -> (WitNode, i32) {
     i = p_skip_ws_comments(s, p1)
     let (iname, p2) = p_word(s, i)
     i = p_skip_ws_comments(s, p2)
-    if i >= len(s) || s.byte_at(i) != 123 {
+    if i >= s.len() || s.byte_at(i) != 123 {
         return (WitNode::Error(String_from("expected { after interface name")), i)
     }
     let close = p_find_matching_brace(s, i)
@@ -1470,7 +1470,7 @@ fn p_package_decl(s: String, pos: i32) -> (String, i32) {
     i = p_skip_ws_comments(s, p1)
     let (path, p2) = p_path(s, i)
     i = p_skip_ws_comments(s, p2)
-    if i < len(s) && s.byte_at(i) == 59 {
+    if i < s.len() && s.byte_at(i) == 59 {
         i = i + 1
     }
     return (path, i)
@@ -1487,7 +1487,7 @@ fn p_package_decl(s: String, pos: i32) -> (String, i32) {
 /// containing the items.
 fn parse_wit_document(source: String) -> WitNode {
     let mut i = p_skip_ws_comments(source, 0)
-    let n = len(source)
+    let n = source.len()
     if i >= n {
         return WitNode::Error(String_from("empty input"))
     }

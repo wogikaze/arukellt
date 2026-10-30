@@ -29,7 +29,7 @@ fn phi_add_arg(mut phi: Phi, pred_block: i32, version: i32) {
 }
 
 fn block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
-    let count = len(ids)
+    let count = ids.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ids, i) == block_id {
@@ -48,7 +48,7 @@ fn format_ssa_value(ssa_name: String, version: i32) -> String {
 }
 
 fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa_name: String, dest_vt: i32) -> Phi {
-    if len(join_block.preds) != 2 {
+    if join_block.preds.len() != 2 {
         Stdio::eprintln(String_from("join predecessor count mismatch"))
         Process::exit(1)
     }

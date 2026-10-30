@@ -7,5 +7,5 @@ fn main() {
         s = s.concat(String_from("x"))
         i = i + 1
     }
-    Stdio::println((len(s)).to_string())
+    Stdio::println((s.len()).to_string())
 }

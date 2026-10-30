@@ -20,7 +20,7 @@ fn GcShapeRegistry_add_struct(reg: GcShapeRegistry, struct_name: String, field_t
     }
     push(reg.struct_names.clone(), struct_name)
     push(reg.struct_field_types.clone(), field_types_code)
-    len(reg.struct_names) - 1
+    reg.struct_names.len() - 1
 }
 
 fn GcShapeRegistry_add_array(reg: GcShapeRegistry, elem_type: i32) -> i32 {
@@ -29,19 +29,19 @@ fn GcShapeRegistry_add_array(reg: GcShapeRegistry, elem_type: i32) -> i32 {
         return existing
     }
     push(reg.array_elem_types.clone(), elem_type)
-    len(reg.array_elem_types) - 1
+    reg.array_elem_types.len() - 1
 }
 
 fn GcShapeRegistry_struct_count(reg: GcShapeRegistry) -> i32 {
-    len(reg.struct_names)
+    reg.struct_names.len()
 }
 
 fn GcShapeRegistry_array_count(reg: GcShapeRegistry) -> i32 {
-    len(reg.array_elem_types)
+    reg.array_elem_types.len()
 }
 
 fn GcShapeRegistry_struct_field_count(reg: GcShapeRegistry, idx: i32) -> i32 {
-    len(get_unchecked(reg.struct_field_types, idx))
+    get_unchecked(reg.struct_field_types, idx).len()
 }
 
 fn GcShapeRegistry_struct_field_type_at(reg: GcShapeRegistry, struct_idx: i32, field_idx: i32) -> i32 {
@@ -62,7 +62,7 @@ fn GcShapeRegistry_array_elem_type(reg: GcShapeRegistry, idx: i32) -> i32 {
 fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
     let mut sig = "GS"
     let types_code = get_unchecked(reg.struct_field_types, idx)
-    let fc = len(types_code)
+    let fc = types_code.len()
     let mut fi = 0
     while fi < fc {
         sig = sig.concat("_f")
@@ -99,7 +99,7 @@ fn val_type_to_gc_sig(vt: i32) -> String {
 }
 
 fn find_struct_by_name(reg: GcShapeRegistry, name: String) -> i32 {
-    let n = len(reg.struct_names)
+    let n = reg.struct_names.len()
     let mut i = 0
     while i < n {
         if get_unchecked(reg.struct_names, i).clone().eq(name.clone()) {
@@ -111,7 +111,7 @@ fn find_struct_by_name(reg: GcShapeRegistry, name: String) -> i32 {
 }
 
 fn find_array_by_elem(reg: GcShapeRegistry, elem_type: i32) -> i32 {
-    let n = len(reg.array_elem_types)
+    let n = reg.array_elem_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(reg.array_elem_types, i) == elem_type {

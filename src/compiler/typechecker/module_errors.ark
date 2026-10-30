@@ -7,13 +7,13 @@ fn append_env_errors(mut result: TypeCheckResult, env: TypeEnv) {
         contract_result_state::typecheck_result_push_error(result, get_unchecked(env.errors, e).clone())
         e = e + 1
     }
-    let diag_count = len(env.diagnostics)
+    let diag_count = env.diagnostics.len()
     let mut d = 0
     while d < diag_count {
         contract_result_state::typecheck_result_push_diagnostic(result, get_unchecked(env.diagnostics, d))
         d = d + 1
     }
-    let warn_count = len(env.warnings)
+    let warn_count = env.warnings.len()
     let mut w = 0
     while w < warn_count {
         contract_result_state::typecheck_result_push_warning(result, get_unchecked(env.warnings, w))

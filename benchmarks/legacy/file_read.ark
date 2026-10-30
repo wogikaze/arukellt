@@ -29,7 +29,7 @@ fn main() {
         let read_result = Fs::read_to_string(path)
         match read_result {
             Result::Ok(contents) => {
-                checksum = checksum + len(contents)
+                checksum = checksum + contents.len()
             },
             Result::Err(e) => {
                 Stdio::println("read error: ".concat(e))

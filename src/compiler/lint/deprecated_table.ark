@@ -24,7 +24,7 @@ pub fn deprecated_use_message(path: String) -> String {
 
 pub fn deprecated_call_message(name: String) -> String {
     let vec = deprecated_vec_call_message(name.clone())
-    if len(vec) > 0 {
+    if vec.len() > 0 {
         return vec
     }
     String_new()
@@ -37,9 +37,6 @@ fn deprecated_vec_call_message(name: String) -> String {
     }
     if name.clone().eq("pop") {
         return "use the Vec method `v.pop()` instead"
-    }
-    if name.clone().eq("len") {
-        return "use the Vec/String method `v.len()` instead"
     }
     if name.clone().eq("get") {
         return "use the Vec method `v.get(idx)` instead"
@@ -68,11 +65,11 @@ fn deprecated_vec_call_message(name: String) -> String {
 // `path` is the full qualified path, e.g. "seq::sum_i32" or "cmp::min".
 pub fn deprecated_qualified_call_message(path: String) -> String {
     let msg2 = deprecated_cmp_qualified_message(path)
-    if len(msg2) > 0 {
+    if msg2.len() > 0 {
         return msg2
     }
     let msg3 = deprecated_convert_qualified_message(path)
-    if len(msg3) > 0 {
+    if msg3.len() > 0 {
         return msg3
     }
     return deprecated_hash_qualified_message(path)
@@ -105,170 +102,171 @@ test mod "deprecated" {
     test "std_io_import_no_longer_deprecated" {
         // ADR-085 D1: std::io is the canonical abstraction module, so a plain
         // `use std::io` must not emit the retired moved-to-host-stdio warning.
-        assert(len(deprecated_use_message("std::io")) == 0)
+        assert(deprecated_use_message("std::io").len() == 0)
     }
-    test "fs" { assert(len(deprecated_use_message("std::fs")) > 0) }
+    test "fs" { assert(deprecated_use_message("std::fs").len() > 0) }
     test "gated_prelude_names_not_double_warned" {
         // Gated prelude names fail resolution with E0100; W0009 must not
         // also fire on the same name.
-        assert(len(deprecated_call_message("println")) == 0)
-        assert(len(deprecated_call_message("concat")) == 0)
-        assert(len(deprecated_call_message("char_at")) == 0)
-        assert(len(deprecated_call_message("u8_to_i32")) == 0)
-        assert(len(deprecated_call_message("i32_to_i64")) == 0)
+        assert(deprecated_call_message("println").len() == 0)
+        assert(deprecated_call_message("concat").len() == 0)
+        assert(deprecated_call_message("char_at").len() == 0)
+        assert(deprecated_call_message("u8_to_i32").len() == 0)
+        assert(deprecated_call_message("i32_to_i64").len() == 0)
     }
-    test "math_helpers_removed" { assert(len(deprecated_qualified_call_message("math::popcount")) == 0) }
+    test "math_helpers_removed" { assert(deprecated_qualified_call_message("math::popcount").len() == 0) }
     test "core_frees_removed" {
-        assert(len(deprecated_qualified_call_message("core::range_new")) == 0)
-        assert(len(deprecated_qualified_call_message("error::error_message")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::combine")) == 0)
+        assert(deprecated_qualified_call_message("core::range_new").len() == 0)
+        assert(deprecated_qualified_call_message("error::error_message").len() == 0)
+        assert(deprecated_qualified_call_message("hash::combine").len() == 0)
     }
-    test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
+    test "non_deprecated" { assert(deprecated_qualified_call_message("math::gcd").len() == 0) }
     test "seq_generic_helpers_not_deprecated" {
-        assert(len(deprecated_qualified_call_message("seq::binary_search_by")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::binary_search_by_key")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::lower_bound")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::upper_bound")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::sort_by")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::min_by")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::max_by")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::min_by_key")) == 0)
-        assert(len(deprecated_qualified_call_message("seq::max_by_key")) == 0)
+        assert(deprecated_qualified_call_message("seq::binary_search_by").len() == 0)
+        assert(deprecated_qualified_call_message("seq::binary_search_by_key").len() == 0)
+        assert(deprecated_qualified_call_message("seq::lower_bound").len() == 0)
+        assert(deprecated_qualified_call_message("seq::upper_bound").len() == 0)
+        assert(deprecated_qualified_call_message("seq::sort_by").len() == 0)
+        assert(deprecated_qualified_call_message("seq::min_by").len() == 0)
+        assert(deprecated_qualified_call_message("seq::max_by").len() == 0)
+        assert(deprecated_qualified_call_message("seq::min_by_key").len() == 0)
+        assert(deprecated_qualified_call_message("seq::max_by_key").len() == 0)
     }
     test "vec_frees_warn_w0009" {
-        assert(len(deprecated_call_message("push")) > 0)
-        assert(len(deprecated_call_message("pop")) > 0)
-        assert(len(deprecated_call_message("len")) > 0)
-        assert(len(deprecated_call_message("get")) > 0)
-        assert(len(deprecated_call_message("set")) > 0)
-        assert(len(deprecated_call_message("get_unchecked")) > 0)
-        assert(len(deprecated_call_message("as_slice")) > 0)
-        assert(len(deprecated_call_message("slice_len")) > 0)
-        assert(len(deprecated_call_message("slice_get")) > 0)
+        assert(deprecated_call_message("push").len() > 0)
+        assert(deprecated_call_message("pop").len() > 0)
+        assert(deprecated_call_message("get").len() > 0)
+        assert(deprecated_call_message("set").len() > 0)
+        assert(deprecated_call_message("get_unchecked").len() > 0)
+        assert(deprecated_call_message("as_slice").len() > 0)
+        assert(deprecated_call_message("slice_len").len() > 0)
+        assert(deprecated_call_message("slice_get").len() > 0)
+    }
+    test "retired len free has no w0009 entry" {
+        assert(deprecated_call_message("len").len() == 0)
     }
     test "retired_assertion_frees_have_no_w0009_entry" {
         // The four prelude assertion wrappers were deleted with E0100 hints
         // (wave/assertion-frees); resolver::removed_names owns them now.
-        assert(len(deprecated_call_message("assert_eq")) == 0)
-        assert(len(deprecated_call_message("assert_ne")) == 0)
-        assert(len(deprecated_call_message("assert_eq_i64")) == 0)
-        assert(len(deprecated_call_message("assert_eq_str")) == 0)
+        assert(deprecated_call_message("assert_eq").len() == 0)
+        assert(deprecated_call_message("assert_ne").len() == 0)
+        assert(deprecated_call_message("assert_eq_i64").len() == 0)
+        assert(deprecated_call_message("assert_eq_str").len() == 0)
     }
     test "retired_io_tagged_writers_have_no_w0009_entry" {
         // The tagged writer pair was deleted with E0100 hints once the typed
         // Stdout / Stderr handles landed; resolver::removed_names owns them.
-        assert(len(deprecated_qualified_call_message("io::writer_write")) == 0)
-        assert(len(deprecated_qualified_call_message("io::writer_write_str")) == 0)
+        assert(deprecated_qualified_call_message("io::writer_write").len() == 0)
+        assert(deprecated_qualified_call_message("io::writer_write_str").len() == 0)
     }
     test "removed_host_fs_frees_have_no_w0009_entry" {
         // The five stable host fs wrappers were deleted in the ADR-087 Wave 2
         // change; E0100 from resolver::removed_names owns them now.
-        assert(len(deprecated_qualified_call_message("fs::read_string")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::write_string")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::is_readable_file")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::exists")) == 0)
-        assert(len(deprecated_qualified_call_message("std::fs::read_string")) == 0)
-        assert(len(deprecated_qualified_call_message("std::host::fs::is_readable_file")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::read_to_string")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::read_bytes")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::write_bytes")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::is_file")) == 0)
-        assert(len(deprecated_qualified_call_message("fs::is_dir")) == 0)
-        assert(len(deprecated_qualified_call_message("Fs::read_to_string")) == 0)
+        assert(deprecated_qualified_call_message("fs::read_string").len() == 0)
+        assert(deprecated_qualified_call_message("fs::write_string").len() == 0)
+        assert(deprecated_qualified_call_message("fs::is_readable_file").len() == 0)
+        assert(deprecated_qualified_call_message("fs::exists").len() == 0)
+        assert(deprecated_qualified_call_message("std::fs::read_string").len() == 0)
+        assert(deprecated_qualified_call_message("std::host::fs::is_readable_file").len() == 0)
+        assert(deprecated_qualified_call_message("fs::read_to_string").len() == 0)
+        assert(deprecated_qualified_call_message("fs::read_bytes").len() == 0)
+        assert(deprecated_qualified_call_message("fs::write_bytes").len() == 0)
+        assert(deprecated_qualified_call_message("fs::is_file").len() == 0)
+        assert(deprecated_qualified_call_message("fs::is_dir").len() == 0)
+        assert(deprecated_qualified_call_message("Fs::read_to_string").len() == 0)
     }
     test "removed_host_clock_frees_have_no_w0009_entry" {
         // The two stable host clock frees were deleted in the ADR-087 Wave 2
         // change; E0100 from resolver::removed_names owns them now.
-        assert(len(deprecated_qualified_call_message("clock::monotonic_now")) == 0)
-        assert(len(deprecated_qualified_call_message("clock::now_ms")) == 0)
-        assert(len(deprecated_qualified_call_message("std::host::clock::monotonic_now")) == 0)
-        assert(len(deprecated_qualified_call_message("host::clock::now_ms")) == 0)
-        assert(len(deprecated_qualified_call_message("Clock::monotonic_now")) == 0)
-        assert(len(deprecated_qualified_call_message("Clock::now_ms")) == 0)
+        assert(deprecated_qualified_call_message("clock::monotonic_now").len() == 0)
+        assert(deprecated_qualified_call_message("clock::now_ms").len() == 0)
+        assert(deprecated_qualified_call_message("std::host::clock::monotonic_now").len() == 0)
+        assert(deprecated_qualified_call_message("host::clock::now_ms").len() == 0)
+        assert(deprecated_qualified_call_message("Clock::monotonic_now").len() == 0)
+        assert(deprecated_qualified_call_message("Clock::now_ms").len() == 0)
     }
     test "removed_io_frees_have_no_w0009_entry" {
         // These are E0100 removals; a live W0009 entry would be a dead warning.
-        assert(len(deprecated_qualified_call_message("io::reader_read")) == 0)
-        assert(len(deprecated_qualified_call_message("io::copy")) == 0)
-        assert(len(deprecated_qualified_call_message("io::new_memory_buffer")) == 0)
-        assert(len(deprecated_qualified_call_message("io::seek_to")) == 0)
-        assert(len(deprecated_qualified_call_message("io::print_bytes")) == 0)
-        assert(len(deprecated_qualified_call_message("io::reader_from_bytes")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buf_reader_new")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buffered_reader")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buf_reader_read_line")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buf_writer_new")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buffered_writer")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buf_writer_write_str")) == 0)
-        assert(len(deprecated_qualified_call_message("io::buf_writer_flush")) == 0)
-        assert(len(deprecated_qualified_call_message("io::writer_new")) == 0)
-        assert(len(deprecated_qualified_call_message("io::write_all")) == 0)
-        assert(len(deprecated_qualified_call_message("io::write_string")) == 0)
-        assert(len(deprecated_qualified_call_message("io::writer_flush")) == 0)
-        assert(len(deprecated_qualified_call_message("io::writer_to_bytes")) == 0)
+        assert(deprecated_qualified_call_message("io::reader_read").len() == 0)
+        assert(deprecated_qualified_call_message("io::copy").len() == 0)
+        assert(deprecated_qualified_call_message("io::new_memory_buffer").len() == 0)
+        assert(deprecated_qualified_call_message("io::seek_to").len() == 0)
+        assert(deprecated_qualified_call_message("io::print_bytes").len() == 0)
+        assert(deprecated_qualified_call_message("io::reader_from_bytes").len() == 0)
+        assert(deprecated_qualified_call_message("io::buf_reader_new").len() == 0)
+        assert(deprecated_qualified_call_message("io::buffered_reader").len() == 0)
+        assert(deprecated_qualified_call_message("io::buf_reader_read_line").len() == 0)
+        assert(deprecated_qualified_call_message("io::buf_writer_new").len() == 0)
+        assert(deprecated_qualified_call_message("io::buffered_writer").len() == 0)
+        assert(deprecated_qualified_call_message("io::buf_writer_write_str").len() == 0)
+        assert(deprecated_qualified_call_message("io::buf_writer_flush").len() == 0)
+        assert(deprecated_qualified_call_message("io::writer_new").len() == 0)
+        assert(deprecated_qualified_call_message("io::write_all").len() == 0)
+        assert(deprecated_qualified_call_message("io::write_string").len() == 0)
+        assert(deprecated_qualified_call_message("io::writer_flush").len() == 0)
+        assert(deprecated_qualified_call_message("io::writer_to_bytes").len() == 0)
     }
 
     test "removed_seq_frees_have_no_w0009_entry" {
         // These are E0100 removals (ADR-087 Wave 2); a live W0009 entry
         // would be a dead warning.
-        assert(len(deprecated_call_message("sort_i32")) == 0)
-        assert(len(deprecated_call_message("sum_i32")) == 0)
-        assert(len(deprecated_call_message("map_option_i32_i32")) == 0)
-        assert(len(deprecated_call_message("contains_string")) == 0)
-        assert(len(deprecated_call_message("filter_i32")) == 0)
+        assert(deprecated_call_message("sort_i32").len() == 0)
+        assert(deprecated_call_message("sum_i32").len() == 0)
+        assert(deprecated_call_message("map_option_i32_i32").len() == 0)
+        assert(deprecated_call_message("contains_string").len() == 0)
+        assert(deprecated_call_message("filter_i32").len() == 0)
     }
     test "removed_hashmap_frees_have_no_w0009_entry" {
         // The 21 HashMap frees moved stable -> deprecated -> deleted in the
         // same #917 wave; E0100 from resolver::removed_names owns them now,
         // so a live W0009 entry would be a dead warning.
-        assert(len(deprecated_qualified_call_message("hash::hashmap_new")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_set")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_capacity")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_entries")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::hashmap_extend")) == 0)
+        assert(deprecated_qualified_call_message("hash::hashmap_new").len() == 0)
+        assert(deprecated_qualified_call_message("hash::hashmap_set").len() == 0)
+        assert(deprecated_qualified_call_message("hash::hashmap_capacity").len() == 0)
+        assert(deprecated_qualified_call_message("hash::hashmap_entries").len() == 0)
+        assert(deprecated_qualified_call_message("hash::hashmap_extend").len() == 0)
     }
     test "removed_hashset_frees_have_no_w0009_entry" {
         // The 21 HashSet frees moved stable -> deprecated -> deleted in the
         // same #917 wave; E0100 from resolver::removed_names owns them now,
         // so a live W0009 entry would be a dead warning.
-        assert(len(deprecated_qualified_call_message("hash::hashset_new")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_insert")) == 0)
-        assert(len(deprecated_qualified_call_message("hash::hashset_str_is_empty")) == 0)
+        assert(deprecated_qualified_call_message("hash::hashset_new").len() == 0)
+        assert(deprecated_qualified_call_message("hash::hashset_insert").len() == 0)
+        assert(deprecated_qualified_call_message("hash::hashset_str_is_empty").len() == 0)
     }
     test "retired_stale_builtin_entries_are_not_warned" {
         // `clear`, `map_option_String_String`, and `map_result_i32_i32`
         // were stale non-callable builtin entries; they were retired with
         // their method replacements instead of being deprecated.
-        assert(len(deprecated_call_message("clear")) == 0)
-        assert(len(deprecated_call_message("map_option_String_String")) == 0)
-        assert(len(deprecated_call_message("map_result_i32_i32")) == 0)
+        assert(deprecated_call_message("clear").len() == 0)
+        assert(deprecated_call_message("map_option_String_String").len() == 0)
+        assert(deprecated_call_message("map_result_i32_i32").len() == 0)
     }
     test "removed_ordered_frees_have_no_w0009_entry" {
         // The 27 experimental and the 10 stable ordered frees are E0100
         // removals now; a live W0009 entry would be a dead warning.
-        assert(len(deprecated_qualified_call_message("ordered::btree_new")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::btree_set_insert")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::index_map_get")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::index_set_len")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::bitset_union")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::sorted_map_new")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::sorted_map_get")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::bitset_new")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::bitset_test")) == 0)
-        assert(len(deprecated_qualified_call_message("ordered::Bitset")) == 0)
+        assert(deprecated_qualified_call_message("ordered::btree_new").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::btree_set_insert").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::index_map_get").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::index_set_len").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::bitset_union").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::sorted_map_new").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::sorted_map_get").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::bitset_new").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::bitset_test").len() == 0)
+        assert(deprecated_qualified_call_message("ordered::Bitset").len() == 0)
     }
     test "removed_pq_frees_have_no_w0009_entry" {
-        // The 7 pq frees were deleted in the 2026-10-29 Wave 2; the 11 deque
-        // frees completed their ADR-014 window on 2026-10-30. Neither family
-        // had a W0009 entry, so the names now resolve to E0100 hints instead.
-        assert(len(deprecated_qualified_call_message("linear::pq_new")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_push")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_pop")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_peek")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_len")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_is_empty")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::pq_clear")) == 0)
-        assert(len(deprecated_qualified_call_message("linear::deque_new")) == 0)
+        // The 7 pq frees were deleted in the 2026-10-29 Wave 2. The deque_*
+        // frees keep their own ADR-014 window and never had a W0009 entry.
+        assert(deprecated_qualified_call_message("linear::pq_new").len() == 0)
+        assert(deprecated_qualified_call_message("linear::pq_push").len() == 0)
+        assert(deprecated_qualified_call_message("linear::pq_pop").len() == 0)
+        assert(deprecated_qualified_call_message("linear::pq_peek").len() == 0)
+        assert(deprecated_qualified_call_message("linear::pq_len").len() == 0)
+        assert(deprecated_qualified_call_message("linear::pq_is_empty").len() == 0)
+        assert(deprecated_qualified_call_message("linear::pq_clear").len() == 0)
+        assert(deprecated_qualified_call_message("linear::deque_new").len() == 0)
     }
 
 }

@@ -10,5 +10,5 @@ fn main() {
         None => Stdio::println(String_from("empty")),
     }
 
-    Stdio::println(len(v).to_string())
+    Stdio::println(v.len().to_string())
 }

@@ -37,7 +37,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         ctx.expected_struct_inst = saved_expected
     }
     let mut vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
-    if child_count >= 1 && len(type_name) == 0 && val_idx >= 0 {
+    if child_count >= 1 && type_name.len() == 0 && val_idx >= 0 {
         vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
     }
     if vt == 0 {
@@ -53,14 +53,14 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     // binding.  CoreHIR's let node can retain its default i32 value type even
     // when its child was widened (for example, `100i64`), so repair the newly
     // allocated local from the lowered value before emitting local.set.
-    if len(type_name) == 0 && child_count >= 1 && val_idx >= 0 {
+    if type_name.len() == 0 && child_count >= 1 && val_idx >= 0 {
         ctx_api_local_types::ctx_set_local_vt(
             ctx,
             local_idx,
             ctx_api_local_types::ctx_local_vt(ctx, val_idx)
         )
     }
-    if len(resolved_type_name) > 0 {
+    if resolved_type_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, resolved_type_name.clone())
     }
     if child_count >= 1 && val_idx >= 0 {
@@ -82,12 +82,12 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         // For nested vec annotations (`Vec<Vec<i32>>` → vec:Vec) also rewrite the
         // initializer temp so Vec_new emission uses the structref-vec layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if len(resolved_type_name) > 0 {
+        if resolved_type_name.len() > 0 {
             if resolved_type_name.clone().starts_with("vec:") || resolved_type_name.clone().starts_with("hashmap:") {
                 ctx_api_local_types::ctx_set_local_type(ctx, val_idx, resolved_type_name.clone())
                 ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
             }
-        } else if len(init_type) > 0 {
+        } else if init_type.len() > 0 {
             // One-character names are valid nominal types (ADR-089): a
             // declared `struct S` must keep its type through `let b = a`
             // instead of becoming an untyped local that cannot dispatch.
@@ -101,7 +101,7 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
     // makes `s.insert(...)` look like a HashMap call to the method rewrite.
     if child_count >= 1 && val_idx >= 0 {
         let set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, val_idx)
-        if len(set_family) > 0 {
+        if set_family.len() > 0 {
             ctx_api_local_types::ctx_mark_hashset_local(ctx, local_idx, set_family)
         }
     }

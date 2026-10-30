@@ -16,7 +16,7 @@ fn hir_node_set_text(mut node: HirNode, text: String) {
 }
 
 fn hir_node_text_len(node: HirNode) -> i32 {
-    len(node.text)
+    node.text.len()
 }
 
 fn hir_node_int_val(node: HirNode) -> i32 {

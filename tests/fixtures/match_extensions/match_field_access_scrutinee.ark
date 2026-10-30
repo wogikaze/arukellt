@@ -7,7 +7,7 @@
 // record and either printed the Err arm or dereferenced garbage.
 // Verified identical on wasm32-gc and wasm32 linear core.
 use std::host::stdio::Stdio
-use std::prelude::{push, len}
+use std::prelude::{push}
 use std::text
 
 struct KeyStep {

@@ -15,7 +15,7 @@ fn main() {
 
     // map then filter then take(2): [2,4] from [2,4,6,8,10,12]
     let result = v.iter().map(double).filter(is_even).take(2).collect()
-    Test::assert_eq_i32(len(result), 2)
+    Test::assert_eq_i32(result.len(), 2)
     Test::assert_eq_i32(get_unchecked(result, 0), 2)
     Test::assert_eq_i32(get_unchecked(result, 1), 4)
 }

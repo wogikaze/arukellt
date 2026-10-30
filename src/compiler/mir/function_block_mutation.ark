@@ -21,7 +21,7 @@ fn MirFunction_set_blocks(mut f: MirFunction, blocks: Vec<MirBlock>) {
 fn MirFunction_release_body(f: MirFunction) {
     // Keep the MirBlock objects and SoA capacity when no module pool is
     // present. Emit uses mir_function_detach_blocks after the body is written.
-    let n = len(f.blocks)
+    let n = f.blocks.len()
     let mut i = 0
     while i < n {
         block_inst_mutation::mir_block_clear_insts(get_unchecked(f.blocks, i))

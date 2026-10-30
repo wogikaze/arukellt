@@ -1,9 +1,0 @@
-use std::prelude::len
-
-fn length_of<T>(value: T) -> i32 {
-    len(value)
-}
-
-fn main() {
-    let _count = length_of(42)
-}

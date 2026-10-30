@@ -57,13 +57,13 @@ fn stdlib_inline_append_call(
 ) -> bool {
     let args = stdlib_inline_call_arg_locals(caller_block, call_index, call)
     let param_count = function_param_view::MirFunction_param_count(callee)
-    if len(args) != param_count {
+    if args.len() != param_count {
         return false
     }
     let local_map = stdlib_inline_locals::stdlib_inline_build_local_map(caller, callee)
     if inst_accessors_literals::MirInst_int_val(call) > 1 {
         let mut drop_index = 0
-        while drop_index < len(args) {
+        while drop_index < args.len() {
             push(output, inst_misc_control::MirInst_drop())
             drop_index = drop_index + 1
         }

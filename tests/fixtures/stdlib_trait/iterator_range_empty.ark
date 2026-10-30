@@ -5,5 +5,5 @@ use std::test::Test
 fn main() {
     let r = Range::new(5, 5)
     let collected = r.into_iter().collect()
-    Test::assert_eq_i32(len(collected), 0)
+    Test::assert_eq_i32(collected.len(), 0)
 }

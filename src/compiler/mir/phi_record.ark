@@ -41,7 +41,7 @@ fn mir_phi_val_type(phi: MirPhi) -> i32 {
 }
 
 fn mir_phi_arg_count(phi: MirPhi) -> i32 {
-    len(phi.args)
+    phi.args.len()
 }
 
 fn mir_phi_arg_at(phi: MirPhi, idx: i32) -> MirPhiArg {

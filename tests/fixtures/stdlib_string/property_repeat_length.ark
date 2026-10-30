@@ -5,5 +5,5 @@ fn main() {
     let s = String_from("abc")
     let n = 4
     let r = s.repeat(n)
-    Test::assert_eq_i32(len(r), len(s) * n)
+    Test::assert_eq_i32(r.len(), s.len() * n)
 }

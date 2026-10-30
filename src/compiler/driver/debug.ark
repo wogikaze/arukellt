@@ -13,7 +13,7 @@ use lexer::names
 use lexer::token_state
 pub fn dump_ast(decls: Vec<AstNode>) {
     Stdio::eprintln("=== AST ===")
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut j = 0
     while j < decl_count {
         let d = get_unchecked(decls, j)
@@ -62,8 +62,8 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
     }
     Stdio::eprintln("=== BACKEND PLAN ===")
     let paths = config_record::config_wit_paths(config)
-    Stdio::eprintln("wit-imports: ".concat(len(paths).to_string()))
-    for i in 0..len(paths) {
+    Stdio::eprintln("wit-imports: ".concat(paths.len().to_string()))
+    for i in 0..paths.len() {
         let path = get_unchecked(paths, i)
         let scan_package = match Fs::read_to_string(path.clone()) {
             Result::Ok(source) => wit_parse_text_scan::wit_extract_package(source),
@@ -79,8 +79,8 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
         }
         // Read identity through the source scanner because bootstrap record
         // field access can alias scalar fields while parsed fields are moved.
-        let package = if len(scan_package) > 0 { scan_package } else { doc.package.clone() }
-        let interface = if len(scan_interface) > 0 { scan_interface } else { doc.interface.clone() }
+        let package = if scan_package.len() > 0 { scan_package } else { doc.package.clone() }
+        let interface = if scan_interface.len() > 0 { scan_interface } else { doc.interface.clone() }
         let identity = package.concat("/".concat(interface))
         let mut summary = "wit-import ".concat(identity)
         let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
@@ -88,13 +88,13 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
         let enums = wit_parse_text::WitParsedInterface_enums(doc)
         let variants = wit_parse_text::WitParsedInterface_variants(doc)
         summary = summary.concat(" funcs=")
-        summary = summary.concat(len(funcs).to_string())
+        summary = summary.concat(funcs.len().to_string())
         summary = summary.concat(" records=")
-        summary = summary.concat(len(records).to_string())
+        summary = summary.concat(records.len().to_string())
         summary = summary.concat(" enums=")
-        summary = summary.concat(len(enums).to_string())
+        summary = summary.concat(enums.len().to_string())
         summary = summary.concat(" variants=")
-        summary = summary.concat(len(variants).to_string())
+        summary = summary.concat(variants.len().to_string())
         Stdio::eprintln(summary)
     }
 }
@@ -105,7 +105,7 @@ fn dump_wit_bindings_if_enabled(config: DriverConfig) {
     }
     Stdio::eprintln("=== WIT BINDINGS ===")
     let paths = config_record::config_wit_paths(config)
-    for i in 0..len(paths) {
+    for i in 0..paths.len() {
         let path = get_unchecked(paths, i)
         let read_result = Fs::read_to_string(path.clone())
         match read_result {
@@ -130,7 +130,7 @@ fn dump_checked_hir(result: TypeCheckResult) {
 
 pub fn dump_tokens(tokens: Vec<Token>) {
     Stdio::eprintln("=== TOKENS ===")
-    let token_count = len(tokens)
+    let token_count = tokens.len()
     let mut i = 0
     while i < token_count {
         let tok = get_unchecked(tokens, i)

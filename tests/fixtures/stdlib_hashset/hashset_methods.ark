@@ -41,7 +41,7 @@ fn main() {
     Test::assert_true(s.union(other).contains(4))
 
     let values: Vec<i32> = s.to_vec()
-    Test::assert_eq_i32(len(values), 2)
+    Test::assert_eq_i32(values.len(), 2)
 
     let capacity_before: i32 = s.capacity()
     s.reserve(20)
@@ -68,7 +68,7 @@ fn main() {
     Test::assert_eq_i32(copy.len(), 2)
 
     let rendered: String = s.fmt_debug()
-    Test::assert_true(len(rendered) > 0)
+    Test::assert_true(rendered.len() > 0)
 
     let mut iter: VecIter<i32> = copy.into_iter()
     let mut total: i32 = 0

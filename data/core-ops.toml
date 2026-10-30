@@ -42,9 +42,9 @@ check_fallback_signature_compat = true
 # Backend lowering dispatch must use CoreOpId/handler IDs, never these strings.
 # Removal is tracked by #818.
 
-# `len` is the one prelude free with two receiver owners. Its declaration is
-# signature-only, and the typechecker records the receiver owner per call site;
-# MIR lowering binds the matching owner-qualified spelling here. There is
+# `len` is a receiver method: the free retired in wave/vec-intrinsic-len.
+# MIR lowering emits the owner-qualified spelling for `s.len()` / `v.len()`,
+# and the checker resolves the owner from the receiver type. There is
 # deliberately no bare `len` alias to dispatch through (#936 acceptance item 3,
 # FunctionId/CoreOp handoff #933).
 [[legacy_bindings]]

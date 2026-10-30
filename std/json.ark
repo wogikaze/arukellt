@@ -65,7 +65,7 @@ impl JsonEscapeResult {
 /// index of the first non-whitespace character (or `len(s)` if all remaining
 /// bytes are whitespace). Public so streaming callers (DAP/LSP) can share.
 fn json_text_skip_ws(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = pos
     while i < n {
         let c = s.byte_at(i)
@@ -85,7 +85,7 @@ fn json_text_skip_ws(s: String, pos: i32) -> i32 {
 /// `diag_json_escape` helpers that LSP, DAP, and diagnostics each
 /// duplicated.
 fn json_text_escape(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut out = ""
     let mut i = 0
     while i < n {
@@ -228,7 +228,7 @@ fn json_text_hex_byte(b: i32) -> String {
 /// Parse a decimal integer (optionally signed) starting at `pos`, skipping
 /// leading whitespace.  Returns 0 if no digits are found.
 fn json_text_parse_int_at(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut p = json_text_skip_ws(s, pos)
     if p >= n {
         return 0
@@ -266,7 +266,7 @@ fn json_text_content_length(header_block: String) -> i32 {
     if cl_idx < 0 {
         return 0 - 1
     }
-    let block_len = len(header_block)
+    let block_len = header_block.len()
     let mut q = cl_idx + 15
     while q < block_len {
         let c = header_block.byte_at(q)
@@ -293,8 +293,8 @@ fn json_text_content_length(header_block: String) -> i32 {
 /// must subsequently skip whitespace and expect `:` before the value.
 fn json_text_find_key_pos(json: String, key: String, from: i32) -> i32 {
     let needle = "\"".concat(key.concat("\""))
-    let n = len(json)
-    let nlen = len(needle)
+    let n = json.len()
+    let nlen = needle.len()
     if from >= n {
         return 0 - 1
     }
@@ -333,7 +333,7 @@ fn json_is_hex_digit(c: i32) -> bool {
 /// Read four hex digits starting at `pos`. Returns -1 if any digit is invalid
 /// or the input is too short.
 fn json_read_hex4(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     if pos + 3 >= n {
         return 0 - 1
     }
@@ -362,7 +362,7 @@ fn json_text_decode_unicode_at(s: String, pos: i32) -> JsonEscapeResult {
     // High surrogate U+D800..U+DBFF — look for a following \u low surrogate.
     if cv >= 55296 && cv <= 56319 {
         let after = pos + 5
-        let n = len(s)
+        let n = s.len()
         if after + 5 < n && s.byte_at(after) == 92 && s.byte_at(after + 1) == 117 {
             let low = json_read_hex4(s, after + 2)
             if low >= 56320 && low <= 57343 {
@@ -459,7 +459,7 @@ fn json_str_result_next_impl(result: JsonStrResult) -> i32 {
 /// closing quote, and an `ok` flag.  Handles all standard escape sequences
 /// including `\uXXXX` surrogate pairs; unknown escapes fail the parse.
 fn json_text_parse_string_at(s: String, pos: i32) -> JsonStrResult {
-    let n = len(s)
+    let n = s.len()
     if pos >= n || s.byte_at(pos) != 34 {
         return json_str_result_new("", pos, false)
     }
@@ -516,7 +516,7 @@ fn json_text_get_str_after(json: String, key: String, from: i32) -> String {
         return ""
     }
     let q = json_text_skip_ws(json, p)
-    let n = len(json)
+    let n = json.len()
     if q >= n || json.byte_at(q) != 58 {
         return ""
     }
@@ -537,7 +537,7 @@ fn json_text_get_int(json: String, key: String) -> i32 {
         return 0
     }
     let q = json_text_skip_ws(json, p)
-    let n = len(json)
+    let n = json.len()
     if q >= n || json.byte_at(q) != 58 {
         return 0
     }

@@ -1,7 +1,7 @@
 use std::host::stdio::Stdio
 use std::text
 fn count_chars(s: String, c: i32) -> i32 {
-    let n: i32 = len(s)
+    let n: i32 = s.len()
     let mut count: i32 = 0
     let mut i: i32 = 0
     while i < n {
@@ -16,7 +16,7 @@ fn count_chars(s: String, c: i32) -> i32 {
 // Count JSON strings by scanning for opening quotes.
 // Each opening '"' that starts a string value is counted once.
 fn count_json_strings(s: String) -> i32 {
-    let n: i32 = len(s)
+    let n: i32 = s.len()
     let mut count: i32 = 0
     let mut i: i32 = 0
     while i < n {
@@ -39,7 +39,7 @@ fn main() {
         s = s.concat(String_from("{\"key\":\"value\",\"num\":42}"))
         i = i + 1
     }
-    let total_len: i32 = len(s)
+    let total_len: i32 = s.len()
     let objects: i32 = count_chars(s, 123)
     let strings: i32 = count_json_strings(s)
     Stdio::println((total_len).to_string())

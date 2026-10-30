@@ -70,7 +70,7 @@ fn emit_gc_local_enum_like(mut body: WasmWriter, f: MirFunction, local_idx: i32,
 // True for 'Head<Args>' local type names whose head registers enum variants
 // (e.g. Box<WitType> has the Box::Owned variant in this module).
 fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool {
-    let n = len(type_name)
+    let n = type_name.len()
     let mut head_end = 0 - 1
     let mut i = 0
     while i < n {
@@ -86,7 +86,7 @@ fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool
     let head = type_name.slice(0, head_end)
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut vi = 0
-    while vi < len(names) {
+    while vi < names.len() {
         let variant = get_unchecked(names, vi)
         if variant.clone().starts_with(head.clone().concat(String_from("::"))) ||
         variant.clone().contains(String_from("::").concat(head.clone().concat(String_from("::")))) {
@@ -97,7 +97,7 @@ fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool
     false
 }
 fn enum_payload_type_name(type_name: String) -> bool {
-    if len(type_name) <= 5 {
+    if type_name.len() <= 5 {
         return false
     }
     if !type_name.clone().starts_with("enum:") {
@@ -123,7 +123,7 @@ fn local_has_result_option_enum_type_name(type_name: String) -> bool {
 }
 
 fn local_has_container_type_name(type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().starts_with("vec:") || type_name.clone().starts_with("hashmap:") || type_name.clone().starts_with("struct:") {
@@ -183,7 +183,7 @@ fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f
     }
     if type_name.clone().starts_with("struct:") {
         let struct_name = extract_struct_name_from_type_name(type_name.clone())
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
             let named_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
             // Declared type_name / value_type is authoritative (#843). Stale
             // reuse must be fixed in post_pass, not by emit-time infer (#808).
@@ -200,7 +200,7 @@ fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f
         }
     }
     // Check raw struct name (without "struct:" prefix) as gc_struct.
-    if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, type_name.clone()) {
+    if type_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, type_name.clone()) {
         let struct_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name.clone())
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, struct_gc)
@@ -209,7 +209,7 @@ fn emit_gc_local_struct_type(mut body: WasmWriter, type_name: String, vt: i32, f
     // Raw-name layout-table reconstruction is forbidden. Typed local TypeId
     // lookup below is authoritative; the remaining name handling is limited to
     // fixed compatibility classes and struct byte-size diagnostics.
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         let byte_size = lookup_struct_byte_size(f, type_name.clone(), ctx)
         if byte_size > 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -226,7 +226,7 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
     if code_ref_locals_scan::is_function_local_gc_cache_active(ctx) {
         return code_ref_locals_fn_cache::cached_struct_new_byte_size(ctx, struct_name)
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -250,7 +250,7 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
 fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
-    let n = len(type_name)
+    let n = type_name.len()
     let mut i = 0
     while i < n {
         if type_name.byte_at(i) == ':' {
@@ -268,7 +268,7 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
 }
 // Extract byte_size from "struct:TypeName:byte_size" format.
 fn extract_struct_byte_size(type_name: String) -> i32 {
-    let n = len(type_name)
+    let n = type_name.len()
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {

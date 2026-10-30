@@ -25,7 +25,7 @@ fn main() {
     show(list.front())
     show(list.back())
     let values: Vec<i32> = list.iter().collect()
-    assert(len(values) == 3)
+    assert(values.len() == 3)
     Stdio::println((get_unchecked(values, 0)).to_string())
     Stdio::println((get_unchecked(values, 1)).to_string())
     Stdio::println((get_unchecked(values, 2)).to_string())

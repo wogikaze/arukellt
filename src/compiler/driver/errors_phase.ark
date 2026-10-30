@@ -6,7 +6,7 @@ pub fn enrich_diagnostic(source: String, source_file: String, diag: Diagnostic) 
     let span = record::diagnostic_span(diag)
     let start = record::diagnostic_span_start(span)
     let end = record::diagnostic_span_end(span)
-    if start == 0 && end == 0 && len(record::diagnostic_span_file(span)) == 0 {
+    if start == 0 && end == 0 && record::diagnostic_span_file(span).len() == 0 {
         let filled = diag_mod::span_from_offsets(source.clone(), source_file.clone(), start, end)
         let enriched = diag_mod::Diagnostic_new(record::diagnostic_code(diag), record::diagnostic_severity(diag), filled, record::diagnostic_message(diag))
         return diag_mod::format_diagnostic_text(source.clone(), source_file.clone(), enriched)
@@ -17,17 +17,17 @@ pub fn enrich_diagnostic(source: String, source_file: String, diag: Diagnostic) 
 pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
     let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), "module loading error(s)")
     let mut le = 0
-    while le < len(errors) {
+    while le < errors.len() {
         result_record::compile_result_push_error_message(result, get_unchecked(errors, le).clone())
         le = le + 1
     }
-    result_record::compile_result_set_error_count(result, len(errors))
+    result_record::compile_result_set_error_count(result, errors.len())
     result
 }
 
 pub fn resolve_errors_result(source: String, source_file: String, error_count: i32, diagnostics: Vec<Diagnostic>, errors: Vec<String>) -> CompileResult {
     let mut result = result_record::CompileResult_new(false, phases::PHASE_RESOLVE(), error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
-    let diag_count = len(diagnostics)
+    let diag_count = diagnostics.len()
     if diag_count > 0 {
         let mut i = 0
         while i < diag_count {
@@ -38,7 +38,7 @@ pub fn resolve_errors_result(source: String, source_file: String, error_count: i
         }
     } else {
         let mut ei = 0
-        while ei < len(errors) {
+        while ei < errors.len() {
             result_record::compile_result_push_error_message(result, get_unchecked(errors, ei).clone())
             ei = ei + 1
         }
@@ -49,7 +49,7 @@ pub fn resolve_errors_result(source: String, source_file: String, error_count: i
 
 pub fn type_errors_result(source: String, source_file: String, error_count: i32, diagnostics: Vec<Diagnostic>, errors: Vec<String>) -> CompileResult {
     let mut result = result_record::CompileResult_new(false, phases::PHASE_TYPECHECK(), error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
-    let diag_count = len(diagnostics)
+    let diag_count = diagnostics.len()
     if diag_count > 0 {
         let mut i = 0
         while i < diag_count {
@@ -60,7 +60,7 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
         }
     } else {
         let mut ei = 0
-        while ei < len(errors) {
+        while ei < errors.len() {
             result_record::compile_result_push_error_message(result, get_unchecked(errors, ei).clone())
             ei = ei + 1
         }
@@ -72,13 +72,13 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
 pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<Diagnostic>) -> CompileResult {
     // Warnings print but do not fail the process (exit 0). Use --deny / [lint] deny
     // to escalate selected rules to type_errors_result (exit 1).
-    let mut result = result_record::CompileResult_new(true, phases::PHASE_TYPECHECK(), len(warnings), Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
-    for i in 0..len(warnings) {
+    let mut result = result_record::CompileResult_new(true, phases::PHASE_TYPECHECK(), warnings.len(), Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
+    for i in 0..warnings.len() {
         let diag = get_unchecked(warnings, i)
         result_record::compile_result_push_diagnostic(result, diag)
         result_record::compile_result_push_error_message(result, enrich_diagnostic(source.clone(), source_file.clone(), diag))
     }
-    result_record::compile_result_set_error_count(result, len(warnings))
+    result_record::compile_result_set_error_count(result, warnings.len())
     result
 }
 

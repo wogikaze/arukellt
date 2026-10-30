@@ -4,12 +4,12 @@ use std::toml
 
 fn main() {
     Test::assert_eq_string(toml::TomlText::parse_line("# c"), "")
-    Test::assert_true(len(toml::TomlText::parse_line("a = 1")) > 0)
+    Test::assert_true(toml::TomlText::parse_line("a = 1").len() > 0)
     Test::assert_eq_string(toml::TomlText::find_value("a = \"x\"\n", "a"), "x")
     Test::assert_eq_string(toml::TomlText::find_section("[s]\na = 1\n", "s"), "a = 1\n")
     Test::assert_eq_string(toml::TomlText::find_raw_value("a = [1, 2]\n", "a"), "[1, 2]")
     let arr = toml::TomlText::parse_string_array("[\"x\", \"y\"]")
-    Test::assert_eq_i32(len(arr), 2)
+    Test::assert_eq_i32(arr.len(), 2)
     Test::assert_eq_string(get_unchecked(arr, 0), "x")
     Test::assert_eq_string(get_unchecked(arr, 1), "y")
 

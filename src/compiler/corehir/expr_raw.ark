@@ -18,7 +18,7 @@ fn corehir_expr_child(expr: CoreHirExpr, index: i32) -> i32 {
 }
 
 fn corehir_expr_child_count(expr: CoreHirExpr) -> i32 {
-    len(expr.children)
+    expr.children.len()
 }
 
 fn corehir_expr_kind(expr: CoreHirExpr) -> i32 {

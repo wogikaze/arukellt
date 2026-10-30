@@ -9,5 +9,5 @@ fn main() {
         Option::Some(val) => Test::assert_eq_i32(val, 20),
         None => Std::panic("expected Some, got None"),
     }
-    Test::assert_eq_i32(len(v), 1)
+    Test::assert_eq_i32(v.len(), 1)
 }

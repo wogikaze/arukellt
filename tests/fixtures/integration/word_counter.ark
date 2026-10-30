@@ -7,7 +7,7 @@ fn count_words(s: String) -> i32 {
     let words: Vec<String> = s.split(String_from(" "))
     let mut count: i32 = 0
     let mut i: i32 = 0
-    while i < len(words) {
+    while i < words.len() {
         let word: String = get_unchecked(words, i)
         if !word.is_empty() {
             count = count + 1

@@ -6,7 +6,7 @@ use mir::lower::ctx_types
 
 use std::text
 fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     if count <= 1 {
         return
     }
@@ -34,7 +34,7 @@ fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
     }
     ctx.gc_struct_names = new_names
     ctx.gc_struct_sigs = new_sigs
-    let enum_count = len(ctx.gc_enum_variant_sigs)
+    let enum_count = ctx.gc_enum_variant_sigs.len()
     let mut ei = 0
     while ei < enum_count {
         let rewritten = gc_struct_rewrite_gcsref_slots(get_unchecked(ctx.gc_enum_variant_sigs, ei).clone(), remap)
@@ -44,7 +44,7 @@ fn ctx_reorder_gc_structs_deps_first(mut ctx: LowerCtx) {
 }
 
 fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
-    let count = len(sigs)
+    let count = sigs.len()
     let mut placed = Vec::new<i32>()
     let mut pi = 0
     while pi < count {
@@ -52,7 +52,7 @@ fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
         pi = pi + 1
     }
     let mut order = Vec::new<i32>()
-    while len(order) < count {
+    while order.len() < count {
         let mut progress = false
         let mut i = 0
         while i < count {
@@ -80,7 +80,7 @@ fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
 }
 
 fn gc_struct_sig_deps_placed(sig: String, placed: Vec<i32>, self_slot: i32) -> bool {
-    let n = len(sig)
+    let n = sig.len()
     let mut i = 0
     while i + 6 <= n {
         if gc_struct_at_gcsref_marker(sig.clone(), i) {
@@ -88,7 +88,7 @@ fn gc_struct_sig_deps_placed(sig: String, placed: Vec<i32>, self_slot: i32) -> b
             let slot = get_unchecked(parsed, 0)
             let end = get_unchecked(parsed, 1)
             if end > i + 6 {
-                if slot != self_slot && slot >= 0 && slot < len(placed) {
+                if slot != self_slot && slot >= 0 && slot < placed.len() {
                     if get_unchecked(placed, slot) == 0 {
                         return false
                     }
@@ -103,7 +103,7 @@ fn gc_struct_sig_deps_placed(sig: String, placed: Vec<i32>, self_slot: i32) -> b
 }
 
 fn gc_struct_rewrite_gcsref_slots(sig: String, remap: Vec<i32>) -> String {
-    let n = len(sig)
+    let n = sig.len()
     let mut out = String_new()
     let mut i = 0
     while i < n {
@@ -111,7 +111,7 @@ fn gc_struct_rewrite_gcsref_slots(sig: String, remap: Vec<i32>) -> String {
             let parsed = gc_struct_parse_gcsref_slot(sig.clone(), i + 6)
             let slot = get_unchecked(parsed, 0)
             let end = get_unchecked(parsed, 1)
-            if end > i + 6 && slot >= 0 && slot < len(remap) {
+            if end > i + 6 && slot >= 0 && slot < remap.len() {
                 out = out.concat("gcsref".concat((get_unchecked(remap, slot)).to_string()))
                 i = end
                 continue
@@ -124,7 +124,7 @@ fn gc_struct_rewrite_gcsref_slots(sig: String, remap: Vec<i32>) -> String {
 }
 
 fn gc_struct_at_gcsref_marker(sig: String, i: i32) -> bool {
-    if i + 6 > len(sig) {
+    if i + 6 > sig.len() {
         return false
     }
     sig.clone().slice(i, i + 6).eq("gcsref")
@@ -132,7 +132,7 @@ fn gc_struct_at_gcsref_marker(sig: String, i: i32) -> bool {
 
 // Returns [slot, end_index] after parsing digits at `start`.
 fn gc_struct_parse_gcsref_slot(sig: String, start: i32) -> Vec<i32> {
-    let n = len(sig)
+    let n = sig.len()
     let mut j = start
     let mut slot = 0
     let mut has_digit = false

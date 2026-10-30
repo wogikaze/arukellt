@@ -121,10 +121,10 @@ fn collect_pair_call_type_sigs(
                         memory64,
                         gc_struct_names.clone()
                     )
-                    if len(sig) > 0 {
+                    if sig.len() > 0 {
                         let mut seen = false
                         let mut si = 0
-                        while si < len(sigs) {
+                        while si < sigs.len() {
                             if sig.clone().eq(get_unchecked(sigs, si).clone()) {
                                 seen = true
                             }

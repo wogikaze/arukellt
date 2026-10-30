@@ -71,7 +71,7 @@ fn ctx_enrich_inst_result_types(ctx: LowerCtx, mut inst: MirInstDraft) -> MirIns
         op,
         inst_draft::MirInstDraft_func_id_raw(inst)
     )
-    if len(mvts) > 0 {
+    if mvts.len() > 0 {
         let first = get_unchecked(mvts, 0)
         // A registry return without a valid TypeId cannot describe the call's
         // storage. Leave the result empty so W009 reports the gap; filling it

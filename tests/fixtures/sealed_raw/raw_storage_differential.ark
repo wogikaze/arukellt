@@ -5,6 +5,6 @@ fn main() {
     push(bytes, 75)
     let text = __intrinsic_string_from_bytes(bytes)
     Stdio::print(text.clone().byte_at(0))
-    Stdio::print(len(text.clone()))
-    Stdio::print(len(String_new()))
+    Stdio::print(text.clone().len())
+    Stdio::print(String_new().len())
 }

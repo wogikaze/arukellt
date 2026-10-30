@@ -23,7 +23,7 @@ fn layout_decl_name(decl: CoreHirLayoutDecl) -> String {
 }
 
 fn layout_decl_field_count(decl: CoreHirLayoutDecl) -> i32 {
-    len(decl.fields)
+    decl.fields.len()
 }
 
 fn layout_decl_field_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutField {
@@ -31,7 +31,7 @@ fn layout_decl_field_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutFie
 }
 
 fn layout_decl_variant_count(decl: CoreHirLayoutDecl) -> i32 {
-    len(decl.variants)
+    decl.variants.len()
 }
 
 fn layout_decl_variant_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutVariant {
@@ -39,7 +39,7 @@ fn layout_decl_variant_at(decl: CoreHirLayoutDecl, index: i32) -> CoreHirLayoutV
 }
 
 fn layout_decl_type_param_count(decl: CoreHirLayoutDecl) -> i32 {
-    len(decl.type_params)
+    decl.type_params.len()
 }
 
 fn layout_decl_type_param_at(decl: CoreHirLayoutDecl, index: i32) -> String {

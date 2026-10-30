@@ -2,7 +2,7 @@ use component::wit_parse_flags
 use component
 fn issue651_flags_parse_self_check() -> bool {
     let members = wit_parse_flags::wit_flags_member_names("flags { read, write }")
-    if len(members) != 2 {
+    if members.len() != 2 {
         return false
     }
     if !get_unchecked(members, 0).eq("read") {
@@ -18,7 +18,7 @@ fn issue651_flags_parse_self_check() -> bool {
     if !doc.interface.clone().eq("host") {
         return false
     }
-    if len(doc.funcs) != 1 {
+    if doc.funcs.len() != 1 {
         return false
     }
     let func = get_unchecked(doc.funcs, 0)
@@ -28,7 +28,7 @@ fn issue651_flags_parse_self_check() -> bool {
     if !func.ark_name.clone().eq("set_perms") {
         return false
     }
-    if len(func.param_wit_types) != 1 {
+    if func.param_wit_types.len() != 1 {
         return false
     }
     wit_parse_flags::wit_is_flags_type(get_unchecked(func.param_wit_types, 0))

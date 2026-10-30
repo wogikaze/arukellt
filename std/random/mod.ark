@@ -49,7 +49,7 @@ fn seeded_range_from(seed_val: i32, lo: i32, hi: i32) -> i32 {
 }
 
 fn shuffle_i32_from(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
-    let n = len(v)
+    let n = v.len()
     let mut result = Vec::new<i32>()
     let mut i = 0
     while i < n {

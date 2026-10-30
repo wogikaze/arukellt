@@ -11,7 +11,7 @@ use resolver::paths
 use diagnostics::mod as diag_mod
 pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let mut warnings = Vec::new<Diagnostic>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         check_deprecated_api_in_node(get_unchecked(decls, i), warnings)
@@ -24,7 +24,7 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     if ast_decl_predicates::node_is_use(node) {
         let path = ast_access::node_text(node)
         let dep_msg = deprecated_table::deprecated_use_message(path.clone())
-        if len(dep_msg.clone()) > 0 {
+        if dep_msg.clone().len() > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
@@ -33,7 +33,7 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
         let dep_msg = deprecated_table::deprecated_call_message(name.clone())
-        if len(dep_msg.clone()) > 0 {
+        if dep_msg.clone().len() > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
@@ -45,10 +45,10 @@ fn check_deprecated_api_in_node(node: AstNode, mut warnings: Vec<Diagnostic>) {
         let mut dep_msg = deprecated_table::deprecated_qualified_call_message(path.clone())
         // A bare callee such as `assert_eq` parses as a path node, so the
         // unqualified table must also be consulted before giving up.
-        if len(dep_msg.clone()) == 0 {
+        if dep_msg.clone().len() == 0 {
             dep_msg = deprecated_table::deprecated_call_message(path.clone())
         }
-        if len(dep_msg.clone()) > 0 {
+        if dep_msg.clone().len() > 0 {
             let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
         }
@@ -67,7 +67,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let mut fn_names = Vec::new<String>()
     let mut fn_spans_start = Vec::new<i32>()
     let mut fn_spans_end = Vec::new<i32>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let node = get_unchecked(decls, i)
@@ -82,13 +82,13 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         i = i + 1
     }
     let mut referenced = Vec::new<String>()
-    let dcount = len(decls)
+    let dcount = decls.len()
     let mut di = 0
     while di < dcount {
         collect_referenced_idents(get_unchecked(decls, di), referenced)
         di = di + 1
     }
-    let fn_count = len(fn_names)
+    let fn_count = fn_names.len()
     let mut fi = 0
     while fi < fn_count {
         let name = get_unchecked(fn_names, fi).clone()
@@ -111,7 +111,7 @@ fn collect_referenced_idents(node: AstNode, mut referenced: Vec<String>) {
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
         let sym_part = paths::path_symbol_part(path.clone())
-        if len(sym_part.clone()) > 0 {
+        if sym_part.clone().len() > 0 {
             push(referenced, sym_part)
         }
         return
@@ -134,7 +134,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
     if !is_component_target(target) {
         return warnings
     }
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let node = get_unchecked(decls, i)

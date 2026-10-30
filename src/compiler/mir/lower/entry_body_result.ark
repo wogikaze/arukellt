@@ -20,7 +20,7 @@ fn mir_emit_entry_body_result(mut ctx: LowerCtx, input: MirLowerEntryBodyInput) 
     // the concrete instance (#710 / #845).
     let current_func = ctx_current_storage::ctx_current_func_value(ctx)
     let declared_return = function_return_view::MirFunction_return_type_name(current_func)
-    if len(declared_return.clone()) > 0 {
+    if declared_return.clone().len() > 0 {
         ctx.expected_struct_inst = declared_return
     }
     let result = entry_body_value::mir_lower_entry_body_value(ctx, input)

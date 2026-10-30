@@ -14,7 +14,7 @@ pub struct DebugFormat {
 impl DebugFormat {
     /// `Debug` rendering of `Vec<i32>`: `[1, 2, 3]`.
     fn vec_i32(v: Vec<i32>) -> String {
-        let n = len(v)
+        let n = v.len()
         let mut out = "["
         let mut i = 0
         while i < n {
@@ -34,7 +34,7 @@ impl DebugFormat {
 
     /// `Debug` rendering of `Vec<i64>`: `[1, 2, 3]`.
     fn vec_i64(v: Vec<i64>) -> String {
-        let n = len(v)
+        let n = v.len()
         let mut out = "["
         let mut i = 0
         while i < n {
@@ -54,7 +54,7 @@ impl DebugFormat {
 
     /// `Debug` rendering of `Vec<f64>`: `[1.5, 2.5]`.
     fn vec_f64(v: Vec<f64>) -> String {
-        let n = len(v)
+        let n = v.len()
         let mut out = "["
         let mut i = 0
         while i < n {
@@ -74,7 +74,7 @@ impl DebugFormat {
 
     /// `Debug` rendering of `Vec<bool>`: `[true, false]`.
     fn vec_bool(v: Vec<bool>) -> String {
-        let n = len(v)
+        let n = v.len()
         let mut out = "["
         let mut i = 0
         while i < n {
@@ -94,7 +94,7 @@ impl DebugFormat {
 
     /// `Debug` rendering of `Vec<String>`: `["a", "b"]`.
     fn vec_string(v: Vec<String>) -> String {
-        let n = len(v)
+        let n = v.len()
         let mut out = "["
         let mut i = 0
         while i < n {

@@ -9,7 +9,7 @@ use component::wit_parse_text_scan
 fn wit_binding_generic_inner(t: String) -> String {
     let open = t.index_of("<")
     if open < 0 { return String_new() }
-    let mut close = len(t) - 1
+    let mut close = t.len() - 1
     while close > open && t.byte_at(close) != 62 { close = close - 1 }
     if close <= open { return String_new() }
     wit_parse_text_scan::wit_trim_txt(t.slice(open + 1, close))
@@ -32,14 +32,14 @@ fn wit_binding_type(wit_type: String) -> String {
     }
     if t.clone().starts_with("result<") {
         let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
-        let ok = if len(args) > 0 { wit_binding_type(get_unchecked(args, 0)) } else { "()" }
-        let err = if len(args) > 1 { wit_binding_type(get_unchecked(args, 1)) } else { "()" }
+        let ok = if args.len() > 0 { wit_binding_type(get_unchecked(args, 0)) } else { "()" }
+        let err = if args.len() > 1 { wit_binding_type(get_unchecked(args, 1)) } else { "()" }
         return "Result<".concat(ok.concat(", ".concat(err.concat(">"))))
     }
     if t.clone().starts_with("tuple<") {
         let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
         let mut out = "("
-        for i in 0..len(args) {
+        for i in 0..args.len() {
             if i > 0 { out = out.concat(", ") }
             out = out.concat(wit_binding_type(get_unchecked(args, i)))
         }
@@ -50,9 +50,9 @@ fn wit_binding_type(wit_type: String) -> String {
 
 fn wit_binding_validation_error(doc: wit_parse_text::WitParsedInterface) -> String {
     let records = wit_parse_text::WitParsedInterface_records(doc)
-    for ri in 0..len(records) {
+    for ri in 0..records.len() {
         let record = get_unchecked(records, ri)
-        for fi in 0..len(record.field_wit_types) {
+        for fi in 0..record.field_wit_types.len() {
             let field_type = get_unchecked(record.field_wit_types, fi)
             if wit_parse_text_scan::wit_trim_txt(field_type.clone()).eq(record.wit_name.clone()) {
                 return "E0402 recursive WIT record binding: ".concat(record.wit_name.clone())
@@ -67,14 +67,14 @@ fn wit_binding_validation_error(doc: wit_parse_text::WitParsedInterface) -> Stri
 
 fn emit_wit_bindings_from_doc(doc: wit_parse_text::WitParsedInterface) -> String {
     let validation = wit_binding_validation_error(doc)
-    if len(validation) > 0 { return validation }
+    if validation.len() > 0 { return validation }
     let mut out = "// wit-package: ".concat(doc.package.clone().concat("\n"))
     out = out.concat("// wit-interface: ".concat(doc.interface.clone().concat("\n\n")))
     let records = wit_parse_text::WitParsedInterface_records(doc)
-    for ri in 0..len(records) {
+    for ri in 0..records.len() {
         let record = get_unchecked(records, ri)
         out = out.concat("pub struct ".concat(record.ark_name.clone().concat(" {\n")))
-        for fi in 0..len(record.field_names) {
+        for fi in 0..record.field_names.len() {
             out = out.concat("    ")
             out = out.concat(wit_names_import::wit_kebab_to_snake(get_unchecked(record.field_names, fi)))
             out = out.concat(": ")
@@ -84,22 +84,22 @@ fn emit_wit_bindings_from_doc(doc: wit_parse_text::WitParsedInterface) -> String
         out = out.concat("}\n\n")
     }
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
-    for ei in 0..len(enums) {
+    for ei in 0..enums.len() {
         let en = get_unchecked(enums, ei)
         out = out.concat("pub enum ".concat(en.ark_name.clone().concat(" {\n")))
-        for vi in 0..len(en.variant_ark_names) {
+        for vi in 0..en.variant_ark_names.len() {
             out = out.concat("    ".concat(get_unchecked(en.variant_ark_names, vi).concat(",\n")))
         }
         out = out.concat("}\n\n")
     }
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
-    for vi in 0..len(variants) {
+    for vi in 0..variants.len() {
         let variant = get_unchecked(variants, vi)
         out = out.concat("pub enum ".concat(variant.ark_name.clone().concat(" {\n")))
-        for ci in 0..len(variant.case_ark_names) {
+        for ci in 0..variant.case_ark_names.len() {
             out = out.concat("    ".concat(get_unchecked(variant.case_ark_names, ci)))
             let payload = get_unchecked(variant.case_payload_wit_types, ci)
-            if len(payload) > 0 {
+            if payload.len() > 0 {
                 out = out.concat("(".concat(wit_binding_type(payload).concat(")")))
             }
             out = out.concat(",\n")

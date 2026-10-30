@@ -275,7 +275,7 @@ fn lower_entry_input_to_mir(mut input: MirLowerEntryInput, export_roots: Vec<Str
 fn clone_export_roots(export_roots: Vec<String>) -> Vec<String> {
     let mut cloned = Vec::new<String>()
     let mut i = 0
-    while i < len(export_roots) {
+    while i < export_roots.len() {
         push(cloned, get_unchecked(export_roots, i).clone())
         i = i + 1
     }

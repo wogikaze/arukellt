@@ -53,7 +53,7 @@ fn emit_string_layout_existing_constants(mir: MirModule, str_count: i32, mut str
     let mut si = 0
     while si < str_count {
         let s = module_strings::MirModule_string_constant_at(mir, si)
-        let slen = len(s)
+        let slen = s.len()
         // #913: negative-length constants are producer-side corruption; see
         // module_strings::assert_string_constant_sane. Trap before offsets
         // and the emitted payload can diverge.

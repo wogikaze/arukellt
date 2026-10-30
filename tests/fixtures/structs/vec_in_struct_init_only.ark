@@ -9,5 +9,5 @@ struct Holder {
 fn main() {
     let h = Holder { name: String_from("test"), items: Vec::new<String>() }
     Stdio::println(h.name)
-    Stdio::println((len(h.items)).to_string())
+    Stdio::println((h.items.len()).to_string())
 }

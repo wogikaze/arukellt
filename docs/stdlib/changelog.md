@@ -16,45 +16,38 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-30 — `std::collections::linear` deque free 11 個の退役 (ADR-046, ADR-086 §8, ADR-014, #917, #710, #968, wave/deque-frees)
+## 2026-10-30 — vec intrinsic-compat `len` free の退役 (ADR-046, ADR-087, ADR-091, #917, #936, wave/vec-intrinsic-len)
 
-- **Removed**: pre-ADR-086 の `deque_*` free function 11 個
-  (`deque_new` / `deque_push_front` / `deque_push_back` /
-  `deque_pop_front` / `deque_pop_back` / `deque_front` / `deque_back` /
-  `deque_len` / `deque_is_empty` / `deque_clear` / `deque_to_vec`) と、
-  `[head, tail, count, cap, ...data(cap)]` の `Vec<i32>` ring buffer
-  layout。`std/collections/linear.ark` と manifest entry を削除した。
-  `deprecated_since = "0.1.0"` / `remove_in = "1.0.0"` の ADR-014
-  deprecation window を満たす。
-- **Replacement**: `Deque<T>` の `new` / `with_capacity` / `push_front` /
-  `push_back` / `pop_front` / `pop_back` / `front` / `back` / `len` /
-  `is_empty` / `clear` / `iter`。空の pop / peek は `Option<T>` を返すため、
-  旧 panic / `0` sentinel は `match`（`Option<i32>` は `unwrap_or`）へ
-  置き換える。`deque_to_vec` は `d.iter().collect()`。旧 `deque_new` の
-  固定 capacity 16 は保証されず、必要なら `Deque::with_capacity<T>(n)`。
-- **#968 precondition**: `dq.is_empty()` / `dq.len()` の receiver dispatch と
-  0-1 BFS shape を both targets で再確認した（wasm32-gc は 202,500 node の
-  P2 component fixture、wasm32 は pin compiler で同じ shape）。現在の s2 は
-  `i32.to_string()` を wasm32 で invalid Wasm にする既存 regression を持つが、
-  deque/`Deque<T>` 固有の失敗ではない。
-- **Compiler**: `resolver::removed_names` の `removed_deque_member_hint` が
-  bare / qualified の旧名に E0100 replacement hint を返す。W0009 entry は
-  持たない（ADR-086 §8 の deprecation window は W0009 を要求しない）。
-- **Fixtures**: `stdlib_deque/deque_bfs`（450x450 = 202,500 node の 0-1 BFS、
-  run + t3-run）を追加し、`diagnostics/removed_deque_free{,_wasm32}` を
-  E0100 golden として追加した。legacy layout 専用だった
-  `stdlib_linear/deque_ops` / `deque_wrap` / `linear_basic` を削除し、
-  `module_import/use_func_destructure` と `diagnostics/prefer_use_import` を
-  method / type surface へ移行した。
-- **Scorecard**: eradication scope 28 -> **17**、`must delete` 21 -> **10**、
-  manifest public entries 28 -> **17**、deprecated 20 -> **9**、
-  `legacy linear deque frees` 規則を削除。fixture registry 3622 -> **3623**。
-- **Verification**: `verify fixtures` **1948/1948** compile+validate PASS
-  （112 runtime executed、43/43 `test:` PASS、2 runtime-unsupported、0 FAIL）、
-  `verify lane` PASS、`docs check` **6/6**、`selfhost diag-parity`
-  **272/272** PASS、ADR-029 fixpoint PASS（s2 == s3 sha256
-  `6ea06884d1bac90fd44556a1b54fb613ec53473ddc32e0fa4807f30385657e69`、
-  pinned base `56ff0808…`）。
+- **Removed**: prelude の signature-only free `len(s: String) -> i32`。
+  `String` / `Vec<T>` の両 receiver を 1 つの free が担い、checker が
+  receiver owner から `String::len` / `Vec::len` を選ぶ最後の
+  intrinsic-compat member だった。bare call と
+  `use std::prelude::{len}` は **E0100** と receiver method hint
+  （`s.len()` / `v.len()`）で失敗する。manifest entry と
+  `std/prelude.ark` 宣言を削除した。
+- **Replacement**: `s.len()`（`String`）と `v.len()`（`Vec<T>`）。
+  inline の `s.slice(start, end).len()` も同じ method spelling で型付け・
+  lower される。
+- **Migration**: compiler / std / fixtures / benchmarks の free `len(...)`
+  呼び出し 5,701 箇所を receiver method へ移行した。`len` を列挙していた
+  `use std::prelude::{...}` も整理した。`docs/sample/parser.ark` は HEAD で
+  既に現行型検査を通らない stale sample のため対象外とし、122 箇所を残す
+  （sample の型エラー修復とは分離）。
+- **Bootstrap**: pinned compiler は `String` receiver の `.len()` を
+  未だ bare `len` declaration 経由で lower するため、flat overlay の
+  prelude に overlay-only の `len` 宣言を残す（`scripts/selfhost/checks.py`
+  の `BOOTSTRAP_PRELUDE_LEN_SHIM`）。user program は退役後の surface
+  （E0100 + receiver method）だけを見る。pin 更新時に削除する。
+- **Diagnostics / fixtures**: `resolver::removed_names` と
+  `resolver::register_use` に E0100 hint を追加し、W0009 行を削除した。
+  `diagnostics/removed_len_free{,_wasm32}` と
+  `diagnostics/removed_len_import` を追加し、`stdlib_vec/len_method_surface`
+  （`s.len()`、`v.len()`、inline slice receiver）を両 target で追加した。
+  旧 `prelude_len_*` diagnostics は退役に伴い削除した。
+- **Scorecard**: real std surface 28 → **27**、`pub fn` declarations
+  28 → **27**、manifest public entries 28 → **27**、`must delete`
+  21 → **20**、vec intrinsic-compat rule 9 → **8**。`prelude_wrapper`
+  5、monomorphic helpers 2、intrinsic-only 1 は不変。
 
 ## 2026-10-30 — `std::io` / `std::host::stdio` 互換 free 9 個の退役 (ADR-046, ADR-094, ADR-087, #693, wave/io-stdio)
 

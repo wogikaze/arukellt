@@ -6,27 +6,27 @@ use loader::module_paths
 use loader::module_package_root
 use loader::registry_config
 pub fn is_wit_package_id(name: String) -> bool {
-    if len(wit_identity::wit_identifier_error(name.clone())) == 0 {
+    if wit_identity::wit_identifier_error(name.clone()).len() == 0 {
         return true
     }
-    len(wit_identity::wit_package_identity_error(name.clone())) == 0
+    wit_identity::wit_package_identity_error(name.clone()).len() == 0
 }
 
 pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -> Vec<String> {
     let base_dir = module_paths::parent_dir(source_file.clone())
     let package_root = module_package_root::find_package_root(base_dir.clone())
     let mut merged = collect_wit_paths_from_manifest(package_root.clone())
-    for i in 0..len(cli_paths) {
+    for i in 0..cli_paths.len() {
         wit_push_unique(merged, get_unchecked(cli_paths, i))
     }
     merged
 }
 
 fn wit_push_unique(mut paths: Vec<String>, path: String) {
-    if len(path) == 0 {
+    if path.len() == 0 {
         return
     }
-    for i in 0..len(paths) {
+    for i in 0..paths.len() {
         if get_unchecked(paths, i).eq(path.clone()) {
             return
         }
@@ -37,15 +37,15 @@ fn wit_push_unique(mut paths: Vec<String>, path: String) {
 fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     let mut paths = Vec::new<String>()
     let content = registry_config::read_package_manifest(package_root.clone())
-    if len(content) == 0 {
+    if content.len() == 0 {
         return paths
     }
     let deps_section = toml::TomlText::find_section(content.clone(), String_from("dependencies"))
-    if len(deps_section) == 0 {
+    if deps_section.len() == 0 {
         return paths
     }
     let mut line_start = 0
-    let content_len = len(deps_section)
+    let content_len = deps_section.len()
     let mut i = 0
     while i < content_len {
         if deps_section.byte_at(i) == 10 || i == content_len - 1 {
@@ -71,12 +71,12 @@ fn wit_collect_line_dependency(mut paths: Vec<String>, package_root: String, lin
         return
     }
     let vendor_rel = wit_vendor_rel_from_line(line.clone())
-    if len(vendor_rel) == 0 {
+    if vendor_rel.len() == 0 {
         return
     }
     let vendor_dir = wit_resolve_relative_path(package_root.clone(), vendor_rel)
     let wit_path = wit_vendor_wit_file(vendor_dir.clone())
-    if len(wit_path) == 0 {
+    if wit_path.len() == 0 {
         return
     }
     wit_push_unique(paths, wit_path)
@@ -88,7 +88,7 @@ fn wit_vendor_rel_from_line(line: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    let tail = line.slice(pos + len(path_marker), len(line))
+    let tail = line.slice(pos + path_marker.len(), line.len())
     let end = tail.clone().index_of(String_from("\""))
     if end < 0 {
         return String_new()
@@ -97,7 +97,7 @@ fn wit_vendor_rel_from_line(line: String) -> String {
 }
 
 fn wit_trim_key(key: String) -> String {
-    let n = len(key)
+    let n = key.len()
     let mut start = 0
     while start < n && key.byte_at(start) == 32 {
         start = start + 1
@@ -107,14 +107,14 @@ fn wit_trim_key(key: String) -> String {
         end = end - 1
     }
     let trimmed = key.slice(start, end)
-    if len(trimmed) >= 2 && trimmed.byte_at(0) == 34 && trimmed.byte_at(len(trimmed) - 1) == 34 {
-        return trimmed.slice(1, len(trimmed) - 1)
+    if trimmed.len() >= 2 && trimmed.byte_at(0) == 34 && trimmed.byte_at(trimmed.len() - 1) == 34 {
+        return trimmed.slice(1, trimmed.len() - 1)
     }
     trimmed
 }
 
 fn wit_join_path(base: String, rel: String) -> String {
-    if len(base) == 0 {
+    if base.len() == 0 {
         return rel
     }
     if base.clone().ends_with(String_from("/")) {
@@ -124,15 +124,15 @@ fn wit_join_path(base: String, rel: String) -> String {
 }
 
 fn wit_resolve_relative_path(base: String, rel: String) -> String {
-    if len(rel) == 0 {
+    if rel.len() == 0 {
         return base.clone()
     }
     if rel.clone().starts_with(String_from("../")) {
         let parent = module_paths::parent_dir(base.clone())
-        return wit_resolve_relative_path(parent, rel.slice(3, len(rel)))
+        return wit_resolve_relative_path(parent, rel.slice(3, rel.len()))
     }
     if rel.clone().starts_with(String_from("./")) {
-        return wit_resolve_relative_path(base.clone(), rel.slice(2, len(rel)))
+        return wit_resolve_relative_path(base.clone(), rel.slice(2, rel.len()))
     }
     wit_join_path(base.clone(), rel)
 }

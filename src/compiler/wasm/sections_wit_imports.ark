@@ -11,7 +11,7 @@ fn emit_wit_import_entries(
     wit_type_map: Vec<i32>,
     wasi_version: String
 ) {
-    for i in 0..len(bindings) {
+    for i in 0..bindings.len() {
         let binding = get_unchecked(bindings, i)
         let iface = wit_import_module_name(binding, wasi_version.clone())
         let func = wit_import_bind::wit_import_binding_wit_func_name(binding)

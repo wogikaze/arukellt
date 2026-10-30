@@ -70,7 +70,7 @@ fn stdlib_inline_candidate_is_eligible(
     call: MirInst,
     fallback_symbol: String
 ) -> bool {
-    if len(fallback_symbol) == 0 {
+    if fallback_symbol.len() == 0 {
         return false
     }
     if function_identity::MirFunction_name(caller).eq(function_identity::MirFunction_name(callee)) {

@@ -18,15 +18,15 @@ struct Context {
 
 fn main() {
     let mut ctx = Context { container: Container { items: Vec::new<Item>() }, current: Item { name: String_from("first"), value: 10 } }
-    Stdio::println((len(ctx.container.items)).to_string())
+    Stdio::println((ctx.container.items.len()).to_string())
     push(ctx.container.items, ctx.current)
-    Stdio::println((len(ctx.container.items)).to_string())
+    Stdio::println((ctx.container.items.len()).to_string())
     let i0 = get_unchecked(ctx.container.items, 0)
     Stdio::println(i0.name)
     Stdio::println((i0.value).to_string())
     ctx.current = Item { name: String_from("second"), value: 20 }
     push(ctx.container.items, ctx.current)
-    Stdio::println((len(ctx.container.items)).to_string())
+    Stdio::println((ctx.container.items.len()).to_string())
     let i1 = get_unchecked(ctx.container.items, 1)
     Stdio::println(i1.name)
     Stdio::println((i1.value).to_string())

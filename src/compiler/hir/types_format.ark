@@ -6,7 +6,7 @@ use hir::types_format_primitives
 
 fn type_name(ty: HirType) -> String {
     let primitive = types_format_primitives::primitive_type_name(ty)
-    if len(primitive) > 0 { return primitive }
+    if primitive.len() > 0 { return primitive }
     if type_contracts::HirType_tag(ty) == commands::TY_VEC() {
         let c = type_contracts::HirType_type_arg_count(ty)
         if c > 0 {

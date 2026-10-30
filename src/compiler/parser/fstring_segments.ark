@@ -2,7 +2,7 @@ use lexer::scan
 use parser::core_api_token
 use parser::fstring_nodes
 fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
-    let clen = len(content)
+    let clen = content.len()
     let mut nodes: Vec<AstNode> = Vec::new<AstNode>()
     let mut lit_start = 0
     let mut i = 0
@@ -25,7 +25,7 @@ fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
 }
 
 fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Span, open_idx: i32) -> i32 {
-    let clen = len(content)
+    let clen = content.len()
     let expr_start = open_idx + 1
     let mut depth = 1
     let mut colon_idx = 0 - 1
@@ -81,7 +81,7 @@ fn fstring_push_expr_segment(mut nodes: Vec<AstNode>, content: String, span: Spa
 }
 
 fn fstring_trim(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut start = 0
     let mut end = n
     while start < end {

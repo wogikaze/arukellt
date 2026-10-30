@@ -11,7 +11,7 @@ fn corehir_empty_ast_node() -> AstNode {
 }
 
 fn corehir_node_release_child(mut node: AstNode, idx: i32) {
-    if idx < 0 || idx >= len(node.children) {
+    if idx < 0 || idx >= node.children.len() {
         return
     }
     set(node.children, idx, corehir_empty_ast_node())

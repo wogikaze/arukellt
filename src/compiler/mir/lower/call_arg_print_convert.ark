@@ -39,7 +39,7 @@ fn mir_convert_print_arg_to_string(mut ctx: LowerCtx, arg: AstNode, arg_idx: i32
     ctx_api_local_types::ctx_set_local_type(ctx, wrap_dest, "String")
     let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
     let arg_temp = ctx_api_local_alloc::ctx_fresh_local(ctx, arg_vt)
-    if len(wrap_lt) > 0 {
+    if wrap_lt.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, arg_temp, wrap_lt)
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(arg_temp, arg_idx))

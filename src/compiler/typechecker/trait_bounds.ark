@@ -42,7 +42,7 @@ fn type_satisfies_trait_bound_at_depth(
     // when the registry is empty — an impl can satisfy a bound even when the
     // trait declaration is not in scope (ADR-065: operator legality must not
     // depend on importing std::core::ops) (#886).
-    if depth > len(env.trait_defs) {
+    if depth > env.trait_defs.len() {
         return false
     }
     let trait_info = trait_info_for_name(
@@ -71,7 +71,7 @@ fn type_satisfies_trait_bound_at_depth(
 // protocol (`IntoIterator`, `Copy`, operator traits) on generic values
 // before monomorphisation exposes the substituted type.
 fn env_type_var_has_trait_bound(env: TypeEnv, type_param_name: String, trait_name: String) -> bool {
-    let bound_count = len(env.current_fn_bounds)
+    let bound_count = env.current_fn_bounds.len()
     let mut i = 0
     while i < bound_count {
         let param = get_unchecked(env.current_fn_bounds, i)
@@ -97,7 +97,7 @@ fn type_param_bounds_has_trait(param: TypeParamBounds, trait_name: String) -> bo
 }
 
 fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
-    let count = len(env.trait_defs)
+    let count = env.trait_defs.len()
     let mut i = 0
     while i < count {
         let info = get_unchecked(env.trait_defs, i)
@@ -115,7 +115,7 @@ fn matching_trait_impl_count(
     bound: TypeInfo,
     depth: i32
 ) -> i32 {
-    let count = len(env.trait_impls)
+    let count = env.trait_impls.len()
     let mut matches = 0
     let mut i = 0
     while i < count {
@@ -175,7 +175,7 @@ fn impl_bounds_satisfied(
     depth: i32
 ) -> bool {
     let bounds = contract_trait_impl_record::trait_impl_info_type_param_bounds(impl_info)
-    let count = len(bounds)
+    let count = bounds.len()
     let mut i = 0
     while i < count {
         let param = get_unchecked(bounds, i)
@@ -245,7 +245,7 @@ fn match_impl_param(pattern: TypeInfo, actual: TypeInfo, param_name: String) -> 
 
 fn type_args_match(impl_args: Vec<TypeInfo>, bound: TypeInfo) -> bool {
     let bound_count = contract_type_access::TypeInfo_type_arg_count(bound)
-    if len(impl_args) != bound_count {
+    if impl_args.len() != bound_count {
         return false
     }
     let mut i = 0

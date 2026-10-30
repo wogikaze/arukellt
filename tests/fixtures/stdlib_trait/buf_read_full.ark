@@ -12,7 +12,7 @@ fn main() {
 
     match r.fill_buf() {
         Result::Ok(filled) => {
-            Test::assert_eq_i32(len(filled), 5)
+            Test::assert_eq_i32(filled.len(), 5)
             Test::assert_eq_i32(get_unchecked(filled, 0), 1)
             Test::assert_eq_i32(get_unchecked(filled, 4), 5)
         },

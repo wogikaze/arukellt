@@ -54,7 +54,7 @@ fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
                             payload_enum_names,
                             native_c_type_name_enum_basename(named)
                         )
-                    } else if len(named) > 0 {
+                    } else if named.len() > 0 {
                         // Only named STRUCT_NEW (Range { … }). Do not infer from
                         // dest type_id: unit-enum layouts reuse the enum name as a
                         // STRUCT entry and would be misclassified as heap.
@@ -178,7 +178,7 @@ fn native_c_collect_payload_enum_from_local(
         return
     }
     let entry_name = type_table::type_entry_name(entry)
-    if len(entry_name) == 0 {
+    if entry_name.len() == 0 {
         return
     }
     native_c_push_unique_string(
@@ -188,7 +188,7 @@ fn native_c_collect_payload_enum_from_local(
 }
 
 fn native_c_push_unique_string(mut values: Vec<String>, value: String) {
-    if len(value) == 0 {
+    if value.len() == 0 {
         return
     }
     if native_c_string_list_contains(values, value.clone()) {
@@ -198,7 +198,7 @@ fn native_c_push_unique_string(mut values: Vec<String>, value: String) {
 }
 
 fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {
-    let count = len(values)
+    let count = values.len()
     let mut index = 0
     while index < count {
         if get_unchecked(values, index).eq(value.clone()) {
@@ -210,7 +210,7 @@ fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {
 }
 
 fn native_c_type_name_has_variant_path(name: String) -> bool {
-    let length = len(name)
+    let length = name.len()
     let mut index = 0
     while index + 1 < length {
         if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {
@@ -224,9 +224,9 @@ fn native_c_type_name_has_variant_path(name: String) -> bool {
 fn native_c_type_name_enum_basename(name: String) -> String {
     let mut base = name
     if base.clone().starts_with(String_from("enum:")) {
-        base = base.slice(5, len(base))
+        base = base.slice(5, base.len())
     }
-    let length = len(base)
+    let length = base.len()
     let mut index = 0
     while index + 1 < length {
         if base.byte_at(index) == 58 && base.byte_at(index + 1) == 58 {
@@ -238,7 +238,7 @@ fn native_c_type_name_enum_basename(name: String) -> String {
 }
 
 fn native_c_enum_type_is_heap(heap_enum_flags: Vec<i32>, raw_type_id: i32) -> bool {
-    if raw_type_id < 0 || raw_type_id >= len(heap_enum_flags) {
+    if raw_type_id < 0 || raw_type_id >= heap_enum_flags.len() {
         return false
     }
     get_unchecked(heap_enum_flags, raw_type_id) != 0
@@ -251,7 +251,7 @@ fn native_c_table_has_unit_enum_named(
     name: String
 ) -> bool {
     let basename = native_c_type_name_enum_basename(name)
-    if len(basename) == 0 {
+    if basename.len() == 0 {
         return false
     }
     let type_count = type_table::TypeTable_entry_count(table)

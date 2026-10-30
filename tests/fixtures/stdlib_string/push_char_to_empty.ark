@@ -3,6 +3,6 @@ use std::test::Test
 fn main() {
     let mut s = String_new()
     s.push_char('A')
-    Test::assert_eq_i32(len(s), 1)
+    Test::assert_eq_i32(s.len(), 1)
     Test::assert_true(s.eq(String_from("A")))
 }

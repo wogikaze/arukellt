@@ -51,7 +51,7 @@ impl Signal {
 
     /// Returns a copy of the `Vec<f64>` buffer.
     fn clone_f64(src: Vec<f64>) -> Vec<f64> {
-        let n = len(src)
+        let n = src.len()
         let mut out = Vec::with_capacity<f64>(n)
         let mut i = 0
         while i < n {
@@ -89,7 +89,7 @@ impl Signal {
     /// Returns the magnitude of each split-complex sample.
     fn magnitude(real: Vec<f64>, imag: Vec<f64>) -> Vec<f64> {
         require_same_length(real, imag)
-        let n = len(real)
+        let n = real.len()
         let mut out = Vec::with_capacity<f64>(n)
         let mut i = 0
         while i < n {
@@ -123,7 +123,7 @@ fn i32_to_f64(n: i32) -> f64 {
 }
 
 fn require_same_length(real: Vec<f64>, imag: Vec<f64>) {
-    if len(real) != len(imag) {
+    if real.len() != imag.len() {
         Std::panic("fft: real/imag length mismatch")
     }
 }
@@ -179,7 +179,7 @@ fn ilog2_pow2(n: i32) -> i32 {
 
 fn write_back_f64(mut dst: Vec<f64>, src: Vec<f64>) {
     require_same_length(dst, src)
-    let n = len(dst)
+    let n = dst.len()
     let mut i = 0
     while i < n {
         set(dst, i, get_unchecked(src, i))
@@ -188,7 +188,7 @@ fn write_back_f64(mut dst: Vec<f64>, src: Vec<f64>) {
 }
 
 fn reorder_bit_reversed(src: Vec<f64>) -> Vec<f64> {
-    let n = len(src)
+    let n = src.len()
     let bits = ilog2_pow2(n)
     let mut out = Vec::with_capacity<f64>(n)
     let mut i = 0
@@ -207,7 +207,7 @@ fn reorder_bit_reversed(src: Vec<f64>) -> Vec<f64> {
 
 fn fft_core(real_in: Vec<f64>, imag_in: Vec<f64>, inverse: bool) -> (Vec<f64>, Vec<f64>) {
     require_same_length(real_in, imag_in)
-    let n = len(real_in)
+    let n = real_in.len()
     require_power_of_two(n)
     let mut real = reorder_bit_reversed(real_in)
     let mut imag = reorder_bit_reversed(imag_in)

@@ -80,8 +80,8 @@ fn DocManifestTable_new(functions: Vec<DocFnEntry>, modules: Vec<DocModuleEntry>
 
 fn DocManifestTable_functions(t: DocManifestTable) -> Vec<DocFnEntry> { t.functions }
 fn DocManifestTable_modules(t: DocManifestTable) -> Vec<DocModuleEntry> { t.modules }
-fn DocManifestTable_function_count(t: DocManifestTable) -> i32 { len(t.functions) }
-fn DocManifestTable_module_count(t: DocManifestTable) -> i32 { len(t.modules) }
+fn DocManifestTable_function_count(t: DocManifestTable) -> i32 { t.functions.len() }
+fn DocManifestTable_module_count(t: DocManifestTable) -> i32 { t.modules.len() }
 fn DocManifestTable_function_at(t: DocManifestTable, idx: i32) -> DocFnEntry { get_unchecked(t.functions, idx) }
 fn DocManifestTable_module_at(t: DocManifestTable, idx: i32) -> DocModuleEntry { get_unchecked(t.modules, idx) }
 
@@ -98,7 +98,7 @@ fn DocModuleNameParts_module(p: DocModuleNameParts) -> String { p.module.clone()
 fn DocModuleNameParts_name(p: DocModuleNameParts) -> String { p.name.clone() }
 
 fn doc_split_module_and_name(symbol: String) -> DocModuleNameParts {
-    let n = len(symbol)
+    let n = symbol.len()
     let mut split = 0 - 1
     let mut i = n - 1
     while i >= 1 {

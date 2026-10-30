@@ -11,7 +11,7 @@ fn ModInfo_new(name: String, decl_start: i32, decl_count: i32) -> ModInfo {
 fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, total_decl_count: i32) -> Vec<ModInfo> {
     let mut infos = Vec::new<ModInfo>()
     let mut decl_offset = 0
-    let module_count = len(module_names)
+    let module_count = module_names.len()
     let mut i = 0
     while i < module_count {
         let decl_count = get_unchecked(module_decl_counts, i)
@@ -32,5 +32,5 @@ fn main() -> i32 {
     let mut counts = Vec::new<i32>()
     push(counts, 1)
     let infos = build_module_infos(names, counts, 1)
-    len(infos)
+    infos.len()
 }

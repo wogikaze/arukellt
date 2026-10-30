@@ -36,7 +36,7 @@ fn build_method_infos(
 ) -> Vec<CoreHirMethodInfo> {
     let mut infos = Vec::new<CoreHirMethodInfo>()
     let known_type_names = param_shape_declared::corehir_nominal_type_names(nominal_types)
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
@@ -54,7 +54,7 @@ fn build_method_infos(
                     method,
                     known_type_names.clone()
                 )
-                let type_param_count = len(type_params)
+                let type_param_count = type_params.len()
                 let params = build_method_params(
                     decl,
                     method,

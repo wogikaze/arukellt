@@ -44,7 +44,7 @@ fn load_imported_modules_at(
     importer_is_stdlib: bool
 ) {
     let import_paths = module_import_paths::collect_import_paths(decls)
-    let count = len(import_paths)
+    let count = import_paths.len()
     let mut i = 0
     while i < count {
         load_import_path(
@@ -115,7 +115,7 @@ fn load_local_module_or_parent(
         return
     }
     let parent_name = resolver::paths::use_module_parent_path(module_name.clone())
-    if len(parent_name.clone()) > 0 {
+    if parent_name.clone().len() > 0 {
         let parent_base = module_base_dir_for_import(parent_name.clone(), fallback_dir.clone(), root_dir.clone())
         let parent = module_file_load_local::read_local_module_source(parent_name.clone(), parent_base.clone())
         if module_file_load_local::DriverLoadedSource_is_ok(parent) {

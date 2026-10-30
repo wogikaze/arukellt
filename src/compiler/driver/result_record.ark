@@ -47,7 +47,7 @@ fn compile_result_output_bytes(result: CompileResult) -> Vec<i32> {
 }
 
 fn compile_result_output_byte_count(result: CompileResult) -> i32 {
-    len(result.output_bytes)
+    result.output_bytes.len()
 }
 
 fn compile_result_error_count(result: CompileResult) -> i32 {
@@ -59,7 +59,7 @@ fn compile_result_error_message_at(result: CompileResult, index: i32) -> String 
 }
 
 fn compile_result_error_message_count(result: CompileResult) -> i32 {
-    len(result.error_messages)
+    result.error_messages.len()
 }
 
 fn compile_result_phase_reached(result: CompileResult) -> i32 {

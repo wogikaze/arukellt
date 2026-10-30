@@ -6,7 +6,7 @@ use mir::lower::ctx_types
 // (#933). The key carries the source body identity as well as the span, so a
 // call in a loaded module never aliases a same-offset call in another file.
 fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall>) {
-    let count = len(calls)
+    let count = calls.len()
     ctx.resolved_call_index = name_index::NameIndex_new(count)
     ctx.resolved_call_owners = Vec::new<String>()
     let mut i = 0
@@ -19,7 +19,7 @@ fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall
             raw_dto::CoreHirResolvedCall_callee_name(call.clone())
         )
         if name_index::name_index_get(ctx.resolved_call_index, key.clone()) < 0 {
-            name_index::name_index_set(ctx.resolved_call_index, key, len(ctx.resolved_call_owners))
+            name_index::name_index_set(ctx.resolved_call_index, key, ctx.resolved_call_owners.len())
             push(ctx.resolved_call_owners, raw_dto::CoreHirResolvedCall_owner_name(call))
         }
         i = i + 1
@@ -45,7 +45,7 @@ fn ctx_resolved_call_owner(ctx: LowerCtx, span_start: i32, callee_name: String) 
         callee_name
     )
     let index = name_index::name_index_get(ctx.resolved_call_index, key)
-    if index < 0 || index >= len(ctx.resolved_call_owners) {
+    if index < 0 || index >= ctx.resolved_call_owners.len() {
         return String_new()
     }
     get_unchecked(ctx.resolved_call_owners, index).clone()

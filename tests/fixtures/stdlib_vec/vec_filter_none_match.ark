@@ -10,5 +10,5 @@ fn main() {
     push(v, 2)
     push(v, 3)
     let result: Vec<i32> = filter_i32(v, is_negative)
-    Test::assert_eq_i32(len(result), 0)
+    Test::assert_eq_i32(result.len(), 0)
 }

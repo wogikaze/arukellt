@@ -6,7 +6,7 @@ use typechecker::contract_type_access
 use typechecker::mono_instances
 fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
     let src_instances = contract_env_mono_record::type_env_mono_instances(src)
-    let count = len(src_instances)
+    let count = src_instances.len()
     let mut i = 0
     while i < count {
         let incoming = get_unchecked(src_instances, i)
@@ -17,7 +17,7 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
         }
         let incoming_mangled = contract_mono::MonoInstance_mangled_name(incoming)
         let dst_instances = contract_env_mono_record::type_env_mono_instances(dst)
-        let dst_count = len(dst_instances)
+        let dst_count = dst_instances.len()
         let mut found = false
         let mut j = 0
         while j < dst_count {
@@ -48,13 +48,13 @@ fn merge_mono_instances(mut dst: TypeEnv, src: TypeEnv) {
 }
 
 fn merge_mono_template_sites(mut dst: TypeEnv, src: TypeEnv) {
-    let src_count = len(src.mono_template_sites)
+    let src_count = src.mono_template_sites.len()
     let mut i = 0
     while i < src_count {
         let incoming = get_unchecked(src.mono_template_sites, i)
         let incoming_mangled = incoming.mangled_name.clone()
         let incoming_enclosing = incoming.enclosing_fn.clone()
-        let dst_count = len(dst.mono_template_sites)
+        let dst_count = dst.mono_template_sites.len()
         let mut found = false
         let mut j = 0
         while j < dst_count {
@@ -92,7 +92,7 @@ fn merge_type_env(mut dst: TypeEnv, src: TypeEnv) {
     merge_mono_template_sites(dst, src)
     merge_mono_instances(dst, src)
     vec_extend::Vec_extend_MonoCallSite(dst.mono_call_sites, src.mono_call_sites)
-    let owner_count = len(src.resolved_call_owners)
+    let owner_count = src.resolved_call_owners.len()
     let mut oi = 0
     while oi < owner_count {
         push(dst.resolved_call_owners, get_unchecked(src.resolved_call_owners, oi))

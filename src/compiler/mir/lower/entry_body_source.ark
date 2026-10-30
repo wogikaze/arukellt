@@ -116,7 +116,7 @@ fn mir_entry_body_source_fn_body_node(
     decl_index: i32,
     body_idx: i32
 ) -> AstNode {
-    if decl_index < 0 || decl_index >= len(source.decl_nodes) || body_idx < 0 {
+    if decl_index < 0 || decl_index >= source.decl_nodes.len() || body_idx < 0 {
         return frontend_ast_node::corehir_empty_ast_node()
     }
     let decl = get_unchecked(source.decl_nodes, decl_index)
@@ -132,7 +132,7 @@ fn mir_entry_body_source_method_body_node(
     method_index: i32,
     body_idx: i32
 ) -> AstNode {
-    if impl_decl_index < 0 || impl_decl_index >= len(source.decl_nodes) {
+    if impl_decl_index < 0 || impl_decl_index >= source.decl_nodes.len() {
         return frontend_ast_node::corehir_empty_ast_node()
     }
     let impl_decl = get_unchecked(source.decl_nodes, impl_decl_index)

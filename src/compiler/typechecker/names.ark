@@ -26,7 +26,7 @@ fn same_type_name(left: String, right: String) -> bool {
 // possibly module-qualified type name to its last :: segment so method
 // lookup and mono instance naming agree with the registered signature.
 fn unqualified_type_name(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 2
     while i >= 0 {
         if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {

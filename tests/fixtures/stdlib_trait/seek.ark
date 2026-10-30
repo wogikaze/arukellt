@@ -22,7 +22,7 @@ fn main() {
     }
     match r.read(1) {
         Result::Ok(one) => {
-            assert(len(one) == 1)
+            assert(one.len() == 1)
             assert(get_unchecked(one, 0) == 67)
         },
         Result::Err(_e) => assert(false),
@@ -42,7 +42,7 @@ fn main() {
         Result::Err(_e) => assert(false),
     }
     match r.read(1) {
-        Result::Ok(one) => assert(len(one) == 0),
+        Result::Ok(one) => assert(one.len() == 0),
         Result::Err(_e) => assert(false),
     }
 

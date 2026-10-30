@@ -1,5 +1,5 @@
 pub fn parse_opt_level_value(value: String, current: i32) -> i32 {
-    if len(value.clone()) != 1 {
+    if value.clone().len() != 1 {
         return current
     }
     let ch = value.clone().byte_at(0)

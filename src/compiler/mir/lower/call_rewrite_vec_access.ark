@@ -33,7 +33,7 @@ fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i
         return receiver_type
     }
     let mono_suffix = mono_suffix_parse::extract_mono_suffix(callee_name)
-    if len(mono_suffix) == 0 || mono_suffix.clone().contains(String_from("__")) {
+    if mono_suffix.len() == 0 || mono_suffix.clone().contains(String_from("__")) {
         return receiver_type
     }
     // Infer only for rewrite decisions. Do not overwrite the receiver local:

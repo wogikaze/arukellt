@@ -23,11 +23,11 @@ fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type:
 
 fn gc_variant_field_is_i32(ctx: SelfEmitCtx, type_slot: i32, field_idx: i32) -> bool {
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    if type_slot < 0 || type_slot >= len(sigs) {
+    if type_slot < 0 || type_slot >= sigs.len() {
         return false
     }
     let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, type_slot))
-    if field_idx < 0 || field_idx >= len(fields) {
+    if field_idx < 0 || field_idx >= fields.len() {
         return false
     }
     get_unchecked(fields, field_idx).eq("i32")

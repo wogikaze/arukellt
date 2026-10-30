@@ -122,7 +122,7 @@ fn record_for_desugar_mono(
 // The single parametric impl allowed by ADR-078 for (trait, constructor
 // head), or an empty info when the matching impl is concrete.
 fn find_var_carrying_impl(mut env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> TraitImplInfo {
-    let count = len(env.trait_impls)
+    let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
@@ -154,13 +154,13 @@ fn record_for_method_mono(
     method: String
 ) -> TypeInfo {
     let unknown = contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
-    if len(contract_trait_impl::TraitImplInfo_trait_name(impl_info)) == 0 {
+    if contract_trait_impl::TraitImplInfo_trait_name(impl_info).len() == 0 {
         return unknown
     }
     let mut owner_name = names::unqualified_type_name(
         contract_type_access::TypeInfo_name(owner_ty)
     )
-    if len(owner_name) == 0 {
+    if owner_name.len() == 0 {
         owner_name = for_desugar_builtin_owner_name(owner_ty)
     }
     let fn_name = owner_name.clone().concat("::".concat(method.clone()))
@@ -215,7 +215,7 @@ fn record_for_method_mono(
     // emitted mono variant directly, including fn-valued pairs whose
     // arg-segment spellings differ (fnref vs fn_i32_i32_) (#691).
     let inst_owner = call_method::type_name_for_mangling(owner_ty)
-    if len(inst_owner) > 0 && !inst_owner.clone().eq(owner_name.clone()) {
+    if inst_owner.len() > 0 && !inst_owner.clone().eq(owner_name.clone()) {
         mono::record_mono_call_site(
             env,
             span,
@@ -227,7 +227,7 @@ fn record_for_method_mono(
 }
 
 fn lookup_bound_type_var(names: Vec<String>, types: Vec<TypeInfo>, name: String) -> TypeInfo {
-    let count = len(names)
+    let count = names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(names, i).eq(name.clone()) {
@@ -293,7 +293,7 @@ fn record_generic_for_desugar_sites(mut env: TypeEnv, source_ty: TypeInfo, via_i
 
 fn has_structural_next(env: TypeEnv, fn_sigs: Vec<FnSig>, source_ty: TypeInfo) -> bool {
     let source_name = contract_type_access::TypeInfo_name(source_ty)
-    if len(source_name) == 0 {
+    if source_name.len() == 0 {
         return false
     }
     let next_sig = sigs::lookup_fn_sig(

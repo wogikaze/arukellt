@@ -29,11 +29,11 @@ fn apply_op_values(op: RpnOp, a: i32, b: i32) -> i32 {
 }
 
 fn apply_op(mut stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
-    if len(stack) < 2 { print_error(String_from("stack underflow")); stack }
+    if stack.len() < 2 { print_error(String_from("stack underflow")); stack }
     else {
-        let b: i32 = get_unchecked(stack, len(stack) - 1)
+        let b: i32 = get_unchecked(stack, stack.len() - 1)
         let _: Option<i32> = pop(stack)
-        let a: i32 = get_unchecked(stack, len(stack) - 1)
+        let a: i32 = get_unchecked(stack, stack.len() - 1)
         let _: Option<i32> = pop(stack)
         push(stack, apply_op_values(op, a, b))
         stack
@@ -60,7 +60,7 @@ fn token_end(line: String, start: i32, line_len: i32) -> i32 {
 }
 
 fn finish_line(stack: Vec<i32>, input_trimmed: String) {
-    let sp: i32 = len(stack)
+    let sp: i32 = stack.len()
     if sp == 1 {
         let val: i32 = get_unchecked(stack, 0)
         Stdio::println(val.to_string())
@@ -71,7 +71,7 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
     fn eval_line(line: String) {
         let mut stack: Vec<i32> = Vec::new<i32>()
         let input_trimmed: String = line.trim()
-        let line_len: i32 = len(input_trimmed)
+        let line_len: i32 = input_trimmed.len()
         let mut i: i32 = 0
         while i < line_len {
             if is_ascii_ws(input_trimmed.byte_at(i)) { i = i + 1 }

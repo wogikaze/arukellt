@@ -71,7 +71,7 @@ fn core_payload_field_vt(
     if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, variant_name.clone(), field_idx + 1) {
         return value_types::VT_GC_REF()
     }
-    if len(field_type) > 0 && !core_payload_scalar_type_name(field_type.clone()) {
+    if field_type.len() > 0 && !core_payload_scalar_type_name(field_type.clone()) {
         return value_types::VT_GC_REF()
     }
     if core_match_variant_is_err(variant_name.clone()) && field_idx == 0 {
@@ -153,19 +153,19 @@ fn set_gc_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: String, b
     }
     // Vec<T> must stay a container type — never enum:Vec<...> (#726 toml Table).
     let vec_type = normalize_core_payload_vec_type_name(field_type.clone())
-    if len(vec_type) > 0 {
+    if vec_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, vec_type)
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
-    if len(field_type) > 0 &&
+    if field_type.len() > 0 &&
     ctx_struct_layout::ctx_is_registered_enum_type(ctx, field_type.clone()) &&
     !ctx_struct_layout::ctx_is_registered_struct_type(ctx, field_type.clone()) {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "enum:".concat(field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
-    if len(field_type) > 0 && !core_payload_scalar_type_name(field_type.clone()) {
+    if field_type.len() > 0 && !core_payload_scalar_type_name(field_type.clone()) {
         // Named GC structs keep bare names for gcsref Option payloads (#726).
         // Linear-memory targets have no GC struct slots; the layout registry
         // must also keep a bare struct name or field binds resolve as enum:Name
@@ -193,11 +193,11 @@ fn normalize_core_payload_vec_type_name(field_type: String) -> String {
         return "vec:i32"
     }
     if field_type.clone().starts_with("Vec<") && field_type.clone().ends_with(">") {
-        let inner = field_type.clone().slice(4, len(field_type) - 1)
+        let inner = field_type.clone().slice(4, field_type.len() - 1)
         return "vec:".concat(inner)
     }
     if field_type.clone().starts_with("Vec_") {
-        let inner = field_type.clone().slice(4, len(field_type))
+        let inner = field_type.clone().slice(4, field_type.len())
         return "vec:".concat(inner)
     }
     String_new()
@@ -239,7 +239,7 @@ fn set_narrow_int_payload_bind_type_if_needed(mut ctx: LowerCtx, variant_name: S
     if bind_vt != value_types::VT_I32() {
         return
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) > 0 {
+    if ctx_api_local_types::ctx_get_local_type(ctx, bind_local).len() > 0 {
         return
     }
     let field_type = ctx_mono_type_params::ctx_resolve_mono_type_name(
@@ -258,11 +258,11 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
         return "vec:i32"
     }
     if elem_ty.clone().starts_with("Vec<") && elem_ty.clone().ends_with(">") {
-        let inner = elem_ty.clone().slice(4, len(elem_ty) - 1)
+        let inner = elem_ty.clone().slice(4, elem_ty.len() - 1)
         return "vec:".concat(inner)
     }
     if elem_ty.clone().starts_with("Vec_") {
-        return "vec:".concat(elem_ty.clone().slice(4, len(elem_ty)))
+        return "vec:".concat(elem_ty.clone().slice(4, elem_ty.len()))
     }
     elem_ty
 }
@@ -271,7 +271,7 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
     if core_match_variant_is_some_or_ok(variant_name.clone()) || core_match_variant_is_err(variant_name.clone()) {
         return false
     }
-    if len(type_name) == 0 || type_name.clone().eq("enum:open") {
+    if type_name.len() == 0 || type_name.clone().eq("enum:open") {
         return false
     }
     // Nested enum payloads must stay enum-open (#726 nested_enum).
@@ -283,7 +283,7 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
 
 fn core_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, scrut_type.len())
     // Split Ok/Err on the LAST encoding separator (#726 toml/json).
     let sep_char = if scrut_type.clone().starts_with("result:") { 58 } else { 95 }
     let last = find_last_sep_char(rest.clone(), sep_char)
@@ -295,17 +295,17 @@ fn core_extract_first_result_type_param(scrut_type: String) -> String {
 
 fn core_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, scrut_type.len())
     let sep_char = if scrut_type.clone().starts_with("result:") { 58 } else { 95 }
     let last = find_last_sep_char(rest.clone(), sep_char)
-    if last >= 0 && last + 1 < len(rest) {
-        return rest.slice(last + 1, len(rest))
+    if last >= 0 && last + 1 < rest.len() {
+        return rest.slice(last + 1, rest.len())
     }
     String_new()
 }
 
 fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = n - 1
     while i >= 0 {
         if s.clone().byte_at(i) == sep_char {
@@ -318,7 +318,7 @@ fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
 
 fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().eq("string") || type_name.clone().eq("String") {

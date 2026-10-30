@@ -1,13 +1,13 @@
 use std::text
 fn main() -> i32 {
     let keep = String_from("early")
-    if len(keep) == 0 {
+    if keep.len() == 0 {
         return 1
     }
     let mut i = 0
     while i < 16 {
         let junk = String_from("e").concat(String_from("r"))
-        let _n = len(junk)
+        let _n = junk.len()
         i = i + 1
     }
     if keep.eq(String_from("early")) { 0 } else { 1 }

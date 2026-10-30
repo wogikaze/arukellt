@@ -8,11 +8,11 @@ fn assert_close(actual: f64, expected: f64) {
 }
 
 fn assert_vec_close(actual: Vec<f64>, expected: Vec<f64>) {
-    if len(actual) != len(expected) {
+    if actual.len() != expected.len() {
         Std::panic("vector length mismatch")
     }
     let mut i = 0
-    while i < len(actual) {
+    while i < actual.len() {
         assert_close(get_unchecked(actual, i), get_unchecked(expected, i))
         i = i + 1
     }
@@ -25,7 +25,7 @@ fn main() {
     push(impulse, 0.0)
     push(impulse, 0.0)
     let mut impulse_r = Signal::clone_f64(impulse)
-    let mut impulse_i = Signal::zeros(len(impulse))
+    let mut impulse_i = Signal::zeros(impulse.len())
     Signal::fft(impulse_r, impulse_i)
     let mut ones = Vec::new<f64>()
     push(ones, 1.0)
@@ -41,7 +41,7 @@ fn main() {
     push(shifted, 0.0)
     push(shifted, 0.0)
     let mut shift_r = Signal::clone_f64(shifted)
-    let mut shift_i = Signal::zeros(len(shifted))
+    let mut shift_i = Signal::zeros(shifted.len())
     Signal::fft(shift_r, shift_i)
     let mut expected_shift_r = Vec::new<f64>()
     push(expected_shift_r, 1.0)
@@ -61,7 +61,7 @@ fn main() {
     push(seq, 3.0)
     push(seq, 4.0)
     let mut roundtrip_r = Signal::clone_f64(seq)
-    let mut roundtrip_i = Signal::zeros(len(seq))
+    let mut roundtrip_i = Signal::zeros(seq.len())
     Signal::fft(roundtrip_r, roundtrip_i)
     Signal::ifft(roundtrip_r, roundtrip_i)
     let mut expected_seq = Vec::new<f64>()

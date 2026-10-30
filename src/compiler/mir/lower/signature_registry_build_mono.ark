@@ -87,7 +87,7 @@ fn sig_reg_register_mono_fn(
             mangled.clone(),
             return_type_name.clone()
         )
-        if len(concrete) > 0 {
+        if concrete.len() > 0 {
             return_type_name = concrete
             return_vt = fn_index_method_return_type::method_return_vt_from_type_name(return_type_name.clone())
         }
@@ -133,7 +133,7 @@ pub struct SigRegLeafIndex {
 }
 
 fn sig_reg_leaf_name(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut i = name_len - 1
     while i >= 1 {
         if name.byte_at(i) == 58 && name.byte_at(i - 1) == 58 {
@@ -146,7 +146,7 @@ fn sig_reg_leaf_name(name: String) -> String {
 
 impl SigRegLeafIndex {
     fn build(mono_instances: Vec<MonoInstance>) -> SigRegLeafIndex {
-        let count = len(mono_instances)
+        let count = mono_instances.len()
         let mut head = name_index::NameIndex_new(count)
         let mut next = Vec::new<i32>()
         let mut i = 0
@@ -184,7 +184,7 @@ impl SigRegLeafIndex {
         qualified_name: String
     ) -> i32 {
         let mut query_name = decl_name.clone()
-        if len(qualified_name) > 0 {
+        if qualified_name.len() > 0 {
             query_name = qualified_name.clone()
         }
         let query_leaf = sig_reg_leaf_name(query_name)
@@ -200,10 +200,10 @@ impl SigRegLeafIndex {
                 qualified_name.clone()
             ) {
                 let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-                if len(matched_mangled) > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
+                if matched_mangled.len() > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
                     ambiguous = true
                 }
-                if len(matched_mangled) == 0 {
+                if matched_mangled.len() == 0 {
                     matched = i
                 }
                 matched_mangled = inst_mangled
@@ -227,7 +227,7 @@ fn sig_reg_leaf_instance_name_match(
     decl_name: String,
     qualified_name: String
 ) -> bool {
-    if len(qualified_name) > 0 {
+    if qualified_name.len() > 0 {
         if name_match::NameMatch::equal(inst_name, qualified_name) {
             return true
         }

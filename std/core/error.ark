@@ -69,8 +69,8 @@ impl Error {
 }
 
 test mod "error_message" {
-    test "invalid" { assert(len(Error::InvalidArgument("x").message()) > 0) }
-    test "not_found" { assert(len(Error::NotFound("m").message()) > 0) }
-    test "timeout" { assert(len(Error::Timeout.message()) > 0) }
-    test "utf8" { assert(len(Error::Utf8Error.message()) > 0) }
+    test "invalid" { assert(Error::InvalidArgument("x").message().len() > 0) }
+    test "not_found" { assert(Error::NotFound("m").message().len() > 0) }
+    test "timeout" { assert(Error::Timeout.message().len() > 0) }
+    test "utf8" { assert(Error::Utf8Error.message().len() > 0) }
 }

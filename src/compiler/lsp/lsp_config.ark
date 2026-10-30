@@ -3,7 +3,7 @@ use std::text
 use lsp::state_record
 fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
     let raw = json::JsonText::get_str(body.clone(), key.clone())
-    if len(raw) == 0 {
+    if raw.len() == 0 {
         if body.clone().contains(String_from("\"").concat(key.clone()).concat(String_from("\":false"))) {
             return false
         }
@@ -20,7 +20,7 @@ fn parse_bool_field(body: String, key: String, default_value: bool) -> bool {
 
 pub fn apply_initialize_config(mut state: LspState, body: String) {
     let level = json::JsonText::get_str(body.clone(), String_from("hoverDetailLevel"))
-    if len(level) > 0 {
+    if level.len() > 0 {
         state_record::lsp_state_set_hover_detail_level(state, level)
     }
     state_record::lsp_state_set_enable_code_lens(state, parse_bool_field(body.clone(), String_from("enableCodeLens"), true))

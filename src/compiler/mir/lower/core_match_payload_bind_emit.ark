@@ -42,7 +42,7 @@ fn emit_payload_field_bind(mut ctx: LowerCtx, variant_name: String, bi: i32, scr
         ) {
             effective_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-            if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
+            if ctx_api_local_types::ctx_get_local_type(ctx, bind_local).len() == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }
         } else if !scalar_bind && core_match_payload_type_extract::core_payload_type_name_is_gc_ref(ctx, bind_local) {
@@ -93,7 +93,7 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
     // the first bind alone registers a single-payload twin that traps (#807).
     if type_slot >= 0 && variant_layout_payload_field_count(ctx, variant_name.clone()) > 1 {
         let first_payload_type = emit_payload_field_bind_gc_resolve_type(ctx, variant_name.clone(), 0, bind_local)
-        if len(first_payload_type) > 0 {
+        if first_payload_type.len() > 0 {
             let mut typed_vts = Vec::new<i32>()
             push(typed_vts, core_payload_type_value_type(first_payload_type.clone()))
             let typed_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
@@ -198,17 +198,17 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, bi: i32, 
         if layout_norm.clone().starts_with(String_from("vec:")) {
             layout_vec = layout_norm.clone()
         } else if layout_norm.clone().starts_with(String_from("Vec<")) && layout_norm.clone().ends_with(String_from(">")) {
-            layout_vec = String_from("vec:").concat(layout_norm.clone().slice(4, len(layout_norm) - 1))
+            layout_vec = String_from("vec:").concat(layout_norm.clone().slice(4, layout_norm.len() - 1))
         } else if layout_norm.clone().starts_with(String_from("Vec_")) {
-            layout_vec = String_from("vec:").concat(layout_norm.clone().slice(4, len(layout_norm)))
+            layout_vec = String_from("vec:").concat(layout_norm.clone().slice(4, layout_norm.len()))
         } else if layout_norm.clone().eq(String_from("Vec")) {
             layout_vec = String_from("vec:i32")
         }
-        if len(layout_vec) > 0 {
+        if layout_vec.len() > 0 {
             bind_type_name = layout_vec
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
-        } else if len(bind_type_name) == 0 || bind_type_name.clone().eq(String_from("enum:open")) {
-            if len(layout_norm) > 0 {
+        } else if bind_type_name.len() == 0 || bind_type_name.clone().eq(String_from("enum:open")) {
+            if layout_norm.len() > 0 {
                 bind_type_name = layout_norm
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, bind_type_name.clone())
             }

@@ -18,7 +18,7 @@ fn resolve_ident(mut ctx: ResolveCtx, node: AstNode) {
     if idx >= 0 && scope_lookup::lookup_kind(ctx, name.clone()) == commands::SYM_MODULE() {
         let alias_target = ctx_record::resolve_ctx_lookup_use_alias(ctx, name.clone())
         let hint = removed_names::removed_name_hint(name.clone())
-        if len(alias_target.clone()) == 0 && len(hint.clone()) > 0 {
+        if alias_target.clone().len() == 0 && hint.clone().len() > 0 {
             scope_error::resolve_unknown_name(ctx, name, ast_access::node_span_start(node), ast_access::node_span_end(node))
             return
         }

@@ -10,12 +10,12 @@ use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
 fn is_function_local_gc_cache_active(ctx: SelfEmitCtx) -> bool {
-    len(ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)) > 0
+    ctx_record::SelfEmitCtx_local_struct_new_cache(ctx).len() > 0
 }
 
 fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let flags = ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)
-    if local_idx < 0 || local_idx >= len(flags) {
+    if local_idx < 0 || local_idx >= flags.len() {
         return 0 - 1
     }
     get_unchecked(flags, local_idx)
@@ -23,7 +23,7 @@ fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 
 
 fn cached_has_ref_assignment(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let flags = ctx_record::SelfEmitCtx_local_has_ref_cache(ctx)
-    if local_idx < 0 || local_idx >= len(flags) {
+    if local_idx < 0 || local_idx >= flags.len() {
         return 0 - 1
     }
     get_unchecked(flags, local_idx)
@@ -34,10 +34,10 @@ fn cached_has_ref_assignment(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
 // window; otherwise scans the body.
 fn local_feeds_return(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     let flags = ctx_record::SelfEmitCtx_local_feeds_return_cache(ctx)
-    if len(flags) > 0 {
-        return local_idx >= 0 && local_idx < len(flags) && get_unchecked(flags, local_idx) != 0
+    if flags.len() > 0 {
+        return local_idx >= 0 && local_idx < flags.len() && get_unchecked(flags, local_idx) != 0
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -79,7 +79,7 @@ fn local_feeds_return_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
         push(flags, 0)
         li = li + 1
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -105,7 +105,7 @@ fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfE
             return cached != 0
         }
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -163,7 +163,7 @@ fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
     if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(f) {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let type_name = local_access::MirLocal_type_name(loc)
-        if len(type_name) > 0 {
+        if type_name.len() > 0 {
             return type_name_is_ref(type_name)
         }
     }
@@ -192,11 +192,11 @@ fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32
     let param_count = function_param_view::MirFunction_param_count(f)
     if local_idx >= 0 && local_idx < param_count {
         let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
-        if len(param_type_name) > 0 && type_name_is_ref(param_type_name) {
+        if param_type_name.len() > 0 && type_name_is_ref(param_type_name) {
             return true
         }
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -218,7 +218,7 @@ fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32
 // (from another local or from a struct field extraction). Used to detect stale
 // type_name from local reuse (#808).
 fn local_has_local_set_source(f: MirFunction, local_idx: i32) -> bool {
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -314,7 +314,7 @@ fn local_scalar_producer_vt_depth(f: MirFunction, local_idx: i32, depth: i32) ->
         }
         return 0 - 1
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -350,7 +350,7 @@ fn local_has_scalar_producer_depth(f: MirFunction, local_idx: i32, depth: i32) -
     if depth > 3 {
         return false
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -395,7 +395,7 @@ fn inst_is_scalar_producer_for(f: MirFunction, inst: MirInst, local_idx: i32, de
 // Used to distinguish true local reuse (both ref and scalar) from stale
 // val_type (only scalar, but val_type says ref).
 fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -447,7 +447,7 @@ fn build_local_producer_flags(
         li = li + 1
     }
     seed_scalar_producer_params(f, scalar_vts, scalar_flags)
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -481,7 +481,7 @@ fn build_local_producer_flags(
 fn seed_scalar_producer_params(f: MirFunction, mut scalar_vts: Vec<i32>, mut scalar_flags: Vec<i32>) {
     let param_count = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
-    while pi < param_count && pi < len(scalar_vts) {
+    while pi < param_count && pi < scalar_vts.len() {
         let param_vt = function_param_view::MirFunction_param_val_type(f, pi)
         if is_concrete_scalar_value_type(param_vt) {
             set(scalar_vts, pi, param_vt)
@@ -522,7 +522,7 @@ fn propagate_scalar_producer_flags(
     let mut pass = 0
     while pass < max_passes {
         let mut changed = 0
-        let block_count = len(f.blocks)
+        let block_count = f.blocks.len()
         let mut bi = 0
         while bi < block_count {
             let block = get_unchecked(f.blocks, bi)
@@ -533,8 +533,8 @@ fn propagate_scalar_producer_flags(
                 if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() {
                     let target = inst_accessors_operands::MirInst_arg0(inst)
                     let source = inst_accessors_operands::MirInst_arg1(inst)
-                    if target >= 0 && target < len(scalar_flags) &&
-                    source >= 0 && source < len(scalar_flags) &&
+                    if target >= 0 && target < scalar_flags.len() &&
+                    source >= 0 && source < scalar_flags.len() &&
                     get_unchecked(scalar_flags, source) != 0 {
                         if get_unchecked(scalar_flags, target) == 0 {
                             set(scalar_flags, target, 1)
@@ -560,7 +560,7 @@ fn propagate_scalar_producer_flags(
 
 fn cached_local_scalar_producer_vt(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let cache = ctx_record::SelfEmitCtx_local_scalar_producer_vt_cache(ctx)
-    if local_idx < 0 || local_idx >= len(cache) {
+    if local_idx < 0 || local_idx >= cache.len() {
         return 0 - 2
     }
     get_unchecked(cache, local_idx)
@@ -568,7 +568,7 @@ fn cached_local_scalar_producer_vt(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
 
 fn cached_local_has_scalar_producer(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let cache = ctx_record::SelfEmitCtx_local_has_scalar_producer_cache(ctx)
-    if local_idx < 0 || local_idx >= len(cache) {
+    if local_idx < 0 || local_idx >= cache.len() {
         return 0 - 1
     }
     get_unchecked(cache, local_idx)
@@ -576,7 +576,7 @@ fn cached_local_has_scalar_producer(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
 
 fn cached_local_has_strong_ref_producer(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let cache = ctx_record::SelfEmitCtx_local_strong_ref_producer_cache(ctx)
-    if local_idx < 0 || local_idx >= len(cache) {
+    if local_idx < 0 || local_idx >= cache.len() {
         return 0 - 1
     }
     get_unchecked(cache, local_idx)
@@ -584,7 +584,7 @@ fn cached_local_has_strong_ref_producer(ctx: SelfEmitCtx, local_idx: i32) -> i32
 
 fn cached_local_is_vec_constructor_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let cache = ctx_record::SelfEmitCtx_local_vec_constructor_cache(ctx)
-    if local_idx < 0 || local_idx >= len(cache) {
+    if local_idx < 0 || local_idx >= cache.len() {
         return 0 - 1
     }
     get_unchecked(cache, local_idx)
@@ -740,7 +740,7 @@ fn local_body_i64_stack_set_flags(f: MirFunction, local_count: i32) -> Vec<i32> 
     // `block index + 1` of a block holding a scalar i64 definition of the local;
     // LOCAL_SET only looks for such a source inside its own block.
     let mut scalar_def_block_stamp = zero_local_flags(local_count)
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -808,7 +808,7 @@ fn zero_local_flags(local_count: i32) -> Vec<i32> {
 }
 
 fn mark_local_flag(mut flags: Vec<i32>, local_idx: i32) {
-    if local_idx >= 0 && local_idx < len(flags) {
+    if local_idx >= 0 && local_idx < flags.len() {
         set(flags, local_idx, 1)
     }
 }
@@ -849,7 +849,7 @@ fn mark_ref_op_base_locals(inst: MirInst, mut blocked_by_ref: Vec<i32>, local_co
 
 fn int_const_def_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
     let mut flags = zero_local_flags(local_count)
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -872,7 +872,7 @@ fn int_const_def_flags(f: MirFunction, local_count: i32) -> Vec<i32> {
 // EQ/NEQ against an int const — string equality also uses those opcodes.
 fn numeric_compare_use_flags(f: MirFunction, local_count: i32, has_int_const_def: Vec<i32>) -> Vec<i32> {
     let mut flags = zero_local_flags(local_count)
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -912,7 +912,7 @@ fn inst_is_int_const(inst: MirInst) -> bool {
 // by the previous instruction, which counts only when that is an int const.
 fn eq_other_operand_is_int(other: i32, has_int_const_def: Vec<i32>, prev_is_int_const: bool) -> bool {
     if other >= 0 {
-        return other < len(has_int_const_def) && get_unchecked(has_int_const_def, other) == 1
+        return other < has_int_const_def.len() && get_unchecked(has_int_const_def, other) == 1
     }
     prev_is_int_const
 }
@@ -931,7 +931,7 @@ fn stamp_scalar_i64_defs_in_block(block: MirBlock, inst_count: i32, mut stamp: V
     while ii < inst_count {
         let inst = block_inst_access::MirBlock_inst_at(block, ii)
         let dest = inst_accessors_operands::MirInst_dest(inst)
-        if dest >= 0 && dest < len(stamp) && inst_defines_scalar_i64_for_local(inst, dest) {
+        if dest >= 0 && dest < stamp.len() && inst_defines_scalar_i64_for_local(inst, dest) {
             set(stamp, dest, block_stamp)
         }
         ii = ii + 1
@@ -967,7 +967,7 @@ fn call_dest_forwarded_to_numeric_compare(
     if set_src >= 0 && set_src != call_dest {
         return false
     }
-    set_dst < len(numeric_compare) && get_unchecked(numeric_compare, set_dst) == 1
+    set_dst < numeric_compare.len() && get_unchecked(numeric_compare, set_dst) == 1
 }
 
 fn local_set_receives_scalar_i64(
@@ -981,7 +981,7 @@ fn local_set_receives_scalar_i64(
     let inst = block_inst_access::MirBlock_inst_at(block, ii)
     let set_src = inst_accessors_operands::MirInst_arg1(inst)
     if set_src >= 0 {
-        if set_src < len(scalar_def_block_stamp) &&
+        if set_src < scalar_def_block_stamp.len() &&
         get_unchecked(scalar_def_block_stamp, set_src) == block_stamp {
             return true
         }

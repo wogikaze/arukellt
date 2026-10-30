@@ -7,5 +7,5 @@ fn main() {
         None => {
         },
     }
-    Test::assert_eq_i32(len(v), 0)
+    Test::assert_eq_i32(v.len(), 0)
 }

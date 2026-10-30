@@ -21,7 +21,7 @@ fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
 
 fn find_named_fn_decl_index(decls: Vec<AstNode>, name: String) -> i32 {
     let mut entry_main_decl_index = 0 - 1
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
@@ -86,7 +86,7 @@ fn fn_type_param_is_declared(type_params: Vec<String>, name: String) -> bool {
 }
 
 fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn_name: String) -> String {
-    let module_count = len(modules)
+    let module_count = modules.len()
     let mut module_index = 0
     while module_index < module_count {
         let module_info = get_unchecked(modules, module_index)
@@ -108,7 +108,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
 // <main> and decls outside every module range so user fns are never mistaken
 // for CoreOp shim declarations.
 fn module_fn_is_stdlib(modules: Vec<CoreHirModuleInfo>, decl_index: i32) -> bool {
-    let module_count = len(modules)
+    let module_count = modules.len()
     let mut module_index = 0
     while module_index < module_count {
         let module_info = get_unchecked(modules, module_index)
@@ -129,7 +129,7 @@ fn build_fn_infos(
 ) -> Vec<CoreHirFnInfo> {
     let mut infos = Vec::new<CoreHirFnInfo>()
     let entry_main_decl_index = find_entry_main_decl_index(decls)
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut typed_fn_index = 0
     let mut i = 0
     while i < decl_count {

@@ -7,7 +7,7 @@ resource FileHandle {
 }
 
 export fn open(path: String) -> FileHandle {
-    FileHandle { fd: 0, path_len: len(path) }
+    FileHandle { fd: 0, path_len: path.len() }
 }
 
 export fn read(f: FileHandle, buffer: Vec<i32>) -> i32 {

@@ -411,7 +411,7 @@ fn resolve_pattern_fallback_handler_id(callee: String) -> i32 {
     }
     if callee.clone().starts_with(String_from("__intrinsic_get")) ||
     callee.clone().starts_with(String_from("get__")) ||
-    (len(callee) == 3 && callee.clone().starts_with(String_from("get"))) ||
+    (callee.len() == 3 && callee.clone().starts_with(String_from("get"))) ||
     callee.clone().ends_with(String_from("::get")) {
         return core_op_registry_generated::core_op_handler_vec_get()
     }

@@ -22,7 +22,7 @@ fn print_ast(node: AstNode, depth: i32) {
     let kind_str = node_kind_name(node_kind)
     let mut line = indent.concat(kind_str)
     let node_text = core_ast_text_fields::AstNode_text(node)
-    if len(node_text) > 0 {
+    if node_text.len() > 0 {
         line = line.concat("(".concat(node_text.concat(")")))
     }
     if node_kind == kinds::NK_INT_LIT() {

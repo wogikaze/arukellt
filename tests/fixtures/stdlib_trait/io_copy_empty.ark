@@ -9,5 +9,5 @@ fn main() {
         Result::Err(e) => Std::panic(e.message()),
     }
     let image: Vec<i32> = dst.into_bytes()
-    Test::assert_eq_i32(len(image), 0)
+    Test::assert_eq_i32(image.len(), 0)
 }

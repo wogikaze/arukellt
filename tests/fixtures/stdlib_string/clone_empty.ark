@@ -2,6 +2,6 @@ use std::test::Test
 fn main() {
     let s = String_new()
     let c = s.clone()
-    Test::assert_eq_i32(len(c), 0)
+    Test::assert_eq_i32(c.len(), 0)
     Test::assert_true(s.eq(c))
 }

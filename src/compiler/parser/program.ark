@@ -25,11 +25,11 @@ fn ParseResult_decls(result: ParseResult) -> Vec<AstNode> {
 }
 
 fn ParseResult_decl_count(result: ParseResult) -> i32 {
-    len(result.decls)
+    result.decls.len()
 }
 
 fn ParseResult_error_count(result: ParseResult) -> i32 {
-    len(result.errors)
+    result.errors.len()
 }
 
 fn ParseResult_error_at(result: ParseResult, index: i32) -> Diagnostic {

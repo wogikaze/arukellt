@@ -55,9 +55,9 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
         fi = fi + 1
     }
     let disc_names_list = module_functions::MirModule_discovery_fn_names(m)
-    let mut disc_index = name_index::NameIndex_new(len(disc_names_list))
+    let mut disc_index = name_index::NameIndex_new(disc_names_list.len())
     let mut di = 0
-    while di < len(disc_names_list) {
+    while di < disc_names_list.len() {
         name_index::name_index_insert_first(disc_index, get_unchecked(disc_names_list, di).clone(), di)
         di = di + 1
     }
@@ -102,11 +102,11 @@ fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {
 
 fn callee_prop_cache_return_type_name(cache: CalleePropCache, callee: String) -> String {
     let idx = callee_prop_cache_lookup(cache, callee)
-    if idx >= 0 && idx < len(cache.ret_type_names) {
+    if idx >= 0 && idx < cache.ret_type_names.len() {
         return get_unchecked(cache.ret_type_names, idx).clone()
     }
     let di = name_index::name_index_get(cache.disc_names, callee)
-    if di < 0 || di >= len(cache.disc_ret_names) {
+    if di < 0 || di >= cache.disc_ret_names.len() {
         return String_new()
     }
     get_unchecked(cache.disc_ret_names, di).clone()
@@ -114,14 +114,14 @@ fn callee_prop_cache_return_type_name(cache: CalleePropCache, callee: String) ->
 
 fn callee_prop_cache_return_variant_slot(cache: CalleePropCache, callee: String) -> i32 {
     let idx = callee_prop_cache_lookup(cache, callee)
-    if idx < 0 || idx >= len(cache.ret_variant_slots) {
+    if idx < 0 || idx >= cache.ret_variant_slots.len() {
         return 0 - 1
     }
     get_unchecked(cache.ret_variant_slots, idx)
 }
 
 fn strip_module_prefix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {

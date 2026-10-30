@@ -59,7 +59,7 @@ fn closure_collect_free_mode(ctx: LowerCtx, expr: AstNode, clos: AstNode, mut ac
 
 fn closure_caps_contain(caps: Vec<String>, name: String) -> bool {
     let mut i = 0
-    while i < len(caps) {
+    while i < caps.len() {
         if get_unchecked(caps, i).eq(name.clone()) {
             return true
         }
@@ -77,7 +77,7 @@ fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, mut acc: Vec<
         return
     }
     let n = capture_name.clone()
-    let mut j = len(acc) - 1
+    let mut j = acc.len() - 1
     let mut dup = false
     while j >= 0 && !dup {
         if get_unchecked(acc, j).clone().eq(n.clone()) {
@@ -99,7 +99,7 @@ fn collect_free_ident(ctx: LowerCtx, expr: AstNode, clos: AstNode, mut acc: Vec<
 fn closure_collect_rebind_flags(clos: AstNode, caps: Vec<String>) -> Vec<i32> {
     let mut flags = Vec::new<i32>()
     let mut i = 0
-    while i < len(caps) {
+    while i < caps.len() {
         push(flags, 0)
         i = i + 1
     }
@@ -133,10 +133,10 @@ fn closure_mark_rebind(node: AstNode, caps: Vec<String>, mut flags: Vec<i32>, sh
             let name = ast_node::node_text(target)
             if !closure_rebind_name_is_shadowed(shadowed, name.clone()) {
                 let mut ci = 0
-                while ci < len(caps) {
+                while ci < caps.len() {
                     if get_unchecked(caps, ci).eq(name.clone()) {
                         set(flags, ci, 1)
-                        ci = len(caps)
+                        ci = caps.len()
                     }
                     ci = ci + 1
                 }
@@ -156,7 +156,7 @@ fn closure_mark_rebind(node: AstNode, caps: Vec<String>, mut flags: Vec<i32>, sh
 fn closure_rebind_extend_shadowed(node: AstNode, shadowed: Vec<String>, child_count: i32) -> Vec<String> {
     let mut inner = Vec::new<String>()
     let mut i = 0
-    while i < len(shadowed) {
+    while i < shadowed.len() {
         push(inner, get_unchecked(shadowed, i).clone())
         i = i + 1
     }
@@ -173,7 +173,7 @@ fn closure_rebind_extend_shadowed(node: AstNode, shadowed: Vec<String>, child_co
 
 fn closure_rebind_name_is_shadowed(shadowed: Vec<String>, name: String) -> bool {
     let mut i = 0
-    while i < len(shadowed) {
+    while i < shadowed.len() {
         if get_unchecked(shadowed, i).eq(name.clone()) {
             return true
         }

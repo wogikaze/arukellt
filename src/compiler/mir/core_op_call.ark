@@ -63,7 +63,7 @@ fn mir_call_normal_fallback_symbol_draft(m: MirModule, inst: MirInstDraft) -> St
 
 fn mir_call_inline_fallback_symbol(m: MirModule, inst: MirInst) -> String {
     let fallback = mir_call_normal_fallback_symbol(m, inst)
-    if len(fallback) == 0 {
+    if fallback.len() == 0 {
         return fallback
     }
     let index = mir_call_core_op_index(m, inst)

@@ -20,7 +20,7 @@ struct GenMap<T, U> {
 }
 
 fn gen_map<T, U>(v: Vec<T>, f: fn(T) -> U) -> GenMap<T, U> {
-    GenMap { vec: v, index: 0, length: len(v), f: f }
+    GenMap { vec: v, index: 0, length: v.len(), f: f }
 }
 
 impl<T, U> Iterator for GenMap<T, U> {

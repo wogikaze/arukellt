@@ -11,7 +11,7 @@ fn main() {
     push(v, 2)
     push(v, 3)
     let doubled: Vec<i32> = v.iter().map(double).collect()
-    Test::assert_eq_i32(len(doubled), 3)
+    Test::assert_eq_i32(doubled.len(), 3)
     Test::assert_eq_i32(get_unchecked(doubled, 0), 2)
     Test::assert_eq_i32(get_unchecked(doubled, 1), 4)
     Test::assert_eq_i32(get_unchecked(doubled, 2), 6)

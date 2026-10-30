@@ -15,5 +15,5 @@ fn default_opts() -> Opts {
 fn main() {
     let mut options = default_opts()
     push(options.wit_paths, String_from("x"))
-    Stdio::println((len(options.wit_paths)).to_string())
+    Stdio::println((options.wit_paths.len()).to_string())
 }

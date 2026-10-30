@@ -16,7 +16,7 @@ fn Scope_new(parent: i32) -> Scope {
 }
 
 fn scope_symbol_count(scope: Scope) -> i32 {
-    len(scope.symbols)
+    scope.symbols.len()
 }
 
 fn scope_symbol_at(scope: Scope, index: i32) -> Symbol {
@@ -26,13 +26,13 @@ fn scope_symbol_at(scope: Scope, index: i32) -> Symbol {
 fn scope_push_symbol(mut scope: Scope, sym: Symbol) {
     push(scope.names, symbol_record::symbol_name(sym))
     push(scope.symbols, sym)
-    scope_hash_set(scope, get_unchecked(scope.names, len(scope.names) - 1))
+    scope_hash_set(scope, get_unchecked(scope.names, scope.names.len() - 1))
 }
 
 fn scope_clear_symbols(mut scope: Scope) {
     scope.symbols = Vec::new<Symbol>()
     scope.names = Vec::new<String>()
-    let capacity = len(scope.name_buckets)
+    let capacity = scope.name_buckets.len()
     let mut i = 0
     while i < capacity {
         set(scope.name_buckets, i, 0)
@@ -61,17 +61,17 @@ fn scope_hash_set(mut scope: Scope, name: String) {
             return
         }
     }
-    set(scope.name_buckets, slot, len(scope.names))
+    set(scope.name_buckets, slot, scope.names.len())
 }
 
 fn scope_hash_grow(mut scope: Scope) {
-    let capacity = len(scope.name_buckets)
+    let capacity = scope.name_buckets.len()
     let mut next = 64
     if capacity > 0 {
         next = capacity * 2
     }
     scope.name_buckets = scope_hash_fresh_buckets(next)
-    let count = len(scope.names)
+    let count = scope.names.len()
     let mut i = 0
     while i < count {
         let slot = scope_hash_probe_slot(scope, get_unchecked(scope.names, i))
@@ -93,14 +93,14 @@ fn scope_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
 }
 
 fn scope_hash_probe_slot(scope: Scope, name: String) -> i32 {
-    let capacity = len(scope.name_buckets)
+    let capacity = scope.name_buckets.len()
     if capacity <= 0 {
         return 0 - 1
     }
     let fnv_offset = 216613626
     let fnv_prime = 16777619
     let mut hash = fnv_offset
-    let name_len = len(name)
+    let name_len = name.len()
     let mut hi = 0
     while hi < name_len {
         hash = hash * fnv_prime ^ name.byte_at(hi)
@@ -120,7 +120,7 @@ fn scope_hash_probe_slot(scope: Scope, name: String) -> i32 {
             return slot
         }
         let key = get_unchecked(scope.names, bucket - 1)
-        let mut same = len(key) == name_len
+        let mut same = key.len() == name_len
         if same {
             let mut i = 0
             while i < name_len {

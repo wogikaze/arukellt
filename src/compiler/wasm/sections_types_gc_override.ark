@@ -55,12 +55,12 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     // variable "?..."). Params with concrete types (enum:, struct:, vec:,
     // string, i32, etc.) keep their proper GC type.
     if fn_name.clone().ends_with("__String") {
-        if len(type_name) == 0 || type_name.clone().starts_with("?") {
+        if type_name.len() == 0 || type_name.clone().starts_with("?") {
             return sections_types_gc::gc_string_type_sig()
         }
     }
     let typed_container_sig = gc_typed_hash_container_param_sig(fn_name.clone(), param_idx, type_name.clone())
-    if len(typed_container_sig) > 0 {
+    if typed_container_sig.len() > 0 {
         return typed_container_sig
     }
     if param_idx != 0 {
@@ -71,7 +71,7 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     // (typechecker_hashmap_api::hashmap_type_name takes TypeInfo). Those keep
     // their declared GC type; only container or empty type names continue to
     // the storage sigs below.
-    if len(type_name) > 0 &&
+    if type_name.len() > 0 &&
     !type_name.clone().starts_with("vec:") &&
     !type_name.clone().starts_with("hashmap:") &&
     !type_name.clone().starts_with("hashset:") &&
@@ -125,7 +125,7 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
         }
         return sections_types_gc::gc_vec_type_sig()
     }
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         return String_new()
     }
     String_new()
@@ -199,10 +199,10 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
         return sections_types_gc::gc_vec_type_sig()
     }
     let enum_sig = gc_enum_return_type_sig(type_name.clone(), target.clone())
-    if len(enum_sig) > 0 {
+    if enum_sig.len() > 0 {
         return enum_sig
     }
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         return String_new()
     }
     if fn_name.clone().eq("hashmap_str_i32_new") ||

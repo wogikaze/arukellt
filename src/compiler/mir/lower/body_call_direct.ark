@@ -166,7 +166,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
             return callee_name
         }
         let element_name = ast_node::node_text(element_type)
-        if len(element_name) == 0 || element_name.clone().contains("::") {
+        if element_name.len() == 0 || element_name.clone().contains("::") {
             return callee_name
         }
         let constructor = if callee_name.clone().eq("Vec::new") {
@@ -186,7 +186,7 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
         let value_node = ast_node::node_child_at(callee, 2)
         let key_name = mir_hashmap_ctor_type_arg_name(key_node)
         let value_name = mir_hashmap_ctor_type_arg_name(value_node)
-        if len(key_name) == 0 || len(value_name) == 0 ||
+        if key_name.len() == 0 || value_name.len() == 0 ||
         key_name.clone().contains("::") || value_name.clone().contains("::") {
             return source_name
         }

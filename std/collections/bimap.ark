@@ -31,7 +31,7 @@ pub struct Bimap {
 fn bimap_find_key(buf: Vec<i32>, key: i32) -> i32 {
     let mut pair_index: i32 = 0
     let mut key_index: i32 = 0
-    while key_index + 1 < len(buf) {
+    while key_index + 1 < buf.len() {
         if get_unchecked(buf, key_index) == key {
             return pair_index
         }
@@ -44,7 +44,7 @@ fn bimap_find_key(buf: Vec<i32>, key: i32) -> i32 {
 fn bimap_find_value(buf: Vec<i32>, value: i32) -> i32 {
     let mut pair_index: i32 = 0
     let mut value_index: i32 = 1
-    while value_index < len(buf) {
+    while value_index < buf.len() {
         if get_unchecked(buf, value_index) == value {
             return pair_index
         }
@@ -137,12 +137,12 @@ impl Bimap {
 
     /// Returns the number of key/value pairs.
     fn len(self: Bimap) -> i32 {
-        len(self.entries) / 2
+        self.entries.len() / 2
     }
 
     /// Returns true when the bimap has no pairs.
     fn is_empty(self: Bimap) -> bool {
-        len(self.entries) == 0
+        self.entries.len() == 0
     }
 }
 

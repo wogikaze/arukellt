@@ -11,7 +11,7 @@ fn main() {
     push(b, 5)
 
     let chained = a.iter().chain(b.iter()).collect()
-    Test::assert_eq_i32(len(chained), 5)
+    Test::assert_eq_i32(chained.len(), 5)
     Test::assert_eq_i32(get_unchecked(chained, 0), 1)
     Test::assert_eq_i32(get_unchecked(chained, 1), 2)
     Test::assert_eq_i32(get_unchecked(chained, 2), 3)

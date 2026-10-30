@@ -79,7 +79,7 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
 fn lower_core_const_reference(mut ctx: LowerCtx, const_name: String) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, ctx_fn_return_vt(ctx, const_name.clone()))
     let type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, const_name.clone())
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name.clone())
     }
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(const_name, 0, dest))
@@ -101,7 +101,7 @@ fn lower_core_qualified_const_reference(mut ctx: LowerCtx, path_name: String, le
 }
 
 fn const_path_leaf(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut leaf_start = 0
     let mut i = 0
     while i + 1 < name_len {
@@ -124,7 +124,7 @@ fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             return idx
         }
         let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-        let variant_name = if len(canon) > 0 {
+        let variant_name = if canon.len() > 0 {
             canon
         } else {
             raw_name.clone()
@@ -144,7 +144,7 @@ fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             mir_function_parameter_count(ctx, fn_name.clone()) <= 0 {
                 let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, expr_vt)
                 let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
-                if len(expr_type_name) > 0 {
+                if expr_type_name.len() > 0 {
                     ctx_api_local_types::ctx_set_local_type(ctx, dest, expr_type_name)
                 }
                 ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(fn_name, 0, dest))
@@ -161,7 +161,7 @@ fn lower_core_name_value(mut ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_path(expr) {
         let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
         let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-        let variant_name = if len(canon) > 0 {
+        let variant_name = if canon.len() > 0 {
             canon
         } else {
             raw_name

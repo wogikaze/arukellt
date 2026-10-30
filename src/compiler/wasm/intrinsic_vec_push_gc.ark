@@ -138,7 +138,7 @@ fn push_gc_element_is_gc_ref(ctx: SelfEmitCtx, inst: MirInst, is_vec_string: boo
     }
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let elem = intrinsic_vec_type::vec_element_type_name_for_call(ctx, callee.clone(), inst)
-    if len(elem) == 0 {
+    if elem.len() == 0 {
         return false
     }
     !push_gc_primitive_vec_elem(elem.clone())

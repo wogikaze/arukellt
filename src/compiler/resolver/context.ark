@@ -47,11 +47,11 @@ fn ResolveCtx_target(ctx: ResolveCtx) -> String {
 
 fn register_builtins(mut ctx: ResolveCtx) {
     let builtin_names = builtins::resolver_builtin_symbol_names()
-    for i in 0..len(builtin_names) {
+    for i in 0..builtin_names.len() {
         scope_define::define(ctx, get_unchecked(builtin_names, i).clone(), commands::SYM_BUILTIN())
     }
     let module_names = builtins::resolver_builtin_module_names()
-    for m in 0..len(module_names) {
+    for m in 0..module_names.len() {
         scope_define::define(ctx, get_unchecked(module_names, m).clone(), commands::SYM_MODULE())
     }
 }

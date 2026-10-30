@@ -1,5 +1,5 @@
 fn LoadState_error_count(state: LoadState) -> i32 {
-    len(state.errors)
+    state.errors.len()
 }
 
 fn LoadState_errors(state: LoadState) -> Vec<String> {

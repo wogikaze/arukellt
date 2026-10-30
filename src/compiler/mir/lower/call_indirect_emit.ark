@@ -57,13 +57,13 @@ fn mark_indirect_callback_result_type(mut ctx: LowerCtx, callee_type_name: Strin
 // `fnsig:<param>;<return>` callee. Scalars keep their value type; named
 // and container returns are reference types on both backends.
 fn mark_fnsig_callback_result_type(mut ctx: LowerCtx, callee_type_name: String, dest: i32) {
-    let rest = callee_type_name.clone().slice(6, len(callee_type_name))
+    let rest = callee_type_name.clone().slice(6, callee_type_name.len())
     let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return
     }
-    let ret_seg = rest.clone().slice(sep + 1, len(rest))
-    if len(ret_seg) == 0 {
+    let ret_seg = rest.clone().slice(sep + 1, rest.len())
+    if ret_seg.len() == 0 {
         return
     }
     if ret_seg.clone().eq(String_from("i32")) || ret_seg.clone().eq(String_from("bool")) ||

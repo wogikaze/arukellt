@@ -67,7 +67,7 @@ fn build_output_path(opts: CliOptions, info: ProjectBuildManifest) -> String {
 }
 
 fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
-    let byte_count = len(bytes)
+    let byte_count = bytes.len()
     let write_result: Result<(), String> = Fs::write_bytes(out_path.clone(), bytes)
     match write_result {
         Result::Ok(_) => {
@@ -91,7 +91,7 @@ pub fn cmd_build(opts: CliOptions) {
         Result::Ok(content) => {
             let info = parse_project_manifest(content)
             let entry = build_entry_path(info)
-            if len(entry) == 0 {
+            if entry.len() == 0 {
                 exit_missing_build_entry()
                 return
             }
@@ -127,7 +127,7 @@ fn manifest_bin_path(info: ProjectBuildManifest) -> String {
 }
 
 fn manifest_bin_path_len(info: ProjectBuildManifest) -> i32 {
-    len(info.bin_path)
+    info.bin_path.len()
 }
 
 fn manifest_entry_path(info: ProjectBuildManifest) -> String {
@@ -135,7 +135,7 @@ fn manifest_entry_path(info: ProjectBuildManifest) -> String {
 }
 
 fn manifest_entry_path_len(info: ProjectBuildManifest) -> i32 {
-    len(info.entry_path)
+    info.entry_path.len()
 }
 
 fn build_manifest_path(opts: CliOptions) -> String {
@@ -163,7 +163,7 @@ fn manifest_pkg_version(info: ProjectBuildManifest) -> String {
 }
 
 fn manifest_has_pkg_name(info: ProjectBuildManifest) -> bool {
-    len(info.pkg_name) > 0
+    info.pkg_name.len() > 0
 }
 
 fn build_entry_path(info: ProjectBuildManifest) -> String {

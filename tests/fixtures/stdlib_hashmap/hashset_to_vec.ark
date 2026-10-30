@@ -9,14 +9,14 @@ fn main() {
     s.insert(3)
 
     let v = s.to_vec()
-    Test::assert_eq_i32(len(v), 3)
+    Test::assert_eq_i32(v.len(), 3)
 
     // Every element should be in the set
     let mut found_1 = false
     let mut found_2 = false
     let mut found_3 = false
     let mut i = 0
-    while i < len(v) {
+    while i < v.len() {
         let x = get_unchecked(v, i)
         if x == 1 { found_1 = true }
         if x == 2 { found_2 = true }

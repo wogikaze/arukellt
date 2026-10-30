@@ -8,27 +8,20 @@
 use std::text
 
 fn removed_name_hint(name: String) -> String {
-    // Checked here rather than inside removed_name_specific_hint: that
-    // function is already at the size where adding a local can lower to a
-    // trapping stub in the selfhost build.
-    let deque_hint = removed_deque_member_hint(name.clone())
-    if len(deque_hint.clone()) > 0 {
-        return deque_hint
-    }
     let specific = removed_name_specific_hint(name.clone())
-    if len(specific.clone()) > 0 {
+    if specific.clone().len() > 0 {
         return specific
     }
     let json_hint = removed_json_member_hint(name.clone())
-    if len(json_hint.clone()) > 0 {
+    if json_hint.clone().len() > 0 {
         return json_hint
     }
     let toml_hint = removed_toml_member_hint(name.clone())
-    if len(toml_hint.clone()) > 0 {
+    if toml_hint.clone().len() > 0 {
         return toml_hint
     }
     let csv_hint = removed_csv_member_hint(name.clone())
-    if len(csv_hint.clone()) > 0 {
+    if csv_hint.clone().len() > 0 {
         return csv_hint
     }
     return removed_gated_prelude_hint(name)
@@ -89,47 +82,47 @@ fn is_retired_hashset_adapter_name(name: String) -> bool {
 
 fn removed_name_specific_hint(name: String) -> String {
     let assertion_hint = removed_assertion_free_hint(name.clone())
-    if len(assertion_hint.clone()) > 0 {
+    if assertion_hint.clone().len() > 0 {
         return assertion_hint
     }
     let test_hint = removed_test_free_hint(name.clone())
-    if len(test_hint.clone()) > 0 {
+    if test_hint.clone().len() > 0 {
         return test_hint
     }
     let raw_hint = removed_raw_member_hint(name.clone())
-    if len(raw_hint.clone()) > 0 {
+    if raw_hint.clone().len() > 0 {
         return raw_hint
     }
     let core_hint = removed_core_free_hint(name.clone())
-    if len(core_hint.clone()) > 0 {
+    if core_hint.clone().len() > 0 {
         return core_hint
     }
     let io_hint = removed_io_free_hint(name.clone())
-    if len(io_hint.clone()) > 0 {
+    if io_hint.clone().len() > 0 {
         return io_hint
     }
     let compiler_hint = removed_compiler_member_hint(name.clone())
-    if len(compiler_hint.clone()) > 0 {
+    if compiler_hint.clone().len() > 0 {
         return compiler_hint
     }
     let bimap_hint = removed_bimap_member_hint(name.clone())
-    if len(bimap_hint.clone()) > 0 {
+    if bimap_hint.clone().len() > 0 {
         return bimap_hint
     }
     let trie_hint = removed_trie_member_hint(name.clone())
-    if len(trie_hint.clone()) > 0 {
+    if trie_hint.clone().len() > 0 {
         return trie_hint
     }
     let ordered_hint = removed_ordered_member_hint(name.clone())
-    if len(ordered_hint.clone()) > 0 {
+    if ordered_hint.clone().len() > 0 {
         return ordered_hint
     }
     let pq_hint = removed_pq_member_hint(name.clone())
-    if len(pq_hint.clone()) > 0 {
+    if pq_hint.clone().len() > 0 {
         return pq_hint
     }
     let linked_list_hint = removed_linked_list_member_hint(name.clone())
-    if len(linked_list_hint.clone()) > 0 {
+    if linked_list_hint.clone().len() > 0 {
         return linked_list_hint
     }
     if name.clone().eq("new_i32") {
@@ -236,7 +229,7 @@ fn removed_name_specific_hint(name: String) -> String {
     if name.clone().eq("unwrap_or_else") { return "removed free function; use `o.unwrap_or(fallback)`" }
     if name.clone().eq("ok_or") { return "removed free function; convert Option to Result explicitly with `Ok`/`Err` or `match`" }
     let prelude_hint = removed_prelude_free_hint(name.clone())
-    if len(prelude_hint.clone()) > 0 {
+    if prelude_hint.clone().len() > 0 {
         return prelude_hint
     }
     String_new()
@@ -683,46 +676,6 @@ fn removed_pq_member_hint(name: String) -> String {
     String_new()
 }
 
-/// Replacement hints for the `std::collections::linear` legacy deque free
-/// functions retired by #917. Empty pops and peeks now return `Option`; the
-/// old `deque_new` capacity of 16 is not guaranteed by `Deque::new`.
-fn removed_deque_member_hint(name: String) -> String {
-    if name.clone().eq("deque_new") {
-        return "removed free constructor; use `Deque::new<i32>()` or `Deque::with_capacity<i32>(n)` from `use std::collections::deque::Deque` instead"
-    }
-    if name.clone().eq("deque_push_front") {
-        return "removed free function; use `deque.push_front(value)` on `Deque<i32>` instead"
-    }
-    if name.clone().eq("deque_push_back") {
-        return "removed free function; use `deque.push_back(value)` on `Deque<i32>` instead"
-    }
-    if name.clone().eq("deque_pop_front") {
-        return "removed free function; use `deque.pop_front()` on `Deque<i32>` (`Option<i32>`) instead"
-    }
-    if name.clone().eq("deque_pop_back") {
-        return "removed free function; use `deque.pop_back()` on `Deque<i32>` (`Option<i32>`) instead"
-    }
-    if name.clone().eq("deque_front") {
-        return "removed free function; use `deque.front()` on `Deque<i32>` (`Option<i32>`) instead"
-    }
-    if name.clone().eq("deque_back") {
-        return "removed free function; use `deque.back()` on `Deque<i32>` (`Option<i32>`) instead"
-    }
-    if name.clone().eq("deque_len") {
-        return "removed free function; use `deque.len()` on `Deque<i32>` instead"
-    }
-    if name.clone().eq("deque_is_empty") {
-        return "removed free function; use `deque.is_empty()` on `Deque<i32>` instead"
-    }
-    if name.clone().eq("deque_clear") {
-        return "removed free function; use `deque.clear()` on `Deque<i32>` instead"
-    }
-    if name.clone().eq("deque_to_vec") {
-        return "removed free function; use `deque.iter().collect()` on `Deque<i32>` instead"
-    }
-    String_new()
-}
-
 /// Replacement hints for the `std::collections::linked_list` free functions
 /// retired by #917. Empty pops and peeks now return `Option`, so callers that
 /// passed the old fallback argument need a `match` / `unwrap_or` instead.
@@ -978,10 +931,6 @@ fn removed_module_member_hint(module: String, name: String) -> String {
         return removed_ordered_member_hint(name)
     }
     if module.clone().eq("linear") || module.clone().eq("collections::linear") || module.clone().eq("std::collections::linear") {
-        let deque_hint = removed_deque_member_hint(name.clone())
-        if len(deque_hint.clone()) > 0 {
-            return deque_hint
-        }
         return removed_pq_member_hint(name)
     }
     if (module.clone().eq("linked_list") || module.clone().eq("collections::linked_list") ||
@@ -1035,11 +984,11 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if module.clone().eq("parser") {
         let parser_json_hint = removed_json_member_hint(name.clone())
-        if len(parser_json_hint.clone()) > 0 {
+        if parser_json_hint.clone().len() > 0 {
             return parser_json_hint
         }
         let parser_toml_hint = removed_toml_member_hint(name.clone())
-        if len(parser_toml_hint.clone()) > 0 {
+        if parser_toml_hint.clone().len() > 0 {
             return parser_toml_hint
         }
         return removed_wit_parser_member_hint(name)
@@ -1086,7 +1035,7 @@ fn removed_module_member_hint(module: String, name: String) -> String {
         // std::host::random (host entropy). The leaf names do not overlap, so
         // try the deterministic hints first and fall through to the host ones.
         let seeded_hint = removed_random_member_hint(name.clone())
-        if len(seeded_hint.clone()) > 0 {
+        if seeded_hint.clone().len() > 0 {
             return seeded_hint
         }
         return removed_host_random_member_hint(name)
@@ -1116,7 +1065,7 @@ fn removed_module_member_hint(module: String, name: String) -> String {
         return removed_csv_member_hint(name)
     }
     let simd_type = removed_simd_lane_type(module.clone())
-    if len(simd_type.clone()) > 0 {
+    if simd_type.clone().len() > 0 {
         return "removed free function; call `"
         .concat(simd_type)
         .concat("::")
@@ -1129,7 +1078,7 @@ fn removed_module_member_hint(module: String, name: String) -> String {
         return String_new()
     }
     let io_free_hint = removed_io_free_hint(name.clone())
-    if len(io_free_hint.clone()) > 0 {
+    if io_free_hint.clone().len() > 0 {
         return io_free_hint
     }
     if name.clone().eq("reader_eof") { return "use `r.is_eof()` on `Reader` instead" }
@@ -1345,7 +1294,7 @@ fn removed_csv_member_hint(name: String) -> String {
     if !name.clone().starts_with(String_from("csv_")) {
         return String_new()
     }
-    let leaf = name.clone().slice(4, len(name))
+    let leaf = name.clone().slice(4, name.len())
     "use `csv::Csv::".concat(
         leaf.clone()
     ).concat("(...)` via `use std::csv` instead")
@@ -1408,6 +1357,7 @@ fn removed_text_member_hint(name: String) -> String {
     if name.clone().eq("trim_end") { return String_from("use `s.trim_end()` on `String` instead") }
     if name.clone().eq("replace") { return String_from("use `s.replace(from, to)` on `String` instead") }
     if name.clone().eq("lines") { return String_from("use `s.lines()` on `String` instead") }
+    if name.clone().eq("len") { return String_from("use `s.len()` on `String` or `v.len()` on `Vec<T>` instead") }
     if name.clone().eq("chars") { return String_from("use `s.chars()` on `String` instead") }
     if name.clone().eq("pad_left") { return String_from("use `s.pad_left_with(width, fill)` on `String` instead") }
     if name.clone().eq("pad_right") { return String_from("use `s.pad_right_with(width, fill)` on `String` instead") }
@@ -1623,6 +1573,7 @@ fn removed_prelude_free_hint(name: String) -> String {
     if name.clone().eq("is_empty") { return String_from("use `x.is_empty()` on the `String` / `Vec` receiver instead") }
     if name.clone().eq("join") { return String_from("use `parts.join(sep)` on `Vec<String>` instead") }
     if name.clone().eq("lines") { return String_from("use `s.lines()` on `String` instead") }
+    if name.clone().eq("len") { return String_from("use `s.len()` on `String` or `v.len()` on `Vec<T>` instead") }
     if name.clone().eq("max") { return String_from("use `a.max(b)` on the `i32` value instead") }
     if name.clone().eq("min") { return String_from("use `a.min(b)` on the `i32` value instead") }
     if name.clone().eq("pad_left") { return String_from("use `s.pad_left(width)` or `s.pad_left_with(width, fill)` on `String` instead") }
@@ -1659,7 +1610,7 @@ fn removed_prelude_free_hint(name: String) -> String {
     if name.clone().eq("contains") { return String_from("use `s.contains(sub)` on `String` instead") }
     if name.clone().eq("index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
     let numeric = removed_numeric_conversion_hint(name.clone())
-    if len(numeric.clone()) > 0 {
+    if numeric.clone().len() > 0 {
         return numeric
     }
     String_new()
@@ -1883,518 +1834,506 @@ fn removed_random_member_hint(name: String) -> String {
 
 test mod "removed_names" {
     test "to_string family" {
-        assert(len(removed_name_hint("i32_to_string")) > 0)
-        assert(len(removed_name_hint("bool_to_string")) > 0)
+        assert(removed_name_hint("i32_to_string").len() > 0)
+        assert(removed_name_hint("bool_to_string").len() > 0)
     }
     test "vec ctor" {
-        assert(len(removed_name_hint("Vec_new_i32")) > 0)
-        assert(len(removed_name_hint("new_i32")) > 0)
-        assert(len(removed_module_member_hint("vec", "new_i32")) > 0)
-        assert(len(removed_module_member_hint("std::collections::vec", "new_i32")) > 0)
-        assert(len(removed_module_member_hint("vec", "unrelated")) == 0)
+        assert(removed_name_hint("Vec_new_i32").len() > 0)
+        assert(removed_name_hint("new_i32").len() > 0)
+        assert(removed_module_member_hint("vec", "new_i32").len() > 0)
+        assert(removed_module_member_hint("std::collections::vec", "new_i32").len() > 0)
+        assert(removed_module_member_hint("vec", "unrelated").len() == 0)
     }
     test "hashmap builtins" {
-        assert(len(removed_name_hint("HashMap_i32_i32_new")) > 0)
-        assert(len(removed_name_hint("HashMap_new_String_i32")) > 0)
-        assert(len(removed_name_hint("HashMap_String_fn_get")) > 0)
+        assert(removed_name_hint("HashMap_i32_i32_new").len() > 0)
+        assert(removed_name_hint("HashMap_new_String_i32").len() > 0)
+        assert(removed_name_hint("HashMap_String_fn_get").len() > 0)
     }
     test "io env fs" {
-        assert(len(removed_name_hint("read_to_string")) > 0)
-        assert(len(removed_name_hint("exists")) > 0)
-        assert(len(removed_name_hint("get_var")) > 0)
+        assert(removed_name_hint("read_to_string").len() > 0)
+        assert(removed_name_hint("exists").len() > 0)
+        assert(removed_name_hint("get_var").len() > 0)
     }
     test "removed env module member" {
-        assert(len(removed_module_member_hint("std::env", "get_var")) > 0)
-        assert(len(removed_module_member_hint("std::host::env", "get_var")) > 0)
+        assert(removed_module_member_hint("std::env", "get_var").len() > 0)
+        assert(removed_module_member_hint("std::host::env", "get_var").len() > 0)
     }
     test "removed host core namespace frees" {
-        assert(len(removed_module_member_hint("std::host::process", "exit")) > 0)
-        assert(len(removed_module_member_hint("std::process", "abort")) > 0)
-        assert(len(removed_module_member_hint("process", "id")) > 0)
-        assert(len(removed_module_member_hint("std::host::random", "random_i32")) > 0)
-        assert(len(removed_module_member_hint("std::host::random", "next_f64")) > 0)
+        assert(removed_module_member_hint("std::host::process", "exit").len() > 0)
+        assert(removed_module_member_hint("std::process", "abort").len() > 0)
+        assert(removed_module_member_hint("process", "id").len() > 0)
+        assert(removed_module_member_hint("std::host::random", "random_i32").len() > 0)
+        assert(removed_module_member_hint("std::host::random", "next_f64").len() > 0)
         // The bare `random` alias can be either module; both hint families
         // must be reachable through it.
-        assert(len(removed_module_member_hint("random", "random_bool")) > 0)
-        assert(len(removed_module_member_hint("random", "seeded_random")) > 0)
-        assert(len(removed_module_member_hint("std::cli", "parse_args")) > 0)
-        assert(len(removed_module_member_hint("std::cli", "option")) > 0)
-        assert(len(removed_module_member_hint("std::signal", "fft")) > 0)
-        assert(len(removed_module_member_hint("std::signal", "approx_eq")) > 0)
+        assert(removed_module_member_hint("random", "random_bool").len() > 0)
+        assert(removed_module_member_hint("random", "seeded_random").len() > 0)
+        assert(removed_module_member_hint("std::cli", "parse_args").len() > 0)
+        assert(removed_module_member_hint("std::cli", "option").len() > 0)
+        assert(removed_module_member_hint("std::signal", "fft").len() > 0)
+        assert(removed_module_member_hint("std::signal", "approx_eq").len() > 0)
         // The deterministic std::random module keeps its own Rng hints, and the
         // experimental fd helpers stay callable.
-        assert(len(removed_module_member_hint("std::random", "seeded_random")) > 0)
-        assert(len(removed_module_member_hint("std::host::fs", "fd_seek")) == 0)
-        assert(len(removed_module_member_hint("std::signal", "unrelated")) == 0)
+        assert(removed_module_member_hint("std::random", "seeded_random").len() > 0)
+        assert(removed_module_member_hint("std::host::fs", "fd_seek").len() == 0)
+        assert(removed_module_member_hint("std::signal", "unrelated").len() == 0)
     }
     test "removed compiler collections frees" {
-        assert(len(removed_module_member_hint("compiler", "arena_new")) > 0)
-        assert(len(removed_module_member_hint("collections::compiler", "slotmap_get")) > 0)
-        assert(len(removed_module_member_hint("std::collections::compiler", "interner_lookup")) > 0)
-        assert(len(removed_name_hint("arena_alloc")) > 0)
-        assert(len(removed_name_hint("slotmap_contains")) > 0)
-        assert(len(removed_name_hint("interner_intern")) > 0)
-        assert(len(removed_module_member_hint("compiler", "unrelated")) == 0)
+        assert(removed_module_member_hint("compiler", "arena_new").len() > 0)
+        assert(removed_module_member_hint("collections::compiler", "slotmap_get").len() > 0)
+        assert(removed_module_member_hint("std::collections::compiler", "interner_lookup").len() > 0)
+        assert(removed_name_hint("arena_alloc").len() > 0)
+        assert(removed_name_hint("slotmap_contains").len() > 0)
+        assert(removed_name_hint("interner_intern").len() > 0)
+        assert(removed_module_member_hint("compiler", "unrelated").len() == 0)
     }
     test "removed bimap trie frees" {
-        assert(len(removed_module_member_hint("bimap", "bimap_i32_i32_new")) > 0)
-        assert(len(removed_module_member_hint("collections::bimap", "bimap_i32_i32_get_by_key")) > 0)
-        assert(len(removed_module_member_hint("std::collections::bimap", "bimap_i32_i32_remove_by_value")) > 0)
-        assert(len(removed_name_hint("bimap_i32_i32_len")) > 0)
-        assert(len(removed_module_member_hint("trie", "trie_new")) > 0)
-        assert(len(removed_module_member_hint("collections::trie", "trie_count_with_prefix")) > 0)
-        assert(len(removed_module_member_hint("std::collections::trie", "trie_has_prefix")) > 0)
-        assert(len(removed_name_hint("trie_contains")) > 0)
-        assert(len(removed_module_member_hint("bimap", "unrelated")) == 0)
-        assert(len(removed_module_member_hint("trie", "unrelated")) == 0)
+        assert(removed_module_member_hint("bimap", "bimap_i32_i32_new").len() > 0)
+        assert(removed_module_member_hint("collections::bimap", "bimap_i32_i32_get_by_key").len() > 0)
+        assert(removed_module_member_hint("std::collections::bimap", "bimap_i32_i32_remove_by_value").len() > 0)
+        assert(removed_name_hint("bimap_i32_i32_len").len() > 0)
+        assert(removed_module_member_hint("trie", "trie_new").len() > 0)
+        assert(removed_module_member_hint("collections::trie", "trie_count_with_prefix").len() > 0)
+        assert(removed_module_member_hint("std::collections::trie", "trie_has_prefix").len() > 0)
+        assert(removed_name_hint("trie_contains").len() > 0)
+        assert(removed_module_member_hint("bimap", "unrelated").len() == 0)
+        assert(removed_module_member_hint("trie", "unrelated").len() == 0)
     }
     test "removed ordered frees" {
-        assert(len(removed_module_member_hint("ordered", "btree_new")) > 0)
-        assert(len(removed_module_member_hint("collections::ordered", "btree_range")) > 0)
-        assert(len(removed_module_member_hint("std::collections::ordered", "index_map_insert")) > 0)
-        assert(len(removed_name_hint("btree_set_insert")) > 0)
-        assert(len(removed_name_hint("btree_set_find_idx")) > 0)
-        assert(len(removed_name_hint("index_set_contains")) > 0)
-        assert(len(removed_name_hint("bitset_union")) > 0)
-        assert(len(removed_name_hint("bitset_intersection")) > 0)
+        assert(removed_module_member_hint("ordered", "btree_new").len() > 0)
+        assert(removed_module_member_hint("collections::ordered", "btree_range").len() > 0)
+        assert(removed_module_member_hint("std::collections::ordered", "index_map_insert").len() > 0)
+        assert(removed_name_hint("btree_set_insert").len() > 0)
+        assert(removed_name_hint("btree_set_find_idx").len() > 0)
+        assert(removed_name_hint("index_set_contains").len() > 0)
+        assert(removed_name_hint("bitset_union").len() > 0)
+        assert(removed_name_hint("bitset_intersection").len() > 0)
         // The 10 stable frees completed their ADR-087 window and were deleted
         // in the 2026-10-29 Wave 2, so they now carry E0100 hints too.
-        assert(len(removed_name_hint("sorted_map_new")) > 0)
-        assert(len(removed_name_hint("bitset_new")) > 0)
-        assert(len(removed_module_member_hint("ordered", "sorted_map_get")) > 0)
-        assert(len(removed_module_member_hint("ordered", "bitset_test")) > 0)
-        assert(len(removed_module_member_hint("ordered", "unrelated")) == 0)
+        assert(removed_name_hint("sorted_map_new").len() > 0)
+        assert(removed_name_hint("bitset_new").len() > 0)
+        assert(removed_module_member_hint("ordered", "sorted_map_get").len() > 0)
+        assert(removed_module_member_hint("ordered", "bitset_test").len() > 0)
+        assert(removed_module_member_hint("ordered", "unrelated").len() == 0)
     }
     test "removed priority queue frees" {
-        assert(len(removed_module_member_hint("linear", "pq_new")) > 0)
-        assert(len(removed_module_member_hint("collections::linear", "pq_push")) > 0)
-        assert(len(removed_module_member_hint("std::collections::linear", "pq_pop")) > 0)
-        assert(len(removed_name_hint("pq_new")) > 0)
-        assert(len(removed_name_hint("pq_clear")) > 0)
-        assert(len(removed_module_member_hint("linear", "unrelated")) == 0)
-    }
-    test "removed linear deque frees" {
-        assert(len(removed_name_hint("deque_new")) > 0)
-        assert(len(removed_name_hint("deque_push_front")) > 0)
-        assert(len(removed_name_hint("deque_push_back")) > 0)
-        assert(len(removed_name_hint("deque_pop_front")) > 0)
-        assert(len(removed_name_hint("deque_pop_back")) > 0)
-        assert(len(removed_name_hint("deque_front")) > 0)
-        assert(len(removed_name_hint("deque_back")) > 0)
-        assert(len(removed_name_hint("deque_len")) > 0)
-        assert(len(removed_name_hint("deque_is_empty")) > 0)
-        assert(len(removed_name_hint("deque_clear")) > 0)
-        assert(len(removed_name_hint("deque_to_vec")) > 0)
-        assert(len(removed_module_member_hint("linear", "deque_new")) > 0)
-        assert(len(removed_module_member_hint("collections::linear", "deque_to_vec")) > 0)
-        assert(len(removed_module_member_hint("std::collections::linear", "deque_pop_front")) > 0)
-        assert(len(removed_module_member_hint("linear", "unrelated")) == 0)
+        assert(removed_module_member_hint("linear", "pq_new").len() > 0)
+        assert(removed_module_member_hint("collections::linear", "pq_push").len() > 0)
+        assert(removed_module_member_hint("std::collections::linear", "pq_pop").len() > 0)
+        assert(removed_name_hint("pq_new").len() > 0)
+        assert(removed_name_hint("pq_clear").len() > 0)
+        // The deque_* frees are still callable through their own ADR-014
+        // window, so they must not gain a removal hint.
+        assert(removed_module_member_hint("linear", "deque_new").len() == 0)
+        assert(removed_module_member_hint("linear", "unrelated").len() == 0)
     }
     test "removed linked list frees" {
-        assert(len(removed_name_hint("linked_list_new")) > 0)
-        assert(len(removed_name_hint("linked_list_push_front")) > 0)
-        assert(len(removed_name_hint("linked_list_push_back")) > 0)
-        assert(len(removed_name_hint("linked_list_pop_front")) > 0)
-        assert(len(removed_name_hint("linked_list_pop_back")) > 0)
-        assert(len(removed_name_hint("linked_list_front")) > 0)
-        assert(len(removed_name_hint("linked_list_back")) > 0)
-        assert(len(removed_name_hint("linked_list_len")) > 0)
-        assert(len(removed_name_hint("linked_list_is_empty")) > 0)
-        assert(len(removed_name_hint("linked_list_clear")) > 0)
-        assert(len(removed_name_hint("linked_list_to_vec")) > 0)
-        assert(len(removed_module_member_hint("linked_list", "linked_list_new")) > 0)
-        assert(len(removed_module_member_hint("collections::linked_list", "linked_list_to_vec")) > 0)
-        assert(len(removed_module_member_hint("std::collections::linked_list", "linked_list_pop_front")) > 0)
-        assert(len(removed_module_member_hint("linked_list", "unrelated")) == 0)
+        assert(removed_name_hint("linked_list_new").len() > 0)
+        assert(removed_name_hint("linked_list_push_front").len() > 0)
+        assert(removed_name_hint("linked_list_push_back").len() > 0)
+        assert(removed_name_hint("linked_list_pop_front").len() > 0)
+        assert(removed_name_hint("linked_list_pop_back").len() > 0)
+        assert(removed_name_hint("linked_list_front").len() > 0)
+        assert(removed_name_hint("linked_list_back").len() > 0)
+        assert(removed_name_hint("linked_list_len").len() > 0)
+        assert(removed_name_hint("linked_list_is_empty").len() > 0)
+        assert(removed_name_hint("linked_list_clear").len() > 0)
+        assert(removed_name_hint("linked_list_to_vec").len() > 0)
+        assert(removed_module_member_hint("linked_list", "linked_list_new").len() > 0)
+        assert(removed_module_member_hint("collections::linked_list", "linked_list_to_vec").len() > 0)
+        assert(removed_module_member_hint("std::collections::linked_list", "linked_list_pop_front").len() > 0)
+        assert(removed_module_member_hint("linked_list", "unrelated").len() == 0)
     }
     test "result option helpers" {
-        assert(len(removed_name_hint("ok")) > 0)
-        assert(len(removed_name_hint("err")) > 0)
-        assert(len(removed_name_hint("expect")) > 0)
-        assert(len(removed_name_hint("unwrap_or_else")) > 0)
-        assert(len(removed_name_hint("ok_or")) > 0)
+        assert(removed_name_hint("ok").len() > 0)
+        assert(removed_name_hint("err").len() > 0)
+        assert(removed_name_hint("expect").len() > 0)
+        assert(removed_name_hint("unwrap_or_else").len() > 0)
+        assert(removed_name_hint("ok_or").len() > 0)
     }
-    test "io shims" { assert(len(removed_name_hint("eprintln")) > 0) }
+    test "io shims" { assert(removed_name_hint("eprintln").len() > 0) }
     test "retired io and host stdio frees have replacements" {
-        assert(len(removed_module_member_hint("stdio", "read_stdin")) > 0)
-        assert(len(removed_module_member_hint("host::stdio", "print")) > 0)
-        assert(len(removed_module_member_hint("std::host::stdio", "println")) > 0)
-        assert(len(removed_module_member_hint("std::host::stdio", "eprintln")) > 0)
-        assert(len(removed_module_member_hint("io", "stdout")) > 0)
-        assert(len(removed_module_member_hint("std::io", "stderr")) > 0)
-        assert(len(removed_module_member_hint("std::io", "print_bytes")) > 0)
-        assert(len(removed_module_member_hint("std::io", "stdin")) > 0)
-        assert(len(removed_module_member_hint("std::io", "read_stdin_line")) > 0)
-        assert(len(removed_module_member_hint("stdio", "unrelated")) == 0)
-        assert(len(removed_module_member_hint("io", "unrelated")) == 0)
+        assert(removed_module_member_hint("stdio", "read_stdin").len() > 0)
+        assert(removed_module_member_hint("host::stdio", "print").len() > 0)
+        assert(removed_module_member_hint("std::host::stdio", "println").len() > 0)
+        assert(removed_module_member_hint("std::host::stdio", "eprintln").len() > 0)
+        assert(removed_module_member_hint("io", "stdout").len() > 0)
+        assert(removed_module_member_hint("std::io", "stderr").len() > 0)
+        assert(removed_module_member_hint("std::io", "print_bytes").len() > 0)
+        assert(removed_module_member_hint("std::io", "stdin").len() > 0)
+        assert(removed_module_member_hint("std::io", "read_stdin_line").len() > 0)
+        assert(removed_module_member_hint("stdio", "unrelated").len() == 0)
+        assert(removed_module_member_hint("io", "unrelated").len() == 0)
     }
     test "deprecated prelude hints" {
-        assert(len(removed_name_hint("concat")) > 0)
-        assert(len(removed_name_hint("char_at")) > 0)
-        assert(len(removed_name_hint("println")) > 0)
+        assert(removed_name_hint("concat").len() > 0)
+        assert(removed_name_hint("char_at").len() > 0)
+        assert(removed_name_hint("println").len() > 0)
     }
     test "gated prelude hints" {
-        assert(len(removed_name_hint("eq")) > 0)
-        assert(len(removed_name_hint("substring")) > 0)
-        assert(len(removed_name_hint("push_char")) > 0)
+        assert(removed_name_hint("eq").len() > 0)
+        assert(removed_name_hint("substring").len() > 0)
+        assert(removed_name_hint("push_char").len() > 0)
     }
     test "retired numeric conversion frees have method hints" {
-        assert(len(removed_name_hint("u8_to_i32")) > 0)
-        assert(len(removed_name_hint("u16_to_i32")) > 0)
-        assert(len(removed_name_hint("i8_to_i32")) > 0)
-        assert(len(removed_name_hint("i16_to_i32")) > 0)
-        assert(len(removed_name_hint("i32_to_u8")) > 0)
-        assert(len(removed_name_hint("i32_to_u16")) > 0)
-        assert(len(removed_name_hint("i32_to_i8")) > 0)
-        assert(len(removed_name_hint("i32_to_i16")) > 0)
-        assert(len(removed_name_hint("u32_to_u64")) > 0)
-        assert(len(removed_name_hint("u64_to_u32")) > 0)
-        assert(len(removed_name_hint("i32_to_i64")) > 0)
-        assert(len(removed_name_hint("i64_to_i32")) > 0)
-        assert(len(removed_name_hint("f32_to_f64")) > 0)
-        assert(len(removed_name_hint("f64_to_f32")) > 0)
-        assert(len(removed_name_hint("i32_to_u32")) > 0)
-        assert(len(removed_name_hint("f64_bits_lo")) > 0)
-        assert(len(removed_name_hint("f64_bits_hi")) > 0)
+        assert(removed_name_hint("u8_to_i32").len() > 0)
+        assert(removed_name_hint("u16_to_i32").len() > 0)
+        assert(removed_name_hint("i8_to_i32").len() > 0)
+        assert(removed_name_hint("i16_to_i32").len() > 0)
+        assert(removed_name_hint("i32_to_u8").len() > 0)
+        assert(removed_name_hint("i32_to_u16").len() > 0)
+        assert(removed_name_hint("i32_to_i8").len() > 0)
+        assert(removed_name_hint("i32_to_i16").len() > 0)
+        assert(removed_name_hint("u32_to_u64").len() > 0)
+        assert(removed_name_hint("u64_to_u32").len() > 0)
+        assert(removed_name_hint("i32_to_i64").len() > 0)
+        assert(removed_name_hint("i64_to_i32").len() > 0)
+        assert(removed_name_hint("f32_to_f64").len() > 0)
+        assert(removed_name_hint("f64_to_f32").len() > 0)
+        assert(removed_name_hint("i32_to_u32").len() > 0)
+        assert(removed_name_hint("f64_bits_lo").len() > 0)
+        assert(removed_name_hint("f64_bits_hi").len() > 0)
     }
     test "retired clone free has receiver and module hints" {
-        assert(len(removed_name_hint("clone")) > 0)
-        assert(len(removed_module_member_hint("string", "clone")) > 0)
-        assert(len(removed_private_member_hint("prelude", "clone")) > 0)
+        assert(removed_name_hint("clone").len() > 0)
+        assert(removed_module_member_hint("string", "clone").len() > 0)
+        assert(removed_private_member_hint("prelude", "clone").len() > 0)
     }
     test "retired string eq free has qualified member hints" {
-        assert(len(removed_name_hint("eq")) > 0)
-        assert(len(removed_module_member_hint("string", "eq")) > 0)
-        assert(len(removed_module_member_hint("collections::string", "eq")) > 0)
-        assert(len(removed_module_member_hint("std::collections::string", "eq")) > 0)
-        assert(len(removed_private_member_hint("string", "eq")) > 0)
-        assert(len(removed_private_member_hint("std::collections::string", "eq")) > 0)
+        assert(removed_name_hint("eq").len() > 0)
+        assert(removed_module_member_hint("string", "eq").len() > 0)
+        assert(removed_module_member_hint("collections::string", "eq").len() > 0)
+        assert(removed_module_member_hint("std::collections::string", "eq").len() > 0)
+        assert(removed_private_member_hint("string", "eq").len() > 0)
+        assert(removed_private_member_hint("std::collections::string", "eq").len() > 0)
     }
     test "retired io error message free has method hints" {
-        assert(len(removed_name_hint("io_error_message")) > 0)
-        assert(len(removed_module_member_hint("io", "io_error_message")) > 0)
+        assert(removed_name_hint("io_error_message").len() > 0)
+        assert(removed_module_member_hint("io", "io_error_message").len() > 0)
     }
     test "retired text prelude frees have method hints" {
-        assert(len(removed_name_hint("byte_at")) > 0)
-        assert(len(removed_name_hint("slice")) > 0)
-        assert(len(removed_name_hint("substring")) > 0)
-        assert(len(removed_name_hint("to_string")) > 0)
-        assert(len(removed_name_hint("starts_with")) > 0)
-        assert(len(removed_name_hint("ends_with")) > 0)
-        assert(len(removed_name_hint("contains")) > 0)
-        assert(len(removed_name_hint("index_of")) > 0)
+        assert(removed_name_hint("byte_at").len() > 0)
+        assert(removed_name_hint("slice").len() > 0)
+        assert(removed_name_hint("substring").len() > 0)
+        assert(removed_name_hint("to_string").len() > 0)
+        assert(removed_name_hint("starts_with").len() > 0)
+        assert(removed_name_hint("ends_with").len() > 0)
+        assert(removed_name_hint("contains").len() > 0)
+        assert(removed_name_hint("index_of").len() > 0)
     }
     test "retired prelude frees have receiver hints" {
-        assert(len(removed_name_hint("abs")) > 0)
-        assert(len(removed_name_hint("args")) > 0)
-        assert(len(removed_name_hint("byte_len")) > 0)
-        assert(len(removed_name_hint("clamp_i32")) > 0)
-        assert(len(removed_name_hint("exit")) > 0)
-        assert(len(removed_name_hint("format_bool")) > 0)
-        assert(len(removed_name_hint("format_i32")) > 0)
-        assert(len(removed_name_hint("gcd")) > 0)
-        assert(len(removed_name_hint("is_empty")) > 0)
-        assert(len(removed_name_hint("join")) > 0)
-        assert(len(removed_name_hint("lines")) > 0)
-        assert(len(removed_name_hint("max")) > 0)
-        assert(len(removed_name_hint("min")) > 0)
-        assert(len(removed_name_hint("pad_left")) > 0)
-        assert(len(removed_name_hint("pad_right")) > 0)
-        assert(len(removed_name_hint("parse_f64")) > 0)
-        assert(len(removed_name_hint("parse_i32")) > 0)
-        assert(len(removed_name_hint("parse_i64")) > 0)
-        assert(len(removed_name_hint("repeat")) > 0)
-        assert(len(removed_name_hint("replace")) > 0)
-        assert(len(removed_name_hint("split")) > 0)
-        assert(len(removed_name_hint("sqrt")) > 0)
-        assert(len(removed_name_hint("to_lower")) > 0)
-        assert(len(removed_name_hint("to_lowercase")) > 0)
-        assert(len(removed_name_hint("to_upper")) > 0)
-        assert(len(removed_name_hint("to_uppercase")) > 0)
-        assert(len(removed_name_hint("trim")) > 0)
-        assert(len(removed_name_hint("trim_end")) > 0)
-        assert(len(removed_name_hint("trim_start")) > 0)
-        assert(len(removed_name_hint("values")) > 0)
+        assert(removed_name_hint("abs").len() > 0)
+        assert(removed_name_hint("args").len() > 0)
+        assert(removed_name_hint("byte_len").len() > 0)
+        assert(removed_name_hint("clamp_i32").len() > 0)
+        assert(removed_name_hint("exit").len() > 0)
+        assert(removed_name_hint("format_bool").len() > 0)
+        assert(removed_name_hint("format_i32").len() > 0)
+        assert(removed_name_hint("gcd").len() > 0)
+        assert(removed_name_hint("is_empty").len() > 0)
+        assert(removed_name_hint("join").len() > 0)
+        assert(removed_name_hint("lines").len() > 0)
+        assert(removed_name_hint("max").len() > 0)
+        assert(removed_name_hint("min").len() > 0)
+        assert(removed_name_hint("pad_left").len() > 0)
+        assert(removed_name_hint("pad_right").len() > 0)
+        assert(removed_name_hint("parse_f64").len() > 0)
+        assert(removed_name_hint("parse_i32").len() > 0)
+        assert(removed_name_hint("parse_i64").len() > 0)
+        assert(removed_name_hint("repeat").len() > 0)
+        assert(removed_name_hint("replace").len() > 0)
+        assert(removed_name_hint("split").len() > 0)
+        assert(removed_name_hint("sqrt").len() > 0)
+        assert(removed_name_hint("to_lower").len() > 0)
+        assert(removed_name_hint("to_lowercase").len() > 0)
+        assert(removed_name_hint("to_upper").len() > 0)
+        assert(removed_name_hint("to_uppercase").len() > 0)
+        assert(removed_name_hint("trim").len() > 0)
+        assert(removed_name_hint("trim_end").len() > 0)
+        assert(removed_name_hint("trim_start").len() > 0)
+        assert(removed_name_hint("values").len() > 0)
     }
     test "removed seq frees have E0100 hints" {
-        assert(len(removed_name_hint("sort_i32")) > 0)
-        assert(len(removed_name_hint("sort_String")) > 0)
-        assert(len(removed_name_hint("map_i64_i64")) > 0)
-        assert(len(removed_name_hint("filter_String")) > 0)
-        assert(len(removed_name_hint("fold_f64_f64")) > 0)
-        assert(len(removed_name_hint("any_i32")) > 0)
-        assert(len(removed_name_hint("find_String")) > 0)
-        assert(len(removed_name_hint("contains_i32")) > 0)
-        assert(len(removed_name_hint("reverse_String")) > 0)
-        assert(len(removed_name_hint("remove_i32")) > 0)
-        assert(len(removed_name_hint("sum_i32")) > 0)
-        assert(len(removed_name_hint("product_i32")) > 0)
-        assert(len(removed_name_hint("map_option_i32_i32")) > 0)
-        assert(len(removed_name_hint("contains_string")) > 0)
+        assert(removed_name_hint("sort_i32").len() > 0)
+        assert(removed_name_hint("sort_String").len() > 0)
+        assert(removed_name_hint("map_i64_i64").len() > 0)
+        assert(removed_name_hint("filter_String").len() > 0)
+        assert(removed_name_hint("fold_f64_f64").len() > 0)
+        assert(removed_name_hint("any_i32").len() > 0)
+        assert(removed_name_hint("find_String").len() > 0)
+        assert(removed_name_hint("contains_i32").len() > 0)
+        assert(removed_name_hint("reverse_String").len() > 0)
+        assert(removed_name_hint("remove_i32").len() > 0)
+        assert(removed_name_hint("sum_i32").len() > 0)
+        assert(removed_name_hint("product_i32").len() > 0)
+        assert(removed_name_hint("map_option_i32_i32").len() > 0)
+        assert(removed_name_hint("contains_string").len() > 0)
     }
     test "retired seq generics have method hints" {
-        assert(len(removed_module_member_hint("std::seq", "sort_by")) > 0)
-        assert(len(removed_module_member_hint("std::seq", "binary_search_by")) > 0)
-        assert(len(removed_module_member_hint("seq", "binary_search_by_key")) > 0)
-        assert(len(removed_module_member_hint("seq", "lower_bound")) > 0)
-        assert(len(removed_module_member_hint("seq", "upper_bound")) > 0)
-        assert(len(removed_module_member_hint("seq", "min_by")) > 0)
-        assert(len(removed_module_member_hint("seq", "max_by")) > 0)
-        assert(len(removed_module_member_hint("seq", "min_by_key")) > 0)
-        assert(len(removed_module_member_hint("seq", "max_by_key")) > 0)
-        assert(len(removed_module_member_hint("seq", "unrelated")) == 0)
+        assert(removed_module_member_hint("std::seq", "sort_by").len() > 0)
+        assert(removed_module_member_hint("std::seq", "binary_search_by").len() > 0)
+        assert(removed_module_member_hint("seq", "binary_search_by_key").len() > 0)
+        assert(removed_module_member_hint("seq", "lower_bound").len() > 0)
+        assert(removed_module_member_hint("seq", "upper_bound").len() > 0)
+        assert(removed_module_member_hint("seq", "min_by").len() > 0)
+        assert(removed_module_member_hint("seq", "max_by").len() > 0)
+        assert(removed_module_member_hint("seq", "min_by_key").len() > 0)
+        assert(removed_module_member_hint("seq", "max_by_key").len() > 0)
+        assert(removed_module_member_hint("seq", "unrelated").len() == 0)
     }
     test "retired seq monomorphic helpers have method hints" {
-        assert(len(removed_module_member_hint("seq", "map_i32_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "filter_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "take_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "skip_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "fold_i32_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "binary_search")) > 0)
-        assert(len(removed_module_member_hint("seq", "min_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "max_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "sum_i32")) > 0)
-        assert(len(removed_module_member_hint("seq", "seq_reverse")) > 0)
-        assert(len(removed_module_member_hint("seq", "seq_contains")) > 0)
-        assert(len(removed_module_member_hint("seq", "unique")) > 0)
-        assert(len(removed_module_member_hint("seq", "count_eq")) > 0)
-        assert(len(removed_module_member_hint("std::seq", "take_i32")) > 0)
-        assert(len(removed_module_member_hint("collections::seq", "take_i32")) == 0)
+        assert(removed_module_member_hint("seq", "map_i32_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "filter_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "take_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "skip_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "fold_i32_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "binary_search").len() > 0)
+        assert(removed_module_member_hint("seq", "min_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "max_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "sum_i32").len() > 0)
+        assert(removed_module_member_hint("seq", "seq_reverse").len() > 0)
+        assert(removed_module_member_hint("seq", "seq_contains").len() > 0)
+        assert(removed_module_member_hint("seq", "unique").len() > 0)
+        assert(removed_module_member_hint("seq", "count_eq").len() > 0)
+        assert(removed_module_member_hint("std::seq", "take_i32").len() > 0)
+        assert(removed_module_member_hint("collections::seq", "take_i32").len() == 0)
     }
     test "gated provisional filter_i32 has an import hint" {
-        assert(len(removed_name_hint("filter_i32")) > 0)
+        assert(removed_name_hint("filter_i32").len() > 0)
     }
     test "removed test frees have E0100 hints" {
-        assert(len(removed_name_hint("assert_eq_i32")) > 0)
-        assert(len(removed_name_hint("assert_true")) > 0)
-        assert(len(removed_name_hint("expect_none_i32")) > 0)
-        assert(len(removed_name_hint("bench")) > 0)
-        assert(len(removed_module_member_hint("test", "assert_msg")) > 0)
-        assert(len(removed_module_member_hint("std::test", "assert_eq_snapshot")) > 0)
-        assert(len(removed_module_member_hint("test", "unrelated")) == 0)
+        assert(removed_name_hint("assert_eq_i32").len() > 0)
+        assert(removed_name_hint("assert_true").len() > 0)
+        assert(removed_name_hint("expect_none_i32").len() > 0)
+        assert(removed_name_hint("bench").len() > 0)
+        assert(removed_module_member_hint("test", "assert_msg").len() > 0)
+        assert(removed_module_member_hint("std::test", "assert_eq_snapshot").len() > 0)
+        assert(removed_module_member_hint("test", "unrelated").len() == 0)
     }
     test "removed prelude assertion frees have E0100 hints" {
-        assert(len(removed_name_hint("assert_eq")) > 0)
-        assert(len(removed_name_hint("assert_ne")) > 0)
-        assert(len(removed_name_hint("assert_eq_i64")) > 0)
-        assert(len(removed_name_hint("assert_eq_str")) > 0)
-        assert(len(removed_name_hint("assert")) == 0)
+        assert(removed_name_hint("assert_eq").len() > 0)
+        assert(removed_name_hint("assert_ne").len() > 0)
+        assert(removed_name_hint("assert_eq_i64").len() > 0)
+        assert(removed_name_hint("assert_eq_str").len() > 0)
+        assert(removed_name_hint("assert").len() == 0)
     }
     test "live names have no hint" {
-        assert(len(removed_name_hint("len")) == 0)
-        assert(len(removed_name_hint("assert")) == 0)
+        assert(removed_name_hint("assert").len() == 0)
+    }
+    test "retired prelude len free has a receiver method hint" {
+        assert(removed_name_hint("len").len() > 0)
     }
     test "retired control and sort frees have E0100 hints" {
-        assert(len(removed_name_hint("panic")) > 0)
-        assert(len(removed_name_hint("sort")) > 0)
-        assert(len(removed_name_hint("sort_unstable")) > 0)
-        assert(len(removed_name_hint("is_sorted")) > 0)
-        assert(len(removed_name_hint("select_nth")) > 0)
+        assert(removed_name_hint("panic").len() > 0)
+        assert(removed_name_hint("sort").len() > 0)
+        assert(removed_name_hint("sort_unstable").len() > 0)
+        assert(removed_name_hint("is_sorted").len() > 0)
+        assert(removed_name_hint("select_nth").len() > 0)
     }
     test "removed raw bridges have E0100 hints" {
-        assert(len(removed_name_hint("raw_array_new")) > 0)
-        assert(len(removed_name_hint("raw_array_len")) > 0)
-        assert(len(removed_name_hint("raw_array_get_unchecked")) > 0)
-        assert(len(removed_name_hint("raw_array_set_unchecked")) > 0)
-        assert(len(removed_name_hint("raw_array_grow")) > 0)
-        assert(len(removed_name_hint("raw_array_set_len")) > 0)
-        assert(len(removed_name_hint("raw_string_new")) > 0)
-        assert(len(removed_name_hint("raw_string_from_bytes")) > 0)
-        assert(len(removed_name_hint("raw_string_len_bytes")) > 0)
-        assert(len(removed_name_hint("raw_string_byte_at_unchecked")) > 0)
-        assert(len(removed_name_hint("raw_string_clone")) > 0)
-        assert(len(removed_name_hint("raw_string_push_char")) > 0)
-        assert(len(removed_name_hint("raw_parse_i32")) > 0)
-        assert(len(removed_name_hint("raw_parse_i64")) > 0)
-        assert(len(removed_name_hint("raw_parse_f64")) > 0)
-        assert(len(removed_name_hint("raw_f64_sqrt")) > 0)
-        assert(len(removed_name_hint("raw_f64_bits_lo")) > 0)
-        assert(len(removed_name_hint("raw_f64_bits_hi")) > 0)
-        assert(len(removed_name_hint("raw_f64_to_string")) > 0)
-        assert(len(removed_name_hint("raw_f32_promote_f64")) > 0)
-        assert(len(removed_module_member_hint(String_from("raw"), String_from("raw_array_new"))) > 0)
+        assert(removed_name_hint("raw_array_new").len() > 0)
+        assert(removed_name_hint("raw_array_len").len() > 0)
+        assert(removed_name_hint("raw_array_get_unchecked").len() > 0)
+        assert(removed_name_hint("raw_array_set_unchecked").len() > 0)
+        assert(removed_name_hint("raw_array_grow").len() > 0)
+        assert(removed_name_hint("raw_array_set_len").len() > 0)
+        assert(removed_name_hint("raw_string_new").len() > 0)
+        assert(removed_name_hint("raw_string_from_bytes").len() > 0)
+        assert(removed_name_hint("raw_string_len_bytes").len() > 0)
+        assert(removed_name_hint("raw_string_byte_at_unchecked").len() > 0)
+        assert(removed_name_hint("raw_string_clone").len() > 0)
+        assert(removed_name_hint("raw_string_push_char").len() > 0)
+        assert(removed_name_hint("raw_parse_i32").len() > 0)
+        assert(removed_name_hint("raw_parse_i64").len() > 0)
+        assert(removed_name_hint("raw_parse_f64").len() > 0)
+        assert(removed_name_hint("raw_f64_sqrt").len() > 0)
+        assert(removed_name_hint("raw_f64_bits_lo").len() > 0)
+        assert(removed_name_hint("raw_f64_bits_hi").len() > 0)
+        assert(removed_name_hint("raw_f64_to_string").len() > 0)
+        assert(removed_name_hint("raw_f32_promote_f64").len() > 0)
+        assert(removed_module_member_hint(String_from("raw"), String_from("raw_array_new")).len() > 0)
     }
     test "removed host fs module members have hints" {
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("read_to_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("host::fs"), String_from("read_bytes"))) > 0)
-        assert(len(removed_module_member_hint(String_from("std::fs"), String_from("write_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("std::host::fs"), String_from("write_bytes"))) > 0)
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("is_readable_file"))) > 0)
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("exists"))) > 0)
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("read_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("read_dir"))) > 0)
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("metadata"))) > 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("read_to_string")).len() > 0)
+        assert(removed_module_member_hint(String_from("host::fs"), String_from("read_bytes")).len() > 0)
+        assert(removed_module_member_hint(String_from("std::fs"), String_from("write_string")).len() > 0)
+        assert(removed_module_member_hint(String_from("std::host::fs"), String_from("write_bytes")).len() > 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("is_readable_file")).len() > 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("exists")).len() > 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("read_string")).len() > 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("read_dir")).len() > 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("metadata")).len() > 0)
     }
     test "removed host clock module members have hints" {
-        assert(len(removed_module_member_hint(String_from("clock"), String_from("monotonic_now"))) > 0)
-        assert(len(removed_module_member_hint(String_from("host::clock"), String_from("now_ms"))) > 0)
-        assert(len(removed_module_member_hint(String_from("std::host::clock"), String_from("monotonic_now"))) > 0)
-        assert(len(removed_module_member_hint(String_from("std::host::clock"), String_from("now_ms"))) > 0)
-        assert(len(removed_module_member_hint(String_from("clock"), String_from("Clock"))) == 0)
+        assert(removed_module_member_hint(String_from("clock"), String_from("monotonic_now")).len() > 0)
+        assert(removed_module_member_hint(String_from("host::clock"), String_from("now_ms")).len() > 0)
+        assert(removed_module_member_hint(String_from("std::host::clock"), String_from("monotonic_now")).len() > 0)
+        assert(removed_module_member_hint(String_from("std::host::clock"), String_from("now_ms")).len() > 0)
+        assert(removed_module_member_hint(String_from("clock"), String_from("Clock")).len() == 0)
     }
     test "removed io module members have hints" {
-        assert(len(removed_module_member_hint(String_from("io"), String_from("reader_read"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("copy"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("seek_to"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("fill_buffer"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("file_read"))) > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("reader_read")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("copy")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("seek_to")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("fill_buffer")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("file_read")).len() > 0)
     }
     test "retired io compat wrappers have removal hints" {
         // ADR-085 Phase F retired the Vec-layout reader / buffered adapters and
         // the memory-writer wrappers; the tagged output pair stays callable.
-        assert(len(removed_module_member_hint(String_from("io"), String_from("reader_from_bytes"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_reader_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_reader_read_line"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_writer_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_writer_write_str"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buf_writer_flush"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buffered_reader"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("buffered_writer"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("write_all"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("write_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_flush"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_to_bytes"))) > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("reader_from_bytes")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buf_reader_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buf_reader_read_line")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buf_writer_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buf_writer_write_str")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buf_writer_flush")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buffered_reader")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("buffered_writer")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("writer_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("write_all")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("write_string")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("writer_flush")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("writer_to_bytes")).len() > 0)
     }
     test "retired io tagged writers have removal hints" {
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write"))) > 0)
-        assert(len(removed_module_member_hint(String_from("io"), String_from("writer_write_str"))) > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("writer_write")).len() > 0)
+        assert(removed_module_member_hint(String_from("io"), String_from("writer_write_str")).len() > 0)
     }
     test "other modules do not get io hints" {
-        assert(len(removed_module_member_hint(String_from("fs"), String_from("reader_read"))) == 0)
+        assert(removed_module_member_hint(String_from("fs"), String_from("reader_read")).len() == 0)
     }
     test "removed wit module members have hints" {
-        assert(len(removed_module_member_hint(String_from("wit"), String_from("wit_type_u32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("types"), String_from("wit_type_from_ast"))) > 0)
-        assert(len(removed_module_member_hint(String_from("types"), String_from("wit_type_name_from_ark"))) > 0)
-        assert(len(removed_module_member_hint(String_from("scan"), String_from("wit_trim"))) > 0)
-        assert(len(removed_module_member_hint(String_from("names"), String_from("kebab_name"))) > 0)
-        assert(len(removed_module_member_hint(String_from("printer"), String_from("print_wit"))) > 0)
+        assert(removed_module_member_hint(String_from("wit"), String_from("wit_type_u32")).len() > 0)
+        assert(removed_module_member_hint(String_from("types"), String_from("wit_type_from_ast")).len() > 0)
+        assert(removed_module_member_hint(String_from("types"), String_from("wit_type_name_from_ark")).len() > 0)
+        assert(removed_module_member_hint(String_from("scan"), String_from("wit_trim")).len() > 0)
+        assert(removed_module_member_hint(String_from("names"), String_from("kebab_name")).len() > 0)
+        assert(removed_module_member_hint(String_from("printer"), String_from("print_wit")).len() > 0)
     }
     test "removed hash adapters have method hints" {
-        assert(len(removed_name_hint("hashmap_str_i32_new")) > 0)
-        assert(len(removed_name_hint("hashmap_i32_str_get")) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_map"), String_from("hashmap_str_i32_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_string"), String_from("hashmap_str_get"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_fn"), String_from("hashmap_i32_fn_get"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_str_fn"), String_from("hashmap_str_fn_get"))) > 0)
+        assert(removed_name_hint("hashmap_str_i32_new").len() > 0)
+        assert(removed_name_hint("hashmap_i32_str_get").len() > 0)
+        assert(removed_module_member_hint(String_from("hash_map"), String_from("hashmap_str_i32_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_string"), String_from("hashmap_str_get")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_fn"), String_from("hashmap_i32_fn_get")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_str_fn"), String_from("hashmap_str_fn_get")).len() > 0)
     }
     test "removed iter module members have hints" {
-        assert(len(removed_module_member_hint(String_from("iter"), String_from("vec_iter"))) > 0)
-        assert(len(removed_module_member_hint(String_from("iter"), String_from("collect_map_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("iter"), String_from("iter_fold_i32"))) > 0)
+        assert(removed_module_member_hint(String_from("iter"), String_from("vec_iter")).len() > 0)
+        assert(removed_module_member_hint(String_from("iter"), String_from("collect_map_i32")).len() > 0)
+        assert(removed_module_member_hint(String_from("iter"), String_from("iter_fold_i32")).len() > 0)
     }
     test "live iter members keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("iter"), String_from("Iterator"))) == 0)
-        assert(len(removed_module_member_hint(String_from("iter"), String_from("VecIter"))) == 0)
+        assert(removed_module_member_hint(String_from("iter"), String_from("Iterator")).len() == 0)
+        assert(removed_module_member_hint(String_from("iter"), String_from("VecIter")).len() == 0)
     }
     test "unknown wit members keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("parser"), String_from("WitNode"))) == 0)
-        assert(len(removed_module_member_hint(String_from("types"), String_from("WitParam"))) == 0)
+        assert(removed_module_member_hint(String_from("parser"), String_from("WitNode")).len() == 0)
+        assert(removed_module_member_hint(String_from("types"), String_from("WitParam")).len() == 0)
     }
     test "removed wit parser frees have replacement hints" {
-        assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_full"))) > 0)
-        assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_full_import_text"))) > 0)
-        assert(len(removed_module_member_hint(String_from("parser"), String_from("parse_wit"))) > 0)
+        assert(removed_module_member_hint(String_from("parser"), String_from("parse_full")).len() > 0)
+        assert(removed_module_member_hint(String_from("parser"), String_from("parse_full_import_text")).len() > 0)
+        assert(removed_module_member_hint(String_from("parser"), String_from("parse_wit")).len() > 0)
     }
     test "removed component frees have associated-function hints" {
-        assert(len(removed_module_member_hint(String_from("component"), String_from("canonical_abi_version"))) > 0)
-        assert(len(removed_module_member_hint(String_from("component"), String_from("component_model_version"))) > 0)
+        assert(removed_module_member_hint(String_from("component"), String_from("canonical_abi_version")).len() > 0)
+        assert(removed_module_member_hint(String_from("component"), String_from("component_model_version")).len() > 0)
     }
     test "removed component handle frees have method hints" {
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_table_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_get"))) > 0)
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_drop"))) > 0)
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_len"))) > 0)
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_table_i32_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("handle"), String_from("handle_table_i32_get"))) > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_table_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_get")).len() > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_drop")).len() > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_len")).len() > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_table_i32_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("handle"), String_from("handle_table_i32_get")).len() > 0)
     }
     test "removed wit ast frees have method hints" {
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_kind"))) > 0)
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_child_at"))) > 0)
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_field_name_at"))) > 0)
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("parse_import_text"))) > 0)
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("ast_import_serialized"))) > 0)
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("parse"))) > 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("ast_kind")).len() > 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("ast_child_at")).len() > 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("ast_field_name_at")).len() > 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("parse_import_text")).len() > 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("ast_import_serialized")).len() > 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("parse")).len() > 0)
     }
     test "live wit ast members keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("ast"), String_from("WitNode"))) == 0)
+        assert(removed_module_member_hint(String_from("ast"), String_from("WitNode")).len() == 0)
     }
     test "removed hashmap adapters have method hints" {
-        assert(len(removed_module_member_hint(String_from("hash_map"), String_from("hashmap_str_i32_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_fn"), String_from("hashmap_i32_i32_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_string"), String_from("hashmap_String_i32_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_str_fn"), String_from("hashmap_str_fn_get"))) > 0)
+        assert(removed_module_member_hint(String_from("hash_map"), String_from("hashmap_str_i32_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_fn"), String_from("hashmap_i32_i32_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_string"), String_from("hashmap_String_i32_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_str_fn"), String_from("hashmap_str_fn_get")).len() > 0)
     }
     test "removed hashset adapters have method hints" {
-        assert(len(removed_module_member_hint(String_from("hash_set"), String_from("hashset_i32_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_set"), String_from("hashset_i32_union"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash_set"), String_from("hashset_str_insert"))) > 0)
-        assert(len(removed_name_hint(String_from("hashset_i32_to_vec"))) > 0)
-        assert(len(removed_name_hint(String_from("hashset_str_remove"))) > 0)
+        assert(removed_module_member_hint(String_from("hash_set"), String_from("hashset_i32_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_set"), String_from("hashset_i32_union")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash_set"), String_from("hashset_str_insert")).len() > 0)
+        assert(removed_name_hint(String_from("hashset_i32_to_vec")).len() > 0)
+        assert(removed_name_hint(String_from("hashset_str_remove")).len() > 0)
     }
     test "retired private hash lowering targets keep method hints" {
-        assert(len(removed_private_member_hint(String_from("hash"), String_from("hashset_insert"))) > 0)
-        assert(len(removed_private_member_hint(String_from("std::collections::hash"), String_from("hashmap_new"))) > 0)
-        assert(len(removed_private_member_hint(String_from("hash"), String_from("hashmap_capacity"))) > 0)
-        assert(len(removed_private_member_hint(String_from("hash"), String_from("hashmap_entry_pairs"))) > 0)
-        assert(len(removed_private_member_hint(String_from("hash_string"), String_from("hashmap_str_get"))) > 0)
+        assert(removed_private_member_hint(String_from("hash"), String_from("hashset_insert")).len() > 0)
+        assert(removed_private_member_hint(String_from("std::collections::hash"), String_from("hashmap_new")).len() > 0)
+        assert(removed_private_member_hint(String_from("hash"), String_from("hashmap_capacity")).len() > 0)
+        assert(removed_private_member_hint(String_from("hash"), String_from("hashmap_entry_pairs")).len() > 0)
+        assert(removed_private_member_hint(String_from("hash_string"), String_from("hashmap_str_get")).len() > 0)
         // Private internals are not retired public names.
-        assert(len(removed_private_member_hint(String_from("hash"), String_from("hm_si_grow"))) == 0)
-        assert(len(removed_private_member_hint(String_from("hash_string"), String_from("hm_si_grow"))) == 0)
+        assert(removed_private_member_hint(String_from("hash"), String_from("hm_si_grow")).len() == 0)
+        assert(removed_private_member_hint(String_from("hash_string"), String_from("hm_si_grow")).len() == 0)
     }
     test "removed simd lane frees have associated-function hints" {
-        assert(len(removed_module_member_hint(String_from("f32x4"), String_from("splat"))) > 0)
-        assert(len(removed_module_member_hint(String_from("i32x4"), String_from("add"))) > 0)
-        assert(len(removed_module_member_hint(String_from("i8x16"), String_from("extract_lane"))) > 0)
-        assert(len(removed_module_member_hint(String_from("f64x2"), String_from("sqrt"))) > 0)
-        assert(len(removed_module_member_hint(String_from("u64x2"), String_from("zero"))) > 0)
-        assert(len(removed_module_member_hint(String_from("v128"), String_from("any_true"))) > 0)
+        assert(removed_module_member_hint(String_from("f32x4"), String_from("splat")).len() > 0)
+        assert(removed_module_member_hint(String_from("i32x4"), String_from("add")).len() > 0)
+        assert(removed_module_member_hint(String_from("i8x16"), String_from("extract_lane")).len() > 0)
+        assert(removed_module_member_hint(String_from("f64x2"), String_from("sqrt")).len() > 0)
+        assert(removed_module_member_hint(String_from("u64x2"), String_from("zero")).len() > 0)
+        assert(removed_module_member_hint(String_from("v128"), String_from("any_true")).len() > 0)
     }
     test "non-simd modules keep no simd hint" {
-        assert(len(removed_module_member_hint(String_from("f32x4x"), String_from("splat"))) == 0)
-        assert(len(removed_module_member_hint(String_from("text"), String_from("splat"))) == 0)
+        assert(removed_module_member_hint(String_from("f32x4x"), String_from("splat")).len() == 0)
+        assert(removed_module_member_hint(String_from("text"), String_from("splat")).len() == 0)
     }
     test "removed json/toml value frees have method hints" {
-        assert(len(removed_module_member_hint(String_from("json"), String_from("json_get"))) > 0)
-        assert(len(removed_module_member_hint(String_from("json"), String_from("json_as_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("json"), String_from("quote_string"))) > 0)
-        assert(len(removed_module_member_hint(String_from("json"), String_from("json_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("parser"), String_from("json_parse_string_at"))) > 0)
-        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_find_value"))) > 0)
-        assert(len(removed_module_member_hint(String_from("csv"), String_from("csv_parse_row"))) > 0)
-        assert(len(removed_name_hint(String_from("csv_parse_row"))) > 0)
-        assert(len(removed_module_member_hint(String_from("json"), String_from("stringify"))) > 0)
-        assert(len(removed_module_member_hint(String_from("json"), String_from("parse_error_message"))) > 0)
-        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_get"))) > 0)
-        assert(len(removed_module_member_hint(String_from("toml"), String_from("toml_as_string"))) > 0)
+        assert(removed_module_member_hint(String_from("json"), String_from("json_get")).len() > 0)
+        assert(removed_module_member_hint(String_from("json"), String_from("json_as_i32")).len() > 0)
+        assert(removed_module_member_hint(String_from("json"), String_from("quote_string")).len() > 0)
+        assert(removed_module_member_hint(String_from("json"), String_from("json_i32")).len() > 0)
+        assert(removed_module_member_hint(String_from("parser"), String_from("json_parse_string_at")).len() > 0)
+        assert(removed_module_member_hint(String_from("toml"), String_from("toml_find_value")).len() > 0)
+        assert(removed_module_member_hint(String_from("csv"), String_from("csv_parse_row")).len() > 0)
+        assert(removed_name_hint(String_from("csv_parse_row")).len() > 0)
+        assert(removed_module_member_hint(String_from("json"), String_from("stringify")).len() > 0)
+        assert(removed_module_member_hint(String_from("json"), String_from("parse_error_message")).len() > 0)
+        assert(removed_module_member_hint(String_from("toml"), String_from("toml_get")).len() > 0)
+        assert(removed_module_member_hint(String_from("toml"), String_from("toml_as_string")).len() > 0)
     }
     test "removed path/time/random frees have receiver hints" {
-        assert(len(removed_module_member_hint(String_from("path"), String_from("join"))) > 0)
-        assert(len(removed_module_member_hint(String_from("path"), String_from("file_name"))) > 0)
-        assert(len(removed_module_member_hint(String_from("path"), String_from("last_index_of"))) > 0)
-        assert(len(removed_module_member_hint(String_from("time"), String_from("duration_ms"))) > 0)
-        assert(len(removed_module_member_hint(String_from("time"), String_from("duration_ns"))) > 0)
-        assert(len(removed_module_member_hint(String_from("random"), String_from("seeded_random"))) > 0)
-        assert(len(removed_module_member_hint(String_from("random"), String_from("shuffle_i32"))) > 0)
+        assert(removed_module_member_hint(String_from("path"), String_from("join")).len() > 0)
+        assert(removed_module_member_hint(String_from("path"), String_from("file_name")).len() > 0)
+        assert(removed_module_member_hint(String_from("path"), String_from("last_index_of")).len() > 0)
+        assert(removed_module_member_hint(String_from("time"), String_from("duration_ms")).len() > 0)
+        assert(removed_module_member_hint(String_from("time"), String_from("duration_ns")).len() > 0)
+        assert(removed_module_member_hint(String_from("random"), String_from("seeded_random")).len() > 0)
+        assert(removed_module_member_hint(String_from("random"), String_from("shuffle_i32")).len() > 0)
     }
     test "removed core frees have receiver hints" {
-        assert(len(removed_module_member_hint(String_from("core"), String_from("range_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("core"), String_from("range_contains"))) > 0)
-        assert(len(removed_module_member_hint(String_from("core"), String_from("range_inclusive_new"))) > 0)
-        assert(len(removed_module_member_hint(String_from("core"), String_from("cmp_i32"))) > 0)
-        assert(len(removed_module_member_hint(String_from("core"), String_from("identity"))) > 0)
-        assert(len(removed_module_member_hint(String_from("error"), String_from("error_message"))) > 0)
-        assert(len(removed_module_member_hint(String_from("hash"), String_from("combine"))) > 0)
-        assert(len(removed_name_hint(String_from("range_new"))) > 0)
-        assert(len(removed_name_hint(String_from("identity"))) > 0)
-        assert(len(removed_name_hint(String_from("combine"))) > 0)
+        assert(removed_module_member_hint(String_from("core"), String_from("range_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("core"), String_from("range_contains")).len() > 0)
+        assert(removed_module_member_hint(String_from("core"), String_from("range_inclusive_new")).len() > 0)
+        assert(removed_module_member_hint(String_from("core"), String_from("cmp_i32")).len() > 0)
+        assert(removed_module_member_hint(String_from("core"), String_from("identity")).len() > 0)
+        assert(removed_module_member_hint(String_from("error"), String_from("error_message")).len() > 0)
+        assert(removed_module_member_hint(String_from("hash"), String_from("combine")).len() > 0)
+        assert(removed_name_hint(String_from("range_new")).len() > 0)
+        assert(removed_name_hint(String_from("identity")).len() > 0)
+        assert(removed_name_hint(String_from("combine")).len() > 0)
     }
     test "live path/time/random members keep no removal hint" {
-        assert(len(removed_module_member_hint(String_from("path"), String_from("Path"))) == 0)
-        assert(len(removed_module_member_hint(String_from("time"), String_from("Duration"))) == 0)
-        assert(len(removed_module_member_hint(String_from("random"), String_from("Rng"))) == 0)
+        assert(removed_module_member_hint(String_from("path"), String_from("Path")).len() == 0)
+        assert(removed_module_member_hint(String_from("time"), String_from("Duration")).len() == 0)
+        assert(removed_module_member_hint(String_from("random"), String_from("Rng")).len() == 0)
     }
 
 }

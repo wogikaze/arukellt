@@ -27,7 +27,7 @@ fn mir_emit_closure_params(mut ctx: LowerCtx, clos: AstNode, child_count: i32) {
                     ctx,
                     ann_types::mir_local_type_name_from_ann(ann, 0)
                 )
-                if len(ptype) == 0 {
+                if ptype.len() == 0 {
                     ptype = ann_name.clone()
                 }
                 if pvt == value_types::VT_I32() {
@@ -41,7 +41,7 @@ fn mir_emit_closure_params(mut ctx: LowerCtx, clos: AstNode, child_count: i32) {
                 }
             }
             let _idx = ctx_alloc_local(ctx, param_name.clone(), pvt)
-            if len(ptype) > 0 {
+            if ptype.len() > 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, _idx, ptype.clone())
             }
             ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(param_name.clone(), pvt, ptype.clone()))

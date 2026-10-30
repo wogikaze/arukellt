@@ -2,12 +2,12 @@ use std::text
 fn main() -> i32 {
     let left = String_from("left")
     let right = String_from("right")
-    let pick = if len(left) > 0 { left } else { right }
+    let pick = if left.len() > 0 { left } else { right }
     let mut i = 0
     while i < 16 {
         let junk = String_from("j").concat(String_from("k"))
-        let _n = len(junk)
+        let _n = junk.len()
         i = i + 1
     }
-    if len(pick) >= 4 { 0 } else { 1 }
+    if pick.len() >= 4 { 0 } else { 1 }
 }

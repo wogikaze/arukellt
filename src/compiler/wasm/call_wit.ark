@@ -16,14 +16,14 @@ fn try_emit_wit_call(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, binding
         return false
     }
     let bind_idx = inst_accessors_operands::MirInst_arg0(inst)
-    if bind_idx < 0 || bind_idx >= len(bindings) {
+    if bind_idx < 0 || bind_idx >= bindings.len() {
         return false
     }
     let import_idx = function_indices::wit_import_function_index(
         bind_idx,
         ctx_record::SelfEmitCtx_target(ctx),
         ctx_record::SelfEmitCtx_wasi_version(ctx),
-        len(bindings)
+        bindings.len()
     )
     helpers_core::emit_call(w, import_idx)
     let has_result = wit_binding_has_result(bindings, bind_idx)

@@ -40,7 +40,7 @@ fn ctx_register_builtin_payload_variants(mut ctx: LowerCtx) {
 }
 
 fn register_builtin_gc_variant(mut ctx: LowerCtx, name: String, has_payload: bool, field_sigs: String) {
-    let slot = len(ctx.gc_enum_variant_names)
+    let slot = ctx.gc_enum_variant_names.len()
     let sig = if has_payload {
         ctx_gc_enum_sig::gc_enum_payload_variant_sig(slot, field_sigs)
     } else {

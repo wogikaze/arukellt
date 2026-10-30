@@ -2,7 +2,7 @@ use parser::core_ast_children
 use parser::multiclause_arm_build
 
 fn append_clause_match_arms(mut match_node: AstNode, clauses: Vec<AstNode>, fn_span: Span) {
-    for ci in 0..len(clauses) {
+    for ci in 0..clauses.len() {
         let clause = get_unchecked(clauses, ci)
         let arm = multiclause_arm_build::build_clause_match_arm(clause, fn_span)
         core_ast_children::AstNode_push_child(match_node, arm)

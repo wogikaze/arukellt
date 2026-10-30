@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: len; use `s.len()` on `String` or `v.len()` on `Vec<T>` instead

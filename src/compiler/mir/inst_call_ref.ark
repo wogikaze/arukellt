@@ -23,7 +23,7 @@ fn MirInst_call_ref_with_arg0_vt(
     } else {
         String_new()
     }
-    let hint = if len(callee_type_name) > 0 {
+    let hint = if callee_type_name.len() > 0 {
         numeric_hint.concat(String_from("|").concat(callee_type_name))
     } else {
         numeric_hint

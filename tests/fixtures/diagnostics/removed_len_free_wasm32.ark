@@ -1,0 +1,8 @@
+// E0100: the vec intrinsic-compat `len` free was retired; String and Vec
+// receivers expose the same operation as `.len()` and the hint names both.
+fn main() {
+    let text = String_from("hello")
+    let _text_len = len(text)
+    let values: Vec<i32> = Vec::new<i32>()
+    let _values_len = len(values)
+}

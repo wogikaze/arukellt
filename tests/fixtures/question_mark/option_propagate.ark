@@ -6,7 +6,7 @@ use std::host::stdio::Stdio
 // with no From conversion.
 
 fn first_digit(s: String) -> Option<i32> {
-    if len(s) == 0 {
+    if s.len() == 0 {
         return None
     }
     let ch = s.byte_at(0)

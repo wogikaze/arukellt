@@ -4,6 +4,6 @@ use std::test::Test
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     let drained = m.drain()
-    Test::assert_eq_i32(len(drained), 0)
+    Test::assert_eq_i32(drained.len(), 0)
     Test::assert_true(m.is_empty())
 }

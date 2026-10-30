@@ -36,7 +36,7 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     // MIR lowering consumes this per-call resolution instead of re-deriving
     // the owner from the receiver's local type spelling (#933 / #936).
     let receiver_owner = generic_call_receiver_owner(sig.clone(), var_names.clone(), var_types.clone())
-    if len(receiver_owner) > 0 {
+    if receiver_owner.len() > 0 {
         contract_env_resolved_record::type_env_record_resolved_call_owner(
             env,
             ast_access::node_span_start(node),
@@ -80,7 +80,7 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     }
     // Unresolved polymorphic calls must not mint mono instances.
     if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types) {
-        if len(arg_types) == 0 {
+        if arg_types.len() == 0 {
             report_unbindable_type_params(env, infer_env, var_names, var_types, projected_ret, fn_name)
         }
         return ret_ty
@@ -97,7 +97,7 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
 }
 
 fn generic_call_args_concrete(arg_types: Vec<TypeInfo>) -> bool {
-    let count = len(arg_types)
+    let count = arg_types.len()
     let mut i = 0
     while i < count {
         let arg_ty = get_unchecked(arg_types, i)
@@ -134,7 +134,7 @@ fn bind_uninferable_impl_type_params(
         return
     }
     let impl_param_count = call_owner_type_param_count(env, fn_name.clone())
-    let count = len(var_types)
+    let count = var_types.len()
     let mut i = 0
     while i < count && i < impl_param_count {
         let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
@@ -165,7 +165,7 @@ fn fn_sig_mentions_type_param(sig: FnSig, param_name: String) -> bool {
 // The owner segment of an associated call (`Wrap::pass` -> `Wrap`,
 // `module::Wrap::pass` -> `module::Wrap`). A bare function name has no owner.
 fn call_owner_segment(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut last_separator = 0 - 1
     let mut i = 0
     while i + 1 < n {
@@ -188,16 +188,16 @@ fn call_owner_segment(name: String) -> String {
 // return 0 and stay on the existing deferral path.
 fn call_owner_type_param_count(env: TypeEnv, fn_name: String) -> i32 {
     let owner = call_owner_segment(fn_name.clone())
-    if len(owner) == 0 {
+    if owner.len() == 0 {
         return 0
     }
     let base = names::unqualified_type_name(owner)
-    let count = len(env.struct_defs)
+    let count = env.struct_defs.len()
     let mut i = 0
     while i < count {
         let def = get_unchecked(env.struct_defs, i)
         if contract_struct_info::StructInfo_name(def).eq(base.clone()) {
-            return len(contract_struct_info::StructInfo_type_params(def))
+            return contract_struct_info::StructInfo_type_params(def).len()
         }
         i = i + 1
     }
@@ -211,7 +211,7 @@ fn call_owner_type_param_count(env: TypeEnv, fn_name: String) -> i32 {
 // argument. Vars that appear in the return type may still be bound
 // downstream and stay deferred on purpose.
 fn report_unbindable_type_params(mut env: TypeEnv, infer_env: TypeEnv, var_names: Vec<String>, var_types: Vec<TypeInfo>, ret_ty: TypeInfo, fn_name: String) {
-    let count = len(var_types)
+    let count = var_types.len()
     let mut i = 0
     while i < count {
         let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))

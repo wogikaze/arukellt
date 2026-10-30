@@ -8,7 +8,7 @@ use mir::types
 // stale field read). Trap at the table boundary so corruption can never be
 // emitted as a malformed data segment again.
 fn assert_string_constant_sane(s: String) {
-    if len(s) < 0 {
+    if s.len() < 0 {
         Stdio::eprintln("compiler ICE: string constant entered table with negative length")
         Process::exit(1)
     }
@@ -19,7 +19,7 @@ fn MirModule_string_constants(m: MirModule) -> Vec<String> {
 }
 
 fn MirModule_string_constant_count(m: MirModule) -> i32 {
-    len(m.string_constants)
+    m.string_constants.len()
 }
 
 fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
@@ -29,7 +29,7 @@ fn MirModule_string_constant_at(m: MirModule, idx: i32) -> String {
 fn MirModule_push_string_constant(mut m: MirModule, s: String) {
     assert_string_constant_sane(s)
     push(m.string_data_rel, m.string_data_next + 4)
-    m.string_data_next = m.string_data_next + 4 + len(s)
+    m.string_data_next = m.string_data_next + 4 + s.len()
     push(m.string_constants, s)
 }
 
@@ -43,7 +43,7 @@ fn MirModule_string_data_next(m: MirModule) -> i32 {
 
 fn intern_string(mut m: MirModule, s: String) -> i32 {
     assert_string_constant_sane(s)
-    let count = len(m.string_constants)
+    let count = m.string_constants.len()
     let mut i = 0
     while i < count {
         let existing = get_unchecked(m.string_constants, i)

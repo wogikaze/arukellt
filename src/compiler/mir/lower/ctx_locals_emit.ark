@@ -8,7 +8,7 @@ fn ctx_emit(mut ctx: LowerCtx, mut inst: MirInstDraft) {
     // itself passes through the same emit pipeline.
     let flush = ctx_env_cells::ctx_env_cell_flush(ctx, inst)
     let mut ri = 0
-    while ri < len(flush) {
+    while ri < flush.len() {
         ctx_emit(ctx, get_unchecked(flush, ri))
         ri = ri + 1
     }
@@ -18,7 +18,7 @@ fn ctx_emit(mut ctx: LowerCtx, mut inst: MirInstDraft) {
     // through the same identify/enrich/record pipeline verbatim.
     let rewritten = closure_pcells::ctx_pcell_rewrite(ctx, inst)
     let mut wi = 0
-    while wi < len(rewritten) {
+    while wi < rewritten.len() {
         ctx_emit_core::ctx_emit_verbatim(ctx, get_unchecked(rewritten, wi))
         wi = wi + 1
     }

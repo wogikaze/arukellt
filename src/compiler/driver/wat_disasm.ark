@@ -13,7 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{push, len, get_unchecked, String_from}
+use std::prelude::{push, get_unchecked, String_from}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -361,7 +361,7 @@ fn u64_hex(v: i64) -> String {
         x = x >> 4i64
     }
     let mut reversed: Vec<String> = Vec::new<String>()
-    let mut i: i32 = len(digits) - 1
+    let mut i: i32 = digits.len() - 1
     while i >= 0 {
         push(reversed, get_unchecked(digits, i))
         i = i - 1
@@ -699,10 +699,10 @@ fn const_expr_parts(mut r: Rd) -> Vec<String> {
 // 単一命令なら `(i32.const 0)`、複数なら平坦な並びで返す。
 fn const_expr_text(mut r: Rd) -> String {
     let parts: Vec<String> = const_expr_parts(r)
-    if len(parts) == 0 {
+    if parts.len() == 0 {
         return "(i32.const 0)"
     }
-    if len(parts) == 1 {
+    if parts.len() == 1 {
         return "(".concat(get_unchecked(parts, 0)).concat(")")
     }
     return parts.join(String_from(" "))
@@ -1670,7 +1670,7 @@ fn u32_at(b: Vec<i32>, start: i32) -> i32 {
     let mut shift: i32 = 0
     let mut p: i32 = start
     let mut i: i32 = 0
-    while i < 5 && p < len(b) {
+    while i < 5 && p < b.len() {
         let v: i32 = get_unchecked(b, p)
         p = p + 1
         result = result | ((v & 0x7f) << shift)
@@ -1967,7 +1967,7 @@ fn emit_code_section(mut r: Rd, mut o: Out, func_types: Vec<i32>) {
             body_end = r.n
         }
         let mut typeidx: i32 = 0
-        if i < len(func_types) {
+        if i < func_types.len() {
             typeidx = get_unchecked(func_types, i)
         }
         put(o, 1, "(func (type ".concat(text_u32(typeidx)).concat(")").concat(locals_text(r)))
@@ -2073,7 +2073,7 @@ fn section_name(id: i32) -> String {
 /// partial disassembly never masquerades as valid WAT.
 pub fn wasm_to_wat(bytes: Vec<i32>) -> String {
     let mut o: Out = Out { lines: Vec::new<String>() }
-    let n: i32 = len(bytes)
+    let n: i32 = bytes.len()
     if !header_is_valid(bytes, n) {
         put(o, 0, ";; GAP: not a wasm core module (bad magic or version)")
         put(o, 0, "(module)")

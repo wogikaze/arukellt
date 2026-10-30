@@ -88,12 +88,12 @@ pub fn build_command_config(opts: CliOptions) -> DriverConfig {
 }
 
 fn should_dump(opts: CliOptions, phase: String) -> bool {
-    if len(args_record::cli_dump_phases(opts)) == 0 {
+    if args_record::cli_dump_phases(opts).len() == 0 {
         return false
     }
     let phases = args_record::cli_dump_phases(opts)
-    let phase_len = len(phase)
-    let phases_len = len(phases)
+    let phase_len = phase.len()
+    let phases_len = phases.len()
     let mut i = 0
     while i <= phases_len - phase_len {
         let sub = phases.clone().slice(i, i + phase_len)
@@ -126,7 +126,7 @@ fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mod
         return
     }
     let diags = result_record::compile_result_diagnostics(result)
-    let diag_count = len(diags)
+    let diag_count = diags.len()
     let mut j = 0
     while j < diag_count {
         Stdio::eprintln(diag_mod::format_diagnostic_text(String_new(), input_file.clone(), get_unchecked(diags, j)))
@@ -139,7 +139,7 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
     match write_result {
         Result::Ok(_) => {
             if !json_mode {
-                Stdio::eprintln("wrote ".concat(len(bytes).to_string().concat(" bytes to ".concat(path.clone()))))
+                Stdio::eprintln("wrote ".concat(bytes.len().to_string().concat(" bytes to ".concat(path.clone()))))
             }
             true
         },
@@ -151,7 +151,7 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
 }
 
 fn stem_from_input(path: String) -> String {
-    let n = len(path.clone())
+    let n = path.clone().len()
     if n > 4 {
         let ext = path.clone().slice(n - 4, n)
         if ext.eq(".ark") {
@@ -171,7 +171,7 @@ fn wasm_path_for_all(opts: CliOptions) -> String {
 fn component_path_for_all(opts: CliOptions) -> String {
     if args_record::cli_has_output_file(opts) {
         let out = args_record::cli_output_file(opts)
-        let n = len(out.clone())
+        let n = out.clone().len()
         if n > 5 {
             let ext = out.clone().slice(n - 5, n)
             if ext.eq(".wasm") {
@@ -201,7 +201,7 @@ pub fn cmd_compile_single_status(opts: CliOptions) -> i32 {
     let mut config = build_command_config(opts)
     let json_mode = args_record::cli_json_output(opts)
     let result = file::compile_file(input_file.clone(), config)
-    let has_messages = result_record::compile_result_error_message_count(result) > 0 || len(result_record::compile_result_diagnostics(result)) > 0
+    let has_messages = result_record::compile_result_error_message_count(result) > 0 || result_record::compile_result_diagnostics(result).len() > 0
     if has_messages {
         print_compile_diagnostics(input_file.clone(), result, json_mode)
     }

@@ -19,11 +19,11 @@ fn is_module_style_qualified_path(path: String) -> bool {
         return false
     }
     let mod_part = paths::path_module_part(path.clone())
-    if len(mod_part.clone()) == 0 {
+    if mod_part.clone().len() == 0 {
         return false
     }
     let sym_part = paths::path_symbol_part(path.clone())
-    if len(sym_part.clone()) == 0 {
+    if sym_part.clone().len() == 0 {
         return false
     }
     let c = mod_part.byte_at(0)
@@ -69,7 +69,7 @@ fn path_seen_before(paths: Vec<String>, path: String, before: i32) -> bool {
 }
 
 fn count_same_path(paths: Vec<String>, path: String) -> i32 {
-    let n = len(paths)
+    let n = paths.len()
     let mut uses = 0
     let mut k = 0
     while k < n {
@@ -86,14 +86,14 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let mut paths = Vec::new<String>()
     let mut starts = Vec::new<i32>()
     let mut ends = Vec::new<i32>()
-    let dn = len(decls)
+    let dn = decls.len()
     let mut di = 0
     while di < dn {
         collect_paths(get_unchecked(decls, di), paths, starts, ends)
         di = di + 1
     }
     let threshold = prefer_use_import_threshold()
-    let n = len(paths)
+    let n = paths.len()
     let mut i = 0
     while i < n {
         let path = get_unchecked(paths, i).clone()

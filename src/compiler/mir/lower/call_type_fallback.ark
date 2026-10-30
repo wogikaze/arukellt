@@ -18,7 +18,7 @@ use corehir::kinds
 // single-colon encodings like `struct:Name:8` or `option:i32`.
 use std::text
 fn strip_module_double_colon(type_name: String) -> String {
-    let n = len(type_name)
+    let n = type_name.len()
     if n < 2 {
         return type_name
     }
@@ -41,7 +41,7 @@ fn strip_embedded_module_path_prefixes(type_name: String) -> String {
     let mut result = type_name.clone()
     let mut guard = 0
     while guard < 16 {
-        let n = len(result)
+        let n = result.len()
         let mut sep = 0 - 1
         let mut i = 0
         while i < n - 1 {
@@ -86,7 +86,7 @@ fn is_option_or_result_type_name(type_name: String) -> bool {
 
 fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_name: String) {
     let cleaned = strip_embedded_module_path_prefixes(type_name)
-    if len(cleaned) == 0 {
+    if cleaned.len() == 0 {
         return
     }
     if cleaned.clone().eq("fnref") ||
@@ -154,7 +154,7 @@ fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_nam
     // prelude enum Box) cannot be the referent, so an enum base wins over
     // layout basename resolve.
     let generic_enum = ctx_struct_layout::ctx_generic_enum_type_name(ctx, cleaned.clone())
-    if len(generic_enum) > 0 {
+    if generic_enum.len() > 0 {
         // A concrete instantiation keeps its arguments so a following match
         // can substitute the enum's payload type; declaration spellings keep
         // the bare storage name.
@@ -174,7 +174,7 @@ fn mark_call_result_from_return_type_name(mut ctx: LowerCtx, dest: i32, type_nam
         let _derived = ctx_struct_mono::ctx_derive_generic_struct_layout(ctx, cleaned.clone())
     }
     let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, cleaned)
-    if len(resolved) > 0 {
+    if resolved.len() > 0 {
         let marked = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved)
         ctx_api_local_types::ctx_set_local_type(ctx, dest, marked.clone())
         // Struct results must not keep a stray enum variant_slot from an
@@ -198,7 +198,7 @@ fn mark_fallback_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: 
     // Re-apply known stdlib Result types when unset or demoted away from
     // Result/Option encodings (#834 cmd_init: write_main was i32).
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
-    let existing_is_weak = len(existing) == 0 || existing.clone().eq("enum:open")
+    let existing_is_weak = existing.len() == 0 || existing.clone().eq("enum:open")
     let needs_stdlib_result = existing_is_weak ||
     !is_option_or_result_type_name(existing.clone())
     if needs_stdlib_result &&
@@ -206,18 +206,18 @@ fn mark_fallback_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: 
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
         return
     }
-    if existing_is_weak && len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+    if existing_is_weak && ctx_api_local_types::ctx_get_local_type(ctx, dest).len() == 0 {
         mark_struct_constructor_result_type(ctx, callee_name, dest)
     }
-    if existing_is_weak && len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+    if existing_is_weak && ctx_api_local_types::ctx_get_local_type(ctx, dest).len() == 0 {
         let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, callee_name.clone())
         // For monomorphized calls, resolve concrete return type name
         // by substituting type vars from MonoInstance (e.g. "option:T"
         // → "option:i32"). Also handles generic T→Point → "struct:Point:8".
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, callee_name.clone(), rtn.clone())
-        if len(mono_rtn) > 0 {
+        if mono_rtn.len() > 0 {
             mark_call_result_from_return_type_name(ctx, dest, mono_rtn)
-        } else if len(rtn) > 1 && !mono_suffix_parse::is_mono_type_var_name(rtn.clone()) {
+        } else if rtn.len() > 1 && !mono_suffix_parse::is_mono_type_var_name(rtn.clone()) {
             mark_call_result_from_return_type_name(ctx, dest, rtn)
         }
     }
@@ -230,10 +230,10 @@ fn mark_fallback_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: 
     // ref container (vec:/String/…). Unconditional scalar overwrite broke
     // Vec::new__T results that mark_vec typed as vec:Elem (#845).
     if mono_vt == value_types::VT_I32() || mono_vt == value_types::VT_I64() || mono_vt == value_types::VT_F64() || mono_vt == value_types::VT_F32() {
-        if len(resolved_type) == 0 || !is_ref_type_name(ctx, resolved_type.clone()) {
+        if resolved_type.len() == 0 || !is_ref_type_name(ctx, resolved_type.clone()) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
         }
-    } else if len(resolved_type) == 0 || !is_ref_type_name(ctx, resolved_type.clone()) {
+    } else if resolved_type.len() == 0 || !is_ref_type_name(ctx, resolved_type.clone()) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
     }
     // Sync MirLocal.value_type from MonoInstanceTable so emit spine lookup
@@ -254,7 +254,7 @@ fn apply_mono_return_mvt_to_dest(mut ctx: LowerCtx, callee_name: String, dest: i
 }
 
 fn set_vt_for_resolved_type_name(mut ctx: LowerCtx, dest: i32, type_name: String) {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return
     }
     if type_name.clone().eq("fnref") ||
@@ -288,7 +288,7 @@ fn set_vt_for_resolved_type_name(mut ctx: LowerCtx, dest: i32, type_name: String
 
 fn mark_struct_constructor_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
     let cn_stripped = call_type_fallback_stdlib::mir_strip_module_prefix(callee_name.clone())
-    let cn_len = len(cn_stripped)
+    let cn_len = cn_stripped.len()
     if cn_len > 4 {
         let cn_suffix = cn_stripped.slice(cn_len - 4, cn_len)
         if cn_suffix.clone().eq("_new") {
@@ -324,7 +324,7 @@ fn mark_struct_constructor_result_type(mut ctx: LowerCtx, callee_name: String, d
 // This prevents the emitter from declaring the local as i32 and then
 // storing a GC reference value into it, which produces invalid wasm.
 fn set_ref_vt_for_type_name(mut ctx: LowerCtx, dest: i32, type_name: String) {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return
     }
     if !is_ref_type_name(ctx, type_name.clone()) {
@@ -344,7 +344,7 @@ fn mir_promote_gc_enum_container_vt(mut ctx: LowerCtx, local_idx: i32) {
         return
     }
     let tn = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
-    if len(tn) > 0 {
+    if tn.len() > 0 {
         if is_ref_type_name(ctx, tn) {
             set_ref_vt_for_type_name(ctx, local_idx, tn)
         }

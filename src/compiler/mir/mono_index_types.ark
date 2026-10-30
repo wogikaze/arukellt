@@ -35,7 +35,7 @@ fn mono_index_new() -> MonoIndex {
 }
 
 fn mono_index_name_count(idx: MonoIndex) -> i32 {
-    len(idx.names)
+    idx.names.len()
 }
 
 fn mono_index_name_at(idx: MonoIndex, index: i32) -> String {
@@ -47,7 +47,7 @@ fn mono_index_count_at(idx: MonoIndex, index: i32) -> i32 {
 }
 
 fn mono_index_mangled_count(idx: MonoIndex) -> i32 {
-    len(idx.mangled_names)
+    idx.mangled_names.len()
 }
 
 fn mono_index_mangled_at_offset(idx: MonoIndex, offset: i32) -> String {
@@ -65,7 +65,7 @@ fn mono_index_push_name(mut idx: MonoIndex, fn_name: String, mangled_name: Strin
     push(idx.mangled_bases, fn_name)
     push(idx.mangled_next, 0 - 1)
     mono_index_name_insert(idx, fn_name.clone())
-    mono_index_base_chain_push(idx, fn_name.clone(), len(idx.mangled_names) - 1)
+    mono_index_base_chain_push(idx, fn_name.clone(), idx.mangled_names.len() - 1)
 }
 
 fn mono_index_increment_name(mut idx: MonoIndex, index: i32, mangled_name: String) {
@@ -74,7 +74,7 @@ fn mono_index_increment_name(mut idx: MonoIndex, index: i32, mangled_name: Strin
     push(idx.mangled_names, mangled_name.clone())
     push(idx.mangled_bases, mono_index_name_at(idx, index).clone())
     push(idx.mangled_next, 0 - 1)
-    mono_index_base_chain_push(idx, mono_index_name_at(idx, index), len(idx.mangled_names) - 1)
+    mono_index_base_chain_push(idx, mono_index_name_at(idx, index), idx.mangled_names.len() - 1)
 }
 
 fn mono_index_find_name(idx: MonoIndex, fn_name: String) -> i32 {
@@ -85,7 +85,7 @@ fn mono_index_find_name(idx: MonoIndex, fn_name: String) -> i32 {
 // ctx maps (ctx_mono_inst_probe_slot).
 fn mono_index_string_hash(name: String) -> i32 {
     let mut hash = 216613626
-    let name_len = len(name)
+    let name_len = name.len()
     let mut hi = 0
     while hi < name_len {
         hash = hash * 16777619 ^ name.byte_at(hi)
@@ -103,7 +103,7 @@ fn mono_index_string_hash(name: String) -> i32 {
 // Returns the probe slot: a 0 bucket is an insertion point, a nonzero bucket
 // holds keys[bucket-1] == name.
 fn mono_index_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
-    let capacity = len(slots)
+    let capacity = slots.len()
     if capacity <= 0 {
         return 0 - 1
     }
@@ -136,7 +136,7 @@ fn mono_index_zero_slots(size: i32) -> Vec<i32> {
 fn mono_index_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = mono_index_zero_slots(capacity)
     let mut i = 0
-    while i < len(keys) {
+    while i < keys.len() {
         let slot = mono_index_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
         set(slots, slot, i + 1)
         i = i + 1
@@ -145,14 +145,14 @@ fn mono_index_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
 }
 
 fn mono_index_name_ensure(mut idx: MonoIndex) {
-    let mut capacity = len(idx.name_slots)
-    if capacity > 0 && len(idx.name_keys) * 2 < capacity {
+    let mut capacity = idx.name_slots.len()
+    if capacity > 0 && idx.name_keys.len() * 2 < capacity {
         return
     }
     if capacity == 0 {
         capacity = 64
     }
-    while capacity <= len(idx.name_keys) * 2 {
+    while capacity <= idx.name_keys.len() * 2 {
         capacity = capacity * 2
     }
     idx.name_slots = mono_index_rehash(idx.name_keys, capacity)
@@ -171,7 +171,7 @@ fn mono_index_name_insert(mut idx: MonoIndex, fn_name: String) {
         return
     }
     push(idx.name_keys, fn_name)
-    set(idx.name_slots, slot, len(idx.name_keys))
+    set(idx.name_slots, slot, idx.name_keys.len())
 }
 
 fn mono_index_name_pos(idx: MonoIndex, fn_name: String) -> i32 {
@@ -187,14 +187,14 @@ fn mono_index_name_pos(idx: MonoIndex, fn_name: String) -> i32 {
 }
 
 fn mono_index_base_ensure(mut idx: MonoIndex) {
-    let mut capacity = len(idx.base_slots)
-    if capacity > 0 && len(idx.base_keys) * 2 < capacity {
+    let mut capacity = idx.base_slots.len()
+    if capacity > 0 && idx.base_keys.len() * 2 < capacity {
         return
     }
     if capacity == 0 {
         capacity = 64
     }
-    while capacity <= len(idx.base_keys) * 2 {
+    while capacity <= idx.base_keys.len() * 2 {
         capacity = capacity * 2
     }
     idx.base_slots = mono_index_rehash(idx.base_keys, capacity)
@@ -223,7 +223,7 @@ fn mono_index_base_chain_push(mut idx: MonoIndex, base: String, mangled_pos: i32
         push(idx.base_keys, base)
         push(idx.base_heads, 0 - 1)
         push(idx.base_tails, 0 - 1)
-        base_pos = len(idx.base_keys) - 1
+        base_pos = idx.base_keys.len() - 1
         set(idx.base_slots, slot, base_pos + 1)
     }
     let tail = get_unchecked(idx.base_tails, base_pos)

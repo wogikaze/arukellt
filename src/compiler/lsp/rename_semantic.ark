@@ -18,7 +18,7 @@ fn is_keyword_name(name: String) -> bool {
 
 fn is_renamable_at_offset(text: String, offset: i32) -> bool {
     let refs = symbol_references::collect_semantic_references(text.clone(), offset)
-    if len(refs) > 0 {
+    if refs.len() > 0 {
         return true
     }
     let span = symbols::ident_span_at_offset(text.clone(), offset)
@@ -36,7 +36,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     let mut start = 0
     let mut end = 0
     let mut name = String_new()
-    if len(refs) > 0 {
+    if refs.len() > 0 {
         let loc = get_unchecked(refs, 0)
         start = symbol_references::reference_location_start(loc)
         end = symbol_references::reference_location_end(loc)
@@ -96,11 +96,11 @@ pub fn build_rename_response_for_request(state: LspState, body: String, id: i32)
         return null_result(id)
     }
     let new_name = json::JsonText::get_str(body.clone(), String_from("newName"))
-    if len(new_name) == 0 || is_keyword_name(new_name.clone()) {
+    if new_name.len() == 0 || is_keyword_name(new_name.clone()) {
         return null_result(id)
     }
     let changes = rename_workspace::collect_workspace_changes(state, feature_request::text_position_request_uri(req), req_text.clone(), offset, new_name)
-    if len(changes) == 0 {
+    if changes.len() == 0 {
         return null_result(id)
     }
     build_rename_response(id, changes)

@@ -39,7 +39,7 @@ fn node_decl_name_span_start(node: AstNode) -> i32 {
 
 fn node_decl_name_span_end(node: AstNode) -> i32 {
     if ast::ast_node_has_name_span(node) { return ast::ast_node_name_span_end(node) }
-    node_span_start(node) + len(node_text(node))
+    node_span_start(node) + node_text(node).len()
 }
 
 fn find_ident_span_at_in(node: AstNode, offset: i32) -> IdentSpan {
@@ -68,7 +68,7 @@ fn find_ident_span_at_in(node: AstNode, offset: i32) -> IdentSpan {
 }
 
 fn find_ident_span_in_decls(decls: Vec<AstNode>, offset: i32) -> IdentSpan {
-    let n = len(decls)
+    let n = decls.len()
     let mut i = 0
     while i < n {
         let r = find_ident_span_at_in(get_unchecked(decls, i), offset)
@@ -105,7 +105,7 @@ fn find_decl_in_node(node: AstNode, name: String) -> SymbolInfo {
 }
 
 fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> SymbolInfo {
-    let n = len(decls)
+    let n = decls.len()
     let mut i = n - 1
     while i >= 0 {
         let found = find_decl_in_node(get_unchecked(decls, i), name.clone())
@@ -129,24 +129,24 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> SymbolI
 fn find_use_site_sig_in_node(node: AstNode, name: String) -> String {
     if node_is_let(node) && node_text(node).eq(name.clone()) {
         let sig: String = symbol_signature::use_site_signature(node, name.clone())
-        if len(sig) > 0 { return sig }
+        if sig.len() > 0 { return sig }
     }
     let cn = node_child_count(node)
     let mut i = 0
     while i < cn {
         let sig: String = find_use_site_sig_in_node(node_child_at(node, i), name.clone())
-        if len(sig) > 0 { return sig }
+        if sig.len() > 0 { return sig }
         i = i + 1
     }
     String_new()
 }
 
 fn use_site_sig_for_name(decls: Vec<AstNode>, name: String) -> String {
-    let n = len(decls)
+    let n = decls.len()
     let mut i = 0
     while i < n {
         let sig: String = find_use_site_sig_in_node(get_unchecked(decls, i), name.clone())
-        if len(sig) > 0 { return sig }
+        if sig.len() > 0 { return sig }
         i = i + 1
     }
     String_new()
@@ -167,14 +167,14 @@ pub fn symbol_at(text: String, offset: i32) -> SymbolInfo {
     if symbol_types::symbol_info_found(info) {
         if symbol_types::symbol_info_kind(info) == AT_NK_LET() {
             let site_sig = use_site_sig_for_name(decls2, name.clone())
-            if len(site_sig) > 0 {
+            if site_sig.len() > 0 {
                 return symbol_types::SymbolInfo_found(name, symbol_types::symbol_info_kind(info), decl_start, decl_end, site_sig, symbol_types::symbol_info_doc(info))
             }
         }
         return symbol_types::SymbolInfo_found(name, symbol_types::symbol_info_kind(info), decl_start, decl_end, symbol_types::symbol_info_signature(info), symbol_types::symbol_info_doc(info))
     }
     let sig = use_site_sig_for_name(decls2, name.clone())
-    if len(sig) > 0 {
+    if sig.len() > 0 {
         return symbol_types::SymbolInfo_found(name, kinds::NK_IDENT(), decl_start, decl_end, sig, String_new())
     }
     symbol_types::SymbolInfo_found(name, kinds::NK_IDENT(), decl_start, decl_end, name, String_new())
@@ -187,6 +187,6 @@ pub fn render_hover_markdown(info: symbol_types::SymbolInfo, minimal: bool) -> S
     out = out.concat(symbol_types::symbol_info_signature(info))
     out = out.concat("\n```")
     let doc = symbol_types::symbol_info_doc(info)
-    if len(doc) > 0 { out = out.concat("\n\n".concat(doc)) }
+    if doc.len() > 0 { out = out.concat("\n\n".concat(doc)) }
     out
 }

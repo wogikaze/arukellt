@@ -154,7 +154,7 @@ statement: the `END` breaks the compose, and the call lowers to
 
 ```ark
 fn check(path: String) -> bool {
-    if len(path) < 5 { return false }
+    if path.len() < 5 { return false }
     (path.slice(0, 5)).eq("std::")   // trap stub / i32::eq
 }
 ```

@@ -10,7 +10,7 @@ use main::kinds
 use main::target_contract_generated
 fn parse_args(argv: Vec<String>) -> CliOptions {
     let mut opts = args_record::CliOptions_default()
-    let argc = len(argv)
+    let argc = argv.len()
     if argc <= 1 {
         args_record::cli_set_show_help(opts, true)
         return opts
@@ -62,7 +62,7 @@ fn validate_target_configuration(mut opts: CliOptions) {
     args_record::cli_component_action(opts) == kinds::COMP_ACTION_BUILD()
     let target = if is_component_build { String_from("wasm32-gc") } else { args_record::cli_target(opts) }
     let host = if is_component_build { String_from("wasi-p2") } else { args_record::cli_wasi_version(opts) }
-    if len(host.clone()) > 0 && !target_contract_generated::target_allows_host_profile(target.clone(), host.clone()) {
+    if host.clone().len() > 0 && !target_contract_generated::target_allows_host_profile(target.clone(), host.clone()) {
         args_record::cli_set_error(
             opts,
             "target `".concat(target.clone().concat("` does not support host profile `".concat(host.clone().concat("`"))))
@@ -136,14 +136,14 @@ fn parse_initial_command(argv: Vec<String>, mut opts: CliOptions) {
 }
 
 fn arg_is_check_command(arg: String) -> bool {
-    if len(arg.clone()) != 5 {
+    if arg.clone().len() != 5 {
         return false
     }
     arg.clone().byte_at(0) == 99 && arg.clone().byte_at(1) == 104 && arg.clone().byte_at(2) == 101 && arg.clone().byte_at(3) == 99 && arg.clone().byte_at(4) == 107
 }
 
 fn arg_is_compile_command(arg: String) -> bool {
-    if len(arg.clone()) != 7 {
+    if arg.clone().len() != 7 {
         return false
     }
     arg.clone().byte_at(0) == 99 &&
@@ -156,7 +156,7 @@ fn arg_is_compile_command(arg: String) -> bool {
 }
 
 fn arg_is_help(arg: String) -> bool {
-    if len(arg.clone()) == 6 &&
+    if arg.clone().len() == 6 &&
     arg.clone().byte_at(0) == 45 &&
     arg.clone().byte_at(1) == 45 &&
     arg.clone().byte_at(2) == 104 &&
@@ -165,7 +165,7 @@ fn arg_is_help(arg: String) -> bool {
     arg.clone().byte_at(5) == 112 {
         return true
     }
-    len(arg.clone()) == 2 && arg.clone().byte_at(0) == 45 && arg.clone().byte_at(1) == 104
+    arg.clone().len() == 2 && arg.clone().byte_at(0) == 45 && arg.clone().byte_at(1) == 104
 }
 
 fn parse_component_subcommand(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
@@ -230,7 +230,7 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, mut opts: CliOptions) {
 }
 
 fn arg_is_version(arg: String) -> bool {
-    if len(arg.clone()) == 9 &&
+    if arg.clone().len() == 9 &&
     arg.clone().byte_at(0) == 45 &&
     arg.clone().byte_at(1) == 45 &&
     arg.clone().byte_at(2) == 118 &&
@@ -242,7 +242,7 @@ fn arg_is_version(arg: String) -> bool {
     arg.clone().byte_at(8) == 110 {
         return true
     }
-    len(arg.clone()) == 2 && arg.clone().byte_at(0) == 45 && arg.clone().byte_at(1) == 86
+    arg.clone().len() == 2 && arg.clone().byte_at(0) == 45 && arg.clone().byte_at(1) == 86
 }
 
 fn parse_option_args(argv: Vec<String>, argc: i32, mut opts: CliOptions, start_index: i32) {

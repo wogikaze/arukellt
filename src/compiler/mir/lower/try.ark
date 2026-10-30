@@ -26,7 +26,7 @@ fn mir_emit_try_unwrap(mut ctx: LowerCtx, inner_idx: i32) -> i32 {
     let res_ptr = ctx_api_local_alloc::ctx_fresh_local(ctx, res_vt)
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(res_ptr))
     let from_fn_name = try_from_conversion::try_resolve_from_conversion(ctx, inner_idx)
-    let has_from = len(from_fn_name) > 0
+    let has_from = from_fn_name.len() > 0
     let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     if is_gc {
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, res_ptr, 0 - 1, 0, value_types::VT_I32()))
@@ -54,7 +54,7 @@ fn try_emit_ok_payload_extract(mut ctx: LowerCtx, inner_idx: i32, is_gc: bool, r
     }
     let ok_vt = try_ok_payload_vt(ok_type_name.clone())
     let result = ctx_api_local_alloc::ctx_fresh_local(ctx, ok_vt)
-    if len(ok_type_name) > 0 {
+    if ok_type_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, result, ok_type_name)
     }
     if is_gc {
@@ -85,7 +85,7 @@ fn try_emit_ok_payload_extract(mut ctx: LowerCtx, inner_idx: i32, is_gc: bool, r
 // Map the Ok payload type name to its value type. Defaults to i32 when the
 // name is empty or an i32-like scalar; non-scalar types are GC refs.
 fn try_ok_payload_vt(ok_type_name: String) -> i32 {
-    if len(ok_type_name) == 0 {
+    if ok_type_name.len() == 0 {
         return value_types::VT_I32()
     }
     if ok_type_name.clone().eq("String") || ok_type_name.clone().eq("string") {
@@ -122,10 +122,10 @@ fn try_extract_ok_payload_type(scrut_type: String) -> String {
         return try_extract_first_result_type_param(scrut_type)
     }
     if scrut_type.clone().starts_with("Option_") {
-        return scrut_type.slice(7, len(scrut_type))
+        return scrut_type.slice(7, scrut_type.len())
     }
     if scrut_type.clone().starts_with("option:") {
-        return scrut_type.slice(7, len(scrut_type))
+        return scrut_type.slice(7, scrut_type.len())
     }
     String_new()
 }
@@ -134,10 +134,10 @@ fn try_extract_ok_payload_type(scrut_type: String) -> String {
 // "Result_i32_String" or "result:i32:String".
 fn try_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, scrut_type.len())
     let mut sep = 0 - 1
     let mut i = 0
-    let rlen = len(rest)
+    let rlen = rest.len()
     while i < rlen {
         let ch = rest.byte_at(i)
         if ch == 95 || ch == 58 {
@@ -167,10 +167,10 @@ fn try_extract_err_payload_type(scrut_type: String) -> String {
 // "Result_i32_AppError" or "result:i32:AppError".
 fn try_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, scrut_type.len())
     let mut sep = 0 - 1
     let mut i = 0
-    let rlen = len(rest)
+    let rlen = rest.len()
     while i < rlen {
         let ch = rest.byte_at(i)
         if ch == 95 || ch == 58 {
@@ -182,5 +182,5 @@ fn try_extract_second_result_type_param(scrut_type: String) -> String {
     if sep < 0 {
         return String_new()
     }
-    rest.slice(sep + 1, len(rest))
+    rest.slice(sep + 1, rest.len())
 }

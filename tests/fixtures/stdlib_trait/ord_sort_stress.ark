@@ -11,7 +11,7 @@ fn main() {
 
     v.sort()
     let s = v
-    Test::assert_eq_i32(len(s), 50)
+    Test::assert_eq_i32(s.len(), 50)
     for i in 0..50 {
         Test::assert_eq_i32(get_unchecked(s, i), i)
     }

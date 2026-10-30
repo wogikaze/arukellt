@@ -35,7 +35,7 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i
     }
     if type_name.clone().starts_with("struct:") {
         let struct_name = extract_struct_name_from_type_name(type_name.clone())
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone()))
         }
         let byte_size = parse_struct_byte_size(type_name.clone())
@@ -90,7 +90,7 @@ fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Opti
     if type_name.clone().eq("vec:f64") || type_name.clone().eq("vec:F64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
-    let elem_name = type_name.clone().slice(4, len(type_name))
+    let elem_name = type_name.clone().slice(4, type_name.len())
     if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem_name.clone()) ||
     ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem_name.clone()) {
         return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
@@ -101,7 +101,7 @@ fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Opti
 fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
-    let n = len(type_name)
+    let n = type_name.len()
     let mut i = 0
     while i < n {
         if type_name.byte_at(i) == 58 {
@@ -119,7 +119,7 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
 }
 
 fn parse_struct_byte_size(type_name: String) -> i32 {
-    let n = len(type_name)
+    let n = type_name.len()
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {

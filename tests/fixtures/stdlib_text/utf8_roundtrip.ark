@@ -21,5 +21,5 @@ fn main() {
 
     // Byte count matches len_bytes
     let s = "hello world"
-    Test::assert_eq_i32(len(s.to_utf8_bytes()), s.len_bytes())
+    Test::assert_eq_i32(s.to_utf8_bytes().len(), s.len_bytes())
 }

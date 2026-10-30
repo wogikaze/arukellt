@@ -5,7 +5,7 @@ fn AstNode_push_type_ann(mut node: AstNode, ann: AstNode) {
 }
 
 fn AstNode_type_ann_count(node: AstNode) -> i32 {
-    len(node.type_ann)
+    node.type_ann.len()
 }
 
 fn AstNode_type_ann_at(node: AstNode, index: i32) -> AstNode {

@@ -10,7 +10,7 @@ pub fn cmd_init(opts: CliOptions) {
         return
     }
     let project_name = args_record::cli_input_file(opts)
-    if len(project_name) == 0 {
+    if project_name.len() == 0 {
         Stdio::eprintln(String_from("usage: arukellt init <project-name> [--template minimal|cli|with-tests|wasi-host]"))
         Stdio::eprintln(String_from("       arukellt init --list-templates"))
         Process::exit(2)

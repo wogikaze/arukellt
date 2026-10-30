@@ -11,7 +11,7 @@ fn mir_decl_source_from_parts(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<Co
 }
 
 fn mir_decl_source_count(source: CoreHirMirDeclSource) -> i32 {
-    len(source.decl_infos)
+    source.decl_infos.len()
 }
 
 fn mir_decl_source_kind_at(source: CoreHirMirDeclSource, index: i32) -> i32 {

@@ -79,7 +79,7 @@ fn lower_atomic_const(mut ctx: LowerCtx, node: AstNode) -> i32 {
     }
     let dest = ctx_fresh_local(ctx, ctx_fn_index::ctx_fn_index_return_vt_at(ctx, fn_idx))
     let type_name = ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, fn_idx)
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     }
     ctx_emit(ctx, inst_call::MirInst_call(name.clone(), 0, dest))

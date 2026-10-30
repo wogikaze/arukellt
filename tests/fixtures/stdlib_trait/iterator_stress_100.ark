@@ -9,10 +9,10 @@ fn main() {
     for i in 0..100 {
         push(v, i)
     }
-    Test::assert_eq_i32(len(v), 100)
+    Test::assert_eq_i32(v.len(), 100)
 
     let doubled = v.iter().map(double).collect()
-    Test::assert_eq_i32(len(doubled), 100)
+    Test::assert_eq_i32(doubled.len(), 100)
     Test::assert_eq_i32(get_unchecked(doubled, 0), 0)
     Test::assert_eq_i32(get_unchecked(doubled, 50), 100)
     Test::assert_eq_i32(get_unchecked(doubled, 99), 198)

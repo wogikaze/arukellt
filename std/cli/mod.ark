@@ -17,7 +17,7 @@ impl Cli {
     /// caller can pass a filtered or synthetic list.
     fn flag(args: Vec<String>, name: String) -> bool {
         let mut i = 0
-        while i < len(args) {
+        while i < args.len() {
             if get_unchecked(args, i) == name {
                 return true
             }
@@ -33,13 +33,13 @@ impl Cli {
     /// - `--flag value`  (next element)
     /// - `--flag=value`  (embedded `=`)
     fn option(args: Vec<String>, name: String) -> Option<String> {
-        let n = len(args)
+        let n = args.len()
         let prefix = name.concat("=")
-        let prefix_len = len(prefix)
+        let prefix_len = prefix.len()
         let mut i = 0
         while i < n {
             let arg = get_unchecked(args, i)
-            let arg_len = len(arg)
+            let arg_len = arg.len()
             if arg_len > prefix_len {
                 let head = arg.slice(0, prefix_len)
                 if head == prefix {

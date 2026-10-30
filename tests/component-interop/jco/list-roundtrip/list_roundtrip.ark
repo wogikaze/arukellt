@@ -3,7 +3,7 @@
 export fn append_marker(v: Vec<i32>) -> Vec<i32> {
     let mut out: Vec<i32> = Vec::new<i32>()
     let mut i = 0
-    while i < len(v) {
+    while i < v.len() {
         push(out, get_unchecked(v, i))
         i = i + 1
     }

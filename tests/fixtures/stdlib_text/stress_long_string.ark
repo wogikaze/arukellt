@@ -8,7 +8,7 @@ fn main() {
 
     // Split and rejoin
     let parts = s.split("j")
-    Test::assert_eq_i32(len(parts), 101)
+    Test::assert_eq_i32(parts.len(), 101)
     let rejoined = parts.join("j")
     Test::assert_eq_string(rejoined, s)
 

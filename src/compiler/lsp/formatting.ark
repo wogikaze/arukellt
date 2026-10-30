@@ -9,12 +9,12 @@ fn extract_section_line(body: String, section: String) -> i32 {
     if pos < 0 {
         return 0
     }
-    let after = body.slice(pos, len(body))
+    let after = body.slice(pos, body.len())
     json::JsonText::get_int(after, String_from("line"))
 }
 
 fn build_full_document_edit(text: String, formatted: String) -> String {
-    let end_pos = positions::offset_to_position(text.clone(), len(text))
+    let end_pos = positions::offset_to_position(text.clone(), text.len())
     let mut out = String_from("[{\"range\":{\"start\":{\"line\":0,\"character\":0},\"end\":{\"line\":")
     out = out.concat(positions::lsp_position_line(end_pos).to_string())
     out = out.concat(String_from(",\"character\":"))

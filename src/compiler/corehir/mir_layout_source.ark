@@ -9,7 +9,7 @@ fn mir_layout_source_from_parts(layout_decls: Vec<CoreHirLayoutDecl>) -> CoreHir
 }
 
 fn mir_layout_source_count(source: CoreHirMirLayoutSource) -> i32 {
-    len(source.layout_decls)
+    source.layout_decls.len()
 }
 
 fn mir_layout_source_decl_at(source: CoreHirMirLayoutSource, index: i32) -> CoreHirLayoutDecl {

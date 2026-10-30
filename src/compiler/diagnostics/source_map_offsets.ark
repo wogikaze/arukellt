@@ -1,7 +1,7 @@
 use std::text
 use diagnostics::record
 pub fn offset_to_line(source: String, offset: i32) -> i32 {
-    let n = len(source)
+    let n = source.len()
     let mut line: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
@@ -15,7 +15,7 @@ pub fn offset_to_line(source: String, offset: i32) -> i32 {
 }
 
 pub fn offset_to_column(source: String, offset: i32) -> i32 {
-    let n = len(source)
+    let n = source.len()
     let mut col: i32 = 1
     let mut i: i32 = 0
     while i < offset && i < n {
@@ -39,7 +39,7 @@ pub fn offset_to_zero_based_column(source: String, offset: i32) -> i32 {
 }
 
 pub fn zero_based_position_to_offset(source: String, line: i32, column: i32) -> i32 {
-    let n = len(source)
+    let n = source.len()
     let mut p = 0
     let mut cur_line = 0
     while cur_line < line && p < n {

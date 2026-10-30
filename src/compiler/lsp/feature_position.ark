@@ -9,7 +9,7 @@ fn extract_position_field(body: String, key: String) -> i32 {
         return 0
     }
     let r = json::JsonText::skip_ws(body.clone(), q)
-    let n = len(body)
+    let n = body.len()
     if r >= n || body.byte_at(r) != 58 {
         return 0
     }

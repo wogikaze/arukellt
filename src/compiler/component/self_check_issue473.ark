@@ -17,14 +17,14 @@ fn issue473_resource_parse_self_check() -> bool {
     if !doc.interface.clone().eq("handles") {
         return false
     }
-    if len(doc.funcs) != 2 {
+    if doc.funcs.len() != 2 {
         return false
     }
     let take = get_unchecked(doc.funcs, 0)
     if !take.wit_name.clone().eq("take") {
         return false
     }
-    if len(take.param_wit_types) != 1 {
+    if take.param_wit_types.len() != 1 {
         return false
     }
     if !wit_parse_resource::wit_is_own_type(get_unchecked(take.param_wit_types, 0)) {
@@ -34,7 +34,7 @@ fn issue473_resource_parse_self_check() -> bool {
     if !peek.wit_name.clone().eq("peek") {
         return false
     }
-    if len(peek.param_wit_types) != 1 {
+    if peek.param_wit_types.len() != 1 {
         return false
     }
     wit_parse_resource::wit_is_borrow_type(get_unchecked(peek.param_wit_types, 0))

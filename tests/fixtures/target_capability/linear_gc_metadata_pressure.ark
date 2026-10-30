@@ -12,7 +12,7 @@ fn churn(tag: String) -> i32 {
     let mut parts: Vec<String> = Vec::new<String>()
     push(parts, tag)
     push(parts, String_from("-junk"))
-    len(parts)
+    parts.len()
 }
 
 fn main() {
@@ -25,7 +25,7 @@ fn main() {
         }
         i = i + 1
     }
-    Test::assert_eq_i32(len(keep), 4)
+    Test::assert_eq_i32(keep.len(), 4)
     Test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
     Test::assert_eq_string(get_unchecked(keep, 3), String_from("alive-15000"))
 }

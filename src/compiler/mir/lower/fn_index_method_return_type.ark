@@ -3,14 +3,14 @@ use mir::lower_kinds
 use mir::type_contracts
 use mir::value_types
 fn method_generic_return_type_from_name(type_name: String, has_mono_variants: bool) -> TypeInfo {
-    if len(type_name) == 0 && has_mono_variants {
+    if type_name.len() == 0 && has_mono_variants {
         return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), "T", Vec::new<TypeInfo>())
     }
     method_return_type_info_from_name(type_name)
 }
 
 fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return type_contracts::TypeInfo_simple(0)
     }
     if type_name.clone().eq("i32") ||
@@ -59,20 +59,20 @@ fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
 // (e.g. Picker__echo__String → "String" when the generic return is T).
 fn method_concrete_return_from_mono_fn_name(fn_name: String, generic_return_name: String) -> String {
     let mut var_name = generic_return_name.clone()
-    if len(var_name) == 0 {
+    if var_name.len() == 0 {
         var_name = "T"
     } else if var_name.clone().starts_with("?") {
-        var_name = var_name.slice(1, len(var_name))
+        var_name = var_name.slice(1, var_name.len())
     } else {
         // A concrete return name is not substituted from the mono suffix.
         return String_new()
     }
     let suffix = mono_suffix_parse::extract_mono_suffix(fn_name.clone())
-    if len(suffix) == 0 {
+    if suffix.len() == 0 {
         return String_new()
     }
     let keys = mono_suffix_parse::split_mono_suffix(suffix.clone())
-    let key_count = len(keys)
+    let key_count = keys.len()
     if key_count <= 0 {
         return String_new()
     }

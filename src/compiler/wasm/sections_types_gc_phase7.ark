@@ -42,7 +42,7 @@ fn gc_vec_elem_name_is_fnref(elem: String) -> bool {
 }
 
 fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
-    if len(elem) == 0 {
+    if elem.len() == 0 {
         return false
     }
     if elem.clone().eq("i32") ||
@@ -128,26 +128,26 @@ fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
 // `Vec_String_` or `?_i32_`.
 fn gc_normalize_vec_element_name(elem: String) -> String {
     let mut normalized = elem.clone()
-    while len(normalized) > 0 && normalized.byte_at(len(normalized) - 1) == 95 {
-        normalized = normalized.slice(0, len(normalized) - 1)
+    while normalized.len() > 0 && normalized.byte_at(normalized.len() - 1) == 95 {
+        normalized = normalized.slice(0, normalized.len() - 1)
     }
     if normalized.clone().starts_with("?_") {
-        return "Option_".concat(normalized.slice(2, len(normalized)))
+        return "Option_".concat(normalized.slice(2, normalized.len()))
     }
     normalized
 }
 
 fn gc_normalize_vec_type_name(type_name: String) -> String {
     if type_name.clone().starts_with("vec:") {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
     if type_name.clone().starts_with("Vec<") && type_name.clone().ends_with(">") {
-        let elem = type_name.clone().slice(4, len(type_name) - 1)
+        let elem = type_name.clone().slice(4, type_name.len() - 1)
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
     if type_name.clone().starts_with("Vec_") {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         return "vec:".concat(gc_normalize_vec_element_name(elem))
     }
     if type_name.clone().eq("Vec") {
@@ -158,7 +158,7 @@ fn gc_normalize_vec_type_name(type_name: String) -> String {
 
 fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
     // Single-letter type vars: T, U, K, E, R, A, B, V, ...
-    if len(elem) == 1 {
+    if elem.len() == 1 {
         let c = elem.byte_at(0)
         if c >= 65 && c <= 90 {
             return true
@@ -166,14 +166,14 @@ fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
     }
     // Ordinal mono placeholders: t0, t1, ?t0, T0, ...
     if elem.clone().starts_with("?") {
-        return gc_vec_elem_name_is_type_param(elem.slice(1, len(elem)))
+        return gc_vec_elem_name_is_type_param(elem.slice(1, elem.len()))
     }
-    if len(elem) >= 2 {
+    if elem.len() >= 2 {
         let c0 = elem.byte_at(0)
         if (c0 == 116 || c0 == 84) {
             let mut i = 1
             let mut all_digit = true
-            while i < len(elem) {
+            while i < elem.len() {
                 let c = elem.byte_at(i)
                 if c < 48 || c > 57 {
                     all_digit = false

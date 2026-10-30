@@ -3,7 +3,7 @@ use std::host::stdio::Stdio
 
 fn main() {
     match csv::Csv::parse("a,b\n1,2") {
-        Result::Ok(rows) => Stdio::println((len(rows)).to_string()),
+        Result::Ok(rows) => Stdio::println((rows.len()).to_string()),
         Result::Err(e) => Stdio::println(e),
     }
     let mut rows = Vec::new<Vec<String>>()

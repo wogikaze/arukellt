@@ -18,7 +18,7 @@ fn main() {
     let mapped: Vec<i32> = xs.iter().map(double).collect()
     let filtered = filter_i32(mapped, is_positive)
     let mut i = 0
-    let n = len(filtered)
+    let n = filtered.len()
     while i < n {
         Stdio::println(get_unchecked(filtered, i).to_string())
         i = i + 1

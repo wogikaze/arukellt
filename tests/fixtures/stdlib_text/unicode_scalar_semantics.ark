@@ -22,7 +22,7 @@ fn main() {
     }
 
     let scalars = source.chars()
-    Test::assert_eq_i32(len(scalars), 5)
+    Test::assert_eq_i32(scalars.len(), 5)
     Test::assert_eq_i32(get_unchecked(scalars, 0).len_bytes(), 1)
     Test::assert_eq_i32(get_unchecked(scalars, 1).len_bytes(), 2)
     Test::assert_eq_i32(get_unchecked(scalars, 2).len_bytes(), 4)

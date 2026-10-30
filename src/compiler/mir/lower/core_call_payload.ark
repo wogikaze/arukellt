@@ -15,7 +15,7 @@ fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, e
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-    let variant_name = if len(canon) > 0 {
+    let variant_name = if canon.len() > 0 {
         canon
     } else {
         raw_name
@@ -40,7 +40,7 @@ fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, e
         let p_vt = ctx_api_local_types::ctx_local_vt(ctx, p_idx)
         let save_local = ctx_api_local_alloc::ctx_fresh_local(ctx, p_vt)
         let src_type = ctx_api_local_types::ctx_get_local_type(ctx, p_idx)
-        if len(src_type) > 0 {
+        if src_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, src_type.clone())
         }
         // Keep the exact producer storage type.  Re-resolving a named enum

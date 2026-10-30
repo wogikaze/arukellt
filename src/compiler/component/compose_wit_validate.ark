@@ -25,7 +25,7 @@ fn ComposeWitWorld_empty() -> ComposeWitWorld {
 
 fn compose_wit_sidecar_for_wasm(wasm_path: String) -> String {
     if wasm_path.clone().ends_with(".wasm") {
-        let base = wasm_path.slice(0, len(wasm_path) - 5)
+        let base = wasm_path.slice(0, wasm_path.len() - 5)
         return base.concat(".wit")
     }
     wasm_path.concat(".wit")
@@ -37,16 +37,16 @@ fn compose_wit_normalize_sig(sig: String) -> String {
 
 fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFuncSig> {
     let mut funcs = Vec::new<ComposeWitFuncSig>()
-    let key_len = len(keyword)
+    let key_len = keyword.len()
     let mut pos = 0
-    while pos < len(text) {
-        let tail = text.slice(pos, len(text))
+    while pos < text.len() {
+        let tail = text.slice(pos, text.len())
         let rel = tail.index_of(keyword)
         if rel < 0 {
             break
         }
         let entry_start = pos + rel + key_len
-        let name_tail = text.slice(entry_start, len(text))
+        let name_tail = text.slice(entry_start, text.len())
         let colon_rel = name_tail.index_of(":")
         if colon_rel < 0 {
             break
@@ -54,14 +54,14 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
         let name_end = entry_start + colon_rel
         let name = compose_wit_normalize_sig(text.slice(entry_start, name_end))
         let after_colon = name_end + 1
-        let rest = text.slice(after_colon, len(text))
+        let rest = text.slice(after_colon, text.len())
         let func_rel = rest.index_of("func")
         if func_rel < 0 {
             pos = entry_start + 1
             continue
         }
         let sig_start = after_colon + func_rel
-        let sig_tail = text.slice(sig_start, len(text))
+        let sig_tail = text.slice(sig_start, text.len())
         let semi_rel = sig_tail.index_of(";")
         if semi_rel < 0 {
             break
@@ -90,7 +90,7 @@ fn compose_wit_load_world(path: String) -> ComposeWitWorld {
 }
 
 fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32 {
-    for i in 0..len(exports) {
+    for i in 0..exports.len() {
         if get_unchecked(exports, i).name.clone().eq(name.clone()) {
             return i
         }
@@ -99,7 +99,7 @@ fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32
 }
 
 fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider_exports: Vec<ComposeWitFuncSig>) -> String {
-    for i in 0..len(socket_imports) {
+    for i in 0..socket_imports.len() {
         let imp = get_unchecked(socket_imports, i)
         // prelude clone() is String-only; cloning a Vec makes Memory64 locals
         // typed as String and fails validate (#730).

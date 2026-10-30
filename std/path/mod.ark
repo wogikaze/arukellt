@@ -20,7 +20,7 @@ fn path_join(base: String, child: String) -> String {
         if child.is_empty() {
             "".concat(base)
         } else {
-            let base_len = len(base)
+            let base_len = base.len()
             let last_char = base.slice(base_len - 1, base_len)
             if last_char.eq("/") {
                 base.concat(child)
@@ -37,7 +37,7 @@ fn path_file_name(p: String) -> String {
     if idx < 0 {
         "".concat(p)
     } else {
-        p.slice(idx + 1, len(p))
+        p.slice(idx + 1, p.len())
     }
 }
 
@@ -48,7 +48,7 @@ fn path_extension(p: String) -> String {
     if idx <= 0 {
         ""
     } else {
-        name.slice(idx + 1, len(name))
+        name.slice(idx + 1, name.len())
     }
 }
 
@@ -117,14 +117,14 @@ fn path_stem(p: String) -> String {
 fn path_normalize(p: String) -> String {
     let parts: Vec<String> = __intrinsic_split(p, "/")
     let mut out: Vec<String> = Vec::new<String>()
-    let n = len(parts)
+    let n = parts.len()
     let mut i = 0
     while i < n {
         let part = get_unchecked(parts, i)
         if part.eq(".") || part.is_empty() {
         } else {
             if part.eq("..") {
-                if len(out) > 0 {
+                if out.len() > 0 {
                     let _ = pop(out)
                 }
             } else {
@@ -150,7 +150,7 @@ fn path_normalize(p: String) -> String {
 fn path_components(p: String) -> Vec<String> {
     let raw: Vec<String> = __intrinsic_split(p, "/")
     let mut out: Vec<String> = Vec::new<String>()
-    let n = len(raw)
+    let n = raw.len()
     let mut i = 0
     while i < n {
         let part = get_unchecked(raw, i)
@@ -229,8 +229,8 @@ impl Path {
 }
 
 fn last_index_of(s: String, needle: String) -> i32 {
-    let n = len(s)
-    let nlen = len(needle)
+    let n = s.len()
+    let nlen = needle.len()
     if nlen > n {
         0 - 1
     } else {

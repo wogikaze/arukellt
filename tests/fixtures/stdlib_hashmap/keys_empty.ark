@@ -3,7 +3,7 @@ use std::test::Test
 
 fn main() {
     let m = HashMap::new<i32, i32>()
-    Test::assert_eq_i32(len(m.keys()), 0)
-    Test::assert_eq_i32(len(m.values()), 0)
-    Test::assert_eq_i32(len(m.entries()), 0)
+    Test::assert_eq_i32(m.keys().len(), 0)
+    Test::assert_eq_i32(m.values().len(), 0)
+    Test::assert_eq_i32(m.entries().len(), 0)
 }

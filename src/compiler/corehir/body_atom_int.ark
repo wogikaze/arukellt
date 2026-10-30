@@ -11,7 +11,7 @@ fn corehir_int_lit_is_simple_i32(text: String) -> bool {
 
 fn corehir_int_lit_expr_from_node(node: AstNode) -> CoreHirExpr {
     let text = expr_node_atom_access::expr_text(node)
-    let n = len(text)
+    let n = text.len()
     if body_int_suffix::corehir_int_lit_has_64_suffix(text, n) {
         return expr_builder_atoms::corehir_expr_int_typed(
             text,

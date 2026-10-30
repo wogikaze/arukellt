@@ -7,7 +7,7 @@ fn check_enum_match_exhaustive(mut env: TypeEnv, resolved_scrutinee: TypeInfo, e
     let enum_name = contract_type_access::TypeInfo_name(resolved_scrutinee)
     let mut found_enum = false
     let mut enum_idx = 0
-    let enum_def_count = len(enum_defs)
+    let enum_def_count = enum_defs.len()
     while enum_idx < enum_def_count {
         let edef = get_unchecked(enum_defs, enum_idx)
         let declared_name = contract_enum_info::EnumInfo_name(edef)
@@ -25,7 +25,7 @@ fn check_enum_match_exhaustive(mut env: TypeEnv, resolved_scrutinee: TypeInfo, e
 fn enum_def_exists(resolved_scrutinee: TypeInfo, enum_defs: Vec<EnumInfo>) -> bool {
     let enum_name = contract_type_access::TypeInfo_name(resolved_scrutinee)
     let mut i = 0
-    let def_count = len(enum_defs)
+    let def_count = enum_defs.len()
     while i < def_count {
         let declared_name = contract_enum_info::EnumInfo_name(get_unchecked(enum_defs, i))
         if enum_name_matches(enum_name.clone(), declared_name.clone()) {

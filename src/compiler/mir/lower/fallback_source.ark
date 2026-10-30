@@ -31,7 +31,7 @@ fn mir_fallback_source_method_body(source: MirLowerFallbackSource, impl_decl_ind
 }
 
 fn mir_fallback_source_release_fn_body(source: MirLowerFallbackSource, decl_index: i32, body_idx: i32) {
-    if decl_index < 0 || decl_index >= len(source.decls) {
+    if decl_index < 0 || decl_index >= source.decls.len() {
         return
     }
     let mut decl = get_unchecked(source.decls, decl_index)
@@ -39,7 +39,7 @@ fn mir_fallback_source_release_fn_body(source: MirLowerFallbackSource, decl_inde
 }
 
 fn mir_fallback_source_release_method_body(source: MirLowerFallbackSource, impl_decl_index: i32, method_index: i32, body_idx: i32) {
-    if impl_decl_index < 0 || impl_decl_index >= len(source.decls) {
+    if impl_decl_index < 0 || impl_decl_index >= source.decls.len() {
         return
     }
     let decl = get_unchecked(source.decls, impl_decl_index)

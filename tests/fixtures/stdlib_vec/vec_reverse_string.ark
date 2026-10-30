@@ -7,7 +7,7 @@ fn main() {
     push(v, String_from("b"))
     push(v, String_from("c"))
     let mut reverse_lo = 0
-    let mut reverse_hi = len(v) - 1
+    let mut reverse_hi = v.len() - 1
     while reverse_lo < reverse_hi {
         let reverse_tmp = v.get_unchecked(reverse_lo)
         v.set(reverse_lo, v.get_unchecked(reverse_hi))

@@ -36,11 +36,11 @@ fn parse_impl_header(mut p: Parser) -> AstNode {
 // place: resolver, CoreHIR, and typechecker all read the heads from type-ann
 // indices 0 and 1, and the binder must not shift those established slots.
 fn push_impl_generics(mut node: AstNode, generics: Vec<AstNode>, span: Span) {
-    if len(generics) == 0 {
+    if generics.len() == 0 {
         return
     }
     let mut binder = core_ast_factory::AstNode_new(kinds::NK_IMPL_GENERICS(), span)
-    let count = len(generics)
+    let count = generics.len()
     let mut i = 0
     while i < count {
         core_ast_children::AstNode_push_child(binder, get_unchecked(generics, i))

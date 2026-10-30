@@ -2,7 +2,7 @@ use mir::function_core_record
 use mir::types
 
 fn MirFunction_block_count(f: MirFunction) -> i32 {
-    len(f.blocks)
+    f.blocks.len()
 }
 
 fn MirFunction_block_at(f: MirFunction, idx: i32) -> MirBlock {

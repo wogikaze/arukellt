@@ -25,7 +25,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
     out = out.concat(String_from(",\"kind\":"))
     out = out.concat(symbol_index_record::indexed_symbol_kind(sym).to_string())
     out = out.concat(String_from(",\"location\":"))
-    if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
+    if text.len() > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
         out = out.concat(
             symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
         )
@@ -33,7 +33,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
         out = out.concat(symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
     }
     let module_path = symbol_index_record::indexed_symbol_module_path(sym)
-    if len(module_path) > 0 {
+    if module_path.len() > 0 {
         out = out.concat(String_from(",\"containerName\":"))
         out = out.concat(json::JsonText::quote(module_path))
     }
@@ -42,7 +42,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
 }
 
 fn append_symbol_information(items: String, item: String) -> String {
-    if len(items) == 0 {
+    if items.len() == 0 {
         return item
     }
     items.concat(String_from(",")).concat(item)
@@ -50,11 +50,11 @@ fn append_symbol_information(items: String, item: String) -> String {
 
 pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record::IndexedSymbol>, source_texts: Vec<String>) -> String {
     let mut items = String_new()
-    let n = len(symbols)
+    let n = symbols.len()
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)
-        let text = if i < len(source_texts) {
+        let text = if i < source_texts.len() {
             get_unchecked(source_texts, i)
         } else {
             String_new()

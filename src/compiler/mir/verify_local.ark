@@ -109,13 +109,13 @@ fn verify_local_instruction_operands(
 fn verify_one_local(local: MirLocal, mut report: MirVerifyReport, verbose: bool, fn_name: String, kind: String) {
     let vt = local_access::MirLocal_val_type(local)
     let tn = local_access::MirLocal_type_name(local)
-    if vt == value_types::VT_VOID() && len(tn) == 0 {
+    if vt == value_types::VT_VOID() && tn.len() == 0 {
         mir_verify_report_add_w001(report)
         if verbose {
             mir_verify_report_push_detail(report, "W001 ".concat(fn_name.concat(" ".concat(kind))))
         }
     }
-    if len(tn) == 0 && vt == value_types::VT_I32() {
+    if tn.len() == 0 && vt == value_types::VT_I32() {
         if !verify_local_spine_typed(local) {
             mir_verify_report_add_w005(report)
             if verbose {
@@ -148,7 +148,7 @@ fn verify_local_missing_value_type(vt: i32, type_name: String, local: MirLocal) 
     if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
         return false
     }
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         return true
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
@@ -184,13 +184,13 @@ fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String, local: MirLocal
 fn verify_function_return(f: MirFunction, mut report: MirVerifyReport, verbose: bool) {
     let rt = function_return_view::MirFunction_return_type(f)
     let rtn = function_return_view::MirFunction_return_type_name(f)
-    if rt == value_types::VT_VOID() && len(rtn) > 0 {
+    if rt == value_types::VT_VOID() && rtn.len() > 0 {
         mir_verify_report_add_w004(report)
         if verbose {
             mir_verify_report_push_detail(report, "W004 void-with-name ".concat(function_identity::MirFunction_name(f)))
         }
     }
-    if rt != value_types::VT_VOID() && len(rtn) == 0 {
+    if rt != value_types::VT_VOID() && rtn.len() == 0 {
         mir_verify_report_add_w004(report)
         if verbose {
             mir_verify_report_push_detail(report, "W004 typed-without-name ".concat(function_identity::MirFunction_name(f)))

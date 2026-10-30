@@ -39,18 +39,18 @@ fn main() {
     Test::assert_false(word_set.contains("cherry"))
 
     let snapshot: Vec<String> = word_set.to_vec()
-    Test::assert_eq_i32(len(snapshot), 2)
+    Test::assert_eq_i32(snapshot.len(), 2)
 
     let copy: HashSet<String> = word_set.clone()
     Test::assert_true(copy.eq(word_set))
     Test::assert_eq_i32(copy.len(), 2)
 
     let rendered: String = word_set.fmt_debug()
-    Test::assert_true(len(rendered) > 0)
+    Test::assert_true(rendered.len() > 0)
 
     let mut letters: i32 = 0
     for word in word_set {
-        letters = letters + len(word)
+        letters = letters + word.len()
     }
     Test::assert_eq_i32(letters, 11)
 }

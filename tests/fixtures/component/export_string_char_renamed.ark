@@ -1,7 +1,7 @@
 // Export with renamed String parameter and char result maps to WIT string -> char.
 
 export fn first_marker(text: String) -> char {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 'z'
     }
     'b'

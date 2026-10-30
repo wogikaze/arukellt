@@ -144,7 +144,7 @@ fn try_emit_resolved_fallback_call(
 // receiver in a local. Prefer enum-open for Option/Result/named enums;
 // never fall back to byte-size struct types (that cast Option → type10).
 fn resolve_call_param_gc_cast_type(ctx: SelfEmitCtx, param_type_name: String) -> i32 {
-    if len(param_type_name) == 0 {
+    if param_type_name.len() == 0 {
         return 0 - 1
     }
     if call_param_type_is_enum_like(ctx, param_type_name.clone()) {
@@ -168,14 +168,14 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
         return true
     }
     let bare = if param_type_name.clone().starts_with("enum:") {
-        param_type_name.clone().slice(5, len(param_type_name))
+        param_type_name.clone().slice(5, param_type_name.len())
     } else {
         param_type_name.clone()
     }
     let prefix = bare.clone().concat("::")
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
-    while ei < len(ev_names) {
+    while ei < ev_names.len() {
         if get_unchecked(ev_names, ei).clone().starts_with(prefix.clone()) {
             return true
         }

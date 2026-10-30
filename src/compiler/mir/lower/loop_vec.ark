@@ -15,10 +15,10 @@ fn mir_is_vec_type_name(vec_type: String) -> bool {
 
 fn mir_vec_element_type_name(vec_type: String) -> String {
     if vec_type.clone().starts_with("vec:") {
-        return vec_type.slice(4, len(vec_type))
+        return vec_type.slice(4, vec_type.len())
     }
     if vec_type.clone().starts_with("Vec<") && vec_type.clone().ends_with(">") {
-        return vec_type.slice(4, len(vec_type) - 1)
+        return vec_type.slice(4, vec_type.len() - 1)
     }
     "i32"
 }
@@ -39,7 +39,7 @@ fn mir_vec_element_vt(ctx: LowerCtx, elem_type: String) -> i32 {
     if elem_type.clone().eq("i32") || elem_type.clone().eq("I32") || elem_type.clone().eq("bool") || elem_type.clone().eq("char") {
         return value_types::VT_I32()
     }
-    if len(elem_type) == 1 {
+    if elem_type.len() == 1 {
         let ch = elem_type.byte_at(0)
         if ch >= 65 && ch <= 90 {
             // A declared single-letter element type (struct P) is a ref,

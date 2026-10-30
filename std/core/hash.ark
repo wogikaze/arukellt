@@ -73,7 +73,7 @@ impl Hash for i32 {
 impl Hash for String {
     fn hash(self: String) -> i32 {
         let mut h = 216613626
-        let n = len(self)
+        let n = self.len()
         let mut i = 0
         while i < n {
             let ch = self.byte_at(i)

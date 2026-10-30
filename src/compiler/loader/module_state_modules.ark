@@ -30,7 +30,7 @@ fn LoadState_module_stdlib_flags(state: LoadState) -> Vec<bool> {
 }
 
 fn ModuleDecls_decl_count(module: ModuleDecls) -> i32 {
-    len(module.decls)
+    module.decls.len()
 }
 
 fn ModuleDecls_decl_at(module: ModuleDecls, index: i32) -> AstNode {
@@ -38,7 +38,7 @@ fn ModuleDecls_decl_at(module: ModuleDecls, index: i32) -> AstNode {
 }
 
 fn LoadState_release_module_asts(mut state: LoadState) {
-    let module_count = len(state.modules)
+    let module_count = state.modules.len()
     let mut mi = 0
     while mi < module_count {
         let mut module = get_unchecked(state.modules, mi)

@@ -4,11 +4,11 @@ use std::text
 fn main() {
     // CRLF is normalized to LF before splitting
     let l = "line1\r\nline2\r\nline3".lines()
-    Test::assert_eq_i32(len(l), 3)
+    Test::assert_eq_i32(l.len(), 3)
     // Mixed LF and CRLF
     let l2 = "a\nb\r\nc".lines()
-    Test::assert_eq_i32(len(l2), 3)
+    Test::assert_eq_i32(l2.len(), 3)
     // Single CRLF
     let l3 = "a\r\nb".lines()
-    Test::assert_eq_i32(len(l3), 2)
+    Test::assert_eq_i32(l3.len(), 2)
 }

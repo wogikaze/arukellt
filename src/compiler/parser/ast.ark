@@ -82,7 +82,7 @@ fn ast_node_float_val(node: AstNode) -> f64 {
 }
 
 fn ast_node_child_count(node: AstNode) -> i32 {
-    len(node.children)
+    node.children.len()
 }
 
 fn ast_node_child_at(node: AstNode, index: i32) -> AstNode {
@@ -90,7 +90,7 @@ fn ast_node_child_at(node: AstNode, index: i32) -> AstNode {
 }
 
 fn ast_node_type_ann_count(node: AstNode) -> i32 {
-    len(node.type_ann)
+    node.type_ann.len()
 }
 
 fn ast_node_type_ann_at(node: AstNode, index: i32) -> AstNode {

@@ -1,6 +1,6 @@
 use std::text
 pub fn is_stdlib_path(path: String) -> bool {
-    let n = len(path)
+    let n = path.len()
     if n < 5 {
         return false
     }
@@ -8,7 +8,7 @@ pub fn is_stdlib_path(path: String) -> bool {
 }
 
 pub fn stdlib_path_to_file(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut result = ""
     let mut i = 0
     let mut seg_start = 0
@@ -25,7 +25,7 @@ pub fn stdlib_path_to_file(path: String) -> String {
 }
 
 pub fn stdlib_mod_fallback_path(primary: String) -> String {
-    let n = len(primary)
+    let n = primary.len()
     primary.clone().slice(0, n - 4).concat("/mod.ark")
 }
 test mod "stdlib_path" {

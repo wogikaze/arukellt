@@ -8,7 +8,7 @@ fn mir_type_source_from_parts(typed_fns: Vec<TypedFn>, mono_instances: Vec<MonoI
 }
 
 fn mir_type_source_typed_fn_count(source: CoreHirMirTypeSource) -> i32 {
-    len(source.typed_fns)
+    source.typed_fns.len()
 }
 
 fn mir_type_source_typed_fn_at(source: CoreHirMirTypeSource, typed_index: i32) -> TypedFn {
@@ -20,7 +20,7 @@ fn mir_type_source_typed_fn_param_count(source: CoreHirMirTypeSource, typed_inde
         return 0
     }
     let tf = mir_type_source_typed_fn_at(source, typed_index)
-    len(tf.param_types)
+    tf.param_types.len()
 }
 
 fn mir_type_source_typed_fn_param_at(source: CoreHirMirTypeSource, typed_index: i32, param_index: i32) -> TypeInfo {

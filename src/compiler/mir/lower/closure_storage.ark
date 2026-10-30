@@ -49,7 +49,7 @@ fn closure_storage_push_bind(mut ctx: LowerCtx, bind_name: String) {
 }
 
 fn closure_storage_bind_count(ctx: LowerCtx) -> i32 {
-    len(ctx.closure_bind_names)
+    ctx.closure_bind_names.len()
 }
 
 fn closure_storage_bind_name_at(ctx: LowerCtx, index: i32) -> String {

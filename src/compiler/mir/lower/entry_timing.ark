@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio::Stdio
-use std::prelude::{get_unchecked, len, push, set}
+use std::prelude::{get_unchecked, push, set}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override is disabled; --time / report_flag remains the supported
@@ -97,7 +97,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
     if enabled == 0 {
         return
     }
-    let n = len(wall_ms)
+    let n = wall_ms.len()
     let mut limit = n
     if limit > 32 {
         limit = 32

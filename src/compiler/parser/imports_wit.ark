@@ -15,7 +15,7 @@ fn wit_attach_default_alias(mut node: AstNode, package_id: String, path_span: Sp
         return
     }
     let alias_name = wit_identity::wit_identifier_default_alias(package_id)
-    if len(alias_name) == 0 {
+    if alias_name.len() == 0 {
         return
     }
     let alias_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), alias_name, path_span)
@@ -30,7 +30,7 @@ fn parse_wit_import(mut p: Parser, import_span: Span) -> AstNode {
     core_ast_text_fields::AstNode_set_text(node, package_id.clone())
     core_ast_literal_fields::AstNode_set_int_val(node, kinds::IMPORT_KIND_WIT())
     let err = wit_identity::wit_identifier_error(package_id.clone())
-    if len(err) > 0 {
+    if err.len() > 0 {
         diagnostics::parser_push_unexpected_error(p, err)
     }
     imports_alias::parse_use_alias(p, node)

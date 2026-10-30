@@ -4,9 +4,9 @@ use std::text
 fn main() {
     // Split with empty separator splits into individual characters
     let parts = "abc".split("")
-    Test::assert_eq_i32(len(parts), 3)
+    Test::assert_eq_i32(parts.len(), 3)
 
     // Empty string with empty separator
     let parts2 = "".split("")
-    Test::assert_eq_i32(len(parts2), 1)
+    Test::assert_eq_i32(parts2.len(), 1)
 }

@@ -12,7 +12,7 @@ fn CoreHirDeclInfo_new(kind: i32, name: String, child_count: i32, is_pub: bool) 
 }
 
 fn decl_info_kind_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> i32 {
-    if idx < len(decl_infos) {
+    if idx < decl_infos.len() {
         let info = get_unchecked(decl_infos, idx)
         return info.kind
     }
@@ -20,7 +20,7 @@ fn decl_info_kind_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> i32 {
 }
 
 fn decl_info_name_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> String {
-    if idx < len(decl_infos) {
+    if idx < decl_infos.len() {
         let info = get_unchecked(decl_infos, idx)
         return info.name.clone()
     }
@@ -33,7 +33,7 @@ fn entry_main_decl_index(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHir
         return typed_entry
     }
     let mut entry_main = 0 - 1
-    let decl_count = len(decl_infos)
+    let decl_count = decl_infos.len()
     let mut i = 0
     while i < decl_count {
         let info = get_unchecked(decl_infos, i)

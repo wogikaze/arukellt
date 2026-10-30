@@ -8,7 +8,7 @@ use typechecker::contract_result_state
 fn resolved_calls_from_check_result(check_result: TypeCheckResult) -> Vec<CoreHirResolvedCall> {
     let owners = contract_result_state::typecheck_result_resolved_call_owners(check_result)
     let mut calls = Vec::new<CoreHirResolvedCall>()
-    let count = len(owners)
+    let count = owners.len()
     let mut i = 0
     while i < count {
         let owner = get_unchecked(owners, i)

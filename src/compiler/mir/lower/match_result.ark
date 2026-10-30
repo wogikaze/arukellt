@@ -53,7 +53,7 @@ fn mir_store_match_arm_result(mut ctx: LowerCtx, result: i32, arm_result: i32) {
         ctx_set_local_vt(ctx, result, arm_vt)
     }
     let arm_type = ctx_get_local_type(ctx, arm_result)
-    if len(arm_type) > 0 {
+    if arm_type.len() > 0 {
         ctx_set_local_type(ctx, result, arm_type)
     }
     ctx_match_result_state::ctx_match_result_state_set(

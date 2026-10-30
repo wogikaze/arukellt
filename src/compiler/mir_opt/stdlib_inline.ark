@@ -102,7 +102,7 @@ fn stdlib_inline_fn(m: MirModule, mut caller: MirFunction) -> i32 {
 
 fn stdlib_vec_elem_suffix_from_type_name(type_name: String) -> String {
     if type_name.clone().starts_with(String_from("vec:")) {
-        return type_name.clone().slice(4, len(type_name))
+        return type_name.clone().slice(4, type_name.len())
     }
     String_new()
 }
@@ -181,7 +181,7 @@ fn stdlib_specialize_vec_fallback(
     }
     let type_name = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, recv))
     let suffix = stdlib_vec_elem_suffix_from_type_name(type_name)
-    if len(suffix) == 0 {
+    if suffix.len() == 0 {
         if !stdlib_vec_concrete_fallback_matches_elem(fallback.clone(), suffix) {
             return String_new()
         }
@@ -209,7 +209,7 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, mut block: Mir
     while index < count {
         let inst = block_inst_access::MirBlock_inst_at(block, index)
         let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
-        if len(fallback) > 0 {
+        if fallback.len() > 0 {
             let specialized = stdlib_specialize_vec_fallback(
                 registry,
                 fallback,
@@ -219,7 +219,7 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, mut block: Mir
                 inst
             )
             // Empty specialized means "leave CoreOp" (String/struct/fn vec).
-            if len(specialized) > 0 {
+            if specialized.len() > 0 {
                 let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, specialized.clone())
                 let fallback_raw = function_id::FunctionId_raw(fallback_id)
                 if fallback_raw >= 0 {

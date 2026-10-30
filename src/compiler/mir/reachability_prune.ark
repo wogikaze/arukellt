@@ -10,7 +10,7 @@ fn mir_prune_unmarked_functions(mut m: MirModule, reachable: Vec<i32>) -> i32 {
     // a mismatched length means the module was built without recording, so
     // the list resets to unrecorded instead of going stale.
     let slots = module_functions::MirModule_return_variant_slots(m)
-    let keep_slots = len(slots) == fn_count
+    let keep_slots = slots.len() == fn_count
     let mut kept_slots = Vec::new<i32>()
     let mut pruned = 0
     let mut i = 0
@@ -22,7 +22,7 @@ fn mir_prune_unmarked_functions(mut m: MirModule, reachable: Vec<i32>) -> i32 {
         let f = module_functions::MirModule_function_at(m, i)
         if get_unchecked(reachable, i) != 0 {
             push(kept, f)
-            push(old_to_new, len(kept) - 1)
+            push(old_to_new, kept.len() - 1)
             if keep_slots {
                 push(kept_slots, get_unchecked(slots, i))
             }

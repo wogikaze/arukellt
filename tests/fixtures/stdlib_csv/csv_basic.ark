@@ -4,14 +4,14 @@ use std::host::stdio::Stdio
 fn main() {
     let fields = csv::Csv::split_line("name,age,city")
     let mut i: i32 = 0
-    while i < len(fields) {
+    while i < fields.len() {
         Stdio::println(get_unchecked(fields, i))
         i = i + 1
     }
     Stdio::println("---")
     let fields2 = csv::Csv::split_line("hello, world, test")
     let mut j: i32 = 0
-    while j < len(fields2) {
+    while j < fields2.len() {
         Stdio::println(get_unchecked(fields2, j))
         j = j + 1
     }

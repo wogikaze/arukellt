@@ -23,7 +23,7 @@ fn main() {
     }
     match reader.read(2) {
         Result::Ok(chunk) => {
-            assert(len(chunk) == 2)
+            assert(chunk.len() == 2)
             assert(get_unchecked(chunk, 0) == 88)
             assert(get_unchecked(chunk, 1) == 89)
         },

@@ -18,18 +18,18 @@ use parser::kinds
 pub fn desugar_test_decls(decls: Vec<AstNode>) -> Vec<AstNode> {
     let mut out = Vec::new<AstNode>()
     let mut names = Vec::new<String>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         desugar_test_node(decl, out, names, String_new())
         i = i + 1
     }
-    if len(names) == 0 {
+    if names.len() == 0 {
         return out
     }
     let extra = synthesize_test_main(names, decls)
-    let extra_count = len(extra)
+    let extra_count = extra.len()
     let mut j = 0
     while j < extra_count {
         push(out, get_unchecked(extra, j))
@@ -55,13 +55,13 @@ fn desugar_test_node(node: AstNode, mut out: Vec<AstNode>, mut names: Vec<String
         push(out, node)
         return
     }
-    let index = len(names)
+    let index = names.len()
     push(names, test_display_name(prefix, ast::ast_node_text(node)))
     push(out, synthesize_test_fn(node, index))
 }
 
 fn test_display_name(prefix: String, name: String) -> String {
-    if len(prefix.clone()) == 0 {
+    if prefix.clone().len() == 0 {
         return name
     }
     prefix.concat("::".concat(name))
@@ -90,7 +90,7 @@ fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode>
         src = src.concat("use std::host::stdio::Stdio\n")
     }
     src = src.concat("fn __test_main() {\n")
-    let name_count = len(names)
+    let name_count = names.len()
     let mut i = 0
     while i < name_count {
         src = src.concat("    __test_".concat(i.to_string()))
@@ -104,7 +104,7 @@ fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode>
 }
 
 fn has_stdio_use(decls: Vec<AstNode>) -> bool {
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
@@ -120,7 +120,7 @@ fn has_stdio_use(decls: Vec<AstNode>) -> bool {
 
 fn escape_test_name(name: String) -> String {
     let mut out = String_new()
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     while i < n {
         let ch = name.clone().slice(i, i + 1)

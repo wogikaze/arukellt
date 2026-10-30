@@ -14,7 +14,7 @@ fn emit_canon_type_entries(
     memory64: bool
 ) -> FuncTypeRefs {
     let mut type_refs = sections_type_plan::FuncTypeRefs_new()
-    for cti2 in 0..len(canon_types) {
+    for cti2 in 0..canon_types.len() {
         let csig = get_unchecked(canon_types, cti2)
         sections_type_plan::FuncTypeRefs_begin_entry(type_refs)
         if csig.clone().starts_with(String_from("SubF")) {
@@ -73,7 +73,7 @@ fn record_func_type_refs(
     gc_type_base: i32,
     gc_struct_type_map: Vec<i32>
 ) {
-    let param_count = len(param_segments)
+    let param_count = param_segments.len()
     let mut pi = 0
     while pi < param_count {
         let seg = get_unchecked(param_segments, pi)
@@ -84,7 +84,7 @@ fn record_func_type_refs(
         pi = pi + 1
     }
     if !result_seg.clone().eq("0") {
-        let result_sig = result_seg.slice(1, len(result_seg))
+        let result_sig = result_seg.slice(1, result_seg.len())
         sections_type_plan::FuncTypeRefs_set_result(
             type_refs,
             sig_ref_null_type_index(result_sig, gc_type_base, gc_struct_type_map)
@@ -139,8 +139,8 @@ fn emit_struct_type_entry(
 ) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
-    writer_core::emit_leb128_u(type_sec, len(field_sigs))
-    for fi in 0..len(field_sigs) {
+    writer_core::emit_leb128_u(type_sec, field_sigs.len())
+    for fi in 0..field_sigs.len() {
         emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base, gc_struct_type_map, canon_types, memory64)
     }
 }
@@ -180,8 +180,8 @@ fn emit_struct_field_type(
         return
     }
     if ft.clone().starts_with(String_from("gcsref")) {
-        let slot = sections_types_sig_parse::parse_type_sig_int(ft.slice(6, len(ft)))
-        if slot < len(gc_struct_type_map) {
+        let slot = sections_types_sig_parse::parse_type_sig_int(ft.slice(6, ft.len()))
+        if slot < gc_struct_type_map.len() {
             let type_idx = get_unchecked(gc_struct_type_map, slot)
             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(type_sec, type_idx)
@@ -198,7 +198,7 @@ fn emit_struct_field_type(
         return
     }
     if ft.clone().starts_with(String_from("ref")) {
-        let offset_str = ft.slice(3, len(ft))
+        let offset_str = ft.slice(3, ft.len())
         let offset = sections_types_sig_parse::parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
@@ -211,7 +211,7 @@ fn emit_struct_field_type(
 
 fn struct_field_sigs(sig: String) -> Vec<String> {
     let mut fields = Vec::new<String>()
-    let sig_len = len(sig)
+    let sig_len = sig.len()
     let mut si = 0
     while si < sig_len {
         if sig.clone().byte_at(si) == 95 && si + 1 < sig_len && sig.clone().byte_at(si + 1) == 102 {
@@ -245,7 +245,7 @@ fn emit_type_param_entries(
     canon_types: Vec<String>,
     memory64: bool
 ) {
-    let param_count = len(param_segments)
+    let param_count = param_segments.len()
     writer_core::emit_leb128_u(type_sec, param_count)
     let mut pi = 0
     while pi < param_count {
@@ -266,14 +266,14 @@ fn emit_type_result_entry(
     if result_seg.clone().eq("0") {
         writer_core::emit_leb128_u(type_sec, 0)
     } else {
-        let rt = result_seg.slice(1, len(result_seg))
+        let rt = result_seg.slice(1, result_seg.len())
         writer_core::emit_leb128_u(type_sec, 1)
         emit_sig_val_type(type_sec, rt, gc_type_base, gc_struct_type_map, canon_types, memory64)
     }
 }
 
 fn find_unary_callback_type_idx(canon_types: Vec<String>) -> i32 {
-    let n = len(canon_types)
+    let n = canon_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(canon_types, i).eq(String_from("i32_1i32")) {
@@ -299,7 +299,7 @@ fn find_unary_callback_type_idx_for_memory_width(canon_types: Vec<String>, memor
 }
 
 fn find_unary_callback_type_idx_memory64(canon_types: Vec<String>) -> i32 {
-    let n = len(canon_types)
+    let n = canon_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(canon_types, i).eq(String_from("i64_1i64")) {
@@ -311,7 +311,7 @@ fn find_unary_callback_type_idx_memory64(canon_types: Vec<String>) -> i32 {
 }
 
 fn find_binary_callback_type_idx(canon_types: Vec<String>) -> i32 {
-    let n = len(canon_types)
+    let n = canon_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(canon_types, i).eq(String_from("i32_i32_1i32")) {
@@ -323,7 +323,7 @@ fn find_binary_callback_type_idx(canon_types: Vec<String>) -> i32 {
 }
 
 fn find_binary_callback_type_idx_memory64(canon_types: Vec<String>) -> i32 {
-    let n = len(canon_types)
+    let n = canon_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(canon_types, i).eq(String_from("i64_i64_1i64")) {
@@ -398,7 +398,7 @@ fn emit_sig_val_type(
 
 fn find_typed_callback_type_idx(canon_types: Vec<String>, type_name: String, memory64: bool) -> i32 {
     let wanted = sections_types_sigs_detail::typed_string_callback_type_sig(type_name.clone(), memory64)
-    let n = len(canon_types)
+    let n = canon_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(canon_types, i).eq(wanted.clone()) {
@@ -418,22 +418,22 @@ fn find_typed_callback_type_idx(canon_types: Vec<String>, type_name: String, mem
 // field/param slot (#860). Falls back to the unary i32-ABI callback when
 // the signature is not representable in this module.
 fn find_fnsig_type_idx(canon_types: Vec<String>, type_name: String, memory64: bool) -> i32 {
-    let rest = type_name.clone().slice(6, len(type_name))
+    let rest = type_name.clone().slice(6, type_name.len())
     let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
     }
     let param_tok = fnsig_emit_segment_token(rest.clone().slice(0, sep), memory64)
-    let ret_seg = rest.clone().slice(sep + 1, len(rest))
+    let ret_seg = rest.clone().slice(sep + 1, rest.len())
     if ret_seg.clone().contains(String_from(";")) {
         return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
     }
     let ret_tok = fnsig_emit_segment_token(ret_seg, memory64)
-    if len(param_tok) == 0 || len(ret_tok) == 0 {
+    if param_tok.len() == 0 || ret_tok.len() == 0 {
         return find_unary_callback_type_idx_for_memory_width(canon_types, memory64)
     }
     let wanted = param_tok.concat(String_from("_1").concat(ret_tok))
-    let n = len(canon_types)
+    let n = canon_types.len()
     let mut i = 0
     while i < n {
         if get_unchecked(canon_types, i).eq(wanted.clone()) {
@@ -449,7 +449,7 @@ fn find_fnsig_type_idx(canon_types: Vec<String>, type_name: String, memory64: bo
 // the same GC offsets used by build_param_type_sig so either dialect
 // resolves (#860).
 fn fnsig_emit_segment_token(seg: String, memory64: bool) -> String {
-    if len(seg) == 0 || seg.clone().starts_with(String_from("fnsig:")) {
+    if seg.len() == 0 || seg.clone().starts_with(String_from("fnsig:")) {
         return String_new()
     }
     if seg.clone().eq(String_from("i32")) || seg.clone().eq(String_from("I32")) ||
@@ -498,7 +498,7 @@ fn sig_ref_null_type_index(sig: String, gc_type_base: i32, gc_struct_type_map: V
         return 0 - 1
     }
     if sig.clone().starts_with(String_from("gcsref")) {
-        let slot = sections_types_sig_parse::parse_type_sig_int(sig.slice(6, len(sig)))
+        let slot = sections_types_sig_parse::parse_type_sig_int(sig.slice(6, sig.len()))
         return get_unchecked(gc_struct_type_map, slot)
     }
     if sig.clone().starts_with(String_from("gcref")) {

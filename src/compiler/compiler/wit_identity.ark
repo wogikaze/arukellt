@@ -4,7 +4,7 @@
 use std::text
 fn wit_identity_find(s: String, ch: i32, from: i32) -> i32 {
     let mut i = from
-    while i < len(s) {
+    while i < s.len() {
         if s.byte_at(i) == ch {
             return i
         }
@@ -42,14 +42,14 @@ fn wit_identity_name_is_valid(s: String, start: i32, end: i32) -> bool {
 }
 
 fn wit_identity_version_is_valid(version: String) -> bool {
-    if len(version) == 0 {
+    if version.len() == 0 {
         return false
     }
     let mut component_start = 0
     let mut component_count = 0
     let mut i = 0
-    while i <= len(version) {
-        if i == len(version) || version.byte_at(i) == 46 {
+    while i <= version.len() {
+        if i == version.len() || version.byte_at(i) == 46 {
             if i == component_start {
                 return false
             }
@@ -67,7 +67,7 @@ fn wit_identity_version_is_valid(version: String) -> bool {
 }
 
 pub fn wit_package_identity_error(id: String) -> String {
-    if len(id) == 0 {
+    if id.len() == 0 {
         return "WIT package identifier must not be empty"
     }
     let colon = wit_identity_find(id, 58, 0)
@@ -78,7 +78,7 @@ pub fn wit_package_identity_error(id: String) -> String {
         return "WIT package identifier must not contain /"
     }
     let at = wit_identity_find(id, 64, colon + 1)
-    let package_end = if at < 0 { len(id) } else { at }
+    let package_end = if at < 0 { id.len() } else { at }
     if !wit_identity_name_is_valid(id, 0, colon) {
         return "WIT namespace must use a lowercase kebab-case identifier"
     }
@@ -89,7 +89,7 @@ pub fn wit_package_identity_error(id: String) -> String {
         if wit_identity_find(id, 64, at + 1) >= 0 {
             return "WIT package identifier may contain only one @version suffix"
         }
-        if !wit_identity_version_is_valid(id.slice(at + 1, len(id))) {
+        if !wit_identity_version_is_valid(id.slice(at + 1, id.len())) {
             return "WIT package version must use major.minor.patch form"
         }
     }
@@ -97,7 +97,7 @@ pub fn wit_package_identity_error(id: String) -> String {
 }
 
 pub fn wit_identifier_error(id: String) -> String {
-    if len(id) == 0 {
+    if id.len() == 0 {
         return "WIT import string must not be empty"
     }
     let colon = wit_identity_find(id, 58, 0)
@@ -115,7 +115,7 @@ pub fn wit_identifier_error(id: String) -> String {
         return "WIT package must use a lowercase kebab-case identifier"
     }
     let at = wit_identity_find(id, 64, slash + 1)
-    let interface_end = if at < 0 { len(id) } else { at }
+    let interface_end = if at < 0 { id.len() } else { at }
     if !wit_identity_name_is_valid(id, slash + 1, interface_end) {
         return "WIT interface must use a lowercase kebab-case identifier"
     }
@@ -123,7 +123,7 @@ pub fn wit_identifier_error(id: String) -> String {
         if wit_identity_find(id, 64, at + 1) >= 0 {
             return "WIT import may contain only one @version suffix"
         }
-        let version = id.slice(at + 1, len(id))
+        let version = id.slice(at + 1, id.len())
         if !wit_identity_version_is_valid(version) {
             return "WIT import version must use major.minor.patch form"
         }
@@ -147,7 +147,7 @@ pub fn wit_identifier_interface(id: String) -> String {
     let start = slash + 1
     let at = wit_identity_find(id, 64, start)
     if at < 0 {
-        return id.slice(start, len(id))
+        return id.slice(start, id.len())
     }
     id.slice(start, at)
 }
@@ -161,7 +161,7 @@ pub fn wit_identifier_version(id: String) -> String {
     if at < 0 {
         return String_new()
     }
-    id.slice(at + 1, len(id))
+    id.slice(at + 1, id.len())
 }
 
 pub fn wit_identifier_path(package: String, interface: String) -> String {
@@ -170,7 +170,7 @@ pub fn wit_identifier_path(package: String, interface: String) -> String {
 
 pub fn wit_identifier_canonical(package: String, interface: String, version: String) -> String {
     let path = wit_identifier_path(package.clone(), interface.clone())
-    if len(version) == 0 {
+    if version.len() == 0 {
         return path
     }
     path.concat("@".concat(version.clone()))

@@ -89,7 +89,7 @@ operating on `Vec<T>` above the byte-buffer level.
 
 | Prelude helper             | Preferred wrapper                     | Notes |
 |----------------------------|---------------------------------------|-------|
-| `push(v, x)` on `Vec<T>`  | `collections::vec::push(v, x)`        | tiny-prelude `push`/`pop`/`len` may remain for internal impl |
+| `push(v, x)` on `Vec<T>`  | `collections::vec::push(v, x)`        | tiny-prelude `push`/`pop` may remain for internal impl; `len` is a receiver method |
 | `get_unchecked(v, i)`      | index syntax or `collections::vec::get(v, i)` | prefer bounds-checked form in examples |
 
 ### Families where the prelude is still acceptable
@@ -97,7 +97,7 @@ operating on `Vec<T>` above the byte-buffer level.
 - `Std::panic(msg)` — stable prelude namespace form (ADR-090); the free `panic` is removed.
 - `assert(cond, msg)` — same.
 - `String_new()` / `String_from(s)` — tiny-prelude allocation; no facade needed yet.
-- `len(s)` on `String` — keep using; module-qualified form is verbose for no gain.
+- `len` — retired; use `s.len()` on `String` or `v.len()` on `Vec<T>`.
 
 ---
 

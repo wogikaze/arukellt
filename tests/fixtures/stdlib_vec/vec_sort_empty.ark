@@ -10,5 +10,5 @@ fn ascending(a: i32, b: i32) -> Ordering {
 fn main() {
     let v: Vec<i32> = Vec::new<i32>()
     v.sort_by(ascending)
-    Test::assert_eq_i32(len(v), 0)
+    Test::assert_eq_i32(v.len(), 0)
 }

@@ -1,7 +1,7 @@
 use mir::types_block
 
 fn MirBlock_pred_count(block: MirBlock) -> i32 {
-    len(block.preds)
+    block.preds.len()
 }
 
 fn MirBlock_pred_at(block: MirBlock, idx: i32) -> i32 {

@@ -22,7 +22,7 @@ use diagnostics::mod as diag_mod
 use std::text
 
 fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let node = get_unchecked(decls, i)
@@ -47,7 +47,7 @@ fn register_struct_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
 // generic struct, or a collision with a non-generic enum, leaves one side
 // unreachable and emits invalid core Wasm, so the decl is rejected here.
 fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, node: AstNode, struct_name: String, struct_params: Vec<String>) {
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut j = 0
     while j < decl_count {
         let e_node = get_unchecked(decls, j)
@@ -57,7 +57,7 @@ fn report_struct_enum_shadow_conflict(mut env: TypeEnv, decls: Vec<AstNode>, nod
             continue
         }
         let enum_params = module_enums::enum_type_param_names(e_node)
-        if len(struct_params) == 0 && len(enum_params) > 0 {
+        if struct_params.len() == 0 && enum_params.len() > 0 {
             j = j + 1
             continue
         }
@@ -116,7 +116,7 @@ fn struct_field_type(env: TypeEnv, recv_ty: TypeInfo, field_name: String) -> Typ
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
     let recv_name = names::unqualified_type_name(contract_type_access::TypeInfo_name(recv_ty))
-    let def_count = len(env.struct_defs)
+    let def_count = env.struct_defs.len()
     let mut i = 0
     while i < def_count {
         let def = get_unchecked(env.struct_defs, i)
@@ -130,7 +130,7 @@ fn struct_field_type(env: TypeEnv, recv_ty: TypeInfo, field_name: String) -> Typ
         }
         let field_ty = contract_struct_info::StructInfo_field_type_at(def, field_idx)
         let type_params = contract_struct_info::StructInfo_type_params(def)
-        if len(type_params) == 0 {
+        if type_params.len() == 0 {
             return field_ty
         }
         return instantiate::instantiate_type(field_ty, type_params, recv_type_args(recv_ty))
@@ -169,7 +169,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
         return aggregate_ty
     }
     let base_name = names::unqualified_type_name(lit_name.clone())
-    let def_count = len(env.struct_defs)
+    let def_count = env.struct_defs.len()
     let mut di = 0
     while di < def_count {
         let def = get_unchecked(env.struct_defs, di)
@@ -178,13 +178,13 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
             continue
         }
         let type_params = contract_struct_info::StructInfo_type_params(def)
-        if len(type_params) == 0 {
+        if type_params.len() == 0 {
             return aggregate_ty
         }
         let mut infer_env = infer_env_scope::borrow_generic_infer_env(env)
         let mut var_types = Vec::new<TypeInfo>()
         let mut pi = 0
-        while pi < len(type_params) {
+        while pi < type_params.len() {
             push(var_types, unify::fresh_var(infer_env))
             pi = pi + 1
         }
@@ -193,7 +193,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
         while fi < lit_field_count {
             let field = ast_access::node_child_at(node, fi)
             let decl_idx = contract_struct_info::StructInfo_field_index(def, ast_access::node_text(field))
-            if decl_idx >= 0 && fi < len(val_tys) {
+            if decl_idx >= 0 && fi < val_tys.len() {
                 let field_ty = contract_struct_info::StructInfo_field_type_at(def, decl_idx)
                 if struct_lit_ty_mentions_params(field_ty.clone(), type_params.clone()) {
                     let inst_ty = instantiate::instantiate_type(field_ty, type_params.clone(), var_types.clone())
@@ -211,7 +211,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
         }
         let resolved = call_generic_common::resolve_type_args(infer_env, var_types)
         let mut ri = 0
-        while ri < len(resolved) {
+        while ri < resolved.len() {
             let arg_ty = get_unchecked(resolved, ri)
             if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() {
                 return aggregate_ty
@@ -227,7 +227,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
             ri = ri + 1
         }
         let mut ai = 0
-        while ai < len(resolved) {
+        while ai < resolved.len() {
             contract_type_mutation::TypeInfo_push_type_arg(aggregate_ty, get_unchecked(resolved, ai))
             ai = ai + 1
         }
@@ -238,7 +238,7 @@ fn infer_generic_literal_args(env: TypeEnv, mut aggregate_ty: TypeInfo, node: As
 
 fn struct_lit_name_in_params(name: String, params: Vec<String>) -> bool {
     let mut pi = 0
-    while pi < len(params) {
+    while pi < params.len() {
         if name.clone().eq(get_unchecked(params, pi).clone()) {
             return true
         }

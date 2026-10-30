@@ -62,7 +62,7 @@ fn mir_index_top_level_fn(
                 let mono_qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
                 let bare_mono_count = mono::mono_index_count(midx, decl_name.clone())
                 let mut qualified_mono_count = 0
-                if len(mono_qualified_name) > 0 && !mono_qualified_name.clone().eq(decl_name.clone()) {
+                if mono_qualified_name.len() > 0 && !mono_qualified_name.clone().eq(decl_name.clone()) {
                     qualified_mono_count = mono::mono_index_count(midx, mono_qualified_name.clone())
                 }
                 if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {

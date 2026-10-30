@@ -184,16 +184,16 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
 
 fn normalize_vec_constructor_callee(callee_name: String) -> String {
     if callee_name.clone().starts_with(String_from("Vec_new_")) {
-        return String_from("Vec__new__").concat(callee_name.slice(8, len(callee_name)))
+        return String_from("Vec__new__").concat(callee_name.slice(8, callee_name.len()))
     }
     if callee_name.clone().starts_with(String_from("Vec::new__")) {
-        return String_from("Vec__new__").concat(callee_name.slice(10, len(callee_name)))
+        return String_from("Vec__new__").concat(callee_name.slice(10, callee_name.len()))
     }
     if callee_name.clone().starts_with(String_from("Vec_with_capacity_")) {
-        return String_from("Vec__with_capacity__").concat(callee_name.slice(18, len(callee_name)))
+        return String_from("Vec__with_capacity__").concat(callee_name.slice(18, callee_name.len()))
     }
     if callee_name.clone().starts_with(String_from("Vec::with_capacity__")) {
-        return String_from("Vec__with_capacity__").concat(callee_name.slice(20, len(callee_name)))
+        return String_from("Vec__with_capacity__").concat(callee_name.slice(20, callee_name.len()))
     }
     callee_name
 }
@@ -239,12 +239,11 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
     eqz_dest
 }
 
-// The prelude `len` free is signature-only and serves two receiver owners.
-// The checker records the owner per call site (#933); lowering binds the
+// `len` is a receiver method now (the free was retired). Lowering binds the
 // owner-qualified FunctionId the CoreOp registry already maps to
-// `string.len` / `vec.len`. No local-type re-derivation and no bare-`len`
-// name dispatch remain. A site without a resolution is not the prelude free,
-// so its callee stays untouched.
+// `string.len` / `vec.len`. The bare `len` branch remains only for the flat
+// bootstrap overlay declaration the pinned compiler still uses. A site
+// without a resolution stays untouched.
 fn mir_rewrite_vec_len(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
     if callee_name.clone().eq(String_from("String::len")) ||
     callee_name.clone().starts_with(String_from("String::len__")) {
@@ -258,7 +257,7 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, span_start: i32, callee_name: String) -> S
         return callee_name
     }
     let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("len"))
-    if len(owner.clone()) == 0 {
+    if owner.clone().len() == 0 {
     }
     if owner.eq(String_from("String")) {
         return String_from("String::len")

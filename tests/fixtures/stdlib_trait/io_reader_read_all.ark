@@ -11,7 +11,7 @@ fn main() {
 
     match io::Io::read_to_end(reader) {
         Result::Ok(bytes) => {
-            Test::assert_eq_i32(len(bytes), 4)
+            Test::assert_eq_i32(bytes.len(), 4)
             Test::assert_eq_i32(get_unchecked(bytes, 0), 1)
             Test::assert_eq_i32(get_unchecked(bytes, 3), 4)
         },

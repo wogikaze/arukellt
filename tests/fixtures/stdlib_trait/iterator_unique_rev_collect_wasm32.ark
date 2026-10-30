@@ -13,20 +13,20 @@ fn main() {
     push(values, 1)
 
     let unique = values.iter().unique().collect()
-    Test::assert_eq_i32(len(unique), 3)
+    Test::assert_eq_i32(unique.len(), 3)
     Test::assert_eq_i32(get_unchecked(unique, 0), 3)
     Test::assert_eq_i32(get_unchecked(unique, 1), 1)
     Test::assert_eq_i32(get_unchecked(unique, 2), 2)
 
     let reversed = values.iter().rev().collect()
-    Test::assert_eq_i32(len(reversed), 5)
+    Test::assert_eq_i32(reversed.len(), 5)
     Test::assert_eq_i32(get_unchecked(reversed, 0), 1)
     Test::assert_eq_i32(get_unchecked(reversed, 1), 2)
     Test::assert_eq_i32(get_unchecked(reversed, 4), 3)
 
     let empty: Vec<i32> = Vec::new<i32>()
-    Test::assert_eq_i32(len(empty.iter().unique().collect()), 0)
-    Test::assert_eq_i32(len(empty.iter().rev().collect()), 0)
+    Test::assert_eq_i32(empty.iter().unique().collect().len(), 0)
+    Test::assert_eq_i32(empty.iter().rev().collect().len(), 0)
 
     Test::assert_eq_i32(values.iter().unique().count(), 3)
     Test::assert_eq_i32(values.iter().rev().count(), 5)

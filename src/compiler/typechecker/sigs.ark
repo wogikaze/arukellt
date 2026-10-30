@@ -61,7 +61,7 @@ fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     }
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut i = 0
-    while i < len(variants) {
+    while i < variants.len() {
         let variant_sig = lookup_fn_sig(env, fn_sigs, get_unchecked(variants, i).clone())
         if contract_fn_sig::FnSig_has_name(variant_sig) {
             return variant_sig
@@ -80,7 +80,7 @@ fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
 
 fn is_type_owned_name(name: String) -> bool {
     let owner = paths::path_module_part(name.clone())
-    if len(owner) == 0 {
+    if owner.len() == 0 {
         return false
     }
     let first = owner.byte_at(0)

@@ -28,7 +28,7 @@ struct OneByteWriter {
 
 impl io::Write for OneByteWriter {
     fn write(mut self: OneByteWriter, data: Vec<i32>) -> Result<i32, io::IoError> {
-        if len(data) == 0 {
+        if data.len() == 0 {
             return Ok(0)
         }
         push(self.bytes, get_unchecked(data, 0))
@@ -75,7 +75,7 @@ fn main() {
     match inner_result {
         Result::Ok(inner) => {
             let bytes: Vec<i32> = inner.into_bytes()
-            Stdio::println((len(bytes)).to_string())
+            Stdio::println((bytes.len()).to_string())
             Stdio::println((get_unchecked(bytes, 0)).to_string())
             Stdio::println((get_unchecked(bytes, 6)).to_string())
         },
@@ -95,7 +95,7 @@ fn main() {
     }
     let zero_result: Result<Writer, io::IoError> = zero.into_inner()
     match zero_result {
-        Result::Ok(inner) => Stdio::println((len(inner.into_bytes())).to_string()),
+        Result::Ok(inner) => Stdio::println((inner.into_bytes().len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
 
@@ -107,7 +107,7 @@ fn main() {
     }
     let pending_result: Result<Writer, io::IoError> = pending.into_inner()
     match pending_result {
-        Result::Ok(inner) => Stdio::println((len(inner.into_bytes())).to_string()),
+        Result::Ok(inner) => Stdio::println((inner.into_bytes().len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
 
@@ -117,7 +117,7 @@ fn main() {
         Result::Ok(count) => Stdio::println((count).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
-    Stdio::println((len(text_writer.into_bytes())).to_string())
+    Stdio::println((text_writer.into_bytes().len()).to_string())
 
     let mut empty: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 8)
     let flush_result: Result<(), io::IoError> = flush_sink(empty)
@@ -148,7 +148,7 @@ fn main() {
     }
     let partial_result: Result<OneByteWriter, io::IoError> = partial.into_inner()
     match partial_result {
-        Result::Ok(inner) => Stdio::println((len(inner.bytes)).to_string()),
+        Result::Ok(inner) => Stdio::println((inner.bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
 }

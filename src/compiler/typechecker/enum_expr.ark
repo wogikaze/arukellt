@@ -25,16 +25,16 @@ fn infer_enum_variant_struct_lit(enum_defs: Vec<EnumInfo>, node: AstNode) -> Typ
 fn infer_enum_variant_value(enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let path = ast_access::node_text(node)
     let enum_name = enum_name_from_variant_path(path.clone())
-    if len(enum_name) == 0 {
+    if enum_name.len() == 0 {
         return unknown_type()
     }
     let enum_type_name = enum_type_name_from_variant_path(path.clone())
-    if len(enum_type_name) == 0 {
+    if enum_type_name.len() == 0 {
         return unknown_type()
     }
     let enum_def = find_enum_def(enum_defs, path.clone(), enum_name.clone())
     let declared_name = contract_enum_info::EnumInfo_name(enum_def)
-    if len(declared_name) == 0 {
+    if declared_name.len() == 0 {
         return unknown_type()
     }
     contract_type_constructors::TypeInfo_named(commands::TY_ENUM(), enum_type_name)
@@ -53,7 +53,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     let path = ast_access::node_text(callee)
     let enum_def = find_enum_def(enum_defs, path.clone(), enum_name_from_variant_path(path.clone()))
     let type_params = contract_enum_info::EnumInfo_type_params(enum_def)
-    if len(type_params) == 0 {
+    if type_params.len() == 0 {
         return base_ty
     }
     let variant_index = contract_enum_info::EnumInfo_variant_index(enum_def, path.clone())
@@ -63,13 +63,13 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     let mut infer_env = infer_env_scope::borrow_generic_infer_env(env)
     let mut inst_args = Vec::new<TypeInfo>()
     let mut param_index = 0
-    while param_index < len(type_params) {
+    while param_index < type_params.len() {
         push(inst_args, unify::fresh_var(infer_env))
         param_index = param_index + 1
     }
     let payload_count = contract_enum_info::EnumInfo_variant_payload_count(enum_def, variant_index)
     let mut payload_index = 0
-    while payload_index < payload_count && payload_index < len(arg_types) {
+    while payload_index < payload_count && payload_index < arg_types.len() {
         let declared = contract_enum_info::EnumInfo_variant_payload_at(enum_def, variant_index, payload_index)
         let inst_payload = instantiate::instantiate_type(declared, type_params.clone(), inst_args)
         unify::unify(infer_env, inst_payload, get_unchecked(arg_types, payload_index))
@@ -81,7 +81,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     // annotation and later generic call sites read the value as untyped.
     let mut resolved_args = Vec::new<TypeInfo>()
     let mut resolve_index = 0
-    while resolve_index < len(inst_args) {
+    while resolve_index < inst_args.len() {
         let arg_ty = unify::resolve_type(infer_env, get_unchecked(inst_args, resolve_index))
         if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_TYPE_VAR() {
             return base_ty
@@ -91,7 +91,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     }
     let mut result_ty = base_ty
     let mut push_index = 0
-    while push_index < len(resolved_args) {
+    while push_index < resolved_args.len() {
         contract_type_mutation::TypeInfo_push_type_arg(result_ty, get_unchecked(resolved_args, push_index))
         push_index = push_index + 1
     }
@@ -100,7 +100,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
 
 fn find_enum_def(enum_defs: Vec<EnumInfo>, path: String, enum_name: String) -> EnumInfo {
     let fallback = contract_enum_info::EnumInfo_new(String_new(), Vec::new<String>())
-    let count = len(enum_defs)
+    let count = enum_defs.len()
     let mut i = 0
     while i < count {
         let enum_def = get_unchecked(enum_defs, i)
@@ -115,7 +115,7 @@ fn find_enum_def(enum_defs: Vec<EnumInfo>, path: String, enum_name: String) -> E
 }
 
 fn enum_name_from_variant_path(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut last_sep = 0 - 1
     let mut prev_sep = 0 - 1
     let mut i = 0
@@ -138,7 +138,7 @@ fn enum_name_from_variant_path(path: String) -> String {
 }
 
 fn enum_type_name_from_variant_path(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut last_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {

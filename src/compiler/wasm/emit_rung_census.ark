@@ -58,7 +58,7 @@ fn emit_rung_census_print(ctx: SelfEmitCtx) {
     let rungs = ctx_record::SelfEmitCtx_emit_census_rungs(ctx)
     let mut index = 0
     let mut line = String_new()
-    while index < len(rungs) {
+    while index < rungs.len() {
         let decisions = get_unchecked(rungs, index)
         if decisions > 0 {
             let entry = emit_rung_name(index).concat("=".concat((decisions).to_string()))
@@ -66,7 +66,7 @@ fn emit_rung_census_print(ctx: SelfEmitCtx) {
         }
         index = index + 1
     }
-    if len(line) == 0 {
+    if line.len() == 0 {
         return
     }
     Stdio::eprintln("[arukellt] emit-rung-census:".concat(line))

@@ -7,7 +7,7 @@ fn main() {
     match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
             let keys = table.table_keys()
-            Test::assert_eq_i32(len(keys), 10)
+            Test::assert_eq_i32(keys.len(), 10)
             match table.get_field("k9") {
                 Option::Some(v) => match v.as_int() {
                     Option::Some(n) => Test::assert_eq_i32(n, 9),

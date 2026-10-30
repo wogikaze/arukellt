@@ -14,7 +14,7 @@ use corehir::type_ann_node
 // consuming it as a String is invalid wasm.
 fn nested_payload_local_type_name(ann: AstNode) -> String {
     let shaped = type_ann_local_name::type_ann_shape_local_type_name(ann, 0)
-    if len(shaped) > 0 {
+    if shaped.len() > 0 {
         return shaped
     }
     decl_ann_name::decl_ann_name(ann)
@@ -49,7 +49,7 @@ fn param_named_local_type_name(
         !name.clone().eq("String") &&
         !name.clone().eq("u8") &&
         !name.clone().eq("char") &&
-        len(name) > 1 {
+        name.len() > 1 {
             return name
         }
     }
@@ -158,7 +158,7 @@ fn fn_param_local_type_name(
             type_params,
             nominal_types
         )
-        if len(generic_user_type) > 0 {
+        if generic_user_type.len() > 0 {
             return generic_user_type
         }
     } else {
@@ -248,7 +248,7 @@ fn method_param_local_type_name(
             type_params,
             nominal_types
         )
-        if len(generic_user_type) > 0 {
+        if generic_user_type.len() > 0 {
             return generic_user_type
         }
     } else {
@@ -267,7 +267,7 @@ fn generic_user_type_local_name(
 ) -> String {
     let name = decl_ann_name::decl_ann_name(ann)
     let arg_count = decl_ann_children::decl_ann_child_count(ann)
-    if len(name) == 0 || arg_count < 2 {
+    if name.len() == 0 || arg_count < 2 {
         return String_new()
     }
     let mut has_type_var = false
@@ -310,7 +310,7 @@ fn is_generic_type_param_name(
     if param_shape_declared::corehir_nominal_types_contains(nominal_types, name.clone()) {
         return false
     }
-    if len(name) != 1 {
+    if name.len() != 1 {
         return false
     }
     let ch = name.byte_at(0)

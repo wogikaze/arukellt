@@ -10,7 +10,7 @@ fn main() {
     push(v, 30)
 
     let filtered = v.iter().filter(always_true).collect()
-    Test::assert_eq_i32(len(filtered), 3)
+    Test::assert_eq_i32(filtered.len(), 3)
     Test::assert_eq_i32(get_unchecked(filtered, 0), 10)
     Test::assert_eq_i32(get_unchecked(filtered, 1), 20)
     Test::assert_eq_i32(get_unchecked(filtered, 2), 30)

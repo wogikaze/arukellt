@@ -9,7 +9,7 @@ use typechecker::traits
 // spelling.
 fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     let mut names = Vec::new<String>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
@@ -25,7 +25,7 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
 
 fn register_trait_impl_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     trait_registry::register_trait_decls(env, decls)
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)

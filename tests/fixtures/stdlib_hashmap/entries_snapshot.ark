@@ -7,12 +7,12 @@ fn main() {
     let _ = m.insert(2, 20)
 
     let entries = m.entries()
-    Test::assert_eq_i32(len(entries), 2)
+    Test::assert_eq_i32(entries.len(), 2)
 
     let mut found_1_10 = false
     let mut found_2_20 = false
     let mut i = 0
-    while i < len(entries) {
+    while i < entries.len() {
         let (k, v) = get_unchecked(entries, i)
         if k == 1 && v == 10 {
             found_1_10 = true

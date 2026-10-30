@@ -23,7 +23,7 @@ fn main() {
     Test::assert_eq_i32(words.len(), 1)
     Test::assert_false(words.is_empty())
     let snapshot: Vec<String> = words.to_vec()
-    Test::assert_eq_i32(len(snapshot), 1)
+    Test::assert_eq_i32(snapshot.len(), 1)
 
     let word_capacity: i32 = words.capacity()
     words.reserve(20)

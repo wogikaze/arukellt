@@ -68,7 +68,7 @@ use wasm::writer_core
 fn emit_inloop_start_fn_index(kept: Vec<MirFunction>) -> i32 {
     let mut main_idx = 0 - 1
     let mut mi = 0
-    while mi < len(kept) {
+    while mi < kept.len() {
         let f = get_unchecked(kept, mi)
         if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
             main_idx = mi
@@ -82,7 +82,7 @@ fn emit_inloop_start_fn_index(kept: Vec<MirFunction>) -> i32 {
 fn emit_inloop_needs_start_wrapper(kept: Vec<MirFunction>) -> i32 {
     let mut needs_wrapper = 0
     let mut i = 0
-    while i < len(kept) {
+    while i < kept.len() {
         let f = get_unchecked(kept, i)
         if start_names::is_wasm_start_function_name(function_identity::MirFunction_name(f)) {
             if function_return_view::MirFunction_return_type(f) != 0 {
@@ -208,7 +208,7 @@ fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
     // being deferred to the drain.
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
-    while vi < len(variants) {
+    while vi < variants.len() {
         if name_index::name_index_get(disc, get_unchecked(variants, vi).clone()) >= 0 {
             return true
         }
@@ -220,7 +220,7 @@ fn emit_inloop_disc_hit(disc: NameIndex, name: String) -> bool {
             return true
         }
     }
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {
@@ -242,7 +242,7 @@ fn emit_inloop_fn_emittable(ctx: LowerCtx, f: MirFunction) -> bool {
     // from the drained one. Defer while any binding is still pending —
     // resolved bindings are append-stable, the drain covers the rest.
     let layout_table = ctx_record::SelfEmitCtx_gc_layout_table(ectx)
-    if len(layout_table.plan_pending) > 0 {
+    if layout_table.plan_pending.len() > 0 {
         return false
     }
     // Storage-layout consults are miss-then-hit flippable while later
@@ -263,7 +263,7 @@ fn emit_inloop_fn_emittable(ctx: LowerCtx, f: MirFunction) -> bool {
                 return false
             }
             let vs = local_access::MirLocal_variant_slot(loc)
-            if vs >= len(variant_map) {
+            if vs >= variant_map.len() {
                 return false
             }
         }
@@ -366,7 +366,7 @@ fn emit_inloop_drain(
     let mut art = module_emit_artifacts::MirModule_emit_artifacts(module)
     let fns_for_opt = module_functions::MirModule_functions(module)
     let mut opt_i = art.opt_fn_count
-    while opt_i < len(fns_for_opt) {
+    while opt_i < fns_for_opt.len() {
         let mut opt_f = get_unchecked(fns_for_opt, opt_i)
         let mut opt_f = mir_opt::optimize_fn(module, opt_f, opt_level, target.clone())
         module_functions::MirModule_set_function_at(module, opt_i, opt_f)
@@ -378,7 +378,7 @@ fn emit_inloop_drain(
     art.opt_done = true
     // Re-read after opt: the O2 passes may replace the module function vec.
     let functions = module_functions::MirModule_functions(module)
-    let fn_count = len(functions)
+    let fn_count = functions.len()
     // Reachability marks over the recorded edge table — identical inputs
     // to the prune pass about to run, so the kept set is exactly what
     // emit would see post-compaction. Empty marks = no prune (all kept).
@@ -397,7 +397,7 @@ fn emit_inloop_drain(
     let mut kept = Vec::new<MirFunction>()
     let mut ki = 0
     while ki < fn_count {
-        if len(marks) == 0 || get_unchecked(marks, ki) != 0 {
+        if marks.len() == 0 || get_unchecked(marks, ki) != 0 {
             push(kept, get_unchecked(functions, ki))
         }
         ki = ki + 1
@@ -418,19 +418,19 @@ fn emit_inloop_drain(
     let gc_names = module_gc_struct::MirModule_gc_struct_names(module)
     let mut pair_sigs = Vec::new<String>()
     let mut pr = 0
-    while pr < len(art.pair_ref_fn) {
+    while pr < art.pair_ref_fn.len() {
         let owner = get_unchecked(art.pair_ref_fn, pr)
-        if len(marks) == 0 || get_unchecked(marks, owner) != 0 {
+        if marks.len() == 0 || get_unchecked(marks, owner) != 0 {
             let sig = call_indirect::pair_call_sig_from_hint(
                 get_unchecked(art.pair_ref_hint, pr).clone(),
                 get_unchecked(art.pair_ref_vt, pr),
                 memory64,
                 gc_names.clone()
             )
-            if len(sig) > 0 {
+            if sig.len() > 0 {
                 let mut seen = false
                 let mut si = 0
-                while si < len(pair_sigs) {
+                while si < pair_sigs.len() {
                     if sig.clone().eq(get_unchecked(pair_sigs, si).clone()) {
                         seen = true
                     }
@@ -451,24 +451,24 @@ fn emit_inloop_drain(
     let mut late_kept = Vec::new<MirFunction>()
     let mut li = art.opt_fn_count
     while li < fn_count {
-        if len(marks) == 0 || get_unchecked(marks, li) != 0 {
+        if marks.len() == 0 || get_unchecked(marks, li) != 0 {
             push(late_kept, get_unchecked(functions, li))
         }
         li = li + 1
     }
     let late_pair_sigs = sections_types_sigs::collect_pair_call_type_sigs(
         late_kept,
-        len(late_kept),
+        late_kept.len(),
         target.clone(),
         memory64,
         gc_names.clone()
     )
     let mut lsi = 0
-    while lsi < len(late_pair_sigs) {
+    while lsi < late_pair_sigs.len() {
         let late_sig = get_unchecked(late_pair_sigs, lsi)
         let mut seen = false
         let mut si = 0
-        while si < len(pair_sigs) {
+        while si < pair_sigs.len() {
             if late_sig.clone().eq(get_unchecked(pair_sigs, si).clone()) {
                 seen = true
             }
@@ -487,7 +487,7 @@ fn emit_inloop_drain(
     let type_sigs = sections_types::build_type_sigs(
         module,
         kept,
-        len(kept),
+        kept.len(),
         needs_wrapper,
         target.clone(),
         wasi_version.clone(),
@@ -578,11 +578,11 @@ fn emit_inloop_drain(
     // slots keep an empty entry so body_bytes stays index-aligned.
     let mut fi = 0
     while fi < fn_count {
-        while len(ectx.body_bytes) <= fi {
+        while ectx.body_bytes.len() <= fi {
             push(ectx.body_bytes, Vec::new<i32>())
         }
-        if len(marks) == 0 || get_unchecked(marks, fi) != 0 {
-            if len(get_unchecked(ectx.body_bytes, fi)) == 0 {
+        if marks.len() == 0 || get_unchecked(marks, fi) != 0 {
+            if get_unchecked(ectx.body_bytes, fi).len() == 0 {
                 let mut f = get_unchecked(functions, fi)
                 ctx_record::SelfEmitCtx_set_current_func_idx(ectx, fi)
                 let mut body_w = writer_core::WasmWriter_with_memory64(memory64)

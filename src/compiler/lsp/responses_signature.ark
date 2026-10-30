@@ -1,11 +1,11 @@
 use std::text
 use std::json
 fn append_param_labels(items: String, params: Vec<String>) -> String {
-    let n = len(params)
+    let n = params.len()
     let mut i = 0
     let mut out = items
     while i < n {
-        if len(out) > 0 {
+        if out.len() > 0 {
             out = out.concat(String_from(","))
         }
         out = out.concat(String_from("{\"label\":"))
@@ -19,7 +19,7 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
 fn signature_info_json(label: String, doc: String, params: Vec<String>) -> String {
     let mut out = String_from("{\"label\":")
     out = out.concat(json::JsonText::quote(label))
-    if len(doc) > 0 {
+    if doc.len() > 0 {
         out = out.concat(String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
         out = out.concat(json::JsonText::quote(doc))
         out = out.concat(String_from("}"))

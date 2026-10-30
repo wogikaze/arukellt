@@ -12,7 +12,7 @@ fn module_name(module: ModuleDecls) -> String {
 }
 
 fn module_decl_count(module: ModuleDecls) -> i32 {
-    len(module.decls)
+    module.decls.len()
 }
 
 fn module_decl_at(module: ModuleDecls, index: i32) -> AstNode {
@@ -23,7 +23,7 @@ fn module_decl_at(module: ModuleDecls, index: i32) -> AstNode {
 // stored as "string"), so a use-path leaf segment is a module reference iff it
 // matches a registered module name.
 fn module_registered(modules: Vec<ModuleDecls>, name: String) -> bool {
-    let count = len(modules)
+    let count = modules.len()
     let mut i = 0
     while i < count {
         if modules::module_name(get_unchecked(modules, i)).eq(name.clone()) {

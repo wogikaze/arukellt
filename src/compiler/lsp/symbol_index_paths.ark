@@ -8,14 +8,14 @@ pub fn file_path_to_uri(path: String) -> String {
 
 pub fn uri_to_file_path(uri: String) -> String {
     if uri.clone().starts_with("file://") {
-        return uri.slice(7, len(uri))
+        return uri.slice(7, uri.len())
     }
     uri
 }
 
 pub fn root_uri_from_initialize(body: String) -> String {
     let root_uri = extract_json_string_field(body.clone(), "rootUri")
-    if len(root_uri) > 0 {
+    if root_uri.len() > 0 {
         return root_uri
     }
     extract_workspace_folder_uri(body.clone())
@@ -26,11 +26,11 @@ fn extract_workspace_folder_uri(body: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    let uri_pos = body.slice(pos, len(body)).index_of("\"uri\"")
+    let uri_pos = body.slice(pos, body.len()).index_of("\"uri\"")
     if uri_pos < 0 {
         return String_new()
     }
-    extract_json_string_field(body.slice(pos + uri_pos, len(body)), "uri")
+    extract_json_string_field(body.slice(pos + uri_pos, body.len()), "uri")
 }
 
 pub fn extract_json_string_field(body: String, key: String) -> String {
@@ -39,13 +39,13 @@ pub fn extract_json_string_field(body: String, key: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    let tail = body.slice(pos, len(body))
+    let tail = body.slice(pos, body.len())
     let colon = tail.clone().index_of(":")
     if colon < 0 {
         return String_new()
     }
-    let after = tail.slice(colon + 1, len(tail))
-    let after_len = len(after)
+    let after = tail.slice(colon + 1, tail.len())
+    let after_len = after.len()
     let mut p = 0
     while p < after_len {
         let c = after.byte_at(p)
@@ -69,7 +69,7 @@ pub fn extract_json_string_field(body: String, key: String) -> String {
 }
 
 pub fn join_path(base: String, rel: String) -> String {
-    if len(base) == 0 {
+    if base.len() == 0 {
         return rel
     }
     if base.clone().ends_with("/") {
@@ -79,15 +79,15 @@ pub fn join_path(base: String, rel: String) -> String {
 }
 
 pub fn resolve_relative_path(base: String, rel: String) -> String {
-    if len(rel) == 0 {
+    if rel.len() == 0 {
         return base.clone()
     }
     if rel.clone().starts_with("../") {
         let parent = loader::module_paths::parent_dir(base.clone())
-        return resolve_relative_path(parent, rel.slice(3, len(rel)))
+        return resolve_relative_path(parent, rel.slice(3, rel.len()))
     }
     if rel.clone().starts_with("./") {
-        return resolve_relative_path(base.clone(), rel.slice(2, len(rel)))
+        return resolve_relative_path(base.clone(), rel.slice(2, rel.len()))
     }
     join_path(base.clone(), rel)
 }
@@ -98,7 +98,7 @@ pub fn find_dependency_path(content: String, dep_name: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    let tail = content.slice(pos + len(needle), len(content))
+    let tail = content.slice(pos + needle.len(), content.len())
     let end = tail.clone().index_of("\"")
     if end < 0 {
         return String_new()

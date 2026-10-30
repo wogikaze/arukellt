@@ -11,7 +11,7 @@ fn main() {
     push(v, 20)
     push(v, 30)
     let result: Vec<i32> = v.iter().map(identity).collect()
-    Test::assert_eq_i32(len(result), 3)
+    Test::assert_eq_i32(result.len(), 3)
     Test::assert_eq_i32(get_unchecked(result, 0), 10)
     Test::assert_eq_i32(get_unchecked(result, 1), 20)
     Test::assert_eq_i32(get_unchecked(result, 2), 30)

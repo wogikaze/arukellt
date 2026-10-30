@@ -67,7 +67,7 @@ fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
 }
 
 fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
-    len(instance.type_args)
+    instance.type_args.len()
 }
 
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {

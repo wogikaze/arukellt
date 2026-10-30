@@ -3,7 +3,7 @@ use fmt::program
 use fmt::whitespace
 
 fn fmt_line_count(text: String) -> i32 {
-    len(whitespace::fmt_split_lines(text))
+    whitespace::fmt_split_lines(text).len()
 }
 
 fn fmt_snap_line_start(line: i32) -> i32 {
@@ -25,12 +25,12 @@ fn fmt_snap_line_end(line: i32, max_line: i32) -> i32 {
 
 fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> String {
     let lines = whitespace::fmt_split_lines(text.clone())
-    let max_line = len(lines) - 1
+    let max_line = lines.len() - 1
     let start = fmt_snap_line_start(start_line)
     let end = fmt_snap_line_end(end_line, max_line)
     let mut out = String_new()
     let mut i = start
-    while i <= end && i < len(lines) {
+    while i <= end && i < lines.len() {
         if i > start {
             out = out.concat("\n")
         }
@@ -45,29 +45,29 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
 
 fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacement: String) -> String {
     let lines = whitespace::fmt_split_lines(text.clone())
-    let max_line = len(lines) - 1
+    let max_line = lines.len() - 1
     let start = fmt_snap_line_start(start_line)
     let end = fmt_snap_line_end(end_line, max_line)
     let mut out = String_new()
     let mut i = 0
-    while i < start && i < len(lines) {
+    while i < start && i < lines.len() {
         if i > 0 {
             out = out.concat("\n")
         }
         out = out.concat(get_unchecked(lines, i).clone())
         i = i + 1
     }
-    if len(replacement) > 0 {
+    if replacement.len() > 0 {
         if start > 0 {
             out = out.concat("\n")
         }
         out = out.concat(replacement.clone())
     }
-    for j in (end + 1)..len(lines) {
+    for j in (end + 1)..lines.len() {
         out = out.concat("\n")
         out = out.concat(get_unchecked(lines, j).clone())
     }
-    if len(lines) > 0 {
+    if lines.len() > 0 {
         out = out.concat("\n")
     }
     out

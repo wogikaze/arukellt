@@ -23,7 +23,7 @@ fn main() {
         Result::Err(_e) => assert(false),
     }
     let image: Vec<i32> = dst.into_bytes()
-    assert(len(image) == 11)
+    assert(image.len() == 11)
     assert(get_unchecked(image, 0) == 72)
     assert(get_unchecked(image, 5) == 32)
     assert(get_unchecked(image, 10) == 100)

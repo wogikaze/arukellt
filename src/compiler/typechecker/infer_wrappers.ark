@@ -61,11 +61,11 @@ fn infer_wrapper_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
 fn infer_condition_call_demand_edges(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     if ast_expr_predicates::node_is_call(node) || ast_expr_predicates::node_is_method_call(node) {
         let saved_error_count = env.error_count
-        let saved_error_len = len(env.errors)
-        let saved_diagnostic_len = len(env.diagnostics)
+        let saved_error_len = env.errors.len()
+        let saved_diagnostic_len = env.diagnostics.len()
         let _call_ty = infer_expr(env, scope, fn_sigs, enum_defs, node)
         env.error_count = saved_error_count
-        while len(env.errors) > saved_error_len {
+        while env.errors.len() > saved_error_len {
             match env.errors.pop() {
                 Option::Some(_) => {
                 },
@@ -74,7 +74,7 @@ fn infer_condition_call_demand_edges(mut env: TypeEnv, mut scope: LocalScope, fn
                 },
             }
         }
-        while len(env.diagnostics) > saved_diagnostic_len {
+        while env.diagnostics.len() > saved_diagnostic_len {
             match env.diagnostics.pop() {
                 Option::Some(_) => {
                 },

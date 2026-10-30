@@ -5,7 +5,7 @@ use mir::dump_op_names
 use mir::phi_access
 
 fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
-    let count = len(args)
+    let count = args.len()
     let mut out = "["
     let mut i = 0
     while i < count {

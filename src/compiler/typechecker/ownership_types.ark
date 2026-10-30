@@ -50,7 +50,7 @@ fn type_args_are_copy(env: TypeEnv, ty: TypeInfo) -> bool {
 }
 
 fn has_explicit_copy_impl(env: TypeEnv, ty: TypeInfo) -> bool {
-    let count = len(env.trait_impls)
+    let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)

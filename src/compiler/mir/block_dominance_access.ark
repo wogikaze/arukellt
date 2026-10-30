@@ -9,7 +9,7 @@ fn MirBlock_dom_set(block: MirBlock) -> Vec<i32> {
 }
 
 fn MirBlock_dom_set_count(block: MirBlock) -> i32 {
-    len(block.dom_set)
+    block.dom_set.len()
 }
 
 fn MirBlock_dom_set_at(block: MirBlock, idx: i32) -> i32 {
@@ -17,7 +17,7 @@ fn MirBlock_dom_set_at(block: MirBlock, idx: i32) -> i32 {
 }
 
 fn MirBlock_dom_frontier_count(block: MirBlock) -> i32 {
-    len(block.dom_frontier)
+    block.dom_frontier.len()
 }
 
 fn MirBlock_dom_frontier_at(block: MirBlock, idx: i32) -> i32 {

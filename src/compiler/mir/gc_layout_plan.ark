@@ -55,7 +55,7 @@ fn mir_gc_layout_plan_schema_version(plan: MirGcLayoutPlan) -> i32 {
 }
 
 fn mir_gc_layout_plan_binding_count(plan: MirGcLayoutPlan) -> i32 {
-    len(plan.bindings)
+    plan.bindings.len()
 }
 
 fn mir_gc_layout_plan_binding_at(plan: MirGcLayoutPlan, index: i32) -> MirGcLayoutBinding {
@@ -76,12 +76,12 @@ fn mir_gc_layout_binding_source_value(binding: MirGcLayoutBinding) -> i32 {
 
 fn mir_gc_layout_plan_find_type(plan: MirGcLayoutPlan, type_id_value: TypeId) -> i32 {
     let raw = type_id::TypeId_raw(type_id_value)
-    if raw >= 0 && raw < len(plan.index_by_raw) {
+    if raw >= 0 && raw < plan.index_by_raw.len() {
         return get_unchecked(plan.index_by_raw, raw)
     }
     // Invalid TypeIds are not indexed; keep the scan so a duplicate
     // invalid binding is still found and replaced in place.
-    let count = len(plan.bindings)
+    let count = plan.bindings.len()
     let mut index = 0
     while index < count {
         let binding = get_unchecked(plan.bindings, index)
@@ -110,10 +110,10 @@ fn mir_gc_layout_plan_bind(
     }
     let raw = type_id::TypeId_raw(type_id_value)
     if raw >= 0 {
-        while len(plan.index_by_raw) <= raw {
+        while plan.index_by_raw.len() <= raw {
             push(plan.index_by_raw, 0 - 1)
         }
-        set(plan.index_by_raw, raw, len(plan.bindings))
+        set(plan.index_by_raw, raw, plan.bindings.len())
     }
     push(plan.bindings, binding)
 }
@@ -138,7 +138,7 @@ fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> boo
         return false
     }
     let raw = type_id::TypeId_raw(tid)
-    if raw >= len(plan.index_by_raw) || get_unchecked(plan.index_by_raw, raw) != index {
+    if raw >= plan.index_by_raw.len() || get_unchecked(plan.index_by_raw, raw) != index {
         return false
     }
     true
@@ -149,7 +149,7 @@ fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> boo
 // first becomes visible, instead of re-validating the whole plan per
 // drain call.
 fn mir_gc_layout_plan_validate_range(plan: MirGcLayoutPlan, start: i32) -> bool {
-    let count = len(plan.bindings)
+    let count = plan.bindings.len()
     let mut index = start
     while index < count {
         if !mir_gc_layout_plan_validate_binding(plan, index) {

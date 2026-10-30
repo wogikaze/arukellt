@@ -4,11 +4,11 @@ use std::test::Test
 
 fn main() {
     let fields = csv::Csv::split_line("a,b,c")
-    Test::assert_eq_i32(len(fields), 3)
+    Test::assert_eq_i32(fields.len(), 3)
     Test::assert_eq_string(get_unchecked(fields, 1), "b")
 
     let row = csv::Csv::parse_row("\"Smith, John\",30")
-    Test::assert_eq_i32(len(row), 2)
+    Test::assert_eq_i32(row.len(), 2)
     Test::assert_eq_string(get_unchecked(row, 0), "Smith, John")
     Test::assert_eq_string(csv::Csv::stringify_row(row), "\"Smith, John\",30")
 
@@ -20,12 +20,12 @@ fn main() {
 
     let parsed: Result<Vec<Vec<String>>, String> = csv::Csv::parse("a,b\n1,2")
     match parsed {
-        Result::Ok(rows) => Test::assert_eq_i32(len(rows), 2),
+        Result::Ok(rows) => Test::assert_eq_i32(rows.len(), 2),
         Result::Err(_) => Test::assert_true(false),
     }
     let header: Result<Vec<String>, String> = csv::Csv::parse_with_header("h1,h2\n1,2")
     match header {
-        Result::Ok(names) => Test::assert_eq_i32(len(names), 2),
+        Result::Ok(names) => Test::assert_eq_i32(names.len(), 2),
         Result::Err(_) => Test::assert_true(false),
     }
 }

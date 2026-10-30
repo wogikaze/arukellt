@@ -67,7 +67,7 @@ fn main() {
 
     // unique yields first occurrences in source order.
     let uniq: Vec<i32> = v.iter().unique().collect()
-    Test::assert_eq_i32(len(uniq), 4)
+    Test::assert_eq_i32(uniq.len(), 4)
     Test::assert_eq_i32(get_unchecked(uniq, 0), 3)
     Test::assert_eq_i32(get_unchecked(uniq, 1), 1)
     Test::assert_eq_i32(get_unchecked(uniq, 2), 4)
@@ -75,7 +75,7 @@ fn main() {
 
     // rev yields the remaining elements in reverse order.
     let rev: Vec<i32> = v.iter().rev().collect()
-    Test::assert_eq_i32(len(rev), 6)
+    Test::assert_eq_i32(rev.len(), 6)
     Test::assert_eq_i32(get_unchecked(rev, 0), 4)
     Test::assert_eq_i32(get_unchecked(rev, 1), 5)
     Test::assert_eq_i32(get_unchecked(rev, 5), 3)
@@ -86,7 +86,7 @@ fn main() {
     Test::assert_eq_i32(sum_into_for(v.iter().rev()), 18)
     Test::assert_eq_i32(sum_via_iter(v.iter().rev()), 18)
     let via_from: Vec<i32> = Vec::from_iter(v.iter().unique())
-    Test::assert_eq_i32(len(via_from), 4)
+    Test::assert_eq_i32(via_from.len(), 4)
     let via_from_rev: Vec<i32> = Vec::from_iter(v.iter().rev())
     Test::assert_eq_i32(get_unchecked(via_from_rev, 0), 4)
 
@@ -95,7 +95,7 @@ fn main() {
     Test::assert_true(!v.iter().contains(2))
     Test::assert_eq_i32(v.iter().count_eq(4), 2)
     let seq_uniq: Vec<i32> = v.iter().unique().collect()
-    Test::assert_eq_i32(len(seq_uniq), 4)
+    Test::assert_eq_i32(seq_uniq.len(), 4)
     let seq_rev: Vec<i32> = v.iter().rev().collect()
     Test::assert_eq_i32(get_unchecked(seq_rev, 0), 4)
 }

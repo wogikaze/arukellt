@@ -10,7 +10,7 @@ fn double(n: i32) -> i32 {
 }
 
 fn key_count<K, V>(m: HashMap<K, V>) -> i32 {
-    len(m.keys())
+    m.keys().len()
 }
 
 fn main() {
@@ -18,24 +18,24 @@ fn main() {
     let _ = ii.insert(1, 10)
     let _ = ii.insert(2, 20)
     let ii_keys = ii.keys()
-    assert(len(ii_keys) == 2)
+    assert(ii_keys.len() == 2)
 
     let mut si = HashMap::new<String, i32>()
     let _ = si.insert(String_from("a"), 1)
     let si_keys = si.keys()
-    assert(len(si_keys) == 1)
+    assert(si_keys.len() == 1)
     assert(get_unchecked(si_keys, 0).eq(String_from("a")))
 
     let mut i_fn = HashMap::new<i32, fn(i32) -> i32>()
     let _ = i_fn.insert(7, double)
     let i_fn_keys = i_fn.keys()
-    assert(len(i_fn_keys) == 1)
+    assert(i_fn_keys.len() == 1)
     assert(get_unchecked(i_fn_keys, 0) == 7)
 
     let mut s_fn = HashMap::new<String, fn(i32) -> i32>()
     let _ = s_fn.insert(String_from("k"), double)
     let s_fn_keys = s_fn.keys()
-    assert(len(s_fn_keys) == 1)
+    assert(s_fn_keys.len() == 1)
 
     // Deferred K/V inside a generic body resolves to the same per-combo
     // adapters at monomorphization.
@@ -51,7 +51,7 @@ fn main() {
     assert(total == 7)
     let mut seen = 0
     for k in s_fn {
-        seen = seen + len(k)
+        seen = seen + k.len()
     }
     assert(seen == 1)
     Stdio::println("OK")

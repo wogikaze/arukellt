@@ -10,7 +10,7 @@ fn main() {
     push(points, Point { x: 1, y: 2 })
     push(points, Point { x: 3, y: 4 })
     let mut i: i32 = 0
-    while i < len(points) {
+    while i < points.len() {
         let p: Point = get_unchecked(points, i)
         Stdio::println((p.x).to_string().concat(String_from(",")).concat((p.y).to_string()))
         i = i + 1

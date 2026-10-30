@@ -36,7 +36,7 @@ use typechecker::types
 
 fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = fn_name.clone()
-    let count = len(resolved_types)
+    let count = resolved_types.len()
     let mut i = 0
     while i < count {
         let ty = get_unchecked(resolved_types, i)
@@ -75,11 +75,11 @@ fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<T
 // re-bind the site into a callable instance; without it the call site
 // can only bind the trapping template body.
 fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_name: String, resolved_types: Vec<TypeInfo>) {
-    if len(env.current_fn_name) == 0 {
+    if env.current_fn_name.len() == 0 {
         return
     }
     let mut mentions_var = false
-    let count = len(resolved_types)
+    let count = resolved_types.len()
     let mut i = 0
     while i < count {
         if associated_types::type_contains_var(get_unchecked(resolved_types, i)) {
@@ -90,7 +90,7 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
     if !mentions_var {
         return
     }
-    let site_count = len(env.mono_template_sites)
+    let site_count = env.mono_template_sites.len()
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
@@ -120,7 +120,7 @@ fn record_template_site_if_generic(mut env: TypeEnv, fn_name: String, mangled_na
 // rebind_enclosing_template_sites binds the receiver and resolves the
 // site through the impl table to `Receiver::method`.
 fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeInfo) {
-    if len(env.current_fn_name) == 0 {
+    if env.current_fn_name.len() == 0 {
         return
     }
     if !associated_types::type_contains_var(recv_ty.clone()) &&
@@ -129,7 +129,7 @@ fn record_var_method_site(mut env: TypeEnv, method_name: String, recv_ty: TypeIn
     }
     let mut mangled = method_name.clone()
     mangled = mangled.concat(String_from("__").concat(mono_key::mono_type_key(recv_ty.clone())))
-    let site_count = len(env.mono_template_sites)
+    let site_count = env.mono_template_sites.len()
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
@@ -164,7 +164,7 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
         return false
     }
     let owner = name.clone().slice(0, sep)
-    let count = len(env.current_fn_type_params)
+    let count = env.current_fn_type_params.len()
     let mut i = 0
     while i < count {
         if get_unchecked(env.current_fn_type_params, i).eq(owner.clone()) {
@@ -180,7 +180,7 @@ fn is_var_projection_receiver(env: TypeEnv, recv_ty: TypeInfo) -> bool {
 // arrives with them resolved away (Reverse::cmp). Only the first balanced
 // <...> span is removed — the owner head.
 fn erase_impl_owner_args(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
@@ -247,10 +247,10 @@ fn enclosing_matches_instantiation(site_name: String, fn_name: String) -> bool {
 // turns the `Inner::next`+[?I] site into `Inner::next`+[VecIter], which
 // MIR lowering can then emit and span-rewrite call sites can resolve.
 fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
-    if len(resolved_types) == 0 {
+    if resolved_types.len() == 0 {
         return
     }
-    let arg_count = len(resolved_types)
+    let arg_count = resolved_types.len()
     let mut a = 0
     while a < arg_count {
         if associated_types::type_contains_var(get_unchecked(resolved_types, a)) {
@@ -258,17 +258,17 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
         }
         a = a + 1
     }
-    let site_count = len(env.mono_template_sites)
+    let site_count = env.mono_template_sites.len()
     let mut s = 0
     while s < site_count {
         let site = get_unchecked(env.mono_template_sites, s)
         if enclosing_matches_instantiation(site.enclosing_fn.clone(), fn_name.clone()) {
             let site_vars = site.enclosing_vars.clone()
-            if len(site_vars) == arg_count {
+            if site_vars.len() == arg_count {
                 let site_args = site.type_args.clone()
                 let mut bound_args = Vec::new<TypeInfo>()
                 let mut b = 0
-                while b < len(site_args) {
+                while b < site_args.len() {
                     push(
                         bound_args,
                         associated_types::normalize_projection_ty(
@@ -291,7 +291,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                     // `Receiver::method` body. Unresolvable sites were
                     // unresolved calls at check time too -- record
                     // nothing rather than a phantom bare-name instance.
-                    if len(bound_args) > 0 {
+                    if bound_args.len() > 0 {
                         _rebound = resolve_var_method_site(
                             env,
                             site.fn_name.clone(),
@@ -301,11 +301,11 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                 } else {
                     let mut resolved_via_trait = false
                     let sep = associated_types::projection_sep_index(site.fn_name.clone())
-                    if sep >= 0 && len(bound_args) > 0 {
+                    if sep >= 0 && bound_args.len() > 0 {
                         let trait_entry = trait_method_registry::lookup_trait_method(
                             env,
                             site.fn_name.clone().slice(0, sep),
-                            site.fn_name.clone().slice(sep + 2, len(site.fn_name))
+                            site.fn_name.clone().slice(sep + 2, site.fn_name.len())
                         )
                         if contract_fn_sig::FnSig_has_name(
                             contract_trait_method_record::trait_method_entry_sig(trait_entry)
@@ -315,7 +315,7 @@ fn rebind_enclosing_template_sites(mut env: TypeEnv, fn_name: String, resolved_t
                             _rebound = mint_trait_method_instance(
                                 env,
                                 trait_entry,
-                                site.fn_name.clone().slice(sep + 2, len(site.fn_name)),
+                                site.fn_name.clone().slice(sep + 2, site.fn_name.len()),
                                 get_unchecked(bound_args, 0)
                             )
                             resolved_via_trait = true
@@ -403,7 +403,7 @@ fn mint_trait_method_instance(mut env: TypeEnv, entry: TraitMethodEntry, method_
     }
     let trait_name = contract_trait_method_record::trait_method_entry_trait_name(entry)
     let owner_name = names::unqualified_type_name(contract_type_access::TypeInfo_name(receiver.clone()))
-    let impl_count = len(env.trait_impls)
+    let impl_count = env.trait_impls.len()
     let mut i = 0
     while i < impl_count {
         let impl_info = get_unchecked(env.trait_impls, i)
@@ -486,13 +486,13 @@ fn resolve_var_method_site(mut env: TypeEnv, method_name: String, receiver: Type
     let owner_name = names::unqualified_type_name(
         contract_type_access::TypeInfo_name(receiver.clone())
     )
-    let impl_count = len(env.trait_impls)
+    let impl_count = env.trait_impls.len()
     let mut i = 0
     while i < impl_count {
         let impl_info = get_unchecked(env.trait_impls, i)
         let self_ty = contract_trait_impl::TraitImplInfo_self_ty(impl_info)
         let trait_name = contract_trait_impl::TraitImplInfo_trait_name(impl_info)
-        if len(trait_name) > 0 && names::same_type_name(
+        if trait_name.len() > 0 && names::same_type_name(
             contract_type_access::TypeInfo_name(self_ty),
             owner_name.clone()
         ) {
@@ -520,7 +520,7 @@ fn propagated_trait_bound(
 ) -> TypeInfo {
     let base = types::resolve_type_name(trait_name.clone())
     let arg_patterns = contract_trait_impl_record::trait_impl_info_trait_args(impl_info)
-    let arg_count = len(arg_patterns)
+    let arg_count = arg_patterns.len()
     if arg_count == 0 {
         return base
     }
@@ -545,7 +545,7 @@ fn propagated_trait_bound(
 }
 
 fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
-    let count = len(mono_instances)
+    let count = mono_instances.len()
     let mut i = 0
     while i < count {
         let mi = get_unchecked(mono_instances, i)

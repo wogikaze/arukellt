@@ -117,7 +117,7 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
     }
     if tname.clone().starts_with(String_from("vec:")) {
-        let elem = tname.clone().slice(4, len(tname))
+        let elem = tname.clone().slice(4, tname.len())
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
         }
@@ -201,7 +201,7 @@ fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
         return SelfEmitCtx_enum_open_type(ctx)
     }
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
-    if type_slot >= 0 && type_slot < len(map) {
+    if type_slot >= 0 && type_slot < map.len() {
         return get_unchecked(map, type_slot)
     }
     let base = ctx_record::SelfEmitCtx_gc_enum_variant_base(ctx)

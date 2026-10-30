@@ -53,7 +53,7 @@ fn apply_vec_ctor_fn_turbofish_name(mut ctx: LowerCtx, node: AstNode, local_idx:
     let elem = ast_node::node_child_at(callee, 1)
     if ast_node::node_kind_is(elem, lower_kinds::NK_TYPE_TUPLE()) {
         let tuple_name = ann_types::mir_local_type_name_from_ann(elem, 0)
-        if len(tuple_name) == 0 {
+        if tuple_name.len() == 0 {
             return
         }
         let vec_ty = String_from("vec:").concat(tuple_name)
@@ -88,7 +88,7 @@ fn apply_let_annotation_type(mut ctx: LowerCtx, node: AstNode, local_idx: i32, t
             ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, ta_name.clone()))
         )
         let local_type_name = ctx_struct_mono::ctx_derive_generic_struct_type_name(ctx, local_type_name)
-        if len(local_type_name) > 0 {
+        if local_type_name.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, local_type_name)
             // Struct/enum annotations name GC aggregates too; keeping VT_I32
             // on a struct local makes enum payload construction register a

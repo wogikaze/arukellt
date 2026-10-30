@@ -1,7 +1,7 @@
 use parser::ast_node_record
 
 fn corehir_node_type_ann_count(node: AstNode) -> i32 {
-    len(node.type_ann)
+    node.type_ann.len()
 }
 
 fn corehir_node_type_ann_at(node: AstNode, idx: i32) -> AstNode {

@@ -2,7 +2,7 @@ use std::host::stdio::Stdio
 
 fn vec_contains_string(values: Vec<String>, needle: String) -> bool {
     let mut index = 0
-    while index < len(values) {
+    while index < values.len() {
         if values.get_unchecked(index) == needle {
             return true
         }

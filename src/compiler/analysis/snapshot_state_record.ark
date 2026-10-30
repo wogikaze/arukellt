@@ -50,7 +50,7 @@ fn snapshot_reported_diagnostic_count(snap: AnalysisSnapshot) -> i32 {
 }
 
 fn snapshot_diagnostic_count(snap: AnalysisSnapshot) -> i32 {
-    len(snap.diagnostics)
+    snap.diagnostics.len()
 }
 
 fn snapshot_diagnostic_at(snap: AnalysisSnapshot, index: i32) -> AnalysisDiagnostic {

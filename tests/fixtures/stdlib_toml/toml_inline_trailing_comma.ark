@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("p") {
             Option::Some(p) => {
                 let keys = p.table_keys()
-                Test::assert_eq_i32(len(keys), 2)
+                Test::assert_eq_i32(keys.len(), 2)
             },
             None => assert(false),
         },

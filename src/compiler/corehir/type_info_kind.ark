@@ -32,7 +32,7 @@ fn type_info_display_name(ty: TypeInfo) -> String {
     if tag == 13 { return "HashMap" }
     if tag == 20 { return "fnref" }
     let name = type_contracts::TypeInfo_name(ty)
-    if len(name) > 0 {
+    if name.len() > 0 {
         return name.clone()
     }
     "i32"

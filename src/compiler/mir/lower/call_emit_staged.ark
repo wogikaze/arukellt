@@ -11,11 +11,11 @@ use mir::inst_local_get
 // representation.
 fn mir_emit_staged_call_args(mut ctx: LowerCtx, staged_arg_locals: Vec<i32>, widen_i64_args: Vec<i32>) {
     let mut sai = 0
-    let sac = len(staged_arg_locals)
+    let sac = staged_arg_locals.len()
     while sai < sac {
         let staged_arg = get_unchecked(staged_arg_locals, sai)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(staged_arg, staged_arg))
-        if sai < len(widen_i64_args) && get_unchecked(widen_i64_args, sai) != 0 {
+        if sai < widen_i64_args.len() && get_unchecked(widen_i64_args, sai) != 0 {
             ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
         }
         sai = sai + 1

@@ -6,7 +6,7 @@ fn type_env_mono_instances(env: TypeEnv) -> Vec<MonoInstance> {
 }
 
 fn type_env_mono_instance_count(env: TypeEnv) -> i32 {
-    len(env.mono_instances)
+    env.mono_instances.len()
 }
 
 fn type_env_mono_instance_at(env: TypeEnv, index: i32) -> MonoInstance {
@@ -18,7 +18,7 @@ fn type_env_push_mono_instance(mut env: TypeEnv, instance: MonoInstance) {
 }
 
 fn type_env_mono_call_site_count(env: TypeEnv) -> i32 {
-    len(env.mono_call_sites)
+    env.mono_call_sites.len()
 }
 
 fn type_env_mono_call_site_at(env: TypeEnv, index: i32) -> MonoCallSite {

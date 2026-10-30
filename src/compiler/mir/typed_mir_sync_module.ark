@@ -47,7 +47,7 @@ fn mir_function_sync_all_value_types(mut f: MirFunction, mut table: TypeTable) -
 }
 
 fn mir_sync_type_name_alias(type_name: String) -> String {
-    let n = len(type_name)
+    let n = type_name.len()
     if n > 8 && type_name.clone().starts_with("Option<") && type_name.byte_at(n - 1) == 62 {
         return "option:".concat(type_name.slice(7, n - 1))
     }

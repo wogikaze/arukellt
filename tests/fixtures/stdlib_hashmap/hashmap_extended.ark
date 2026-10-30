@@ -22,8 +22,8 @@ test "keys_values_and_removal_update_size" {
     let _ = m2.insert(2, 20)
     let _ = m2.insert(3, 30)
     Test::assert_eq_i32(m2.len(), 3)
-    Test::assert_eq_i32(len(m2.keys()), 3)
-    Test::assert_eq_i32(len(m2.values()), 3)
+    Test::assert_eq_i32(m2.keys().len(), 3)
+    Test::assert_eq_i32(m2.values().len(), 3)
     match m2.remove(2) {
         Option::Some(v) => Test::assert_eq_i32(v, 20),
         None => Std::panic("expected Some(20)"),

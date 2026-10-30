@@ -11,7 +11,7 @@ use std::text
 /// Filter a single TOML source line: returns the line unchanged for key=value
 /// lines and returns `""` for comments and blank lines.
 fn toml_text_parse_line(line: String) -> String {
-    let n: i32 = len(line)
+    let n: i32 = line.len()
     if n == 0 {
         ""
     } else {
@@ -29,8 +29,8 @@ fn toml_text_parse_line(line: String) -> String {
 /// (or end of content).  Returns an empty string if the section is not found.
 fn toml_text_find_section(content: String, section: String) -> String {
     let section_header = (String_from("[")).concat(section.clone().concat(String_from("]")))
-    let header_len = len(section_header)
-    let content_len = len(content)
+    let header_len = section_header.len()
+    let content_len = content.len()
     let mut i = 0
     while i < content_len {
         if i == 0 || content.byte_at(i - 1) == 10 {
@@ -66,15 +66,15 @@ fn toml_text_find_section(content: String, section: String) -> String {
 /// whitespace, `=`, optional whitespace, and a double-quoted string.
 /// Returns the unquoted string value, or an empty string if not found.
 fn toml_text_find_value(content: String, key: String) -> String {
-    let content_len = len(content)
-    let key_len = len(key)
+    let content_len = content.len()
+    let key_len = key.len()
     let mut line_start = 0
     let mut i = 0
     while i < content_len {
         if content.byte_at(i) == 10 || i == content_len - 1 {
             let line_end = if content.byte_at(i) == 10 { i } else { i + 1 }
             let line = content.slice(line_start, line_end)
-            let line_len = len(line)
+            let line_len = line.len()
             if line_len > key_len + 3 {
                 if line.slice(0, key_len).eq(key.clone()) {
                     let mut j = key_len
@@ -102,15 +102,15 @@ fn toml_text_find_value(content: String, key: String) -> String {
 /// Unlike `toml_text_find_value` (quoted strings only), this returns the remainder
 /// of the line so array values like `["W0006", "unused-import"]` can be parsed.
 fn toml_text_find_raw_value(content: String, key: String) -> String {
-    let content_len = len(content)
-    let key_len = len(key)
+    let content_len = content.len()
+    let key_len = key.len()
     let mut line_start = 0
     let mut i = 0
     while i < content_len {
         if content.byte_at(i) == 10 || i == content_len - 1 {
             let line_end = if content.byte_at(i) == 10 { i } else { i + 1 }
             let line = content.slice(line_start, line_end)
-            let line_len = len(line)
+            let line_len = line.len()
             if line_len > key_len + 3 {
                 if line.slice(0, key_len).eq(key.clone()) {
                     let mut j = key_len
@@ -132,7 +132,7 @@ fn toml_text_find_raw_value(content: String, key: String) -> String {
 /// Parse a TOML array string like `["W0006", "unused-import"]` into a Vec<String>.
 fn toml_text_parse_string_array(raw: String) -> Vec<String> {
     let mut result = Vec::new<String>()
-    let raw_len = len(raw)
+    let raw_len = raw.len()
     if raw_len == 0 {
         return result
     }

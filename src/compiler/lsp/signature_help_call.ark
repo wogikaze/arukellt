@@ -66,7 +66,7 @@ fn count_active_param(text: String, open_paren: i32, offset: i32) -> i32 {
 }
 
 pub fn call_context_at_offset(text: String, offset: i32) -> CallContext {
-    let n = len(text)
+    let n = text.len()
     if n == 0 || offset <= 0 {
         return CallContext_none()
     }
@@ -90,7 +90,7 @@ pub fn call_context_at_offset(text: String, offset: i32) -> CallContext {
             if ch == 40 {
                 if depth == 0 {
                     let callee = read_ident_backward(text.clone(), pos)
-                    if len(callee) == 0 {
+                    if callee.len() == 0 {
                         return CallContext_none()
                     }
                     return CallContext { found: true, callee: callee, active_param: count_active_param(text.clone(), pos, offset) }

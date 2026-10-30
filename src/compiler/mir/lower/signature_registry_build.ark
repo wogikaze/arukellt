@@ -72,7 +72,7 @@ fn signature_registry_apply_core_op_bindings(mut registry: SignatureRegistry) {
 }
 
 fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRegistry) {
-    let fn_count = len(expected_fn_names)
+    let fn_count = expected_fn_names.len()
     let reg_count = signature_registry::signature_registry_entry_count(registry)
     let host_count = signature_registry::signature_registry_host_intrinsic_count(registry)
     let builtin_count = signature_registry::signature_registry_builtin_count(registry)
@@ -144,7 +144,7 @@ fn sig_reg_index_top_level_fn(
         if sig_reg_fn_is_signature_only(source, fn_info_index, decl_name.clone()) {
             signature_registry::signature_registry_mark_signature_only(registry, FunctionId_raw(registered))
         }
-        if len(qualified_name) > 0 {
+        if qualified_name.len() > 0 {
             signature_registry::signature_registry_register_alias(registry, qualified_name.clone(), registered)
             let import_name = sig_reg_import_facing_qualified_name(qualified_name)
             let qualified_coid = core_op_binding::core_op_binding_lookup_for_callee(qualified_name.clone())
@@ -155,7 +155,7 @@ fn sig_reg_index_top_level_fn(
                     qualified_coid
                 )
             }
-            if len(import_name) > 0 {
+            if import_name.len() > 0 {
                 signature_registry::signature_registry_register_alias(registry, import_name, registered)
             }
         }
@@ -174,7 +174,7 @@ fn sig_reg_index_top_level_fn(
             // registration above; anything beyond that needs per-variant entries.
             let bare_mono_count = mono::mono_index_count(midx, decl_name.clone())
             let mut qualified_mono_count = 0
-            if len(qualified_name) > 0 && !qualified_name.clone().eq(decl_name.clone()) {
+            if qualified_name.len() > 0 && !qualified_name.clone().eq(decl_name.clone()) {
                 qualified_mono_count = mono::mono_index_count(midx, qualified_name.clone())
             }
             if qualified_mono_count > 1 || (bare_mono_count > 0 && qualified_mono_count > 0) {
@@ -189,7 +189,7 @@ fn sig_reg_index_top_level_fn(
 // prefixes. Keep both names on the same registry entry so qualified calls use
 // the declaration's signature and FunctionId.
 fn sig_reg_import_facing_qualified_name(qualified_name: String) -> String {
-    let n = len(qualified_name)
+    let n = qualified_name.len()
     let mut last = 0 - 1
     let mut previous = 0 - 1
     let mut i = 0

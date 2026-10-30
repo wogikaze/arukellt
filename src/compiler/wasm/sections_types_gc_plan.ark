@@ -52,7 +52,7 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
         return "structref"
     }
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, mvt)
-    if len(alias) > 0 {
+    if alias.len() > 0 {
         return collection_type_sig(mir, alias, target)
     }
     String_new()
@@ -65,11 +65,11 @@ fn is_legacy_generic_struct_name(mir: MirModule, name: String) -> bool {
     if module_gc_struct::MirModule_gc_struct_slot(mir, name.clone()) >= 0 {
         return false
     }
-    if len(name) == 1 {
+    if name.len() == 1 {
         let first = name.byte_at(0)
         return first >= 65 && first <= 90
     }
-    if name.clone().starts_with("struct:") && len(name) >= 9 {
+    if name.clone().starts_with("struct:") && name.len() >= 9 {
         let marker = name.byte_at(7)
         return marker >= 65 && marker <= 90 && name.byte_at(8) == 58
     }
@@ -96,7 +96,7 @@ fn collection_type_sig(mir: MirModule, type_name: String, target: String) -> Str
         if type_name.clone().eq("vec:fnref") || type_name.clone().eq("vec:fn") {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }

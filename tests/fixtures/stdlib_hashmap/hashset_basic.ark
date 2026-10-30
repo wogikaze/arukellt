@@ -14,7 +14,7 @@ test "insert_remove_and_membership_transitions" {
     Test::assert_true(s.remove(2))
     Test::assert_eq_i32(s.len(), 2)
     Test::assert_false(s.remove(99))
-    Test::assert_eq_i32(len(s.to_vec()), 2)
+    Test::assert_eq_i32(s.to_vec().len(), 2)
     let _ = s.remove(1)
     let _ = s.remove(3)
     Test::assert_true(s.is_empty())

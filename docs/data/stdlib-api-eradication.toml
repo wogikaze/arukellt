@@ -107,13 +107,20 @@ owner = "none"
 # surface is `Vec::sort` / `sort_unstable` / `is_sorted` / `select_nth` (Ord
 # bounded impl), and panic is the associated `Std::panic` control operation.
 
+# `len` was the receiver-owner handoff in this family: the free was
+# signature-only and the checker selected String::len / Vec::len from the
+# receiver. `wave/vec-intrinsic-len` migrated its 5,701 in-tree call sites to
+# `s.len()` / `v.len()` and retired the free with an E0100 hint. The bootstrap
+# overlay keeps an overlay-only declaration for the pinned compiler's method
+# lowering; user programs see only the receiver methods.
+
 [[rules]]
 label = "vec intrinsic-compat frees"
 module_less = true
-name = ["push", "pop", "len", "get", "set", "get_unchecked", "clear", "as_slice", "slice_len", "slice_get"]
+name = ["push", "pop", "get", "set", "get_unchecked", "clear", "as_slice", "slice_len", "slice_get"]
 class = "must delete"
 owner = "917"
-replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly."
+replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `clear` was a stale non-callable entry and was retired directly."
 
 # The 4 deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
 # `assert_eq_i64`, `assert_eq_str`) completed their ADR-087 Wave 2 deletion on

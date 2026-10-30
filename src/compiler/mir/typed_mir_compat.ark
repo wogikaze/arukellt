@@ -37,7 +37,7 @@ fn legacy_vt_to_repr(val_type: i32, type_name: String) -> i32 {
     if val_type == value_types::VT_FUNCREF() {
         return kinds::VALUE_REPR_SCALAR()
     }
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         if type_name.clone().eq("String") {
             return kinds::VALUE_REPR_GC_REF()
         }
@@ -55,7 +55,7 @@ fn legacy_vt_to_nullability(val_type: i32, type_name: String) -> i32 {
     if val_type == value_types::VT_FUNCREF() {
         return kinds::NULLABILITY_NULLABLE()
     }
-    if len(type_name) > 0 && type_name.clone().eq("String") {
+    if type_name.len() > 0 && type_name.clone().eq("String") {
         return kinds::NULLABILITY_NULLABLE()
     }
     kinds::NULLABILITY_NOT_REF()

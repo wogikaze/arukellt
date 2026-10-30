@@ -5,7 +5,7 @@ pub struct Lexer {
 }
 
 fn Lexer_new(source: String) -> Lexer {
-    let n = len(source)
+    let n = source.len()
     Lexer { src: source, pos: 0, src_len: n }
 }
 

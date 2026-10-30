@@ -246,10 +246,6 @@ diag:diagnostics/removed_numeric_conversion_wasm32.ark
 diag:diagnostics/prelude_concrete_arg_type.ark
 diag:diagnostics/option_payload_type_mismatch.ark
 diag:diagnostics/option_payload_type_mismatch_wasm32.ark
-diag:diagnostics/prelude_len_arg_type.ark
-diag:diagnostics/prelude_len_arg_type_wasm32.ark
-diag:diagnostics/prelude_len_unconstrained_receiver.ark
-diag:diagnostics/prelude_len_unconstrained_receiver_wasm32.ark
 diag:diagnostics/prelude_vec_push_arg_type.ark
 diag:diagnostics/prelude_vec_push_arg_type_wasm32.ark
 diag:diagnostics/prelude_vec_method_arg_type.ark
@@ -259,6 +255,9 @@ diag:diagnostics/deprecated_vec_intrinsic_wasm32.ark
 diag:diagnostics/removed_assertion_free.ark
 diag:diagnostics/removed_assertion_free_wasm32.ark
 diag:diagnostics/removed_assertion_import.ark
+diag:diagnostics/removed_len_free.ark
+diag:diagnostics/removed_len_free_wasm32.ark
+diag:diagnostics/removed_len_import.ark
 diag:diagnostics/removed_test_free.ark
 diag:diagnostics/removed_test_free_wasm32.ark
 diag:diagnostics/removed_hashset_free.ark
@@ -2245,6 +2244,8 @@ run:stdlib_vec/prelude_push_get_owner_untracked_receiver_wasm32.ark
 run:stdlib_vec/prelude_generic_signatures.ark
 run:stdlib_vec/prelude_len_owner_dispatch.ark
 run:stdlib_vec/prelude_len_owner_dispatch_wasm32.ark
+run:stdlib_vec/len_method_surface.ark
+run:stdlib_vec/len_method_surface_wasm32.ark
 run:stdlib_vec/prelude_vec_method_signatures.ark
 run:stdlib_vec/prelude_vec_method_signatures_wasm32.ark
 run:stdlib_vec/vec_in_place.ark
@@ -3380,6 +3381,7 @@ t3-run:stdlib_vec/prelude_call_owner_untracked_receiver.ark
 t3-run:stdlib_vec/prelude_push_get_owner_untracked_receiver.ark
 t3-run:stdlib_vec/prelude_generic_signatures.ark
 t3-run:stdlib_vec/prelude_len_owner_dispatch.ark
+t3-run:stdlib_vec/len_method_surface.ark
 t3-run:stdlib_vec/prelude_vec_method_signatures.ark
 t3-run:stdlib_vec/vec_in_place.ark
 t3-run:stdlib_vec/vec_is_empty_after_pop_all.ark

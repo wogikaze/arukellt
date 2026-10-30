@@ -1,7 +1,7 @@
 // Export with renamed String parameter and i16 result maps to WIT string -> s16.
 
 export fn medium_delta(text: String) -> i16 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 0i16 - 321i16
     }
     610i16

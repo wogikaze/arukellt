@@ -1,7 +1,7 @@
 use std::text
 fn split_mono_suffix(suffix: String) -> Vec<String> {
     let mut result = Vec::new<String>()
-    let slen = len(suffix)
+    let slen = suffix.len()
     let mut start = 0
     let mut i = 0
     while i < slen - 1 {
@@ -27,9 +27,9 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
 fn mono_type_var_to_index(type_var: String) -> i32 {
     let mut name = type_var.clone()
     if name.clone().starts_with("?") {
-        name = name.slice(1, len(name))
+        name = name.slice(1, name.len())
     }
-    let name_len = len(name)
+    let name_len = name.len()
     if name_len >= 2 {
         let first = name.clone().byte_at(0)
         if first == 116 || first == 84 {
@@ -71,9 +71,9 @@ fn mono_type_var_to_index(type_var: String) -> i32 {
 fn mono_type_var_decl_index(type_var: String, type_params: Vec<String>) -> i32 {
     let mut name = type_var.clone()
     if name.clone().starts_with("?") {
-        name = name.slice(1, len(name))
+        name = name.slice(1, name.len())
     }
-    let count = len(type_params)
+    let count = type_params.len()
     let mut i = 0
     while i < count {
         if get_unchecked(type_params, i).eq(name.clone()) {
@@ -102,7 +102,7 @@ fn mono_type_var_name_at(index: i32) -> String {
 }
 
 fn extract_first_type_var(rest: String) -> String {
-    let rlen = len(rest)
+    let rlen = rest.len()
     let mut ci = 0
     while ci < rlen {
         if rest.byte_at(ci) == 58 {
@@ -114,7 +114,7 @@ fn extract_first_type_var(rest: String) -> String {
 }
 
 fn extract_mono_suffix(fn_name: String) -> String {
-    let name_len = len(fn_name)
+    let name_len = fn_name.len()
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
@@ -123,7 +123,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
         }
         i = i + 1
     }
-    let sep_count = len(sep_positions)
+    let sep_count = sep_positions.len()
     if sep_count == 0 {
         return String_new()
     }
@@ -132,7 +132,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
         let sep_pos = get_unchecked(sep_positions, si)
         let suffix = fn_name.slice(sep_pos + 2, name_len)
         let type_keys = split_mono_suffix(suffix)
-        let key_count = len(type_keys)
+        let key_count = type_keys.len()
         if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {
             return suffix
         }
@@ -149,13 +149,13 @@ fn extract_mono_suffix(fn_name: String) -> String {
 // suffix parsing and the wasm signature fallback. A hardcoded letter list
 // silently dropped R/Z/Y and left their params as TYPE_VAR (#693).
 fn is_mono_type_var_name(type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().starts_with("?") {
-        return is_mono_type_var_name(type_name.slice(1, len(type_name)))
+        return is_mono_type_var_name(type_name.slice(1, type_name.len()))
     }
-    if len(type_name) == 1 {
+    if type_name.len() == 1 {
         let c = type_name.byte_at(0)
         if c >= 65 && c <= 90 {
             return true
@@ -167,7 +167,7 @@ fn is_mono_type_var_name(type_name: String) -> bool {
     if c0 == 116 || c0 == 84 {
         let mut i = 1
         let mut all_digit = true
-        while i < len(type_name) {
+        while i < type_name.len() {
             let c = type_name.byte_at(i)
             if c < 48 || c > 57 {
                 all_digit = false
@@ -217,11 +217,11 @@ fn is_valid_mono_type_key(key: String) -> bool {
     }
     // Nominal keys are PascalCase type names (Point). Reject snake_case
     // tails from module__FnName exports (Token_float_val).
-    if len(key) > 0 {
+    if key.len() > 0 {
         let first = key.byte_at(0)
         if first >= 65 && first <= 90 {
             let mut ki = 1
-            while ki < len(key) {
+            while ki < key.len() {
                 if key.byte_at(ki) == 95 {
                     return false
                 }

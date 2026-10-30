@@ -44,7 +44,7 @@ fn verify_calls_in_function(f: MirFunction, m: MirModule, mut report: MirVerifyR
 
 fn verify_one_call(inst: MirInst, m: MirModule, mut report: MirVerifyReport, verbose: bool, fn_names: NameIndex, caller: String) {
     let callee = inst_accessors_literals::MirInst_str_val(inst)
-    if len(callee) == 0 {
+    if callee.len() == 0 {
         mir_verify_report_add_w002(report)
         if verbose {
             mir_verify_report_push_detail(report, "W002 empty-callee in ".concat(caller))

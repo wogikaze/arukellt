@@ -53,7 +53,7 @@ fn impl_self_local_type_name(decl: AstNode, known_type_names: Vec<String>) -> St
         decl_ann_member::decl_ann_at(decl, heads - 1),
         0
     )
-    if len(local_name) > 0 {
+    if local_name.len() > 0 {
         return local_name
     }
     impl_self_type_name(decl, known_type_names)
@@ -169,7 +169,7 @@ fn collect_undefined_head_type_names(
 }
 
 fn is_single_uppercase_name(name: String) -> bool {
-    if len(name) != 1 {
+    if name.len() != 1 {
         return false
     }
     let ch = byte_at(name, 0)
@@ -190,7 +190,7 @@ fn window_implicit_param_names(decl: AstNode, known_type_names: Vec<String>) -> 
 fn effective_impl_param_names(decl: AstNode, known_type_names: Vec<String>) -> Vec<String> {
     let mut names = binder_impl_param_names(decl)
     let implicit = window_implicit_param_names(decl, known_type_names)
-    let count = len(implicit)
+    let count = implicit.len()
     let mut i = 0
     while i < count {
         let name = get_unchecked(implicit, i)
@@ -203,7 +203,7 @@ fn effective_impl_param_names(decl: AstNode, known_type_names: Vec<String>) -> V
 }
 
 fn string_vec_contains(names: Vec<String>, name: String) -> bool {
-    let count = len(names)
+    let count = names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(names, i).eq(name.clone()) {
@@ -232,7 +232,7 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
         let value_node = type_ann_node::type_ann_child_at(target, 2)
         let key_key = impl_inst_arg_key(key_node, declared.clone())
         let value_key = impl_inst_arg_key(value_node, declared.clone())
-        if len(key_key) > 0 && len(value_key) > 0 {
+        if key_key.len() > 0 && value_key.len() > 0 {
             return String_from("HashMap_").concat(key_key.clone().concat(String_from("_").concat(value_key.clone())))
         }
     }
@@ -245,7 +245,7 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     !target_name.clone().eq(String_from("Vec")) &&
     !target_name.clone().eq(String_from("HashMap")) {
         let inst_suffix = impl_inst_arg_suffix(target, declared.clone())
-        if len(inst_suffix) > 0 {
+        if inst_suffix.len() > 0 {
             return target_name.clone().concat(String_from("_").concat(inst_suffix))
         }
     }
@@ -253,7 +253,7 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
 }
 
 fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
-    let count = len(declared)
+    let count = declared.len()
     let mut i = 0
     while i < count {
         if get_unchecked(declared, i).eq(name.clone()) {
@@ -279,10 +279,10 @@ fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
             type_ann_node::type_ann_child_at(target, i),
             declared.clone()
         )
-        if len(key) == 0 {
+        if key.len() == 0 {
             return String_new()
         }
-        if len(suffix) > 0 {
+        if suffix.len() > 0 {
             suffix = suffix.concat(String_from("_"))
         }
         suffix = suffix.concat(key)
@@ -302,14 +302,14 @@ fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
     if type_ann_node::type_ann_is_generic(arg) {
         let base = type_ann_node::type_ann_name(arg)
         let inner = impl_inst_arg_suffix(arg, declared)
-        if len(inner) == 0 {
+        if inner.len() == 0 {
             return String_new()
         }
         return base.clone().concat(String_from("_").concat(inner))
     }
     // Function-typed arguments share one owner-key marker; the typechecker
     // and resolver owner names use the same fnref spelling.
-    if len(type_ann_node::type_ann_function_ref_name(arg)) > 0 {
+    if type_ann_node::type_ann_function_ref_name(arg).len() > 0 {
         return String_from("fnref")
     }
     String_new()
@@ -337,7 +337,7 @@ fn impl_method_base_name(decl: AstNode, method_name: String, known_type_names: V
 fn impl_method_mangled_name(decl: AstNode, method_name: String, known_type_names: Vec<String>) -> String {
     let base_name = impl_method_base_name(decl, method_name.clone(), known_type_names.clone())
     let source_name = impl_conversion_source_type_name(decl, known_type_names)
-    if len(source_name) == 0 {
+    if source_name.len() == 0 {
         return base_name
     }
     base_name.concat("__".concat(source_name))
@@ -371,7 +371,7 @@ fn impl_conversion_source_type_name(decl: AstNode, known_type_names: Vec<String>
             type_ann_node::type_ann_child_at(source_ann, i),
             declared.clone()
         )
-        if len(child_key) == 0 {
+        if child_key.len() == 0 {
             return String_new()
         }
         key = key.concat("_".concat(child_key))

@@ -133,14 +133,14 @@ fn infer_intrinsic_call_result_gc_type_by_name(ctx: SelfEmitCtx, callee: String)
         Option::None => {}
     }
     let intrinsic_tn = post_pass_callee_lookup::lookup_intrinsic_return_type_name(callee)
-    if len(intrinsic_tn) > 0 {
+    if intrinsic_tn.len() > 0 {
         return resolve_gc_type_from_return_type_name(ctx, intrinsic_tn)
     }
     Option::None
 }
 
 fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
-    if len(ret_name) == 0 {
+    if ret_name.len() == 0 {
         return Option::None
     }
     // Bare Option/Result is how a generic container return reaches MIR when
@@ -175,7 +175,7 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
     if ret_name.clone().starts_with("vec:") {
-        let elem = ret_name.clone().slice(4, len(ret_name))
+        let elem = ret_name.clone().slice(4, ret_name.len())
         // Mirror emit_explicit_vec_gc_type: fnref elements live in the
         // dedicated fnpair array and enum-like elements in the enum-ref
         // array. The bare default below is the i32-element vec.
@@ -208,8 +208,8 @@ fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32>
         if last_sep < 0 {
             return Option::None
         }
-        let elem = callee.clone().slice(last_sep + 2, len(callee))
-        if len(elem) == 0 {
+        let elem = callee.clone().slice(last_sep + 2, callee.len())
+        if elem.len() == 0 {
             return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         }
         return resolve_gc_type_from_return_type_name(ctx, "vec:".concat(elem))
@@ -224,7 +224,7 @@ fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32>
 }
 
 fn last_index_of_double_underscore(s: String) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = n - 2
     while i >= 0 {
         if s.byte_at(i) == 95 && s.byte_at(i + 1) == 95 {
@@ -239,7 +239,7 @@ fn last_index_of_double_underscore(s: String) -> i32 {
 // variants in this module. The enum instantiation stays enum-typed even when
 // a non-generic user struct shadows the bare head name (#905).
 fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> bool {
-    let n = len(name)
+    let n = name.len()
     let mut head_end = 0 - 1
     let mut i = 0
     while i < n {
@@ -255,7 +255,7 @@ fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> boo
     let head = name.slice(0, head_end)
     let variants = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut vi = 0
-    while vi < len(variants) {
+    while vi < variants.len() {
         let variant = get_unchecked(variants, vi)
         if variant.clone().starts_with(head.clone().concat(String_from("::"))) ||
         variant.clone().contains(String_from("::").concat(head.clone().concat(String_from("::")))) {
@@ -267,7 +267,7 @@ fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> boo
 }
 
 fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
-    if len(ret_name) == 0 {
+    if ret_name.len() == 0 {
         return Option::None
     }
     // An 'enum:Box' spelling names the enum base even when a user 'struct Box'
@@ -303,7 +303,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     }
     if ret_name.clone().starts_with("struct:") {
         let struct_name = parse_struct_name_from_ret_name(ret_name.clone())
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone()))
         }
         return Option::None
@@ -311,7 +311,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, ret_name.clone()) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, ret_name.clone()))
     }
-    let name_len = len(ret_name)
+    let name_len = ret_name.len()
     let mut colon_pos = 0 - 1
     let mut ci = name_len - 1
     while ci >= 0 {
@@ -328,7 +328,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
         }
     }
     let bare = ctx_record::SelfEmitCtx_module_stripped_name(ret_name)
-    if len(bare) > 0 {
+    if bare.len() > 0 {
         let candidate_index = ctx_record::SelfEmitCtx_gc_struct_index_by_module_stripped_name(ctx, bare)
         if candidate_index >= 0 {
             let candidate = get_unchecked(ctx_record::SelfEmitCtx_gc_struct_names(ctx), candidate_index)
@@ -345,7 +345,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
 fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> Option<i32> {
     if ret_name.clone().starts_with("struct:") {
         let struct_name = parse_struct_name_from_ret_name(ret_name.clone())
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone()))
         }
         let byte_size = parse_struct_byte_size_from_ret_name(ret_name.clone())
@@ -377,7 +377,7 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
 }
 
 fn parse_struct_name_from_ret_name(type_name: String) -> String {
-    let n = len(type_name)
+    let n = type_name.len()
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
     let mut i = 0
@@ -397,7 +397,7 @@ fn parse_struct_name_from_ret_name(type_name: String) -> String {
 }
 
 fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
-    let n = len(type_name)
+    let n = type_name.len()
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {

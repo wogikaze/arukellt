@@ -8,9 +8,9 @@ use compiler::wit_identity
 use resolver::wit_type_map
 fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInterface> {
     let mut docs = Vec::new<WitParsedInterface>()
-    for i in 0..len(paths) {
+    for i in 0..paths.len() {
         let doc = wit_parse_import::parse_wit_import_file(get_unchecked(paths, i))
-        if len(doc.package) > 0 && len(doc.interface) > 0 {
+        if doc.package.len() > 0 && doc.interface.len() > 0 {
             push(docs, doc)
         }
     }
@@ -22,7 +22,7 @@ fn wit_lookup_import(paths: Vec<String>, package_id: String) -> WitParsedInterfa
 }
 
 fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id: String) -> WitParsedInterface {
-    for i in 0..len(docs) {
+    for i in 0..docs.len() {
         let doc = get_unchecked(docs, i)
         if wit_parse_import::wit_import_id_matches(package_id.clone(), doc) {
             return doc
@@ -38,7 +38,7 @@ fn wit_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
 fn wit_component_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
     let interface_id = wit_interface_id(doc)
     let version = wit_parse_text::WitParsedInterface_package_version(doc)
-    if len(version) == 0 {
+    if version.len() == 0 {
         return interface_id
     }
     interface_id.concat("@".concat(wit_parse_text_scan::wit_component_version_txt(version)))
@@ -71,7 +71,7 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
 
 fn wit_func_param_ark_types(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let mut out = Vec::new<String>()
-    for pi in 0..len(func.param_wit_types) {
+    for pi in 0..func.param_wit_types.len() {
         push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), alias.clone(), doc))
     }
     out

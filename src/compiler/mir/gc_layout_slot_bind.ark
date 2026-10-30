@@ -16,7 +16,7 @@ use mir::module_spine
 // need TypeTable + module slot data, keeping them leaf-safe lets the
 // lower ctx_* registration layer bind without an import cycle.
 fn gc_layout_plan_bare_suffix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut index = n - 1
     while index >= 0 {
         if name.clone().byte_at(index) == 58 {
@@ -41,7 +41,7 @@ fn gc_layout_plan_find_named_type(
         return direct
     }
     let bare = gc_layout_plan_bare_suffix(name.clone())
-    if len(bare) > 0 && !bare.clone().eq(name) {
+    if bare.len() > 0 && !bare.clone().eq(name) {
         return type_table::type_table_find_existing(
             table,
             kind,
@@ -56,13 +56,13 @@ fn gc_layout_plan_find_named_type(
 // GC slots keep the bare layout name (`Range`, `tuple:i32,i32`).
 fn gc_layout_plan_strip_struct_prefix(name: String) -> String {
     if name.clone().starts_with("struct:") {
-        return name.slice(7, len(name))
+        return name.slice(7, name.len())
     }
     name
 }
 
 fn gc_layout_plan_strip_trailing_size(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut index = n - 1
     let mut digits = 0
     while index >= 0 {

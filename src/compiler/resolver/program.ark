@@ -21,7 +21,7 @@ fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wi
 // imported module before it registers any impl owner key.
 fn collect_program_declared_type_names(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
     let mut names = impl_target::collect_declared_type_names(decls)
-    let module_count = len(modules)
+    let module_count = modules.len()
     let mut mi = 0
     while mi < module_count {
         let module = get_unchecked(modules, mi)
@@ -46,7 +46,7 @@ fn resolve_program_for_target_and_host(decls: Vec<AstNode>, modules: Vec<ModuleD
     ctx_record::resolve_ctx_set_modules(ctx, modules)
     register::register_imported_modules(ctx, modules)
     register_wit::register_wit_imports(ctx, wit_paths, decls)
-    let count = len(decls)
+    let count = decls.len()
     register::register_decl_headers(ctx, decls)
     let mut j = 0
     while j < count {

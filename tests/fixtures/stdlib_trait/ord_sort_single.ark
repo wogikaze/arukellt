@@ -7,6 +7,6 @@ fn main() {
     push(v, 42)
     v.sort()
     let s = v
-    Test::assert_eq_i32(len(s), 1)
+    Test::assert_eq_i32(s.len(), 1)
     Test::assert_eq_i32(get_unchecked(s, 0), 42)
 }

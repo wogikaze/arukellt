@@ -5,7 +5,7 @@ use mir::local_access
 use mir::value_types
 fn comp_export_name(name: String) -> String {
     let mut out = String_from("")
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     while i < n {
         let ch = name.byte_at(i)
@@ -136,7 +136,7 @@ fn comp_type_name_is_result_i32_string(type_name: String) -> bool {
 fn comp_param_wit_type(fn_name: String, param: MirLocal) -> i32 {
     let param_type_name = local_access::MirLocal_type_name(param)
     let param_val_type = local_access::MirLocal_val_type(param)
-    if len(param_type_name) > 0 {
+    if param_type_name.len() > 0 {
         return comp_wit_type_from_name(param_type_name, param_val_type)
     }
     val_type_to_comp(param_val_type)
@@ -145,7 +145,7 @@ fn comp_param_wit_type(fn_name: String, param: MirLocal) -> i32 {
 fn comp_result_wit_type(f: MirFunction) -> i32 {
     let return_type_name = function_return_view::MirFunction_return_type_name(f)
     let return_type = function_return_view::MirFunction_return_type(f)
-    if len(return_type_name) > 0 {
+    if return_type_name.len() > 0 {
         return comp_wit_type_from_name(return_type_name, return_type)
     }
     val_type_to_comp(return_type)

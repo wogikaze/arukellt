@@ -12,6 +12,6 @@ fn main() {
     push(numbers, 2)
     let point = Point { x: 3, y: 4 }
     Stdio::println(
-        text.concat(String_from("|").concat(len(numbers).to_string().concat(String_from("|").concat(point.x.to_string().concat(String_from(",").concat(point.y.to_string()))))))
+        text.concat(String_from("|").concat(numbers.len().to_string().concat(String_from("|").concat(point.x.to_string().concat(String_from(",").concat(point.y.to_string()))))))
     )
 }

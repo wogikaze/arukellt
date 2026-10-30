@@ -53,7 +53,7 @@ fn doc_parse_availability_line(line: String, mut state: DocParseFnState) -> DocP
         state.avail_t3 = 0
     }
     let note_key = toml::TomlText::find_value(line.clone(), String_from("note"))
-    if len(note_key) > 0 {
+    if note_key.len() > 0 {
         state.avail_note = note_key
     }
     state
@@ -61,27 +61,27 @@ fn doc_parse_availability_line(line: String, mut state: DocParseFnState) -> DocP
 
 fn doc_apply_fn_fields(mut state: DocParseFnState, line: String) -> DocParseFnState {
     let key_doc = toml::TomlText::find_value(line.clone(), String_from("doc"))
-    if len(key_doc) > 0 { state.doc = key_doc }
+    if key_doc.len() > 0 { state.doc = key_doc }
     let key_err = toml::TomlText::find_value(line.clone(), String_from("errors"))
-    if len(key_err) > 0 { state.errors = key_err }
+    if key_err.len() > 0 { state.errors = key_err }
     let key_stab = toml::TomlText::find_value(line.clone(), String_from("stability"))
-    if len(key_stab) > 0 { state.stability = key_stab }
+    if key_stab.len() > 0 { state.stability = key_stab }
     let key_ret = toml::TomlText::find_value(line.clone(), String_from("returns"))
-    if len(key_ret) > 0 { state.returns = key_ret }
+    if key_ret.len() > 0 { state.returns = key_ret }
     let key_mod = toml::TomlText::find_value(line.clone(), String_from("module"))
-    if len(key_mod) > 0 { state.module = key_mod }
+    if key_mod.len() > 0 { state.module = key_mod }
     let key_kind = toml::TomlText::find_value(line.clone(), String_from("kind"))
-    if len(key_kind) > 0 { state.kind = key_kind }
+    if key_kind.len() > 0 { state.kind = key_kind }
     if line.clone().contains(String_from("params =")) {
         let eq_pos = line.clone().index_of(String_from("="))
         if eq_pos >= 0 {
-            state.params = symbol_index_stdlib::trim_brackets(line.slice(eq_pos + 1, len(line)))
+            state.params = symbol_index_stdlib::trim_brackets(line.slice(eq_pos + 1, line.len()))
         }
     }
     if line.clone().contains(String_from("target =")) {
         let eq_pos = line.clone().index_of(String_from("="))
         if eq_pos >= 0 {
-            state.target = symbol_index_stdlib::trim_brackets(line.slice(eq_pos + 1, len(line)))
+            state.target = symbol_index_stdlib::trim_brackets(line.slice(eq_pos + 1, line.len()))
         }
     }
     if line.clone().contains(String_from("availability =")) {
@@ -91,7 +91,7 @@ fn doc_apply_fn_fields(mut state: DocParseFnState, line: String) -> DocParseFnSt
 }
 
 fn doc_flush_fn(mut out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFnState) {
-    if len(state.name) == 0 || len(state.module) == 0 {
+    if state.name.len() == 0 || state.module.len() == 0 {
         return
     }
     if state.kind.clone().eq(String_from("intrinsic")) {
@@ -117,20 +117,20 @@ fn doc_flush_fn(mut out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFn
 
 fn doc_apply_mod_fields(mut state: DocParseModState, line: String) -> DocParseModState {
     let key_doc = toml::TomlText::find_value(line.clone(), String_from("doc"))
-    if len(key_doc) > 0 { state.doc = key_doc }
+    if key_doc.len() > 0 { state.doc = key_doc }
     let key_stab = toml::TomlText::find_value(line.clone(), String_from("stability"))
-    if len(key_stab) > 0 { state.stability = key_stab }
+    if key_stab.len() > 0 { state.stability = key_stab }
     if line.clone().contains(String_from("target =")) {
         let eq_pos = line.clone().index_of(String_from("="))
         if eq_pos >= 0 {
-            state.target = symbol_index_stdlib::trim_brackets(line.slice(eq_pos + 1, len(line)))
+            state.target = symbol_index_stdlib::trim_brackets(line.slice(eq_pos + 1, line.len()))
         }
     }
     state
 }
 
 fn doc_flush_mod(mut out: Vec<manifest_doc_record::DocModuleEntry>, state: DocParseModState) {
-    if len(state.name) == 0 {
+    if state.name.len() == 0 {
         return
     }
     push(out, manifest_doc_record::DocModuleEntry_new(state.name, state.stability, state.target, state.doc))
@@ -142,7 +142,7 @@ pub fn doc_parse_manifest(content: String) -> DocManifestTable {
     let mut fn_state = DocParseFnState_new()
     let mut mod_state = DocParseModState_new()
     let mut section = 0
-    let n = len(content)
+    let n = content.len()
     let mut line_start = 0
     let mut i = 0
     while i < n {
@@ -160,13 +160,13 @@ pub fn doc_parse_manifest(content: String) -> DocManifestTable {
                     section = 2
                 } else {
                     let key_name = toml::TomlText::find_value(line.clone(), String_from("name"))
-                    if len(key_name) > 0 && section == 1 {
+                    if key_name.len() > 0 && section == 1 {
                         doc_flush_fn(fns, fn_state)
                         fn_state = DocParseFnState_new()
                         fn_state.name = key_name
                         fn_state = doc_apply_fn_fields(fn_state, line)
                     } else {
-                        if len(key_name) > 0 && section == 2 {
+                        if key_name.len() > 0 && section == 2 {
                             doc_flush_mod(mods, mod_state)
                             mod_state = DocParseModState_new()
                             mod_state.name = key_name

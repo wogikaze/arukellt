@@ -22,11 +22,11 @@ fn file_registry_root(package_root: String, registry_url: String) -> String {
         return package_root.clone()
     }
     if registry_url.clone().starts_with("file://./") {
-        let rel = registry_url.slice(7, len(registry_url))
+        let rel = registry_url.slice(7, registry_url.len())
         return package_root.clone().concat("/".concat(rel))
     }
     if registry_url.clone().starts_with("file://") {
-        return registry_url.slice(7, len(registry_url))
+        return registry_url.slice(7, registry_url.len())
     }
     package_root.clone()
 }
@@ -72,7 +72,7 @@ pub fn resolve_registry_module_source(package_root: String, package_name: String
         return Result::Err(registry_error_not_found(package_name.clone()))
     }
     let registry_url = registry_config::registry_url_for_root(package_root.clone())
-    if len(registry_url) == 0 {
+    if registry_url.len() == 0 {
         return Result::Err(registry_error_not_found(package_name.clone()))
     }
     if starts_with_file(registry_url.clone()) {

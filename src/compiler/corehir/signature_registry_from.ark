@@ -43,7 +43,7 @@ fn signature_entry_matches_from_conversion(
     }
     let param_name = type_info_to_mir_value::mvt_to_type_name(table, signature_entry::signature_entry_param_at(entry, 0))
     let return_name = type_info_to_mir_value::mvt_to_type_name(table, signature_entry::signature_entry_return_at(entry, 0))
-    if len(param_name) == 0 || len(return_name) == 0 {
+    if param_name.len() == 0 || return_name.len() == 0 {
         return false
     }
     param_name.clone().eq(source_err_type.clone()) && return_name.clone().eq(target_err_type.clone())

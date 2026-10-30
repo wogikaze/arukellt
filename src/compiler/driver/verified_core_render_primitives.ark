@@ -7,7 +7,7 @@ use typechecker::contract_type_access
 use typechecker::kinds
 use parser::kinds as parser_kinds
 fn vc_string_has_question(s: String) -> bool {
-    let n = len(s)
+    let n = s.len()
     let mut i = 0
     while i < n {
         if s.byte_at(i) == 63 { return true }
@@ -17,7 +17,7 @@ fn vc_string_has_question(s: String) -> bool {
 }
 
 fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
-    if len(supplied.clone()) > 0 {
+    if supplied.clone().len() > 0 {
         if vc_string_has_question(supplied.clone()) || supplied.clone().eq("unknown") { return "" }
         return supplied
     }
@@ -171,7 +171,7 @@ fn vc_bool_json(value: bool) -> String {
 }
 
 fn vc_json_escape(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut out = ""
     let mut i = 0
     while i < n {
@@ -288,10 +288,10 @@ fn vc_unary_operator_text(op: i32) -> String {
 }
 
 fn vc_expression_text(kind: i32, raw_text: String, int_value: i32) -> String {
-    if kind == 11 && len(raw_text.clone()) == 0 {
+    if kind == 11 && raw_text.clone().len() == 0 {
         return vc_binary_operator_text(int_value)
     }
-    if kind == 12 && len(raw_text.clone()) == 0 {
+    if kind == 12 && raw_text.clone().len() == 0 {
         return vc_unary_operator_text(int_value)
     }
     raw_text

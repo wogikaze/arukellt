@@ -3,12 +3,12 @@ use std::text
 
 fn main() {
     let parts = "a,b,c".split(",")
-    Test::assert_eq_i32(len(parts), 3)
+    Test::assert_eq_i32(parts.len(), 3)
     Test::assert_eq_string(parts.join("-"), "a-b-c")
 
     let parts2 = "hello world foo".split(" ")
-    Test::assert_eq_i32(len(parts2), 3)
+    Test::assert_eq_i32(parts2.len(), 3)
 
     let parts3 = "one::two::three".split("::")
-    Test::assert_eq_i32(len(parts3), 3)
+    Test::assert_eq_i32(parts3.len(), 3)
 }

@@ -36,7 +36,7 @@ fn mir_begin_comprehension(mut ctx: LowerCtx, var_name: String, comp_vec_idx: i3
 fn mir_comprehension_elem_type(ctx: LowerCtx, comp_vec_idx: i32) -> String {
     let comp_vec_type = ctx_get_local_type(ctx, comp_vec_idx)
     if comp_vec_type.clone().starts_with("vec:") {
-        return comp_vec_type.slice(4, len(comp_vec_type))
+        return comp_vec_type.slice(4, comp_vec_type.len())
     }
     "i32"
 }

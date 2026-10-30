@@ -39,7 +39,7 @@ fn run_output_path(opts: CliOptions, input_file: String) -> String {
         return args_record::cli_output_file(opts)
     }
     let base = input_file.clone()
-    let base_len = len(base)
+    let base_len = base.len()
     if base_len > 4 {
         let ext = base.slice(base_len - 4, base_len)
         if ext.eq(".ark") {
@@ -160,7 +160,7 @@ fn discover_and_print_tests(input_file: String) -> i32 {
 }
 
 fn collect_test_names(decls: Vec<AstNode>, prefix: String) -> i32 {
-    let n = len(decls)
+    let n = decls.len()
     let mut count = 0
     let mut i = 0
     while i < n {
@@ -195,14 +195,14 @@ fn collect_test_name_node(node: AstNode, prefix: String) -> i32 {
 }
 
 fn make_test_prefix(prefix: String, name: String) -> String {
-    if len(prefix.clone()) == 0 {
+    if prefix.clone().len() == 0 {
         return name
     }
     prefix.concat("::".concat(name))
 }
 
 fn print_test_entry(prefix: String, name: String) {
-    if len(prefix.clone()) == 0 {
+    if prefix.clone().len() == 0 {
         Stdio::eprintln("  test  ".concat(name))
         return
     }

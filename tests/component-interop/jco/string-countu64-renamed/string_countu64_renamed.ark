@@ -1,7 +1,7 @@
 // Component interop smoke test: string parameter canonical ABI with u64 result is name-independent.
 
 export fn large_unsigned(text: String) -> u64 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 42u64
     }
     9000000000u64

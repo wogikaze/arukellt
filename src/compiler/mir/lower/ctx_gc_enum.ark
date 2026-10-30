@@ -12,7 +12,7 @@ fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
 
 fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: String) -> i32 {
     let canon = ctx_gc_enum_normalize_variant_name(variant_name.clone())
-    let count = len(ctx.gc_enum_variant_sigs)
+    let count = ctx.gc_enum_variant_sigs.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.gc_enum_variant_sigs, i).eq(sig.clone()) {
@@ -34,7 +34,7 @@ fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: St
     if ctx.gc_seal_done {
         module_gc_order::MirModule_push_late_gc_order(
             ctx.module,
-            (len(ctx.gc_enum_variant_names) - 1) * 2 + 1
+            (ctx.gc_enum_variant_names.len() - 1) * 2 + 1
         )
         // Materialize immediately so body emit can read the module slot and
         // canon index without waiting for the post-loop flush. Enum sigs are
@@ -42,7 +42,7 @@ fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: St
         // ensuring here keeps canon order identical to the late_gc_order
         // sweep ctx_gc_canon_ensure_late performs.
         let mut m = ctx.module
-        let slot = len(ctx.gc_enum_variant_names) - 1
+        let slot = ctx.gc_enum_variant_names.len() - 1
         module_gc_enum::MirModule_push_gc_enum_variant(
             m,
             variant_name.clone(),
@@ -52,11 +52,11 @@ fn ctx_register_gc_enum_variant(mut ctx: LowerCtx, variant_name: String, sig: St
         module_gc_enum::MirModule_set_gc_enum_variant_canon_idx(m, slot, canon)
         gc_layout_slot_bind::mir_gc_layout_bind_enum_variant_slot(m, slot)
     }
-    len(ctx.gc_enum_variant_names) - 1
+    ctx.gc_enum_variant_names.len() - 1
 }
 
 fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
-    let count = len(ctx.gc_enum_variant_names)
+    let count = ctx.gc_enum_variant_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.gc_enum_variant_names, i).eq(variant_name.clone()) {
@@ -64,7 +64,7 @@ fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
         }
         i = i + 1
     }
-    let alias_count = len(ctx.gc_enum_variant_alias_names)
+    let alias_count = ctx.gc_enum_variant_alias_names.len()
     let mut ai = 0
     while ai < alias_count {
         if get_unchecked(ctx.gc_enum_variant_alias_names, ai).eq(variant_name.clone()) {
@@ -101,7 +101,7 @@ fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
     if !normalized.clone().contains("::") {
         return normalized
     }
-    let n = len(normalized)
+    let n = normalized.len()
     let mut i = n - 1
     while i >= 0 {
         if normalized.clone().byte_at(i) == 58 {
@@ -117,7 +117,7 @@ fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
 // reference field instead of treating the value as a String reference.
 fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
     let normalized = ctx_gc_enum_normalize_variant_name(variant_name.clone())
-    let n = len(normalized)
+    let n = normalized.len()
     let mut last_sep = 0 - 1
     let mut prev_sep = 0 - 1
     let mut i = 0
@@ -164,7 +164,7 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     // Bare `Table` must resolve to `TomlValue::Table` when unique (#726).
     let bare = ctx_gc_enum_bare_variant_name(normalized.clone())
     let suffix = "::".concat(bare.clone())
-    let count = len(ctx.gc_enum_variant_names)
+    let count = ctx.gc_enum_variant_names.len()
     let mut i = 0
     let mut hit = 0 - 1
     let mut hits = 0
@@ -186,7 +186,7 @@ fn ctx_gc_enum_variant_slot_for_payload(mut ctx: LowerCtx, variant_name: String,
     let normalized = ctx_gc_enum_normalize_variant_name(variant_name.clone())
     let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
     let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, field_sigs)
-    let count = len(ctx.gc_enum_variant_sigs)
+    let count = ctx.gc_enum_variant_sigs.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.gc_enum_variant_sigs, i).eq(want_sig.clone()) {
@@ -206,7 +206,7 @@ fn gc_enum_variant_is_vec_container(normalized: String) -> bool {
 }
 
 fn ctx_gc_enum_variant_count(ctx: LowerCtx) -> i32 {
-    len(ctx.gc_enum_variant_names)
+    ctx.gc_enum_variant_names.len()
 }
 
 fn ctx_flush_gc_enum_variants(mut ctx: LowerCtx) {
@@ -215,7 +215,7 @@ fn ctx_flush_gc_enum_variants(mut ctx: LowerCtx) {
 
 fn ctx_flush_gc_enum_variants_from(mut ctx: LowerCtx, start: i32) {
     let mut m = ctx.module
-    let count = len(ctx.gc_enum_variant_names)
+    let count = ctx.gc_enum_variant_names.len()
     let mut i = if start < 0 { 0 } else { start }
     // Post-seal entries are materialized at registration; resume after them.
     let materialized = module_gc_enum::MirModule_gc_enum_variant_sig_count(m)

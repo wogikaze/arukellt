@@ -515,7 +515,7 @@ fn mark_hash_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32)
         mark_hash_type_ref(ctx, dest, "hashmap:si32")
     }
     let snapshot_ty = hash_snapshot_vec_type_name(callee_name.clone())
-    if len(snapshot_ty) > 0 {
+    if snapshot_ty.len() > 0 {
         mark_hash_type_ref(ctx, dest, snapshot_ty)
     }
     if callee_eq(callee_name.clone(), "hashset_str_new") {
@@ -550,7 +550,7 @@ fn mark_hash_query_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
         }
     }
     let option_pair_ty = hash_option_pair_type_name(callee_name.clone())
-    if len(option_pair_ty) > 0 {
+    if option_pair_ty.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, option_pair_ty)
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())

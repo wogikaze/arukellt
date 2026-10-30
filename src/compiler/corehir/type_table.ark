@@ -44,7 +44,7 @@ fn TypeTable_new() -> TypeTable {
 }
 
 fn TypeTable_entry_count(table: TypeTable) -> i32 {
-    len(table.entries)
+    table.entries.len()
 }
 
 fn TypeTable_entry_at(table: TypeTable, index: i32) -> TypeEntry {
@@ -64,7 +64,7 @@ fn type_entry_name(entry: TypeEntry) -> String {
 }
 
 fn type_entry_type_param_count(entry: TypeEntry) -> i32 {
-    len(entry.type_param_ids)
+    entry.type_param_ids.len()
 }
 
 fn type_entry_type_param_at(entry: TypeEntry, index: i32) -> TypeId {
@@ -72,8 +72,8 @@ fn type_entry_type_param_at(entry: TypeEntry, index: i32) -> TypeId {
 }
 
 fn type_table_type_param_ids_equal(a: Vec<TypeId>, b: Vec<TypeId>) -> bool {
-    let count = len(a)
-    if count != len(b) {
+    let count = a.len()
+    if count != b.len() {
         return false
     }
     let mut i = 0
@@ -107,7 +107,7 @@ fn TypeTable_intern(mut table: TypeTable, kind: i32, name: String, type_param_id
     }
     let id = TypeId_new(table.next_id)
     table.next_id = table.next_id + 1
-    let entry_index = len(table.entries)
+    let entry_index = table.entries.len()
     push(table.next_same_name, name_index::name_index_get(table.name_head, name.clone()))
     name_index::name_index_set(table.name_head, name.clone(), entry_index)
     // The entry owns a copy; `id` is returned below, so it must stay live.
@@ -118,7 +118,7 @@ fn TypeTable_intern(mut table: TypeTable, kind: i32, name: String, type_param_id
 
 fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
     let raw = TypeId_raw(id)
-    if raw >= 0 && raw < len(table.entries) {
+    if raw >= 0 && raw < table.entries.len() {
         return get_unchecked(table.entries, raw)
     }
     TypeEntry {

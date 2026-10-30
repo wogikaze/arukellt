@@ -81,7 +81,7 @@ fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
 
 fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {
     let mut layouts = Vec::new<CoreHirLayoutDecl>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)

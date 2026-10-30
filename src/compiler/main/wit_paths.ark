@@ -2,7 +2,7 @@ use loader::wit_manifest
 use driver::config_record
 use main::args_record
 pub fn merged_wit_paths_for_input(input_file: String, cli_paths: Vec<String>) -> Vec<String> {
-    if len(input_file) == 0 {
+    if input_file.len() == 0 {
         return cli_paths.clone()
     }
     wit_manifest::merge_wit_paths_for_source(input_file.clone(), cli_paths)

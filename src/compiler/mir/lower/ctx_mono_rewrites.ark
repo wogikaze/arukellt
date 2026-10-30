@@ -1,6 +1,6 @@
 use collections::name_index
 fn ctx_mono_span_rewrite_count(ctx: LowerCtx) -> i32 {
-    len(ctx.mono_call_starts)
+    ctx.mono_call_starts.len()
 }
 
 fn ctx_mono_span_rewrite_start_at(ctx: LowerCtx, index: i32) -> i32 {
@@ -28,14 +28,14 @@ fn ctx_mono_push_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: String
 }
 
 fn ctx_mono_span_hash_insert(mut ctx: LowerCtx, span_start: i32) {
-    if len(ctx.mono_span_buckets) == 0 {
+    if ctx.mono_span_buckets.len() == 0 {
         let mut i = 0
         while i < 1024 {
             push(ctx.mono_span_buckets, 0)
             i = i + 1
         }
     }
-    let capacity = len(ctx.mono_span_buckets)
+    let capacity = ctx.mono_span_buckets.len()
     let mut slot = span_start
     if slot < 0 {
         slot = 0
@@ -43,11 +43,11 @@ fn ctx_mono_span_hash_insert(mut ctx: LowerCtx, span_start: i32) {
     slot = slot % capacity
     let head = get_unchecked(ctx.mono_span_buckets, slot)
     push(ctx.mono_span_next, head)
-    set(ctx.mono_span_buckets, slot, len(ctx.mono_call_starts))
+    set(ctx.mono_span_buckets, slot, ctx.mono_call_starts.len())
 }
 
 fn ctx_mono_span_hash_head(ctx: LowerCtx, span_start: i32) -> i32 {
-    let capacity = len(ctx.mono_span_buckets)
+    let capacity = ctx.mono_span_buckets.len()
     if capacity <= 0 {
         return 0
     }
@@ -59,7 +59,7 @@ fn ctx_mono_span_hash_head(ctx: LowerCtx, span_start: i32) -> i32 {
 }
 
 fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {
-    len(ctx.mono_call_sources)
+    ctx.mono_call_sources.len()
 }
 
 fn ctx_mono_name_rewrite_source_at(ctx: LowerCtx, index: i32) -> String {
@@ -79,7 +79,7 @@ fn ctx_mono_mark_name_rewrite_used(mut ctx: LowerCtx, index: i32) {
 }
 
 fn ctx_mono_push_name_rewrite(mut ctx: LowerCtx, source: String, target: String) {
-    let index = len(ctx.mono_call_sources)
+    let index = ctx.mono_call_sources.len()
     let bare = mono_bare_source(source.clone())
     push(ctx.mono_call_sources, source)
     push(ctx.mono_call_name_targets, target)
@@ -106,7 +106,7 @@ fn ctx_mono_name_rewrite_next_same_source(ctx: LowerCtx, index: i32) -> i32 {
 
 // Text after the last `:`; `mod:fn` and `fn` name the same mono source.
 fn mono_bare_source(source: String) -> String {
-    let source_len = len(source)
+    let source_len = source.len()
     let mut index = source_len - 1
     while index >= 0 {
         if source.byte_at(index) == 58 {

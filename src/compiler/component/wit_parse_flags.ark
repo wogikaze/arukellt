@@ -2,7 +2,7 @@
 
 use std::text
 fn wit_trim_ws(text: String) -> String {
-    let n = len(text)
+    let n = text.len()
     let mut start = 0
     while start < n {
         let ch = text.byte_at(start)
@@ -34,15 +34,15 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
         return names
     }
     let body = wit_trim_ws(text.slice(open + 1, close))
-    if len(body) == 0 {
+    if body.len() == 0 {
         return names
     }
     let mut part = String_new()
-    for i in 0..len(body) {
+    for i in 0..body.len() {
         let ch = body.byte_at(i)
         if ch == 44 {
             let trimmed = wit_trim_ws(part)
-            if len(trimmed) > 0 {
+            if trimmed.len() > 0 {
                 push(names, trimmed)
             }
             part = String_new()
@@ -51,7 +51,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
         }
     }
     let trimmed = wit_trim_ws(part)
-    if len(trimmed) > 0 {
+    if trimmed.len() > 0 {
         push(names, trimmed)
     }
     names
@@ -59,7 +59,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
 
 fn wit_flags_type_text(member_names: Vec<String>) -> String {
     let mut out = "flags {"
-    for i in 0..len(member_names) {
+    for i in 0..member_names.len() {
         if i > 0 {
             out = out.concat(", ")
         }

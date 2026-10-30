@@ -1,5 +1,5 @@
 fn vec_has(v: Vec<String>, name: String) -> bool {
-    let count = len(v)
+    let count = v.len()
     let mut i = 0
     while i < count {
         if get_unchecked(v, i).clone().eq(name.clone()) {
@@ -16,7 +16,7 @@ fn vec_has(v: Vec<String>, name: String) -> bool {
 // convention as mir::mono_index_types (#912).
 fn load_state_string_hash(name: String) -> i32 {
     let mut hash = 216613626
-    let name_len = len(name)
+    let name_len = name.len()
     let mut hi = 0
     while hi < name_len {
         hash = hash * 16777619 ^ name.byte_at(hi)
@@ -34,7 +34,7 @@ fn load_state_string_hash(name: String) -> i32 {
 // Returns the probe slot: a 0 bucket is an insertion point, a nonzero bucket
 // holds keys[bucket-1] == name.
 fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
-    let capacity = len(slots)
+    let capacity = slots.len()
     if capacity <= 0 {
         return 0 - 1
     }
@@ -67,7 +67,7 @@ fn load_state_zero_slots(size: i32) -> Vec<i32> {
 fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = load_state_zero_slots(capacity)
     let mut i = 0
-    while i < len(keys) {
+    while i < keys.len() {
         let slot = load_state_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
         set(slots, slot, i + 1)
         i = i + 1
@@ -76,21 +76,21 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
 }
 
 fn load_state_ensure_loaded_index(mut state: LoadState) {
-    let mut capacity = len(state.loaded_slots)
-    if capacity > 0 && len(state.loaded_names) * 2 < capacity {
+    let mut capacity = state.loaded_slots.len()
+    if capacity > 0 && state.loaded_names.len() * 2 < capacity {
         return
     }
     if capacity == 0 {
         capacity = 64
     }
-    while capacity <= len(state.loaded_names) * 2 {
+    while capacity <= state.loaded_names.len() * 2 {
         capacity = capacity * 2
     }
     state.loaded_slots = load_state_rehash(state.loaded_names.clone(), capacity)
 }
 
 fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
-    if len(state.loaded_slots) <= 0 {
+    if state.loaded_slots.len() <= 0 {
         return false
     }
     let slot = load_state_probe(state.loaded_names.clone(), state.loaded_slots.clone(), name.clone())
@@ -109,7 +109,7 @@ fn LoadState_push_loading(mut state: LoadState, name: String) {
 }
 
 fn LoadState_pop_loading(mut state: LoadState) {
-    if len(state.loading_stack) > 0 {
+    if state.loading_stack.len() > 0 {
         pop(state.loading_stack)
     }
 }
@@ -121,5 +121,5 @@ fn LoadState_push_loaded(mut state: LoadState, name: String) {
     if slot < 0 {
         return
     }
-    set(state.loaded_slots, slot, len(state.loaded_names))
+    set(state.loaded_slots, slot, state.loaded_names.len())
 }

@@ -54,7 +54,7 @@ fn main() {
         4
     )
     match fill_of(buffered) {
-        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
     match consume_of(buffered, 2) {
@@ -62,7 +62,7 @@ fn main() {
         Result::Err(err) => Stdio::println(err.message()),
     }
     match fill_of(buffered) {
-        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
     match consume_of(buffered, 3) {
@@ -71,7 +71,7 @@ fn main() {
     }
     match read_some(buffered, 4) {
         Result::Ok(bytes) => {
-            Stdio::println((len(bytes)).to_string())
+            Stdio::println((bytes.len()).to_string())
             Stdio::println((get_unchecked(bytes, 0)).to_string())
             Stdio::println((get_unchecked(bytes, 3)).to_string())
         },
@@ -112,7 +112,7 @@ fn main() {
         Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(seekable, 2) {
-        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
     match seek_of(seekable, io::SeekFrom::Current(1i64)) {
@@ -138,7 +138,7 @@ fn main() {
     )
     match read_some(tiny, 4) {
         Result::Ok(bytes) => {
-            Stdio::println((len(bytes)).to_string())
+            Stdio::println((bytes.len()).to_string())
             Stdio::println((get_unchecked(bytes, 0)).to_string())
         },
         Result::Err(err) => Stdio::println(err.message()),

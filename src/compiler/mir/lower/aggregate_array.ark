@@ -22,7 +22,7 @@ fn mir_emit_array_set(mut ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i3
 // values have the header struct around the backing array.
 fn mir_set_array_type_from_value(mut ctx: LowerCtx, dest: i32, val_idx: i32) {
     let elem_type = mir_array_element_type_from_value(ctx, val_idx)
-    if len(elem_type) == 0 {
+    if elem_type.len() == 0 {
         return
     }
     ctx_api_local_types::ctx_set_local_type(ctx, dest, "array:".concat(elem_type.clone()))
@@ -68,7 +68,7 @@ fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
     if value_type == value_types::VT_FUNCREF() {
         return "fnref"
     }
-    if (value_type == value_types::VT_GC_REF() || value_type == value_types::VT_REF()) && len(type_name) > 0 {
+    if (value_type == value_types::VT_GC_REF() || value_type == value_types::VT_REF()) && type_name.len() > 0 {
         return type_name.clone()
     }
     "i32"
@@ -76,10 +76,10 @@ fn mir_array_element_type_from_value(ctx: LowerCtx, val_idx: i32) -> String {
 
 fn mir_array_element_type_from_container(container_type: String) -> String {
     if container_type.clone().starts_with("vec:") {
-        return container_type.slice(4, len(container_type))
+        return container_type.slice(4, container_type.len())
     }
     if container_type.clone().starts_with("array:") {
-        return container_type.slice(6, len(container_type))
+        return container_type.slice(6, container_type.len())
     }
     String_new()
 }
@@ -112,7 +112,7 @@ fn mir_emit_local_get_ref(mut ctx: LowerCtx, local_idx: i32) -> i32 {
 fn mir_emit_array_index(mut ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
     let base_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
     let mut dest_type = mir_array_element_type_from_container(base_type.clone())
-    if len(dest_type) == 0 {
+    if dest_type.len() == 0 {
         dest_type = "i32"
     }
     let dest_vt = mir_array_element_vt(dest_type.clone())

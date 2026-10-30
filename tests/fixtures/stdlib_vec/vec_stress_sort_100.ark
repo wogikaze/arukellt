@@ -15,7 +15,7 @@ fn main() {
         i = i + 1
     }
     v.sort_by(ascending)
-    Test::assert_eq_i32(len(v), 100)
+    Test::assert_eq_i32(v.len(), 100)
     Test::assert_eq_i32(get_unchecked(v, 0), 1)
     Test::assert_eq_i32(get_unchecked(v, 99), 100)
     let mut k: i32 = 0

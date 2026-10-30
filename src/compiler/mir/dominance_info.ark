@@ -10,12 +10,12 @@ fn MirDomInfo_new() -> MirDomInfo {
 }
 
 fn MirDomInfo_idom_count(info: MirDomInfo) -> i32 {
-    len(info.idom)
+    info.idom.len()
 }
 
 fn MirDomInfo_push_block(mut info: MirDomInfo, idom: i32, frontier_count: i32) {
     push(info.idom, idom)
-    push(info.frontier_offsets, len(info.frontier_blocks))
+    push(info.frontier_offsets, info.frontier_blocks.len())
     push(info.frontier_lengths, frontier_count)
 }
 

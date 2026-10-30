@@ -56,7 +56,7 @@ fn compose_validate_paths(provider: String, socket: String, output: String) -> b
 
 fn compose_validate_wit_surfaces(provider: String, socket: String) -> bool {
     let err = compose_wit_validate::validate_plug_surfaces(provider.clone(), socket.clone())
-    if len(err) > 0 {
+    if err.len() > 0 {
         Stdio::eprintln(err)
         return false
     }
@@ -88,7 +88,7 @@ pub fn cmd_compose(opts: CliOptions) {
     let socket = args_record::cli_compose_socket(opts)
     let output = args_record::cli_output_file(opts)
     let validate_only = args_record::cli_compose_validate_only(opts)
-    if len(plug_provider) == 0 || len(socket) == 0 || len(output) == 0 {
+    if plug_provider.len() == 0 || socket.len() == 0 || output.len() == 0 {
         compose_print_usage()
         Process::exit(2)
         return

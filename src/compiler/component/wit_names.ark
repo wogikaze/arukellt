@@ -4,15 +4,15 @@
 use std::text
 fn wit_kebab_name(name: String) -> String {
     let mut out = String_from("")
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     while i < n {
         let ch = name.byte_at(i)
         if ch == 95 {
             out = out.concat(String_from("-"))
         } else if ch >= 65 && ch <= 90 {
-            if len(out) > 0 {
-                let prev = out.byte_at(len(out) - 1)
+            if out.len() > 0 {
+                let prev = out.byte_at(out.len() - 1)
                 if prev != 45 {
                     out = out.concat(String_from("-"))
                 }

@@ -10,7 +10,7 @@ fn main() {
     push(vals, 128)
     push(vals, 16383)
     push(vals, 16384)
-    let n = len(vals)
+    let n = vals.len()
     let mut i = 0
     while i < n {
         let v = get_unchecked(vals, i)

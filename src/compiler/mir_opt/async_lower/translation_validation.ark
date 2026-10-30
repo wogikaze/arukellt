@@ -23,11 +23,11 @@ fn async_lower_expected_instruction(inst: MirInstDraft) -> MirInstDraft {
 }
 
 fn async_lower_translation_valid(before: Vec<MirInstDraft>, after: Vec<MirInstDraft>) -> bool {
-    if len(before) != len(after) {
+    if before.len() != after.len() {
         return false
     }
     let mut i = 0
-    while i < len(before) {
+    while i < before.len() {
         let expected = async_lower_expected_instruction(get_unchecked(before, i))
         if !translation_validation::mir_translation_draft_equal(
             expected,

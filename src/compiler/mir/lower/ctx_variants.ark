@@ -5,7 +5,7 @@ fn ctx_strip_first_path_segment(name: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    name.slice(pos + 2, len(name))
+    name.slice(pos + 2, name.len())
 }
 
 // Enum owner of a registered variant spelling:
@@ -13,7 +13,7 @@ fn ctx_strip_first_path_segment(name: String) -> String {
 // enum owner segment. Used to type an enum-variant struct literal as the
 // enum, not the payload struct it constructs.
 fn ctx_variant_owner_name(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut last_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
@@ -43,7 +43,7 @@ fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
     let mut rest = name.clone()
     while true {
         let next = ctx_strip_first_path_segment(rest.clone())
-        if len(next) == 0 {
+        if next.len() == 0 {
             return String_new()
         }
         let idx = ctx_variant_storage::ctx_variant_name_index(ctx, next.clone())
@@ -57,7 +57,7 @@ fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
 
 fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
     let canon = ctx_canonical_variant_name(ctx, name.clone())
-    if len(canon) == 0 {
+    if canon.len() == 0 {
         return 0 - 1
     }
     let idx = ctx_variant_storage::ctx_variant_name_index(ctx, canon.clone())

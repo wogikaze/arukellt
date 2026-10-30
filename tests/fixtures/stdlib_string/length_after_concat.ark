@@ -4,7 +4,7 @@ fn main() {
     let a = String_from("abc")
     let b = String_from("def")
     let c = a.concat(b)
-    Test::assert_eq_i32(len(c), 6)
+    Test::assert_eq_i32(c.len(), 6)
     let d = c.concat(String_from("gh"))
-    Test::assert_eq_i32(len(d), 8)
+    Test::assert_eq_i32(d.len(), 8)
 }

@@ -34,7 +34,7 @@ fn ctx_pcell_fn_name(ctx: LowerCtx) -> String {
 
 fn ctx_pcell_find(ctx: LowerCtx, fn_name: String, local_idx: i32) -> i32 {
     let mut i = 0
-    while i < len(ctx.pcell_fn_names) {
+    while i < ctx.pcell_fn_names.len() {
         if get_unchecked(ctx.pcell_lis, i) == local_idx &&
         get_unchecked(ctx.pcell_fn_names, i).eq(fn_name.clone()) {
             return i
@@ -99,24 +99,24 @@ fn ctx_pcell_vt_sig(payload_vt: i32) -> String {
 // back to a vt-derived field signature.
 fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: i32) -> String {
     let mut key = payload_type.clone()
-    if len(key) == 0 {
+    if key.len() == 0 {
         key = "vt:".concat(payload_vt.to_string())
     }
     let mut i = 0
-    while i < len(ctx.pcell_reg_keys) {
+    while i < ctx.pcell_reg_keys.len() {
         if get_unchecked(ctx.pcell_reg_keys, i).eq(key.clone()) {
             return get_unchecked(ctx.pcell_reg_cells, i).clone()
         }
         i = i + 1
     }
-    let cell_name = "__cell_".concat(len(ctx.pcell_reg_cells).to_string())
+    let cell_name = "__cell_".concat(ctx.pcell_reg_cells.len().to_string())
     push(ctx.pcell_reg_keys, key)
     push(ctx.pcell_reg_cells, cell_name.clone())
     push(ctx.pcell_reg_vts, payload_vt)
     push(ctx.pcell_reg_types, payload_type.clone())
     if ctx.is_gc_target {
         let mut field_sig = "_f0_".concat(ctx_pcell_vt_sig(payload_vt))
-        if len(payload_type) > 0 {
+        if payload_type.len() > 0 {
             field_sig = ctx_gc_struct::gc_struct_field_sig_for_type(ctx, payload_type, 0)
         }
         ctx_gc_struct::ctx_register_gc_struct(
@@ -130,7 +130,7 @@ fn ctx_pcell_cell_name_for(mut ctx: LowerCtx, payload_type: String, payload_vt: 
 
 fn ctx_pcell_reg_lookup(ctx: LowerCtx, cell_name: String) -> i32 {
     let mut i = 0
-    while i < len(ctx.pcell_reg_cells) {
+    while i < ctx.pcell_reg_cells.len() {
         if get_unchecked(ctx.pcell_reg_cells, i).eq(cell_name.clone()) {
             return i
         }
@@ -224,7 +224,7 @@ fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, 
     let payload_vt = get_unchecked(ctx.pcell_reg_vts, reg)
     let payload_type = get_unchecked(ctx.pcell_reg_types, reg).clone()
     let shadow = ctx_api_local_alloc::ctx_alloc_local(ctx, cname.clone(), payload_vt)
-    if len(payload_type) > 0 {
+    if payload_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, shadow, payload_type)
     }
     push(ctx.pcell_fn_names, ctx_pcell_fn_name(ctx))
@@ -237,7 +237,7 @@ fn ctx_pcell_bind_cap_param(mut ctx: LowerCtx, param_li: i32, cap_type: String, 
 }
 
 fn ctx_pcell_mat_lookup(ctx: LowerCtx, fn_name: String, value_li: i32) -> i32 {
-    let mut i = len(ctx.pcell_mat_fns) - 1
+    let mut i = ctx.pcell_mat_fns.len() - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
         get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
@@ -249,7 +249,7 @@ fn ctx_pcell_mat_lookup(ctx: LowerCtx, fn_name: String, value_li: i32) -> i32 {
 }
 
 fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) {
-    let mut i = len(ctx.pcell_mat_fns) - 1
+    let mut i = ctx.pcell_mat_fns.len() - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_lis, i) == value_li &&
         get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
@@ -262,7 +262,7 @@ fn ctx_pcell_clear_mat_entry(mut ctx: LowerCtx, fn_name: String, value_li: i32) 
 // Call-like ops can run the closure that owns a cell, so cached payload
 // temps in the calling frame go stale across them.
 fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
-    let mut i = len(ctx.pcell_mat_fns) - 1
+    let mut i = ctx.pcell_mat_fns.len() - 1
     while i >= 0 {
         if get_unchecked(ctx.pcell_mat_fns, i).eq(fn_name.clone()) {
             set(ctx.pcell_mat_lis, i, 0 - 1)
@@ -274,7 +274,7 @@ fn ctx_pcell_clear_fn_mats(mut ctx: LowerCtx, fn_name: String) {
 fn ctx_pcell_fresh_payload_tmp(mut ctx: LowerCtx, idx: i32) -> i32 {
     let tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, get_unchecked(ctx.pcell_vts, idx))
     let ptype = get_unchecked(ctx.pcell_types, idx).clone()
-    if len(ptype) > 0 {
+    if ptype.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, tmp, ptype)
     }
     tmp
@@ -394,7 +394,7 @@ fn pcell_op_clears_mats(op: i32) -> bool {
 
 fn ctx_pcell_fn_has_cells(ctx: LowerCtx, fn_name: String) -> bool {
     let mut i = 0
-    while i < len(ctx.pcell_fn_names) {
+    while i < ctx.pcell_fn_names.len() {
         if get_unchecked(ctx.pcell_fn_names, i).eq(fn_name.clone()) {
             return true
         }
@@ -445,7 +445,7 @@ fn ctx_pcell_rewrite_local_set(mut ctx: LowerCtx, fn_name: String, inst: MirInst
 // flagged, so no rewrite re-fires on them.
 fn ctx_pcell_rewrite(mut ctx: LowerCtx, mut inst: MirInstDraft) -> Vec<MirInstDraft> {
     let mut out = Vec::new<MirInstDraft>()
-    if len(ctx.pcell_lis) == 0 {
+    if ctx.pcell_lis.len() == 0 {
         push(out, inst)
         return out
     }

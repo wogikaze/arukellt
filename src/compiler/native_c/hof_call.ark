@@ -43,7 +43,7 @@ fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst)
     let callee = inst_record::mir_inst_str_val(instruction)
     let mut resolved = signature_registry::signature_registry_lookup_by_mangled(registry, callee.clone())
     if !function_id::function_id_is_valid(resolved) {
-        let length = len(callee)
+        let length = callee.len()
         let mut index = length - 2
         let mut short = callee.clone()
         while index >= 0 {
@@ -75,10 +75,10 @@ fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst)
 }
 
 fn native_c_parse_first_arg_vt_hint(hint: String) -> i32 {
-    if len(hint) == 0 {
+    if hint.len() == 0 {
         return 0 - 1
     }
-    let n = len(hint)
+    let n = hint.len()
     let mut value = 0
     let mut i = 0
     while i < n {
@@ -125,7 +125,7 @@ fn native_c_hof_find_matching_function_id(
         // Prefer SignatureEntry result encoding over legacy MirFunction_return_type:
         // CALL_REF dest locals often keep VT_REF while MirValueType is already i32.
         let result_encoding = abi::native_c_signature_result_encoding(table, signature)
-        if len(result_encoding) == 0 {
+        if result_encoding.len() == 0 {
             function_index = function_index + 1
             continue
         }
@@ -161,13 +161,13 @@ fn native_c_emit_ref_func(mir_module: MirModule, instruction: MirInst) -> Native
     )
     let table = module_spine::MirModule_type_table(mir_module)
     let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
-    if len(symbol) == 0 {
+    if symbol.len() == 0 {
         return native_c_hof_error(
             String_from("target `native-cpp` cannot mangle zero-capture function reference")
         )
     }
     let typedef_name = abi::native_c_funcref_typedef_name(table, signature)
-    if len(typedef_name) == 0 {
+    if typedef_name.len() == 0 {
         return native_c_hof_error(
             String_from("target `native-cpp` cannot type zero-capture function reference")
         )
@@ -191,7 +191,7 @@ fn native_c_emit_call_indirect(
         return native_c_hof_not_handled()
     }
     let arg_count = inst_accessors_literals::MirInst_int_val(instruction)
-    if len(argument_locals) != arg_count {
+    if argument_locals.len() != arg_count {
         return native_c_hof_error(
             String_from("compiler ICE: native-cpp indirect call argument count mismatch")
         )
@@ -217,7 +217,7 @@ fn native_c_emit_call_indirect(
     )
     let table = module_spine::MirModule_type_table(mir_module)
     let typedef_name = abi::native_c_funcref_typedef_name(table, signature)
-    if len(typedef_name) == 0 {
+    if typedef_name.len() == 0 {
         return native_c_hof_error(
             String_from("target `native-cpp` cannot type zero-capture indirect call")
         )
@@ -248,10 +248,10 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
         if function_id::function_id_is_valid(resolved) {
             let signature = signature_registry::signature_registry_lookup_by_id(registry, resolved)
             let typedef_name = abi::native_c_funcref_typedef_name(table, signature)
-            if len(typedef_name) > 0 {
+            if typedef_name.len() > 0 {
                 let mut already = false
                 let mut scan = 0
-                while scan < len(emitted_names) {
+                while scan < emitted_names.len() {
                     if get_unchecked(emitted_names, scan).eq(typedef_name.clone()) {
                         already = true
                     }
@@ -260,7 +260,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
                 if !already {
                     push(emitted_names, typedef_name.clone())
                     let decl = abi::native_c_funcref_typedef_decl(table, signature, heap_enum_flags)
-                    if len(decl) > 0 {
+                    if decl.len() > 0 {
                         out = out.concat(decl)
                     }
                 }

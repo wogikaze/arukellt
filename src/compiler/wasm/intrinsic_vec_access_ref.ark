@@ -36,11 +36,11 @@ fn vec_ref_elem_target_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
 }
 
 fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
-    if len(tname) == 0 {
+    if tname.len() == 0 {
         return 0 - 1
     }
     if tname.clone().starts_with("vec:") {
-        let elem = tname.clone().slice(4, len(tname))
+        let elem = tname.clone().slice(4, tname.len())
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem.clone()) ||
         ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
@@ -74,7 +74,7 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     }
     if tname.clone().starts_with("struct:") {
         let sname = code_locals_struct_parse::extract_struct_name_from_type_name(tname.clone())
-        if len(sname) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, sname.clone()) {
+        if sname.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, sname.clone()) {
             return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, sname.clone())
         }
         let byte_size = code_locals_struct_parse::extract_struct_byte_size(tname.clone())

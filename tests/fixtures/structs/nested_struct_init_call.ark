@@ -23,9 +23,9 @@ fn main() {
     Stdio::println(o.inner.name)
     Stdio::println(o.label)
     Stdio::println((o.inner.count).to_string())
-    Stdio::println((len(o.inner.items)).to_string())
+    Stdio::println((o.inner.items.len()).to_string())
     push(o.inner.items, 42)
-    Stdio::println((len(o.inner.items)).to_string())
+    Stdio::println((o.inner.items.len()).to_string())
     Stdio::println((get_unchecked(o.inner.items, 0)).to_string())
 }
 // Inline function call in struct init field — this triggered the bug

@@ -4,15 +4,15 @@ use component::contract_helpers
 
 fn component_collection_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
     let list_error = component_collection_list_signature_error(f, allows)
-    if len(list_error) > 0 {
+    if list_error.len() > 0 {
         return list_error
     }
     let option_error = component_collection_option_signature_error(f, allows)
-    if len(option_error) > 0 {
+    if option_error.len() > 0 {
         return option_error
     }
     let result_error = component_collection_result_signature_error(f, allows)
-    if len(result_error) > 0 {
+    if result_error.len() > 0 {
         return result_error
     }
     String_new()
@@ -34,27 +34,27 @@ fn component_collection_list_signature_error(f: AstNode, allows: ComponentContra
 
 fn component_collection_option_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
     let maybe_error = component_option_maybe_signature_error(f, allows)
-    if len(maybe_error) > 0 {
+    if maybe_error.len() > 0 {
         return maybe_error
     }
     let param_error = component_option_param_signature_error(f, allows)
-    if len(param_error) > 0 {
+    if param_error.len() > 0 {
         return param_error
     }
     let roundtrip_error = component_option_roundtrip_signature_error(f, allows)
-    if len(roundtrip_error) > 0 {
+    if roundtrip_error.len() > 0 {
         return roundtrip_error
     }
     let bool_error = component_option_bool_signature_error(f, allows)
-    if len(bool_error) > 0 {
+    if bool_error.len() > 0 {
         return bool_error
     }
     let i64_error = component_option_i64_signature_error(f, allows)
-    if len(i64_error) > 0 {
+    if i64_error.len() > 0 {
         return i64_error
     }
     let i64_param_error = component_option_i64_param_signature_error(f, allows)
-    if len(i64_param_error) > 0 {
+    if i64_param_error.len() > 0 {
         return i64_param_error
     }
     String_new()
@@ -110,23 +110,23 @@ fn component_option_i64_param_signature_error(f: AstNode, allows: ComponentContr
 
 fn component_collection_result_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
     let safe_div_error = component_result_safe_div_signature_error(f, allows)
-    if len(safe_div_error) > 0 {
+    if safe_div_error.len() > 0 {
         return safe_div_error
     }
     let param_error = component_result_param_signature_error(f, allows)
-    if len(param_error) > 0 {
+    if param_error.len() > 0 {
         return param_error
     }
     let string_param_error = component_result_string_param_signature_error(f, allows)
-    if len(string_param_error) > 0 {
+    if string_param_error.len() > 0 {
         return string_param_error
     }
     let roundtrip_error = component_result_roundtrip_signature_error(f, allows)
-    if len(roundtrip_error) > 0 {
+    if roundtrip_error.len() > 0 {
         return roundtrip_error
     }
     let bool_error = component_result_bool_signature_error(f, allows)
-    if len(bool_error) > 0 {
+    if bool_error.len() > 0 {
         return bool_error
     }
     String_new()

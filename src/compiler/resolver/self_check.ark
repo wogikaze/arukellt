@@ -9,8 +9,8 @@ fn parse_decls(src: String) -> Vec<AstNode> {
     let tokens = scan::tokenize(src)
     let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
-    if len(p.errors) != 0 {
-        Stdio::println("Resolver parse errors: ".concat(len(p.errors).to_string()))
+    if p.errors.len() != 0 {
+        Stdio::println("Resolver parse errors: ".concat(p.errors.len().to_string()))
     }
     decls
 }

@@ -7,11 +7,11 @@ fn main() {
     let _ = m.insert(2, 20)
 
     let drained = m.drain()
-    Test::assert_eq_i32(len(drained), 2)
+    Test::assert_eq_i32(drained.len(), 2)
     let mut found_1_10 = false
     let mut found_2_20 = false
     let mut i = 0
-    while i < len(drained) {
+    while i < drained.len() {
         let (k, v) = get_unchecked(drained, i)
         if k == 1 && v == 10 {
             found_1_10 = true

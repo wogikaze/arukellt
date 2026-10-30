@@ -7,6 +7,6 @@ fn main() {
     push(xs, 3)
     let doubled = [x * 2 for x in xs]
     let evens = [x * 2 for x in xs if x % 2 == 0]
-    Stdio::println(len(doubled).to_string())
-    Stdio::println(len(evens).to_string())
+    Stdio::println(doubled.len().to_string())
+    Stdio::println(evens.len().to_string())
 }

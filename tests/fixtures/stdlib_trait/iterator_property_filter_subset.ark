@@ -10,6 +10,6 @@ fn main() {
         push(v, i)
     }
     let filtered = v.iter().filter(is_even).collect()
-    Test::assert_true(len(filtered) <= len(v))
-    Test::assert_eq_i32(len(filtered), 25)
+    Test::assert_true(filtered.len() <= v.len())
+    Test::assert_eq_i32(filtered.len(), 25)
 }

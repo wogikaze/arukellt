@@ -64,14 +64,14 @@ fn read_report<T: io::Read>(mut source: T) -> Result<ReadReport, io::IoError> {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
     }
-    let first_byte: i32 = if len(first) > 0 { get_unchecked(first, 0) } else { 0 }
-    let rest_byte: i32 = if len(rest) > 0 { get_unchecked(rest, 0) } else { 0 }
+    let first_byte: i32 = if first.len() > 0 { get_unchecked(first, 0) } else { 0 }
+    let rest_byte: i32 = if rest.len() > 0 { get_unchecked(rest, 0) } else { 0 }
     Ok(ReadReport {
-            first_len: len(first),
+            first_len: first.len(),
             first_byte: first_byte,
-            rest_len: len(rest),
+            rest_len: rest.len(),
             rest_byte: rest_byte,
-            eof_len: len(at_eof),
+            eof_len: at_eof.len(),
         })
 }
 
@@ -108,8 +108,8 @@ fn bufread_report<T: io::BufRead>(mut source: T) -> Result<BufReadReport, io::Io
         Result::Err(err) => err.message(),
     }
     Ok(BufReadReport {
-            pending_len: len(pending),
-            after_consume_len: len(after_consume),
+            pending_len: pending.len(),
+            after_consume_len: after_consume.len(),
             line: line,
             line_eof: line_eof,
             consume_err: consume_err,

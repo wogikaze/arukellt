@@ -5,7 +5,7 @@ fn mono_instance_is_marker(mi: MonoInstance) -> bool {
 }
 
 fn mono_instance_count_for(instances: Vec<MonoInstance>, fn_name: String) -> i32 {
-    let count = len(instances)
+    let count = instances.len()
     let mut found = 0
     let mut i = 0
     while i < count {
@@ -19,7 +19,7 @@ fn mono_instance_count_for(instances: Vec<MonoInstance>, fn_name: String) -> i32
 }
 
 fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordinal: i32) -> String {
-    let count = len(instances)
+    let count = instances.len()
     let mut seen = 0
     let mut i = 0
     while i < count {

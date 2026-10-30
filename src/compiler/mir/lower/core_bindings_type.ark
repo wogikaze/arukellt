@@ -22,7 +22,7 @@ fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String
 }
 
 fn infer_core_let_local_type_name(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, local_idx: i32, val_idx: i32, type_name: String, child_count: i32) {
-    if len(type_name) > 0 || len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) > 0 || child_count < 1 {
+    if type_name.len() > 0 || ctx_api_local_types::ctx_get_local_type(ctx, local_idx).len() > 0 || child_count < 1 {
         return
     }
     let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
@@ -69,7 +69,7 @@ fn infer_core_let_local_type_name(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, ex
     if core_expr_shape_calls::mir_core_expr_is_call(init_expr) {
         let callee = core_expr_shape_accessors::mir_core_expr_text(init_expr)
         let call_type = infer_core_let_call_result_type_name(ctx, callee.clone())
-        if len(call_type) > 0 {
+        if call_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, call_type)
             return
         }

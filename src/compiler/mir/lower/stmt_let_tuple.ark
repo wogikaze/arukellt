@@ -56,7 +56,7 @@ fn emit_tuple_pattern_ident_binds(mut ctx: LowerCtx, pat: AstNode, tuple_local: 
             let field_vt = tuple_field_vt_from_struct_name(ctx, struct_name, ei)
             let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, bind_name.clone(), field_vt)
             let field_type_name = tuple_field_type_name(struct_name, ei)
-            if len(field_type_name) > 0 {
+            if field_type_name.len() > 0 {
                 ctx_api_local_types::ctx_set_local_type(
                     ctx,
                     dest,
@@ -75,7 +75,7 @@ fn emit_tuple_pattern_ident_binds(mut ctx: LowerCtx, pat: AstNode, tuple_local: 
 // base), so the trailing LOCAL_SET keeps the operand stack clean (#807).
 fn emit_tuple_field_read(mut ctx: LowerCtx, tuple_local: i32, struct_name: String, elem_index: i32, total_bytes: i32, field_vt: i32, dest: i32) {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_local))
-    if len(struct_name) > 0 {
+    if struct_name.len() > 0 {
         ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(tuple_local, struct_name, elem_index * 4, elem_index, total_bytes, field_vt, dest))
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(dest))
         return
@@ -93,7 +93,7 @@ fn emit_tuple_element_extract(mut ctx: LowerCtx, tuple_local: i32, elem_index: i
     let field_vt = tuple_field_vt_from_struct_name(ctx, struct_name.clone(), elem_index)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, field_vt)
     let field_type_name = tuple_field_type_name(struct_name.clone(), elem_index)
-    if len(field_type_name) > 0 {
+    if field_type_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(
             ctx,
             dest,
@@ -111,7 +111,7 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
     if !type_name.clone().starts_with("struct:") {
         return String_new()
     }
-    let n = len(type_name)
+    let n = type_name.len()
     let mut first = 0 - 1
     let mut last = 0 - 1
     let mut i = 0
@@ -163,7 +163,7 @@ fn tuple_struct_name_from_byte_size(byte_size_str: String) -> String {
 }
 
 fn parse_i32_from_string(s: String) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut value = 0
     let mut i = 0
     while i < n {
@@ -179,7 +179,7 @@ fn parse_i32_from_string(s: String) -> i32 {
 }
 
 fn tuple_field_vt_from_struct_name(ctx: LowerCtx, struct_name: String, elem_index: i32) -> i32 {
-    if len(struct_name) == 0 {
+    if struct_name.len() == 0 {
         if elem_index > 0 {
             return value_types::VT_GC_REF()
         }
@@ -229,22 +229,22 @@ fn tuple_field_vt_from_struct_name(ctx: LowerCtx, struct_name: String, elem_inde
     // has not been registered yet. Registration order must not change the
     // tuple field ABI (`WitType`, `Point`, and qualified names all follow this
     // path).
-    if len(key) > 1 {
+    if key.len() > 1 {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
 }
 
 fn tuple_field_type_name(struct_name: String, elem_index: i32) -> String {
-    if len(struct_name) == 0 {
+    if struct_name.len() == 0 {
         return String_new()
     }
-    let keys = struct_name.slice(6, len(struct_name))
+    let keys = struct_name.slice(6, struct_name.len())
     tuple_key_at(keys, elem_index)
 }
 
 fn tuple_key_at(keys: String, index: i32) -> String {
-    let n = len(keys)
+    let n = keys.len()
     let mut cur = 0
     let mut start = 0
     let mut i = 0

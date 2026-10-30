@@ -60,7 +60,7 @@ fn mir_index_mono_variants_with_method_fallback(
                 mono_rtn = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
             } else if method_return_suffix_fallback {
                 let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(safe_name.clone(), return_type_name.clone())
-                if len(suffix_rtn) > 0 {
+                if suffix_rtn.len() > 0 {
                     mono_rtn = suffix_rtn.clone()
                     mono_rvt = fn_index_method_return_type::method_return_vt_from_type_name(suffix_rtn.clone())
                 }
@@ -116,7 +116,7 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {
     let safe = mono_names::mono_safe_name(mangled)
-    let count = len(mono_instances)
+    let count = mono_instances.len()
     let mut i = 0
     while i < count {
         let inst = get_unchecked(mono_instances, i)

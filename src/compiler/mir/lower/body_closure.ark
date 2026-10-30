@@ -58,7 +58,7 @@ fn lower_closure_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     // captures that could not be promoted.
     let mut eff_rebinds = Vec::new<i32>()
     let mut pi = 0
-    while pi < len(caps) {
+    while pi < caps.len() {
         let mut eff = get_unchecked(rebind_flags, pi)
         // A move closure owns only its direct captures: a name that a
         // nested closure rebinds through this frame is still a borrow of
@@ -74,7 +74,7 @@ fn lower_closure_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     }
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, synth.clone())
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
-    let extra = len(caps)
+    let extra = caps.len()
     let mut mf = mir_emit_closure_fn(ctx, synth, node, caps, eff_rebinds)
     closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, ctx_env_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, is_move)
 }

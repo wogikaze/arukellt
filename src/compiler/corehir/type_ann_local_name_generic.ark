@@ -7,7 +7,7 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
             let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
             if type_ann_node::type_ann_is_generic(elem_ty) && type_ann_node::type_ann_name(elem_ty).clone().eq("Vec") {
                 let inner = type_ann_shape_local_type_name(elem_ty, 0)
-                if len(inner) > 0 {
+                if inner.len() > 0 {
                     return "vec:".concat(inner)
                 }
             }
@@ -31,12 +31,12 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
             }
             if type_ann_node::type_ann_is_generic(ok_ty) {
                 let shaped = type_ann_shape_local_type_name(ok_ty, 0)
-                if len(shaped) > 0 {
+                if shaped.len() > 0 {
                     return "Result_".concat(shaped)
                 }
             }
             let ok_name = type_ann_node::type_ann_name(ok_ty)
-            if len(ok_name) > 0 {
+            if ok_name.len() > 0 {
                 return "Result_".concat(ok_name)
             }
         }
@@ -56,12 +56,12 @@ fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> S
             }
             if type_ann_node::type_ann_is_generic(some_ty) {
                 let shaped = type_ann_shape_local_type_name(some_ty, 0)
-                if len(shaped) > 0 {
+                if shaped.len() > 0 {
                     return "Option_".concat(shaped)
                 }
             }
             let some_name = type_ann_node::type_ann_name(some_ty)
-            if len(some_name) > 0 {
+            if some_name.len() > 0 {
                 return "Option_".concat(some_name)
             }
         }

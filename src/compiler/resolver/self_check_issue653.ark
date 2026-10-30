@@ -23,7 +23,7 @@ fn issue653_parse_host_math() -> String {
     if !doc.interface.clone().eq("math") {
         return "issue653 fail: interface"
     }
-    if len(doc.funcs) != 1 {
+    if doc.funcs.len() != 1 {
         return "issue653 fail: func count"
     }
     let func = get_unchecked(doc.funcs, 0)
@@ -64,15 +64,15 @@ fn issue653_typecheck_call_add() -> String {
 
 fn issue653_resolver_self_check() -> String {
     let err = issue653_parse_host_math()
-    if len(err) > 0 {
+    if err.len() > 0 {
         return err
     }
     let err2 = issue653_resolve_call_add()
-    if len(err2) > 0 {
+    if err2.len() > 0 {
         return err2
     }
     let err3 = issue653_typecheck_call_add()
-    if len(err3) > 0 {
+    if err3.len() > 0 {
         return err3
     }
     return "issue653 resolver ok: WIT import resolve/typecheck"

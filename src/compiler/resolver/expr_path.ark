@@ -21,7 +21,7 @@ fn resolve_path(mut ctx: ResolveCtx, mut node: AstNode) {
         let idx = scope_lookup::lookup(ctx, path.clone())
         if idx < 0 {
             let alias_target = ctx_record::resolve_ctx_lookup_use_alias(ctx, path.clone())
-            if len(alias_target.clone()) > 0 {
+            if alias_target.clone().len() > 0 {
                 ast_access::set_node_text(node, alias_target.clone())
                 resolve_qualified_path(ctx, node, alias_target.clone())
                 return
@@ -37,7 +37,7 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
     let module_part = paths::path_module_part(path.clone())
     let symbol_part = paths::path_symbol_part(path.clone())
     let module_alias = ctx_record::resolve_ctx_lookup_use_alias(ctx, module_part.clone())
-    if len(module_alias.clone()) > 0 && !module_alias.clone().eq(module_part.clone()) {
+    if module_alias.clone().len() > 0 && !module_alias.clone().eq(module_part.clone()) {
         let canonical_path = module_alias.clone().concat("::".concat(symbol_part.clone()))
         ast_access::set_node_text(node, canonical_path.clone())
         resolve_qualified_path(ctx, node, canonical_path)

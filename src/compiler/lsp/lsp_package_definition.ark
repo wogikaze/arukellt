@@ -1,7 +1,7 @@
 use std::host::fs::Fs
 use lsp::symbol_index_paths
 fn roots_contains(roots: Vec<String>, path: String) -> bool {
-    let n = len(roots)
+    let n = roots.len()
     let mut i = 0
     while i < n {
         if get_unchecked(roots, i).eq(path.clone()) {
@@ -13,7 +13,7 @@ fn roots_contains(roots: Vec<String>, path: String) -> bool {
 }
 
 fn roots_push_unique(mut roots: Vec<String>, path: String) -> Vec<String> {
-    if len(path) == 0 || roots_contains(roots, path.clone()) {
+    if path.len() == 0 || roots_contains(roots, path.clone()) {
         return roots
     }
     push(roots, path)
@@ -22,7 +22,7 @@ fn roots_push_unique(mut roots: Vec<String>, path: String) -> Vec<String> {
 
 pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
     let uris = workspace_folder_uris_from_initialize(body.clone())
-    let n = len(uris)
+    let n = uris.len()
     let mut out = Vec::new<String>()
     let mut i = 0
     while i < n {
@@ -30,11 +30,11 @@ pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
         out = roots_push_unique(out, path)
         i = i + 1
     }
-    if len(out) > 0 {
+    if out.len() > 0 {
         return out
     }
     let root_uri = symbol_index_paths::root_uri_from_initialize(body.clone())
-    if len(root_uri) > 0 {
+    if root_uri.len() > 0 {
         out = roots_push_unique(out, symbol_index_paths::uri_to_file_path(root_uri))
     }
     out
@@ -45,7 +45,7 @@ fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
     if pos < 0 {
         return Vec::new<String>()
     }
-    let tail = body.slice(pos, len(body))
+    let tail = body.slice(pos, body.len())
     let arr_start = tail.clone().index_of("[")
     if arr_start < 0 {
         return Vec::new<String>()
@@ -57,15 +57,15 @@ fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
     let section = tail.slice(arr_start, arr_end)
     let mut out = Vec::new<String>()
     let mut scan = 0
-    let section_len = len(section)
+    let section_len = section.len()
     while scan < section_len {
         let rest = section.slice(scan, section_len)
         let uri_pos = rest.clone().index_of("\"uri\"")
         if uri_pos < 0 {
             break
         }
-        let uri = symbol_index_paths::extract_json_string_field(rest.slice(uri_pos, len(rest)), "uri")
-        if len(uri) > 0 {
+        let uri = symbol_index_paths::extract_json_string_field(rest.slice(uri_pos, rest.len()), "uri")
+        if uri.len() > 0 {
             out = roots_push_unique(out, uri)
         }
         scan = scan + uri_pos + 5
@@ -74,7 +74,7 @@ fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
 }
 
 pub fn find_package_root(start_dir: String) -> String {
-    if len(start_dir) == 0 {
+    if start_dir.len() == 0 {
         return String_new()
     }
     // Avoid the `Fs` read probe on wasm32-gc (GC String → i64 scratch validate fail).

@@ -7,6 +7,6 @@ fn main() {
         s = s.concat(String_from("ab"))
         i = i + 1
     }
-    Test::assert_eq_i32(len(s), 40)
+    Test::assert_eq_i32(s.len(), 40)
     Test::assert_true(s.starts_with(String_from("abab")))
 }

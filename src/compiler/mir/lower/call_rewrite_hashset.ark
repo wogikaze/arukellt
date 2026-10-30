@@ -67,19 +67,19 @@ fn hashset_family_for_type(type_name: String) -> String {
 // core-op rewrites (vec_len), and the GC raw-array length intrinsic.
 fn hashset_method_name_from_source(source: String) -> String {
     if source.clone().starts_with(String_from("vec_")) {
-        return hashset_method_name_from_source(source.slice(4, len(source)))
+        return hashset_method_name_from_source(source.slice(4, source.len()))
     }
     if source.clone().eq(String_from("raw_array_len")) {
         return String_from("len")
     }
     if source.clone().starts_with(String_from("HashSet_i32::")) {
-        return source.slice(13, len(source))
+        return source.slice(13, source.len())
     }
     if source.clone().starts_with(String_from("HashSet_String::")) {
-        return source.slice(16, len(source))
+        return source.slice(16, source.len())
     }
     if source.clone().starts_with(String_from("HashSet__")) {
-        let rest = source.slice(9, len(source))
+        let rest = source.slice(9, source.len())
         let separator = rest.clone().index_of(String_from("__"))
         if separator >= 0 {
             return rest.slice(0, separator)
@@ -88,7 +88,7 @@ fn hashset_method_name_from_source(source: String) -> String {
     }
     let mut last = 0 - 1
     let mut index = 0
-    let limit = len(source) - 1
+    let limit = source.len() - 1
     while index < limit {
         if source.clone().byte_at(index) == 58 && source.clone().byte_at(index + 1) == 58 {
             last = index
@@ -98,7 +98,7 @@ fn hashset_method_name_from_source(source: String) -> String {
         }
     }
     if last >= 0 {
-        return source.slice(last + 2, len(source))
+        return source.slice(last + 2, source.len())
     }
     source
 }
@@ -309,7 +309,7 @@ fn hashset_returning_family(callee_name: String) -> String {
 }
 
 fn is_hashset_returning_target(callee_name: String) -> bool {
-    len(hashset_returning_family(callee_name)) > 0
+    hashset_returning_family(callee_name).len() > 0
 }
 
 // The `for` desugar resolves the iterator owner from the storage alias
@@ -333,14 +333,14 @@ fn hashset_into_iter_target(family: String) -> String {
 fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i32, span_start: i32) -> String {
     let _ = span_start
     let by_name = mir_rewrite_hashset_constructor(callee_name.clone())
-    if len(by_name) > 0 {
+    if by_name.len() > 0 {
         return by_name
     }
     let mut family = String_new()
     if receiver_idx >= 0 {
         family = ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)
     }
-    if len(family.clone()) > 0 {
+    if family.clone().len() > 0 {
         // A marked receiver fixes the family for its whole method surface.
         // Do not continue into the spelling-derived table below: mono lookup
         // can rewrite a String-set call to `HashSet__reserve__i32`, whose i32
@@ -353,7 +353,7 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
         )
     }
     let by_method = mir_rewrite_hashset_method(callee_name.clone())
-    if len(by_method) > 0 {
+    if by_method.len() > 0 {
         return by_method
     }
     // No receiver-type fallback: a HashSet value shares its storage alias with
@@ -372,12 +372,12 @@ fn mark_hashset_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
         return
     }
     let family = hashset_constructor_family(callee_name.clone())
-    if len(family.clone()) > 0 {
+    if family.clone().len() > 0 {
         ctx_api_local_types::ctx_mark_hashset_local(ctx, dest, family)
         return
     }
     let mut returning_family = hashset_returning_family(callee_name.clone())
-    if len(returning_family.clone()) == 0 {
+    if returning_family.clone().len() == 0 {
         // Concrete trait impls are selected during lowering, after the
         // rewrite table; their call spelling can carry a module prefix. The
         // declared `HashSet<T>` return identifies the same set result, so use
@@ -391,7 +391,7 @@ fn mark_hashset_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
             }
         }
     }
-    if len(returning_family.clone()) > 0 {
+    if returning_family.clone().len() > 0 {
         ctx_api_local_types::ctx_mark_hashset_local(ctx, dest, returning_family.clone())
         // The concrete impl declares `HashSet<T>` as its return type, but the
         // value is the store alias. Without it the generic fallback resolves

@@ -9,7 +9,7 @@ fn TypeInfo_name(ty: TypeInfo) -> String {
 }
 
 fn TypeInfo_has_name(ty: TypeInfo) -> bool {
-    len(TypeInfo_name(ty)) > 0
+    TypeInfo_name(ty).len() > 0
 }
 
 fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {

@@ -34,7 +34,7 @@ fn loop_unroll_max_trips() -> i32 { 16 }
 fn loop_unroll_size_limit() -> i32 { 8 }
 
 fn loop_unroll_extend_drafts(mut dst: Vec<MirInstDraft>, src: Vec<MirInstDraft>) {
-    let n = len(src)
+    let n = src.len()
     let mut i = 0
     while i < n {
         push(dst, get_unchecked(src, i))
@@ -92,7 +92,7 @@ fn loop_unroll_find_body_end(insts: Vec<MirInst>, body_start: i32, end: i32) -> 
 fn loop_unroll_replace_counter_gets(body: Vec<MirInst>, counter: i32, trip: i32) -> Vec<MirInstDraft> {
     let mut out = Vec::new<MirInstDraft>()
     let mut bi = 0
-    while bi < len(body) {
+    while bi < body.len() {
         let inst = get_unchecked(body, bi)
         if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() {
             if inst_accessors_operands::MirInst_arg0(inst) == counter {
@@ -161,7 +161,7 @@ fn loop_unroll_try_region(
     }
     loop_unroll_extend_drafts(out, expanded)
     i = end + 1
-    while i < len(insts) {
+    while i < insts.len() {
         push(out, block_inst_access::MirInst_as_draft(get_unchecked(insts, i)))
         i = i + 1
     }
@@ -185,7 +185,7 @@ fn loop_unroll_optimize_block_insts(insts: Vec<MirInst>) -> LoopUnrollResult {
     let regions = loop_regions::mir_opt_pick_innermost(
         loop_regions::mir_opt_collect_loop_regions(insts)
     )
-    if len(regions) == 0 {
+    if regions.len() == 0 {
         return LoopUnrollResult_new(block_inst_access::MirBlock_drafts_from_refs(insts), 0, 0)
     }
     // Validate and apply at most one innermost region per function-pass run.

@@ -39,7 +39,7 @@ fn mir_mark_roots(
     ) {
         root_count = root_count + 1
     }
-    let extra_count = len(extra_roots)
+    let extra_count = extra_roots.len()
     let mut ei = 0
     while ei < extra_count {
         if reachability_names::mir_enqueue_reachable_name(

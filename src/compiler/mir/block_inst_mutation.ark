@@ -13,7 +13,7 @@ fn mir_block_clear_insts(mut block: MirBlock) {
 }
 
 fn mir_block_store_str(mut block: MirBlock, idx: i32, text: String, reuse: bool) {
-    if len(text) == 0 {
+    if text.len() == 0 {
         if reuse {
             set(block.str_ids, idx, 0 - 1)
             return
@@ -23,22 +23,22 @@ fn mir_block_store_str(mut block: MirBlock, idx: i32, text: String, reuse: bool)
     }
     if reuse {
         let old_id = get_unchecked(block.str_ids, idx)
-        if old_id >= 0 && old_id < len(block.str_pool) {
+        if old_id >= 0 && old_id < block.str_pool.len() {
             set(block.str_pool, old_id, text)
             return
         }
     }
     if reuse {
-        set(block.str_ids, idx, len(block.str_pool))
+        set(block.str_ids, idx, block.str_pool.len())
         push(block.str_pool, text)
         return
     }
-    push(block.str_ids, len(block.str_pool))
+    push(block.str_ids, block.str_pool.len())
     push(block.str_pool, text)
 }
 
 fn mir_block_store_result_types(mut block: MirBlock, reuse: bool, result_types: Vec<MirValueType>) {
-    if len(result_types) == 0 {
+    if result_types.len() == 0 {
         if reuse {
             set(block.type_ids, block.inst_count, 0 - 1)
             set(block.type_reprs, block.inst_count, 0)
@@ -67,7 +67,7 @@ fn mir_block_store_result_types(mut block: MirBlock, reuse: bool, result_types: 
 
 fn mir_block_append_draft(mut block: MirBlock, inst: MirInstDraft) {
     let idx = block.inst_count
-    let reuse = idx < len(block.ops)
+    let reuse = idx < block.ops.len()
     let op = inst_draft::MirInstDraft_op(inst)
     let dest = inst_draft::MirInstDraft_dest(inst)
     let arg0 = inst_draft::MirInstDraft_arg0(inst)
@@ -107,7 +107,7 @@ fn MirBlock_push_inst(mut block: MirBlock, inst: MirInstDraft) {
 
 fn MirBlock_set_instructions(mut block: MirBlock, instructions: Vec<MirInstDraft>) {
     mir_block_clear_insts(block)
-    let n = len(instructions)
+    let n = instructions.len()
     let mut i = 0
     while i < n {
         mir_block_append_draft(block, get_unchecked(instructions, i))

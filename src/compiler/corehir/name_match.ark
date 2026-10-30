@@ -6,7 +6,7 @@
 //! overlay profile, so the matchers below compare byte regions in place. They
 //! take shared `String` parameters and never call `clone`, `concat`, or
 //! `substring`.
-use std::prelude::{byte_at, len}
+use std::prelude::{byte_at}
 
 /// Namespace for the allocation-free name matchers (ADR-046).
 pub struct NameMatch {}
@@ -17,7 +17,7 @@ impl NameMatch {
         if count < 0 || a_start < 0 || b_start < 0 {
             return false
         }
-        if a_start + count > len(a) || b_start + count > len(b) {
+        if a_start + count > a.len() || b_start + count > b.len() {
             return false
         }
         let mut i = 0
@@ -32,8 +32,8 @@ impl NameMatch {
 
     /// Return true when `a == b` without allocating.
     fn equal(a: String, b: String) -> bool {
-        let n = len(a)
-        if n != len(b) {
+        let n = a.len()
+        if n != b.len() {
             return false
         }
         NameMatch::region_equal(a, 0, b, 0, n)
@@ -47,9 +47,9 @@ impl NameMatch {
         sep0: i32,
         sep1: i32
     ) -> bool {
-        let first_len = len(first)
-        let second_len = len(second)
-        if len(name) != first_len + 2 + second_len {
+        let first_len = first.len()
+        let second_len = second.len()
+        if name.len() != first_len + 2 + second_len {
             return false
         }
         NameMatch::region_equal(name, 0, first, 0, first_len) &&
@@ -60,8 +60,8 @@ impl NameMatch {
 
     /// Return true when `ends_with(name, "::" + suffix)` without allocating.
     fn ends_with_qualified(name: String, suffix: String) -> bool {
-        let name_len = len(name)
-        let suffix_len = len(suffix)
+        let name_len = name.len()
+        let suffix_len = suffix.len()
         if suffix_len + 2 > name_len {
             return false
         }
@@ -79,10 +79,10 @@ impl NameMatch {
         sep0: i32,
         sep1: i32
     ) -> bool {
-        let first_len = len(first)
-        let second_len = len(second)
+        let first_len = first.len()
+        let second_len = second.len()
         let suffix_len = 2 + first_len + 2 + second_len
-        let name_len = len(name)
+        let name_len = name.len()
         if suffix_len > name_len {
             return false
         }
@@ -97,8 +97,8 @@ impl NameMatch {
 
     /// Return the first offset >= `from` where `needle` occurs, or -1.
     fn find_from(name: String, needle: String, from: i32) -> i32 {
-        let name_len = len(name)
-        let needle_len = len(needle)
+        let name_len = name.len()
+        let needle_len = needle.len()
         if needle_len == 0 || needle_len > name_len {
             return 0 - 1
         }

@@ -7,7 +7,7 @@ use wasm::emit_target
 use wasm::sections_types_gc
 use wasm::sections_types_sigs_mono_helpers
 fn extract_mono_suffix(fn_name: String) -> String {
-    let name_len = len(fn_name)
+    let name_len = fn_name.len()
     // Collect all "__" positions
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
@@ -17,7 +17,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
         }
         i = i + 1
     }
-    let sep_count = len(sep_positions)
+    let sep_count = sep_positions.len()
     if sep_count == 0 {
         return String_new()
     }
@@ -30,7 +30,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
         let sep_pos = get_unchecked(sep_positions, si)
         let suffix = fn_name.slice(sep_pos + 2, name_len)
         let type_keys = split_by_double_underscore(suffix)
-        let key_count = len(type_keys)
+        let key_count = type_keys.len()
         if key_count > 0 && all_valid_type_keys(type_keys, key_count) {
             return suffix
         }
@@ -67,7 +67,7 @@ fn is_valid_type_key(key: String) -> bool {
         return true
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)
-    if len(key) > 0 {
+    if key.len() > 0 {
         let first = key.byte_at(0)
         if first >= 65 && first <= 90 {
             return true
@@ -87,12 +87,12 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
     // base name from the mono suffix by trying positions from right to left and
     // checking if all suffix parts are valid type keys.
     let full_suffix = extract_mono_suffix(fn_name)
-    if len(full_suffix) == 0 {
+    if full_suffix.len() == 0 {
         return String_new()
     }
     // Split the suffix by "__" to get individual type parameter concrete types.
     let type_keys = split_by_double_underscore(full_suffix)
-    let key_count = len(type_keys)
+    let key_count = type_keys.len()
     if key_count == 0 {
         return String_new()
     }
@@ -112,11 +112,11 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
 // found, empty otherwise.
 fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, _param_ordinal: i32, mir: MirModule) -> String {
     let full_suffix = extract_mono_suffix(fn_name)
-    if len(full_suffix) == 0 {
+    if full_suffix.len() == 0 {
         return String_new()
     }
     let type_keys = split_by_double_underscore(full_suffix)
-    let key_count = len(type_keys)
+    let key_count = type_keys.len()
     if key_count == 0 {
         return String_new()
     }
@@ -135,7 +135,7 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, _param_o
 // Split a string by "__" separator into a Vec<String>.
 fn split_by_double_underscore(s: String) -> Vec<String> {
     let mut result = Vec::new<String>()
-    let slen = len(s)
+    let slen = s.len()
     let mut start = 0
     let mut i = 0
     while i < slen - 1 {
@@ -158,26 +158,26 @@ fn split_by_double_underscore(s: String) -> Vec<String> {
 // When the mono suffix names a different concrete type, use that for wasm return.
 fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: String, mir: MirModule) -> String {
     let full_suffix = extract_mono_suffix(fn_name)
-    if len(full_suffix) == 0 {
+    if full_suffix.len() == 0 {
         return String_new()
     }
     let suffix_with_sep = "__".concat(full_suffix.clone())
-    let fn_len = len(fn_name)
-    let suffix_sep_len = len(suffix_with_sep)
+    let fn_len = fn_name.len()
+    let suffix_sep_len = suffix_with_sep.len()
     if fn_len <= suffix_sep_len || !fn_name.clone().ends_with(suffix_with_sep.clone()) {
         return String_new()
     }
     let base = fn_name.slice(0, fn_len - suffix_sep_len)
     let base_parts = split_by_double_underscore(base.clone())
     // Require Type__method base shape; plain mono functions like id__i32 must not match.
-    if len(base_parts) < 2 {
+    if base_parts.len() < 2 {
         return String_new()
     }
     let mut receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(return_type_name.clone(), mir)
-    if len(receiver) == 0 {
+    if receiver.len() == 0 {
         receiver = get_unchecked(base_parts, 0)
     }
-    if len(receiver) == 0 {
+    if receiver.len() == 0 {
         return String_new()
     }
     if !fn_name.clone().starts_with(receiver.clone().concat("__")) {
@@ -189,10 +189,10 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     // "Picker" on Picker__echo__String). A concrete declared return such as
     // enum:Ordering on Reverse__cmp__i32 names a different type and must
     // resolve through the normal return-type paths below.
-    if len(return_type_name) > 0 {
+    if return_type_name.len() > 0 {
         let mut var_probe = return_type_name.clone()
         if var_probe.clone().starts_with("?") {
-            var_probe = var_probe.slice(1, len(var_probe))
+            var_probe = var_probe.slice(1, var_probe.len())
         }
         let is_var_return = !mono_return_name_is_declared_nominal(mir, var_probe.clone()) &&
         mono_suffix_parse::is_mono_type_var_name(var_probe.clone())
@@ -201,7 +201,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         }
     }
     let type_keys = split_by_double_underscore(full_suffix)
-    let key_count = len(type_keys)
+    let key_count = type_keys.len()
     if key_count <= 0 {
         return String_new()
     }
@@ -210,7 +210,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
         return String_new()
     }
     let sig = sections_types_sigs_mono_helpers::mono_type_key_to_sig(last_key.clone())
-    if len(sig) > 0 {
+    if sig.len() > 0 {
         return sig
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, last_key.clone())
@@ -235,11 +235,11 @@ fn mono_return_name_is_declared_nominal(mir: MirModule, name: String) -> bool {
 // shape MIR produces for generic methods whose real return is a type
 // variable. enum:Ordering, Pair<String>, and scalars are genuine returns.
 fn mono_declared_return_is_receiver(return_type_name: String, receiver: String) -> bool {
-    if len(receiver) == 0 {
+    if receiver.len() == 0 {
         return false
     }
     let mut bare = return_type_name.clone()
-    let n = len(bare)
+    let n = bare.len()
     if bare.clone().starts_with("struct:") {
         // struct:Name:size — keep the middle segment.
         let mut first_colon = 0 - 1

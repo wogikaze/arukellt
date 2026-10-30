@@ -34,7 +34,7 @@ fn mir_substitute_mono_param_types(mut ctx: LowerCtx) {
     let has_mono_map = ctx_mono_type_params::ctx_has_mono_type_params(ctx)
     // Nested keys like Vec_i32_ were once rejected by extract_mono_suffix;
     // still allow substitution when the ordinal mono map is present.
-    if len(mono_suffix.clone()) == 0 && !has_mono_map {
+    if mono_suffix.clone().len() == 0 && !has_mono_map {
         return
     }
     let param_count = function_param_view::MirFunction_param_count(func)
@@ -64,7 +64,7 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
         return true
     }
     if ty_name.clone().starts_with(String_from("vec:")) {
-        let type_var = ty_name.clone().slice(4, len(ty_name))
+        let type_var = ty_name.clone().slice(4, ty_name.len())
         // Concrete elems (vec:i32, vec:String, vec:Point, ...) must keep their
         // annotation. Only type-variable elems (vec:T, vec:?t0, ...) are
         // rewritten from the mono suffix — otherwise "__core_*" / accidental
@@ -73,16 +73,16 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
             return true
         }
         let mut concrete = resolve_concrete_type(ctx, type_var.clone(), mono_suffix.clone(), has_mono_map)
-        if len(concrete) == 0 {
+        if concrete.len() == 0 {
             concrete = resolve_nested_vec_concrete_type(ctx, type_var.clone(), mono_suffix.clone(), has_mono_map)
         }
-        if len(concrete) > 0 {
+        if concrete.len() > 0 {
             mono_set_param_gc_type(ctx, p, String_from("vec:").concat(concrete))
         }
         return true
     }
     if ty_name.clone().starts_with(String_from("option:")) || ty_name.clone().starts_with(String_from("Option:")) {
-        let type_var = ty_name.clone().slice(7, len(ty_name))
+        let type_var = ty_name.clone().slice(7, ty_name.len())
         if !mono_param_type_name_needs_subst(ctx, type_var.clone()) {
             // Concrete payloads still need the canonical option: prefix.
             if ty_name.clone().starts_with(String_from("Option:")) {
@@ -91,13 +91,13 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
             return true
         }
         let concrete = resolve_concrete_type(ctx, type_var.clone(), mono_suffix.clone(), has_mono_map)
-        if len(concrete) > 0 {
+        if concrete.len() > 0 {
             mono_set_param_gc_type(ctx, p, String_from("option:").concat(concrete))
         }
         return true
     }
     if ty_name.clone().starts_with(String_from("?Option:")) {
-        let type_var = ty_name.clone().slice(8, len(ty_name))
+        let type_var = ty_name.clone().slice(8, ty_name.len())
         if !mono_param_type_name_needs_subst(ctx, type_var.clone()) {
             // Already-concrete "?Option:String" must drop the generic marker
             // so wasm emit does not treat the whole function as unreachable.
@@ -105,7 +105,7 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
             return true
         }
         let concrete = resolve_concrete_type(ctx, type_var.clone(), mono_suffix.clone(), has_mono_map)
-        if len(concrete) > 0 {
+        if concrete.len() > 0 {
             mono_set_param_gc_type(ctx, p, String_from("option:").concat(concrete))
         }
         return true
@@ -114,9 +114,9 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
     ty_name.clone().starts_with(String_from("Result:")) ||
     ty_name.clone().starts_with(String_from("?Result:")) {
         let rest = if ty_name.clone().starts_with(String_from("?Result:")) {
-            ty_name.clone().slice(8, len(ty_name))
+            ty_name.clone().slice(8, ty_name.len())
         } else {
-            ty_name.clone().slice(7, len(ty_name))
+            ty_name.clone().slice(7, ty_name.len())
         }
         mono_subst_result_type_args(ctx, p, rest, mono_suffix, has_mono_map)
         return true
@@ -125,7 +125,7 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
     // `self: HashMap<K,V>` before mono names bind; resolve each segment
     // through the same path as `?HashMap:K:V` (#691).
     if ty_name.clone().starts_with(String_from("hashmap:")) {
-        mono_subst_hashmap_param(ctx, p, ty_name.clone().slice(8, len(ty_name)))
+        mono_subst_hashmap_param(ctx, p, ty_name.clone().slice(8, ty_name.len()))
         return true
     }
     if ty_name.clone().starts_with(String_from("?")) && ty_name.clone().contains(String_from(":")) {
@@ -140,10 +140,10 @@ fn mono_subst_wrapped_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suf
 // unresolved segments keep their spelling so partially bound signatures
 // degrade to the declaration instead of a wrong concrete ABI (#860).
 fn mono_subst_fnsig_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suffix: String, has_mono_map: bool) {
-    let rest = ty_name.clone().slice(6, len(ty_name))
+    let rest = ty_name.clone().slice(6, ty_name.len())
     let mut out = String_from("fnsig:")
     let mut seg_start = 0
-    let n = len(rest)
+    let n = rest.len()
     let mut i = 0
     let mut changed = false
     while i <= n {
@@ -175,12 +175,12 @@ fn mono_set_param_fnsig_type(mut ctx: LowerCtx, p: i32, mono_type_name: String) 
 }
 
 fn resolve_fnsig_segment(ctx: LowerCtx, seg: String, mono_suffix: String, has_mono_map: bool) -> String {
-    if len(seg) == 0 {
+    if seg.len() == 0 {
         return seg
     }
     if mono_param_type_name_needs_subst(ctx, seg.clone()) {
         let concrete = resolve_concrete_type(ctx, seg.clone(), mono_suffix.clone(), has_mono_map)
-        if len(concrete) > 0 {
+        if concrete.len() > 0 {
             return concrete
         }
         return seg
@@ -190,7 +190,7 @@ fn resolve_fnsig_segment(ctx: LowerCtx, seg: String, mono_suffix: String, has_mo
         // `X::Item` projections resolve through the owner's Iterator::next
         // signature once the head is concrete (#860/#691).
         let assoc = ctx_mono_type_params::ctx_resolve_assoc_projection_type(ctx, seg.clone())
-        if len(assoc) > 0 {
+        if assoc.len() > 0 {
             return assoc
         }
         return resolved_name
@@ -207,17 +207,17 @@ fn mono_subst_named_generic_param(mut ctx: LowerCtx, p: i32, ty_name: String, mo
         return false
     }
     let base = ty_name.clone().slice(1, first_colon)
-    let first_arg = ty_name.clone().slice(first_colon + 1, len(ty_name))
+    let first_arg = ty_name.clone().slice(first_colon + 1, ty_name.len())
     if base.clone().eq(String_from("HashMap")) {
         mono_subst_hashmap_param(ctx, p, first_arg.clone())
         return true
     }
     let type_var = first_generic_type_arg(first_arg.clone())
-    if len(type_var) == 0 {
+    if type_var.len() == 0 {
         return false
     }
     let concrete = resolve_concrete_type(ctx, type_var.clone(), mono_suffix.clone(), has_mono_map)
-    if len(concrete) == 0 {
+    if concrete.len() == 0 {
         return true
     }
     // The ?Base:args spelling references the generic declaration — when a
@@ -226,7 +226,7 @@ fn mono_subst_named_generic_param(mut ctx: LowerCtx, p: i32, ty_name: String, mo
     // that owns a generic struct decl belongs to the derive path below;
     // an enum base wins over the plain struct lookup here.
     let mut base_is_generic_struct = false
-    let gcount = len(ctx.generic_struct_names)
+    let gcount = ctx.generic_struct_names.len()
     let mut gi = 0
     while gi < gcount {
         if get_unchecked(ctx.generic_struct_names, gi).eq(base.clone()) {
@@ -252,7 +252,7 @@ fn mono_subst_named_generic_param(mut ctx: LowerCtx, p: i32, ty_name: String, mo
         return true
     }
     let ref_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, base.clone())
-    let canonical = if len(ref_type) > 0 { ref_type } else { String_from("enum:").concat(base) }
+    let canonical = if ref_type.len() > 0 { ref_type } else { String_from("enum:").concat(base) }
     mono_set_param_gc_type(ctx, p, canonical)
     true
 }
@@ -267,7 +267,7 @@ fn mono_subst_hashmap_param(mut ctx: LowerCtx, p: i32, args: String) {
         return
     }
     let key_var = args.clone().slice(0, colon)
-    let val_var = args.clone().slice(colon + 1, len(args))
+    let val_var = args.clone().slice(colon + 1, args.len())
     let key_ty = mono_hashmap_arg_type_info(ctx, key_var)
     let val_ty = mono_hashmap_arg_type_info(ctx, val_var)
     // An unresolved variable must keep the ? marker (loud unreachable)
@@ -280,7 +280,7 @@ fn mono_subst_hashmap_param(mut ctx: LowerCtx, p: i32, args: String) {
     type_contracts::TypeInfo_push_type_arg(map_ty, key_ty)
     type_contracts::TypeInfo_push_type_arg(map_ty, val_ty)
     let alias = return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(map_ty)
-    if len(alias) > 0 {
+    if alias.len() > 0 {
         mono_set_param_gc_type(ctx, p, alias)
     }
 }
@@ -296,7 +296,7 @@ fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let inst = ctx_mono_index::ctx_mono_instance_at(ctx, function_identity::MirFunction_name(func))
     let inst_args = type_contracts::MonoInstance_type_arg_count(inst)
-    let count = len(ctx.mono_type_param_names)
+    let count = ctx.mono_type_param_names.len()
     let mut i = 0
     while i < count && i < inst_args {
         if get_unchecked(ctx.mono_type_param_names, i).eq(arg.clone()) {
@@ -329,7 +329,7 @@ fn mono_hashmap_concrete_type_info(arg: String) -> TypeInfo {
 
 fn find_type_name_colon(name: String, start: i32) -> i32 {
     let mut i = start
-    while i < len(name) {
+    while i < name.len() {
         if name.byte_at(i) == 58 {
             return i
         }
@@ -340,7 +340,7 @@ fn find_type_name_colon(name: String, start: i32) -> i32 {
 
 fn first_generic_type_arg(args: String) -> String {
     let mut i = 0
-    while i < len(args) {
+    while i < args.len() {
         if args.byte_at(i) == 58 {
             return args.slice(0, i)
         }
@@ -353,18 +353,18 @@ fn first_generic_type_arg(args: String) -> String {
 fn mono_subst_bare_param(mut ctx: LowerCtx, p: i32, ty_name: String, mono_suffix: String, has_mono_map: bool) {
     let mut type_var = String_new()
     if ty_name.clone().starts_with(String_from("?")) {
-        type_var = ty_name.clone().slice(1, len(ty_name))
+        type_var = ty_name.clone().slice(1, ty_name.len())
     } else if mono_param_type_name_needs_subst(ctx, ty_name.clone()) {
         // Method parameters are recorded as the bare spelling "T", while
         // older lowering paths used "?T".  Both spellings denote the same
         // generic parameter and must receive the specialized ABI type.
         type_var = ty_name.clone()
     }
-    if len(type_var) == 0 {
+    if type_var.len() == 0 {
         return
     }
     let concrete = resolve_concrete_type(ctx, type_var.clone(), mono_suffix.clone(), has_mono_map)
-    if len(concrete) > 0 {
+    if concrete.len() > 0 {
         let pvt = mono_concrete_type_vt(concrete.clone())
         // For struct/enum types, transform the concrete type
         // name the same way the return type does (e.g.
@@ -398,7 +398,7 @@ fn mono_subst_result_type_args(
     let t_var = mono_suffix_parse::extract_first_type_var(rest.clone())
     let e_var = extract_result_err_type_var(rest.clone())
     let t_needs = mono_param_type_name_needs_subst(ctx, t_var.clone())
-    let e_needs = len(e_var) > 0 &&
+    let e_needs = e_var.len() > 0 &&
     mono_param_type_name_needs_subst(ctx, e_var.clone())
     if !t_needs && !e_needs {
         mono_set_param_gc_type(ctx, p, String_from("result:").concat(rest.clone()))
@@ -412,10 +412,10 @@ fn mono_subst_result_type_args(
     if e_needs {
         e_concrete = resolve_concrete_type(ctx, e_var.clone(), mono_suffix.clone(), has_mono_map)
     }
-    if len(t_concrete) == 0 {
+    if t_concrete.len() == 0 {
         return
     }
-    if len(e_concrete) > 0 {
+    if e_concrete.len() > 0 {
         mono_set_param_gc_type(
             ctx,
             p,
@@ -427,7 +427,7 @@ fn mono_subst_result_type_args(
 }
 
 fn extract_result_err_type_var(rest: String) -> String {
-    let rlen = len(rest)
+    let rlen = rest.len()
     let mut ci = 0
     while ci < rlen {
         if rest.byte_at(ci) == 58 {
@@ -473,18 +473,18 @@ fn mono_concrete_type_vt(type_name: String) -> i32 {
 fn resolve_nested_vec_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, has_mono_map: bool) -> String {
     if has_mono_map {
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, type_var.clone())
-        if len(resolved) > 0 {
+        if resolved.len() > 0 {
             return resolved
         }
     }
-    if len(mono_suffix) == 0 {
+    if mono_suffix.len() == 0 {
         return String_new()
     }
     if mono_suffix.clone().starts_with(String_from("Vec")) {
         return mono_suffix.clone()
     }
     let type_keys = mono_suffix_parse::split_mono_suffix(mono_suffix.clone())
-    let key_count = len(type_keys)
+    let key_count = type_keys.len()
     if key_count == 1 {
         let only = get_unchecked(type_keys, 0)
         if only.clone().starts_with(String_from("Vec")) {
@@ -502,14 +502,14 @@ fn resolve_nested_vec_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix
 fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, has_mono_map: bool) -> String {
     if has_mono_map {
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, type_var.clone())
-        if len(resolved) > 0 {
+        if resolved.len() > 0 {
             return resolved
         }
     }
     // Fallback: split the suffix by "__" and use the type variable name
     // to determine the correct type parameter index.
     let type_keys = mono_suffix_parse::split_mono_suffix(mono_suffix.clone())
-    let key_count = len(type_keys)
+    let key_count = type_keys.len()
     if key_count == 0 {
         return String_new()
     }

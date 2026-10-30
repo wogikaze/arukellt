@@ -53,7 +53,7 @@ fn emit_declared_gc_return_cast(mut w: WasmWriter, ctx: SelfEmitCtx) {
     // open, so read the current fn's result ref type from its sig text.
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let own_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    if own_idx < 0 || own_idx >= len(functions) {
+    if own_idx < 0 || own_idx >= functions.len() {
         return
     }
     let result_ref = ctx_fn_type_refs::SelfEmitCtx_fn_sig_result_ref_type(

@@ -15,7 +15,7 @@ use resolver::wit_surface
 
 fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig> {
     let mut sigs = Vec::new<FnSig>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
@@ -29,7 +29,7 @@ fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig
 
 fn collect_wit_enum_defs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<EnumInfo> {
     let mut enum_defs = Vec::new<EnumInfo>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
@@ -47,7 +47,7 @@ fn wit_import_alias(decl: AstNode) -> String {
 }
 
 fn wit_push_fn_sigs_for_import(mut sigs: Vec<FnSig>, wit_paths: Vec<String>, package_id: String, alias: String) {
-    if len(alias) == 0 { return }
+    if alias.len() == 0 { return }
     let doc = wit_register::wit_doc_from_import(wit_paths, package_id.clone())
     if wit_register::wit_doc_has_surface(doc) {
         wit_push_fn_sigs_for_doc(sigs, alias.clone(), doc)
@@ -64,18 +64,18 @@ fn wit_push_fn_sigs_for_import(mut sigs: Vec<FnSig>, wit_paths: Vec<String>, pac
 }
 
 fn wit_push_enum_defs_for_import(mut enum_defs: Vec<EnumInfo>, wit_paths: Vec<String>, package_id: String, alias: String) {
-    if len(alias) == 0 { return }
+    if alias.len() == 0 { return }
     let doc = wit_register::wit_doc_from_import(wit_paths, package_id.clone())
     if !wit_register::wit_doc_has_surface(doc) { return }
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
-    for ei in 0..len(enums) {
+    for ei in 0..enums.len() {
         push(enum_defs, wit_enum_info_from_parsed(alias.clone(), get_unchecked(enums, ei)))
     }
 }
 
 fn wit_push_fn_sigs_for_doc(mut sigs: Vec<FnSig>, alias: String, doc: component::wit_parse_text::WitParsedInterface) {
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
-    for fi in 0..len(funcs) {
+    for fi in 0..funcs.len() {
         push(sigs, wit_fn_sig_from_parsed(alias.clone(), doc, get_unchecked(funcs, fi)))
     }
 }
@@ -84,14 +84,14 @@ fn wit_binding_generic_args(name: String) -> Vec<String> {
     let mut args = Vec::new<String>()
     let open = name.index_of("<")
     if open < 0 { return args }
-    let mut close = len(name) - 1
+    let mut close = name.len() - 1
     while close > open && name.byte_at(close) != 62 { close = close - 1 }
     if close <= open { return args }
     let inner = name.slice(open + 1, close)
     let mut depth = 0
     let mut start = 0
     let mut i = 0
-    while i < len(inner) {
+    while i < inner.len() {
         let ch = inner.byte_at(i)
         if ch == 60 { depth = depth + 1 }
         if ch == 62 { depth = depth - 1 }
@@ -101,12 +101,12 @@ fn wit_binding_generic_args(name: String) -> Vec<String> {
         }
         i = i + 1
     }
-    if start < len(inner) { push(args, inner.slice(start, len(inner))) }
+    if start < inner.len() { push(args, inner.slice(start, inner.len())) }
     args
 }
 
 fn wit_binding_type_info(name: String) -> TypeInfo {
-    if name.clone().eq("()") || len(name) == 0 {
+    if name.clone().eq("()") || name.len() == 0 {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
     }
     let open = name.index_of("<")
@@ -118,7 +118,7 @@ fn wit_binding_type_info(name: String) -> TypeInfo {
             type_names::resolve_type_name(base)
         }
         let args = wit_binding_generic_args(name)
-        for i in 0..len(args) {
+        for i in 0..args.len() {
             contract_type_mutation::TypeInfo_push_type_arg(ty, wit_binding_type_info(get_unchecked(args, i)))
         }
         return ty
@@ -130,7 +130,7 @@ fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitPars
     let qualified = alias.clone().concat("::".concat(func.ark_name.clone()))
     let mut params = Vec::new<TypeInfo>()
     let param_types = wit_surface::wit_func_param_ark_types(func, alias.clone(), doc)
-    for pi in 0..len(param_types) {
+    for pi in 0..param_types.len() {
         push(params, wit_binding_type_info(get_unchecked(param_types, pi)))
     }
     let ret_name = wit_surface::wit_func_ret_ark_type(func, alias.clone(), doc)

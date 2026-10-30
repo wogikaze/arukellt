@@ -32,7 +32,7 @@ fn mir_payload_field_vt_for_payload(
     )
     // Scrutinee-derived Option/Result payload types must win over a stale
     // first-name Option::Some(i32) layout when selecting the bind VT.
-    if len(payload_type_name) > 0 && field_idx == 0 {
+    if payload_type_name.len() > 0 && field_idx == 0 {
         if payload_type_name.clone().eq("fnref") ||
         payload_type_name.clone().eq("fn") ||
         payload_type_name.clone().starts_with("fn(") {
@@ -54,7 +54,7 @@ fn mir_payload_field_vt_for_payload(
     // A multi-field signature may contain a reference marker for a later
     // payload.  Decide known scalar fields from the declaration first so that
     // a recursive field does not make an earlier i32 bind look like a ref.
-    if len(payload_type_name) == 0 {
+    if payload_type_name.len() == 0 {
         if field_type.clone().eq("f64") || field_type.clone().eq("F64") {
             return value_types::VT_F64()
         }
@@ -68,7 +68,7 @@ fn mir_payload_field_vt_for_payload(
     if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, variant_name.clone(), field_idx + 1) {
         return value_types::VT_GC_REF()
     }
-    if len(field_type) > 0 && !mir_payload_scalar_type_name(field_type.clone()) {
+    if field_type.len() > 0 && !mir_payload_scalar_type_name(field_type.clone()) {
         return value_types::VT_GC_REF()
     }
     if mir_match_variant_is_err(variant_name.clone()) && field_idx == 0 {
@@ -110,7 +110,7 @@ fn mir_variant_payload_type_name_for_scrut(
     payload_type_name: String,
     scrut_type: String
 ) -> String {
-    let declared = if len(payload_type_name) > 0 {
+    let declared = if payload_type_name.len() > 0 {
         ctx_struct_field_type::ctx_struct_field_type_name_for_payload(
             ctx,
             variant_name.clone(),
@@ -121,27 +121,27 @@ fn mir_variant_payload_type_name_for_scrut(
         ctx_struct_field_type::ctx_struct_field_type_name(ctx, variant_name.clone(), field_idx + 1)
     }
     let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, declared.clone())
-    let source = if len(resolved) > 0 {
+    let source = if resolved.len() > 0 {
         resolved
     } else {
         declared
     }
-    if len(source) == 0 || len(scrut_type) == 0 {
+    if source.len() == 0 || scrut_type.len() == 0 {
         return source
     }
     let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, variant_name.clone())
     let base = mir_variant_enum_base_name(layout_name.clone())
-    if len(base) == 0 {
+    if base.len() == 0 {
         return source
     }
     let params = ctx_struct_mono::ctx_split_declared_params(
         ctx_struct_mono::ctx_generic_enum_params(ctx, base.clone())
     )
-    if len(params) == 0 {
+    if params.len() == 0 {
         return source
     }
     let args = mir_scrut_type_args_for_base(scrut_type.clone(), base.clone())
-    if len(args) == 0 || len(args) != len(params) {
+    if args.len() == 0 || args.len() != params.len() {
         return source
     }
     ctx_mono_type_params::ctx_resolve_mono_type_name(
@@ -152,7 +152,7 @@ fn mir_variant_payload_type_name_for_scrut(
 
 // Variant layout name `Enum::Variant` (possibly module-qualified) -> enum base.
 fn mir_variant_enum_base_name(layout_name: String) -> String {
-    let n = len(layout_name)
+    let n = layout_name.len()
     let mut last_sep = 0 - 1
     let mut i = 0
     while i + 1 < n {
@@ -175,32 +175,32 @@ fn mir_scrut_type_args_for_base(scrut_type: String, base: String) -> Vec<String>
     let mut args = Vec::new<String>()
     let mut s = scrut_type.clone()
     if s.clone().starts_with("enum:") {
-        s = s.slice(5, len(s))
+        s = s.slice(5, s.len())
     } else if s.clone().starts_with("struct:") {
-        s = s.slice(7, len(s))
+        s = s.slice(7, s.len())
     }
     if s.clone().starts_with("?") {
-        s = s.slice(1, len(s))
+        s = s.slice(1, s.len())
     }
     let lt = s.clone().index_of(String_from("<"))
     if lt > 0 && s.clone().ends_with(String_from(">")) {
         if !s.clone().slice(0, lt).eq(base.clone()) {
             return args
         }
-        return ctx_mono_type_params::ctx_split_top_level_type_args(s.slice(lt + 1, len(s) - 1))
+        return ctx_mono_type_params::ctx_split_top_level_type_args(s.slice(lt + 1, s.len() - 1))
     }
     let prefix = base.clone().concat(String_from(":"))
     if !s.clone().starts_with(prefix.clone()) {
         return args
     }
-    mir_split_colon_type_args(s.slice(len(prefix), len(s)))
+    mir_split_colon_type_args(s.slice(prefix.len(), s.len()))
 }
 
 // Split `A:B:C` argument text on encoding colons, keeping `Module::Type`
 // path separators intact.
 fn mir_split_colon_type_args(inner: String) -> Vec<String> {
     let mut args = Vec::new<String>()
-    let n = len(inner)
+    let n = inner.len()
     if n == 0 {
         return args
     }
@@ -233,14 +233,14 @@ fn mir_payload_type_name_is_gc_ref_payload(type_name: String) -> bool {
     if mir_payload_scalar_type_name(type_name.clone()) {
         return false
     }
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     true
 }
 
 fn mir_variant_has_fnref_payload_field(ctx: LowerCtx, variant_name: String) -> bool {
-    let count = len(ctx.gc_enum_variant_names)
+    let count = ctx.gc_enum_variant_names.len()
     let mut i = 0
     while i < count {
         if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), variant_name.clone()) {
@@ -262,7 +262,7 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
         String_new(),
         scrut_type.clone()
     )
-    if len(declared_type) > 0 {
+    if declared_type.len() > 0 {
         if mir_payload_scalar_type_name(declared_type.clone()) ||
         declared_type.clone().eq("fnref") ||
         declared_type.clone().eq("fn") ||
@@ -277,7 +277,7 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
     if field_idx == 0 && mir_variant_has_fnref_payload_field(ctx, variant_name.clone()) {
         return false
     }
-    let count = len(ctx.gc_enum_variant_names)
+    let count = ctx.gc_enum_variant_names.len()
     let mut i = 0
     let mut saw_name = false
     while i < count {
@@ -363,7 +363,7 @@ fn mir_match_variant_is_some_or_ok(variant_name: String) -> bool {
 // diagnostic is pushed onto the module and the pipeline rejects the
 // module before emit. wasm32 linear is unaffected and keeps lowering.
 fn mir_report_weak_payload_scrutinee(ctx: LowerCtx, variant_name: String, payload_hint: String) {
-    if len(payload_hint) > 0 {
+    if payload_hint.len() > 0 {
         return
     }
     if !ctx_gc_enum::ctx_is_gc_target(ctx) {

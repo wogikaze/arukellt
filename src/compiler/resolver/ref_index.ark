@@ -21,7 +21,7 @@ fn ref_index_push_use(mut index: RefIndex, decl_index: i32, start: i32, end: i32
 }
 
 fn decl_site_count(index: RefIndex) -> i32 {
-    len(index.decl_sites)
+    index.decl_sites.len()
 }
 
 fn decl_site_at(index: RefIndex, i: i32) -> DeclSite {
@@ -29,7 +29,7 @@ fn decl_site_at(index: RefIndex, i: i32) -> DeclSite {
 }
 
 fn use_site_count(index: RefIndex) -> i32 {
-    len(index.use_sites)
+    index.use_sites.len()
 }
 
 fn use_site_at(index: RefIndex, i: i32) -> UseSite {

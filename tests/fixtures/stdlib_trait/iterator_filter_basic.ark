@@ -13,7 +13,7 @@ fn main() {
     push(v, 6)
 
     let evens = v.iter().filter(is_even).collect()
-    Test::assert_eq_i32(len(evens), 3)
+    Test::assert_eq_i32(evens.len(), 3)
     Test::assert_eq_i32(get_unchecked(evens, 0), 2)
     Test::assert_eq_i32(get_unchecked(evens, 1), 4)
     Test::assert_eq_i32(get_unchecked(evens, 2), 6)

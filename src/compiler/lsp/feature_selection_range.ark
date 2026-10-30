@@ -11,10 +11,10 @@ pub fn handle_selection_range(mut state: LspState, body: String) {
     let req_id = json::JsonText::get_int(body.clone(), String_from("id"))
     let uri = json::JsonText::get_str(body.clone(), String_from("uri"))
     let mut text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
-    if len(text) == 0 {
+    if text.len() == 0 {
         text = source_text::text_for_uri(state, uri.clone())
     }
-    if len(text) == 0 {
+    if text.len() == 0 {
         framing::append_framed(state, responses::build_null_response(req_id))
         return
     }

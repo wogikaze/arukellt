@@ -5,5 +5,5 @@ fn main() {
     let t: String = String_from(" world")
     let result: String = s.concat(t)
     Stdio::println(result)
-    Stdio::println((len(result)).to_string())
+    Stdio::println((result.len()).to_string())
 }

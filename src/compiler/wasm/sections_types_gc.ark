@@ -17,8 +17,8 @@ use wasm::sections_type_plan
 fn emit_struct_type_entry(mut type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
-    writer_core::emit_leb128_u(type_sec, len(field_sigs))
-    for fi in 0..len(field_sigs) {
+    writer_core::emit_leb128_u(type_sec, field_sigs.len())
+    for fi in 0..field_sigs.len() {
         emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
     }
 }
@@ -27,7 +27,7 @@ fn emit_struct_field_type(mut type_sec: WasmWriter, ft: String, gc_type_base: i3
     if ft.clone().starts_with("gcsref") {
         // gcsref<slot> is handled by the caller (sections_types_emit)
         // which has access to gc_struct_type_map.  Fall through to ref handling.
-        let _slot = parse_type_sig_int(ft.slice(6, len(ft)))
+        let _slot = parse_type_sig_int(ft.slice(6, ft.len()))
         // Without gc_struct_type_map, we cannot resolve the slot.
         // Use ref14 as fallback (should not happen in practice).
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
@@ -36,7 +36,7 @@ fn emit_struct_field_type(mut type_sec: WasmWriter, ft: String, gc_type_base: i3
         return
     }
     if ft.clone().starts_with("ref") {
-        let offset_str = ft.slice(3, len(ft))
+        let offset_str = ft.slice(3, ft.len())
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
@@ -48,7 +48,7 @@ fn emit_struct_field_type(mut type_sec: WasmWriter, ft: String, gc_type_base: i3
 }
 
 fn parse_type_sig_int(s: String) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut val = 0
     let mut i = 0
     while i < n {
@@ -74,8 +74,8 @@ fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_bas
         return
     }
     if elem_type.clone().starts_with("gcsref") {
-        let slot = parse_type_sig_int(elem_type.slice(6, len(elem_type)))
-        if slot < len(gc_struct_type_map) {
+        let slot = parse_type_sig_int(elem_type.slice(6, elem_type.len()))
+        if slot < gc_struct_type_map.len() {
             let type_idx = get_unchecked(gc_struct_type_map, slot)
             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(type_sec, type_idx)
@@ -83,7 +83,7 @@ fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_bas
         }
     }
     if elem_type.clone().starts_with("ref") {
-        let offset_str = elem_type.slice(3, len(elem_type))
+        let offset_str = elem_type.slice(3, elem_type.len())
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
@@ -94,7 +94,7 @@ fn emit_array_elem_type(mut type_sec: WasmWriter, elem_type: String, gc_type_bas
 
 fn struct_field_sigs(sig: String) -> Vec<String> {
     let mut fields = Vec::new<String>()
-    let sig_len = len(sig)
+    let sig_len = sig.len()
     let mut si = 0
     while si < sig_len {
         if sig.clone().byte_at(si) == 95 && si + 1 < sig_len && sig.clone().byte_at(si + 1) == 102 {
@@ -121,11 +121,11 @@ fn struct_field_sigs(sig: String) -> Vec<String> {
 }
 
 fn array_elem_type(sig: String) -> String {
-    sig.slice(2, len(sig))
+    sig.slice(2, sig.len())
 }
 
 fn find_type_sig_char(s: String, c: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = 0
     while i < n {
         if s.clone().byte_at(i) == c { return i }
@@ -317,7 +317,7 @@ fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
     }
     i = 0
     let order = module_gc_order::MirModule_late_gc_order(mir)
-    while i < len(order) {
+    while i < order.len() {
         let packed = get_unchecked(order, i)
         let slot = packed / 2
         if packed % 2 == 0 {
@@ -355,7 +355,7 @@ fn gc_module_emit_slots(mir: MirModule) -> Vec<i32> {
 fn append_module_gc_type_sigs(mut type_sigs: Vec<String>, mir: MirModule) {
     let emit_slots = gc_module_emit_slots(mir)
     let mut i = 0
-    while i < len(emit_slots) {
+    while i < emit_slots.len() {
         let packed = get_unchecked(emit_slots, i)
         let slot = packed / 2
         if packed % 2 == 0 {

@@ -32,11 +32,11 @@ fn emit_output(
     }
     let emit_mode = normalize_emit_mode(config_record::config_emit_mode(config))
     let world_error = world_target_error(config, emit_mode.clone())
-    if len(world_error) > 0 {
+    if world_error.len() > 0 {
         return result_record::CompileResult_err(phases::PHASE_EMIT(), world_error)
     }
     let component_error = component_target_error(config, emit_mode.clone())
-    if len(component_error) > 0 {
+    if component_error.len() > 0 {
         return result_record::CompileResult_err(phases::PHASE_EMIT(), component_error)
     }
     if emit_mode.clone().eq("wit") {
@@ -92,7 +92,7 @@ fn emit_component_output(
         report_timing
     )
     if config_record::config_dump_wasm(config) {
-        Stdio::eprintln(String_from("core wasm size: ").concat(len(core_wasm).to_string().concat(String_from(" bytes"))))
+        Stdio::eprintln(String_from("core wasm size: ").concat(core_wasm.len().to_string().concat(String_from(" bytes"))))
     }
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     // Component packaging is owned by the official wasm-tools pipeline in the

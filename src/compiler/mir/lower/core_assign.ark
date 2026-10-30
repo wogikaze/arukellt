@@ -13,7 +13,7 @@ fn lower_core_assign(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
         return 0 - 1
     }
     let assign_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-    if len(assign_name) > 0 {
+    if assign_name.len() > 0 {
         let val_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
         let val_expr = get_unchecked(exprs, val_index)
         let val_idx = if mir_core_assign_value_is_fn_pair(ctx, assign_name.clone(), val_expr) {

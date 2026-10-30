@@ -50,7 +50,7 @@ fn CoreHirMethodInfo_new(
 }
 
 fn method_info_index_for_method(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32, method_index: i32) -> i32 {
-    let count = len(method_infos)
+    let count = method_infos.len()
     let mut i = 0
     while i < count {
         let info = get_unchecked(method_infos, i)
@@ -63,7 +63,7 @@ fn method_info_index_for_method(method_infos: Vec<CoreHirMethodInfo>, impl_decl_
 }
 
 fn method_info_mangled_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: String) -> String {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         let info = get_unchecked(method_infos, info_index)
         return info.mangled_name.clone()
     }
@@ -71,7 +71,7 @@ fn method_info_mangled_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index:
 }
 
 fn method_info_body_index_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         let info = get_unchecked(method_infos, info_index)
         return info.body_index
     }
@@ -79,7 +79,7 @@ fn method_info_body_index_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i
 }
 
 fn method_info_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         let info = get_unchecked(method_infos, info_index)
         return info.param_count
     }
@@ -87,7 +87,7 @@ fn method_info_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: 
 }
 
 fn method_info_type_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         return get_unchecked(method_infos, info_index).type_param_count
     }
     fallback
@@ -99,25 +99,25 @@ fn method_info_type_param_count_at(method_infos: Vec<CoreHirMethodInfo>, info_in
 // an impl binder that the signature never mentions and shifts every later
 // parameter key (#946).
 fn method_info_type_params_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32) -> Vec<String> {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         return get_unchecked(method_infos, info_index).type_params
     }
     Vec::new<String>()
 }
 
 fn method_info_param_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, param_index: i32) -> CoreHirParam {
-    if info_index < 0 || info_index >= len(method_infos) {
+    if info_index < 0 || info_index >= method_infos.len() {
         return param::CoreHirParam_new("", value_types::VT_I32(), "", "", false, false)
     }
     let info = get_unchecked(method_infos, info_index)
-    if param_index < 0 || param_index >= len(info.params) {
+    if param_index < 0 || param_index >= info.params.len() {
         return param::CoreHirParam_new("", value_types::VT_I32(), "", "", false, false)
     }
     get_unchecked(info.params, param_index)
 }
 
 fn method_info_owner_name_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32, fallback: String) -> String {
-    let count = len(method_infos)
+    let count = method_infos.len()
     let mut i = 0
     while i < count {
         let info = get_unchecked(method_infos, i)
@@ -130,7 +130,7 @@ fn method_info_owner_name_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_de
 }
 
 fn method_info_count_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32) -> i32 {
-    let count = len(method_infos)
+    let count = method_infos.len()
     let mut total = 0
     let mut i = 0
     while i < count {
@@ -144,7 +144,7 @@ fn method_info_count_for_impl(method_infos: Vec<CoreHirMethodInfo>, impl_decl_in
 }
 
 fn method_info_return_vt_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: i32) -> i32 {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         let info = get_unchecked(method_infos, info_index)
         return info.return_vt
     }
@@ -152,7 +152,7 @@ fn method_info_return_vt_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i3
 }
 
 fn method_info_return_type_name_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32, fallback: String) -> String {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         let info = get_unchecked(method_infos, info_index)
         return info.return_type_name.clone()
     }
@@ -160,7 +160,7 @@ fn method_info_return_type_name_at(method_infos: Vec<CoreHirMethodInfo>, info_in
 }
 
 fn method_info_trait_id_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32) -> i32 {
-    if info_index >= 0 && info_index < len(method_infos) {
+    if info_index >= 0 && info_index < method_infos.len() {
         let info = get_unchecked(method_infos, info_index)
         return info.trait_id
     }

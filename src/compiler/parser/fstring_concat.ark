@@ -1,7 +1,7 @@
 use parser::fstring_nodes
 
 fn fstring_concat_segments(nodes: Vec<AstNode>, span: Span) -> AstNode {
-    let n = len(nodes)
+    let n = nodes.len()
     if n == 0 {
         return fstring_nodes::fstring_string_lit(String_new(), span)
     }

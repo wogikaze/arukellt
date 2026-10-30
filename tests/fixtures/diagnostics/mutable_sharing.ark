@@ -4,5 +4,5 @@ fn main() {
     let alias = v
     // Read through the shared alias; reusing `v` here would be E0212 and
     // would suppress this fixture's W0001 golden.
-    assert(len(alias) == 1)
+    assert(alias.len() == 1)
 }

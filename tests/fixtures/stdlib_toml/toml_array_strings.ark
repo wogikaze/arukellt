@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("names") {
             Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
-                    Test::assert_eq_i32(len(arr), 2)
+                    Test::assert_eq_i32(arr.len(), 2)
                     let first: toml::TomlValue = get_unchecked(arr, 0)
                     let first_text: Option<String> = first.as_string()
                     match first_text {

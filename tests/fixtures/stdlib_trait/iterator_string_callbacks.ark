@@ -5,7 +5,7 @@ fn map_identity(value: String) -> String {
 }
 
 fn keep_long_string(value: String) -> bool {
-    len(value) > 3
+    value.len() > 3
 }
 
 fn collect_from_iterator<T: iter::Iterator>(mut iterator: T) -> Vec<T::Item> {
@@ -15,7 +15,7 @@ fn collect_from_iterator<T: iter::Iterator>(mut iterator: T) -> Vec<T::Item> {
 fn total_string_lengths<T: iter::IntoIterator>(source: T) -> i32 {
     let mut total: i32 = 0
     for value in source {
-        total = total + len(value)
+        total = total + value.len()
     }
     total
 }
@@ -25,7 +25,7 @@ fn main() {
     push(map_source, String_from("alpha"))
     push(map_source, String_from("go"))
     let mapped = map_source.iter().map(map_identity).collect()
-    Test::assert_eq_i32(len(mapped), 2)
+    Test::assert_eq_i32(mapped.len(), 2)
     Test::assert_eq_string(get_unchecked(mapped, 0), "alpha")
     Test::assert_eq_string(get_unchecked(mapped, 1), "go")
 
@@ -34,7 +34,7 @@ fn main() {
     push(map_from_iter_source, String_from("second"))
     let mut map_from_iter = map_from_iter_source.iter().map(map_identity)
     let mapped_from_iter: Vec<String> = Vec::from_iter(map_from_iter)
-    Test::assert_eq_i32(len(mapped_from_iter), 2)
+    Test::assert_eq_i32(mapped_from_iter.len(), 2)
     Test::assert_eq_string(get_unchecked(mapped_from_iter, 0), "first")
     Test::assert_eq_string(get_unchecked(mapped_from_iter, 1), "second")
 
@@ -43,7 +43,7 @@ fn main() {
     push(filter_source, String_from("go"))
     push(filter_source, String_from("bravo"))
     let filtered = filter_source.iter().filter(keep_long_string).collect()
-    Test::assert_eq_i32(len(filtered), 2)
+    Test::assert_eq_i32(filtered.len(), 2)
     Test::assert_eq_string(get_unchecked(filtered, 0), "alpha")
     Test::assert_eq_string(get_unchecked(filtered, 1), "bravo")
 
@@ -53,14 +53,14 @@ fn main() {
     push(filter_from_iter_source, String_from("bravo"))
     let mut filter_from_iter = filter_from_iter_source.iter().filter(keep_long_string)
     let filtered_from_iter: Vec<String> = Vec::from_iter(filter_from_iter)
-    Test::assert_eq_i32(len(filtered_from_iter), 2)
+    Test::assert_eq_i32(filtered_from_iter.len(), 2)
     Test::assert_eq_string(get_unchecked(filtered_from_iter, 0), "alpha")
     Test::assert_eq_string(get_unchecked(filtered_from_iter, 1), "bravo")
 
     let mut generic_from_iter_source: Vec<String> = Vec::new<String>()
     push(generic_from_iter_source, String_from("generic"))
     let generic_from_iter: Vec<String> = collect_from_iterator(generic_from_iter_source.iter().map(map_identity))
-    Test::assert_eq_i32(len(generic_from_iter), 1)
+    Test::assert_eq_i32(generic_from_iter.len(), 1)
     Test::assert_eq_string(get_unchecked(generic_from_iter, 0), "generic")
 
     let mut composed_source: Vec<String> = Vec::new<String>()
@@ -68,7 +68,7 @@ fn main() {
     push(composed_source, String_from("go"))
     push(composed_source, String_from("bravo"))
     let composed = composed_source.iter().map(map_identity).filter(keep_long_string).collect()
-    Test::assert_eq_i32(len(composed), 2)
+    Test::assert_eq_i32(composed.len(), 2)
     Test::assert_eq_string(get_unchecked(composed, 0), "alpha")
     Test::assert_eq_string(get_unchecked(composed, 1), "bravo")
 
@@ -78,7 +78,7 @@ fn main() {
     push(composed_from_iter_source, String_from("bravo"))
     let mut composed_from_iter_source_adapter = composed_from_iter_source.iter().map(map_identity).filter(keep_long_string)
     let composed_from_iter: Vec<String> = Vec::from_iter(composed_from_iter_source_adapter)
-    Test::assert_eq_i32(len(composed_from_iter), 2)
+    Test::assert_eq_i32(composed_from_iter.len(), 2)
     Test::assert_eq_string(get_unchecked(composed_from_iter, 0), "alpha")
     Test::assert_eq_string(get_unchecked(composed_from_iter, 1), "bravo")
 
@@ -87,7 +87,7 @@ fn main() {
     push(reverse_composed_source, String_from("go"))
     push(reverse_composed_source, String_from("bravo"))
     let reverse_composed = reverse_composed_source.iter().filter(keep_long_string).map(map_identity).collect()
-    Test::assert_eq_i32(len(reverse_composed), 2)
+    Test::assert_eq_i32(reverse_composed.len(), 2)
     Test::assert_eq_string(get_unchecked(reverse_composed, 0), "alpha")
     Test::assert_eq_string(get_unchecked(reverse_composed, 1), "bravo")
 
@@ -97,7 +97,7 @@ fn main() {
     push(reverse_from_iter_source, String_from("bravo"))
     let mut reverse_from_iter_adapter = reverse_from_iter_source.iter().filter(keep_long_string).map(map_identity)
     let reverse_from_iter: Vec<String> = Vec::from_iter(reverse_from_iter_adapter)
-    Test::assert_eq_i32(len(reverse_from_iter), 2)
+    Test::assert_eq_i32(reverse_from_iter.len(), 2)
     Test::assert_eq_string(get_unchecked(reverse_from_iter, 0), "alpha")
     Test::assert_eq_string(get_unchecked(reverse_from_iter, 1), "bravo")
 
@@ -113,7 +113,7 @@ fn main() {
     push(map_take_source, String_from("go"))
     push(map_take_source, String_from("bravo"))
     let map_take = map_take_source.iter().map(map_identity).take(2).collect()
-    Test::assert_eq_i32(len(map_take), 2)
+    Test::assert_eq_i32(map_take.len(), 2)
     Test::assert_eq_string(get_unchecked(map_take, 0), "alpha")
     Test::assert_eq_string(get_unchecked(map_take, 1), "go")
 
@@ -123,7 +123,7 @@ fn main() {
     push(map_take_from_iter_source, String_from("bravo"))
     let mut map_take_from_iter_adapter = map_take_from_iter_source.iter().map(map_identity).take(2)
     let map_take_from_iter: Vec<String> = Vec::from_iter(map_take_from_iter_adapter)
-    Test::assert_eq_i32(len(map_take_from_iter), 2)
+    Test::assert_eq_i32(map_take_from_iter.len(), 2)
     Test::assert_eq_string(get_unchecked(map_take_from_iter, 0), "alpha")
     Test::assert_eq_string(get_unchecked(map_take_from_iter, 1), "go")
 
@@ -139,7 +139,7 @@ fn main() {
     push(filter_take_source, String_from("go"))
     push(filter_take_source, String_from("bravo"))
     let filter_take = filter_take_source.iter().filter(keep_long_string).take(1).collect()
-    Test::assert_eq_i32(len(filter_take), 1)
+    Test::assert_eq_i32(filter_take.len(), 1)
     Test::assert_eq_string(get_unchecked(filter_take, 0), "alpha")
 
     let mut filter_take_from_iter_source: Vec<String> = Vec::new<String>()
@@ -148,7 +148,7 @@ fn main() {
     push(filter_take_from_iter_source, String_from("bravo"))
     let mut filter_take_from_iter_adapter = filter_take_from_iter_source.iter().filter(keep_long_string).take(1)
     let filter_take_from_iter: Vec<String> = Vec::from_iter(filter_take_from_iter_adapter)
-    Test::assert_eq_i32(len(filter_take_from_iter), 1)
+    Test::assert_eq_i32(filter_take_from_iter.len(), 1)
     Test::assert_eq_string(get_unchecked(filter_take_from_iter, 0), "alpha")
 
     let mut filter_take_for_source: Vec<String> = Vec::new<String>()
@@ -163,7 +163,7 @@ fn main() {
     push(map_filter_take_source, String_from("go"))
     push(map_filter_take_source, String_from("bravo"))
     let map_filter_take = map_filter_take_source.iter().map(map_identity).filter(keep_long_string).take(1).collect()
-    Test::assert_eq_i32(len(map_filter_take), 1)
+    Test::assert_eq_i32(map_filter_take.len(), 1)
     Test::assert_eq_string(get_unchecked(map_filter_take, 0), "alpha")
 
     let mut map_filter_take_from_iter_source: Vec<String> = Vec::new<String>()
@@ -172,7 +172,7 @@ fn main() {
     push(map_filter_take_from_iter_source, String_from("bravo"))
     let mut map_filter_take_adapter = map_filter_take_from_iter_source.iter().map(map_identity).filter(keep_long_string).take(1)
     let map_filter_take_from_iter: Vec<String> = Vec::from_iter(map_filter_take_adapter)
-    Test::assert_eq_i32(len(map_filter_take_from_iter), 1)
+    Test::assert_eq_i32(map_filter_take_from_iter.len(), 1)
     Test::assert_eq_string(get_unchecked(map_filter_take_from_iter, 0), "alpha")
 
     let mut map_filter_take_for_source: Vec<String> = Vec::new<String>()
@@ -187,7 +187,7 @@ fn main() {
     push(filter_map_take_source, String_from("go"))
     push(filter_map_take_source, String_from("bravo"))
     let filter_map_take = filter_map_take_source.iter().filter(keep_long_string).map(map_identity).take(1).collect()
-    Test::assert_eq_i32(len(filter_map_take), 1)
+    Test::assert_eq_i32(filter_map_take.len(), 1)
     Test::assert_eq_string(get_unchecked(filter_map_take, 0), "alpha")
 
     let mut filter_map_take_from_iter_source: Vec<String> = Vec::new<String>()
@@ -196,7 +196,7 @@ fn main() {
     push(filter_map_take_from_iter_source, String_from("bravo"))
     let mut filter_map_take_adapter = filter_map_take_from_iter_source.iter().filter(keep_long_string).map(map_identity).take(1)
     let filter_map_take_from_iter: Vec<String> = Vec::from_iter(filter_map_take_adapter)
-    Test::assert_eq_i32(len(filter_map_take_from_iter), 1)
+    Test::assert_eq_i32(filter_map_take_from_iter.len(), 1)
     Test::assert_eq_string(get_unchecked(filter_map_take_from_iter, 0), "alpha")
 
     let mut filter_map_take_for_source: Vec<String> = Vec::new<String>()
@@ -211,7 +211,7 @@ fn main() {
     push(skip_map_source, String_from("go"))
     push(skip_map_source, String_from("bravo"))
     let skip_map = skip_map_source.iter().skip(1).map(map_identity).collect()
-    Test::assert_eq_i32(len(skip_map), 2)
+    Test::assert_eq_i32(skip_map.len(), 2)
     Test::assert_eq_string(get_unchecked(skip_map, 0), "go")
     Test::assert_eq_string(get_unchecked(skip_map, 1), "bravo")
 
@@ -221,7 +221,7 @@ fn main() {
     push(skip_map_from_iter_source, String_from("bravo"))
     let mut skip_map_adapter = skip_map_from_iter_source.iter().skip(1).map(map_identity)
     let skip_map_from_iter: Vec<String> = Vec::from_iter(skip_map_adapter)
-    Test::assert_eq_i32(len(skip_map_from_iter), 2)
+    Test::assert_eq_i32(skip_map_from_iter.len(), 2)
     Test::assert_eq_string(get_unchecked(skip_map_from_iter, 0), "go")
     Test::assert_eq_string(get_unchecked(skip_map_from_iter, 1), "bravo")
 
@@ -237,7 +237,7 @@ fn main() {
     push(skip_filter_source, String_from("go"))
     push(skip_filter_source, String_from("bravo"))
     let skip_filter = skip_filter_source.iter().skip(1).filter(keep_long_string).collect()
-    Test::assert_eq_i32(len(skip_filter), 1)
+    Test::assert_eq_i32(skip_filter.len(), 1)
     Test::assert_eq_string(get_unchecked(skip_filter, 0), "bravo")
 
     let mut skip_filter_from_iter_source: Vec<String> = Vec::new<String>()
@@ -246,7 +246,7 @@ fn main() {
     push(skip_filter_from_iter_source, String_from("bravo"))
     let mut skip_filter_adapter = skip_filter_from_iter_source.iter().skip(1).filter(keep_long_string)
     let skip_filter_from_iter: Vec<String> = Vec::from_iter(skip_filter_adapter)
-    Test::assert_eq_i32(len(skip_filter_from_iter), 1)
+    Test::assert_eq_i32(skip_filter_from_iter.len(), 1)
     Test::assert_eq_string(get_unchecked(skip_filter_from_iter, 0), "bravo")
 
     let mut skip_filter_for_source: Vec<String> = Vec::new<String>()

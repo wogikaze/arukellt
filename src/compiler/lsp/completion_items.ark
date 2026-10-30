@@ -14,7 +14,7 @@ pub fn completion_item(label: String, kind: i32, detail: String) -> String {
 }
 
 pub fn completion_item_json(label: String, kind: i32, detail: String, text: String, import_path: String, needs_import: bool) -> String {
-    if !needs_import || len(import_path) == 0 {
+    if !needs_import || import_path.len() == 0 {
         return completion_item(label, kind, detail)
     }
     let offset = import_graph::first_use_insert_offset(text.clone())
@@ -40,7 +40,7 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
 }
 
 pub fn append_item(items: String, item: String) -> String {
-    if len(items) == 0 {
+    if items.len() == 0 {
         return item
     }
     items.concat(String_from(",")).concat(item)

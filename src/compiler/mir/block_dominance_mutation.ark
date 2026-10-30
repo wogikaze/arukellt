@@ -25,7 +25,7 @@ fn MirBlock_reset_dom_frontier(mut block: MirBlock) {
 }
 
 fn MirBlock_push_dom_frontier_unique(mut block: MirBlock, block_id: i32) {
-    let count = len(block.dom_frontier)
+    let count = block.dom_frontier.len()
     let mut i = 0
     while i < count {
         if get_unchecked(block.dom_frontier, i) == block_id {

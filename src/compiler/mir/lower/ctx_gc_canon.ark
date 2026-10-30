@@ -36,7 +36,7 @@ fn ctx_gc_canon_prefix_ensure(ctx: LowerCtx) {
     sections_types_gc::append_gc_type_sigs(sigs)
     sections_types_sigs::append_gc_typed_callback_type_sigs(sigs)
     let mut i = 0
-    while i < len(sigs) {
+    while i < sigs.len() {
         module_canon::MirModule_canon_ensure(m, get_unchecked(sigs, i))
         i = i + 1
     }
@@ -65,7 +65,7 @@ fn ctx_gc_canon_ensure_late(mut ctx: LowerCtx) {
     let mut m = ctx.module
     let order = module_gc_order::MirModule_late_gc_order(m)
     let mut i = 0
-    while i < len(order) {
+    while i < order.len() {
         let packed = get_unchecked(order, i)
         let slot = packed / 2
         if packed % 2 == 0 {

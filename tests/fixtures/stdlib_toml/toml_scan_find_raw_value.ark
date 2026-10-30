@@ -7,7 +7,7 @@ fn main() {
     let allow_raw = toml::TomlText::find_raw_value(content, "allow")
     Test::assert_eq_string(allow_raw, "[\"W0006\", \"unused-import\"]")
     let items = toml::TomlText::parse_string_array(allow_raw)
-    Test::assert_eq_i32(len(items), 2)
+    Test::assert_eq_i32(items.len(), 2)
     Test::assert_eq_string(get_unchecked(items, 0), "W0006")
     Test::assert_eq_string(get_unchecked(items, 1), "unused-import")
     Stdio::println("OK")

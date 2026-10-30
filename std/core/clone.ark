@@ -94,7 +94,7 @@ impl<T> Clone for Vec<T> {
     fn clone(self: Vec<T>) -> Vec<T> {
         let mut copy: Vec<T> = Vec::new<T>()
         let mut i: i32 = 0
-        while i < len(self) {
+        while i < self.len() {
             copy.push(get_unchecked(self, i).clone())
             i = i + 1
         }

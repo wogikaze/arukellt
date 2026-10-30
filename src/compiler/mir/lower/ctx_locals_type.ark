@@ -56,7 +56,7 @@ fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
     if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(func) {
         let loc = function_locals_view::MirFunction_local_at(func, local_idx)
         let tn = local_access::MirLocal_type_name(loc)
-        if len(tn) > 0 {
+        if tn.len() > 0 {
             return tn
         }
     }

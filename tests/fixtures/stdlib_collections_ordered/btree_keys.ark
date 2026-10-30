@@ -10,14 +10,14 @@ fn main() {
     m.insert(40, 400)
     let keys = m.keys()
     let mut i: i32 = 0
-    while i < len(keys) {
+    while i < keys.len() {
         Stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }
     let range = m.range(20, 45)
-    Stdio::println((len(range)).to_string())
+    Stdio::println((range.len()).to_string())
     let mut j: i32 = 0
-    while j < len(range) {
+    while j < range.len() {
         Stdio::println((get_unchecked(range, j)).to_string())
         j = j + 1
     }

@@ -41,7 +41,7 @@ pub fn index_definition_doc(def: IndexDefinition) -> String {
 
 pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     let symbols = state_record::lsp_state_symbol_symbols(state)
-    let n = len(symbols)
+    let n = symbols.len()
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)
@@ -58,7 +58,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
         i = i + 1
     }
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
-    let sn = len(stdlib)
+    let sn = stdlib.len()
     let mut j = 0
     while j < sn {
         let sym = get_unchecked(stdlib, j)
@@ -66,7 +66,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
             let source_uri = symbol_index_record::stdlib_indexed_symbol_source_uri(sym)
             let mut decl_start = symbol_index_record::stdlib_indexed_symbol_decl_start(sym)
             let mut decl_end = symbol_index_record::stdlib_indexed_symbol_decl_end(sym)
-            if len(source_uri) > 0 {
+            if source_uri.len() > 0 {
                 let span = symbol_index_stdlib_spans::lookup_stdlib_source_span(source_uri.clone(), name.clone())
                 if symbol_index_stdlib_spans::source_span_found(span) {
                     decl_start = symbol_index_stdlib_spans::source_span_start(span)
@@ -89,7 +89,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
 
 pub fn lookup_type_definition(state: LspState, name: String) -> IndexDefinition {
     let symbols = state_record::lsp_state_symbol_symbols(state)
-    let n = len(symbols)
+    let n = symbols.len()
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)

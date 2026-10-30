@@ -25,7 +25,7 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
     let callee_local = inst_accessors_operands::MirInst_arg0(inst)
     let hint_type_name = call_indirect::parse_call_ref_type_name_hint(raw_hint.clone())
     let current_type_name = code_locals::current_local_type_name(ctx, callee_local)
-    let callee_type_name = if len(hint_type_name) > 0 {
+    let callee_type_name = if hint_type_name.len() > 0 {
         hint_type_name
     } else {
         current_type_name
@@ -43,7 +43,7 @@ fn emit_call_ref_inst(mut w: WasmWriter, inst: MirInst, mut ctx: SelfEmitCtx, ne
             ctx_record::SelfEmitCtx_memory64(ctx),
             ctx_record::SelfEmitCtx_gc_struct_names(ctx)
         )
-        if len(pair_sig) > 0 {
+        if pair_sig.len() > 0 {
             type_idx = call_indirect::call_ref_pair_sig_type_idx(ctx, pair_sig)
         }
     }
@@ -131,7 +131,7 @@ fn resolve_call_ref_reloc(ctx: SelfEmitCtx, ikey: i32, ikey2: i32, ikey3: i32, s
             ctx_record::SelfEmitCtx_memory64(ctx),
             ctx_record::SelfEmitCtx_gc_struct_names(ctx)
         )
-        if len(pair_sig) > 0 {
+        if pair_sig.len() > 0 {
             type_idx = call_indirect::call_ref_pair_sig_type_idx(ctx, pair_sig)
         }
     }

@@ -27,7 +27,7 @@ fn gc_enum_field_sig_for_vt(mut ctx: LowerCtx, vt: i32) -> String {
 
 fn ctx_gc_enum_payload_field_sigs_from_vts(mut ctx: LowerCtx, payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
-    for i in 0..len(payload_vts) {
+    for i in 0..payload_vts.len() {
         sig = sig.concat(gc_enum_field_sig_for_vt(ctx, get_unchecked(payload_vts, i)))
     }
     sig
@@ -35,7 +35,7 @@ fn ctx_gc_enum_payload_field_sigs_from_vts(mut ctx: LowerCtx, payload_vts: Vec<i
 
 fn ctx_gc_enum_payload_field_sigs_typed(mut ctx: LowerCtx, payload_vts: Vec<i32>, type_name: String) -> String {
     let mut sig = String_new()
-    for i in 0..len(payload_vts) {
+    for i in 0..payload_vts.len() {
         let vt = get_unchecked(payload_vts, i)
         if i == 0 && should_use_typed_payload_field_sig(vt, type_name.clone()) {
             sig = sig.concat(gc_enum_field_sig_for_type_ctx(ctx, type_name.clone()))
@@ -50,7 +50,7 @@ fn ctx_gc_enum_payload_field_sigs_typed(mut ctx: LowerCtx, payload_vts: Vec<i32>
 // aggregate (JsonValue, TomlValue, enum:*, Option/Result, containers).
 // Scalar names still follow the MIR value type so i32/i64/f64 stay exact.
 fn should_use_typed_payload_field_sig(vt: i32, type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if vt == value_types::VT_FUNCREF() || type_name.clone().eq("fnref") {
@@ -94,8 +94,8 @@ fn gc_enum_payload_suffix_after_prefix(s: String, prefix: String) -> String {
     if !s.clone().starts_with(prefix.clone()) {
         return String_new()
     }
-    let prefix_len = len(prefix.clone())
-    return s.clone().slice(prefix_len, len(s.clone()))
+    let prefix_len = prefix.clone().len()
+    return s.clone().slice(prefix_len, s.clone().len())
 }
 
 fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
@@ -122,8 +122,8 @@ fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String
     if existing_has_ref && !want_has_ref {
         return false
     }
-    let want_len = len(want_field_sigs)
-    let existing_len = len(existing_payload)
+    let want_len = want_field_sigs.len()
+    let existing_len = existing_payload.len()
     if want_len > 0 && existing_len == 0 {
         return false
     }
@@ -254,7 +254,7 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
 fn gc_enum_build_payload_field_sigs(mut ctx: LowerCtx, variant_name: String) -> String {
     let mut sig = String_new()
     let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, variant_name.clone())
-    let layout_count = len(ctx.struct_names)
+    let layout_count = ctx.struct_names.len()
     let mut li = 0
     while li < layout_count {
         if get_unchecked(ctx.struct_names, li).eq(layout_name.clone()) || get_unchecked(ctx.struct_names, li).eq(variant_name.clone()) {

@@ -8,7 +8,7 @@ fn keep_odd(value: i32) -> bool {
 }
 
 fn keep_long(word: String) -> bool {
-    len(word) > 2
+    word.len() > 2
 }
 
 fn main() {
@@ -36,7 +36,7 @@ fn main() {
     let mut word_lengths: i32 = 0
     while true {
         match word_iter.next() {
-            Option::Some(word) => word_lengths = word_lengths + len(word),
+            Option::Some(word) => word_lengths = word_lengths + word.len(),
             Option::None => { break },
         }
     }

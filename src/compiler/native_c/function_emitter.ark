@@ -135,7 +135,7 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
 
 fn native_c_value_stack_contains(state: NativeCFunctionEmitState, local: i32) -> bool {
     let mut index = 0
-    while index < len(state.value_stack) {
+    while index < state.value_stack.len() {
         if get_unchecked(state.value_stack, index) == local {
             return true
         }
@@ -146,7 +146,7 @@ fn native_c_value_stack_contains(state: NativeCFunctionEmitState, local: i32) ->
 
 fn native_c_emit_pending_root_clears(mut state: NativeCFunctionEmitState, instruction: MirInst) {
     let order = state.instruction_order
-    if order >= 0 && order < len(state.root_clear_count) {
+    if order >= 0 && order < state.root_clear_count.len() {
         let count = get_unchecked(state.root_clear_count, order)
         let start = get_unchecked(state.root_clear_start, order)
         let mut clear_slots = Vec::new<i32>()
@@ -157,7 +157,7 @@ fn native_c_emit_pending_root_clears(mut state: NativeCFunctionEmitState, instru
             if state.root_emit_enabled_for_fn &&
             !native_c_value_stack_contains(state, local) &&
             local >= 0 &&
-            local < len(state.root_slot_of_local) {
+            local < state.root_slot_of_local.len() {
                 let slot = get_unchecked(state.root_slot_of_local, local)
                 if slot >= 0 {
                     push(clear_slots, slot)
@@ -165,7 +165,7 @@ fn native_c_emit_pending_root_clears(mut state: NativeCFunctionEmitState, instru
             }
             clear_index = clear_index + 1
         }
-        let emitted_here = len(clear_slots)
+        let emitted_here = clear_slots.len()
         if state.root_emit_enabled_for_fn && emitted_here > 0 {
             native_c_append(
                 state,
@@ -204,7 +204,7 @@ fn native_c_emit_pending_root_clears(mut state: NativeCFunctionEmitState, instru
 }
 
 fn native_c_function_emit_success(state: NativeCFunctionEmitState) -> bool {
-    len(state.diagnostic) == 0
+    state.diagnostic.len() == 0
 }
 
 fn native_c_function_root_plan_safepoints(state: NativeCFunctionEmitState) -> i32 {
@@ -287,12 +287,12 @@ fn native_c_function_root_liveness_marker(state: NativeCFunctionEmitState) -> St
 fn native_c_function_emit_source(state: NativeCFunctionEmitState) -> String {
     let mut bytes = Vec::new<i32>()
     let mut index = 0
-    while index < len(state.temporary_declarations) {
+    while index < state.temporary_declarations.len() {
         push(bytes, get_unchecked(state.temporary_declarations, index))
         index = index + 1
     }
     index = 0
-    while index < len(state.source) {
+    while index < state.source.len() {
         push(bytes, get_unchecked(state.source, index))
         index = index + 1
     }
@@ -305,7 +305,7 @@ fn native_c_function_emit_diagnostic(state: NativeCFunctionEmitState) -> String 
 
 fn native_c_append(mut state: NativeCFunctionEmitState, source: String) {
     if state.suppress_source { return }
-    let length = len(source)
+    let length = source.len()
     let mut index = 0
     while index < length {
         push(state.source, source.byte_at(index))
@@ -315,10 +315,10 @@ fn native_c_append(mut state: NativeCFunctionEmitState, source: String) {
 
 fn native_c_note_use(mut state: NativeCFunctionEmitState, local: i32) {
     if !state.record_effects { return }
-    if local < 0 || local >= len(state.reference_locals) { return }
+    if local < 0 || local >= state.reference_locals.len() { return }
     if get_unchecked(state.reference_locals, local) == 0 { return }
     let mut index = 0
-    while index < len(state.current_uses) {
+    while index < state.current_uses.len() {
         if get_unchecked(state.current_uses, index) == local { return }
         index = index + 1
     }
@@ -327,10 +327,10 @@ fn native_c_note_use(mut state: NativeCFunctionEmitState, local: i32) {
 
 fn native_c_note_def(mut state: NativeCFunctionEmitState, local: i32) {
     if !state.record_effects { return }
-    if local < 0 || local >= len(state.reference_locals) { return }
+    if local < 0 || local >= state.reference_locals.len() { return }
     if get_unchecked(state.reference_locals, local) == 0 { return }
     let mut index = 0
-    while index < len(state.current_defs) {
+    while index < state.current_defs.len() {
         if get_unchecked(state.current_defs, index) == local { return }
         index = index + 1
     }
@@ -352,29 +352,29 @@ fn native_c_effects_flush(mut state: NativeCFunctionEmitState, instruction: MirI
         push(state.effect_is_safepoint, 0)
     }
     push(state.effect_opcodes, op)
-    push(state.effect_use_start, len(state.effect_use_locals))
-    push(state.effect_use_count, len(state.current_uses))
+    push(state.effect_use_start, state.effect_use_locals.len())
+    push(state.effect_use_count, state.current_uses.len())
     let mut index = 0
-    while index < len(state.current_uses) {
+    while index < state.current_uses.len() {
         push(state.effect_use_locals, get_unchecked(state.current_uses, index))
         index = index + 1
     }
-    push(state.effect_def_start, len(state.effect_def_locals))
-    push(state.effect_def_count, len(state.current_defs))
+    push(state.effect_def_start, state.effect_def_locals.len())
+    push(state.effect_def_count, state.current_defs.len())
     index = 0
-    while index < len(state.current_defs) {
+    while index < state.current_defs.len() {
         push(state.effect_def_locals, get_unchecked(state.current_defs, index))
         index = index + 1
     }
     // Reset per-instruction buffers without reallocating when possible.
-    while len(state.current_uses) > 0 { pop(state.current_uses) }
-    while len(state.current_defs) > 0 { pop(state.current_defs) }
+    while state.current_uses.len() > 0 { pop(state.current_uses) }
+    while state.current_defs.len() > 0 { pop(state.current_defs) }
 }
 
 fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> NativeCInstructionEffects {
     let mut effects = root_liveness::native_c_instruction_effects_new()
     let mut order = 0
-    while order < len(state.effect_block_ids) {
+    while order < state.effect_block_ids.len() {
         let mut uses = Vec::new<i32>()
         let mut defs = Vec::new<i32>()
         let use_start = get_unchecked(state.effect_use_start, order)
@@ -406,7 +406,7 @@ fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> NativeC
 }
 
 fn native_c_fail(mut state: NativeCFunctionEmitState, diagnostic: String) {
-    if len(state.diagnostic) == 0 {
+    if state.diagnostic.len() == 0 {
         state.diagnostic = diagnostic
     }
 }
@@ -425,7 +425,7 @@ fn native_c_allocate_temporary(mut state: NativeCFunctionEmitState, c_type: Stri
     if !state.suppress_source {
         let declaration = String_from("    ").concat(c_type.concat(String_from(" ").concat(native_c_local_name(encoded_id).concat(String_from(";\n")))))
         let mut index = 0
-        while index < len(declaration) {
+        while index < declaration.len() {
             push(state.temporary_declarations, declaration.byte_at(index))
             index = index + 1
         }
@@ -438,14 +438,14 @@ fn native_c_stack_push(mut state: NativeCFunctionEmitState, local_id: i32) {
 }
 
 fn native_c_stack_pop(mut state: NativeCFunctionEmitState, context: String) -> i32 {
-    if len(state.value_stack) == 0 {
+    if state.value_stack.len() == 0 {
         native_c_fail(
             state,
             "compiler ICE: native-cpp value stack underflow while emitting ".concat(context)
         )
         return 0 - 1
     }
-    let index = len(state.value_stack) - 1
+    let index = state.value_stack.len() - 1
     let local_id = get_unchecked(state.value_stack, index)
     pop(state.value_stack)
     native_c_note_use(state, local_id)
@@ -453,7 +453,7 @@ fn native_c_stack_pop(mut state: NativeCFunctionEmitState, context: String) -> i
 }
 
 fn native_c_stack_discard_to(mut state: NativeCFunctionEmitState, depth: i32) {
-    while len(state.value_stack) > depth {
+    while state.value_stack.len() > depth {
         pop(state.value_stack)
     }
 }
@@ -477,14 +477,14 @@ fn native_c_control_push(mut state: NativeCFunctionEmitState, kind: i32) -> i32 
     state.next_control_id = state.next_control_id + 1
     push(state.control_kinds, kind)
     push(state.control_ids, control_id)
-    push(state.control_stack_depths, len(state.value_stack))
+    push(state.control_stack_depths, state.value_stack.len())
     push(state.control_has_else, 0)
     control_id
 }
 
 fn native_c_control_target(mut state: NativeCFunctionEmitState, depth: i32) -> String {
-    let index = len(state.control_ids) - 1 - depth
-    if index < 0 || index >= len(state.control_ids) {
+    let index = state.control_ids.len() - 1 - depth
+    if index < 0 || index >= state.control_ids.len() {
         native_c_fail(state, "compiler ICE: native-cpp branch depth exceeds control stack")
         return String_new()
     }
@@ -516,30 +516,30 @@ fn native_c_emit_constant(mut state: NativeCFunctionEmitState, instruction: MirI
     }
     if op == opcodes::MIR_CONST_I64() {
         let raw_literal = inst_accessors_literals::MirInst_str_val(instruction)
-        let literal_length = len(raw_literal)
+        let literal_length = raw_literal.len()
         // Strip Ark/C-like suffixes that are invalid inside INT64_C(...).
         let mut literal = raw_literal
         if literal_length >= 3 &&
         literal.clone().slice(literal_length - 3, literal_length).eq(String_from("i64")) {
             literal = literal.slice(0, literal_length - 3)
         }
-        let mut stripped_length = len(literal)
+        let mut stripped_length = literal.len()
         if stripped_length >= 2 &&
         literal.clone().slice(stripped_length - 2, stripped_length).eq(String_from("_L")) {
             literal = literal.slice(0, stripped_length - 2)
-            stripped_length = len(literal)
+            stripped_length = literal.len()
         }
         if stripped_length >= 1 {
             let last = literal.byte_at(stripped_length - 1)
             if last == 76 || last == 108 {
                 literal = literal.slice(0, stripped_length - 1)
-                stripped_length = len(literal)
+                stripped_length = literal.len()
             }
         }
         // Ark allows `1_i64` / `1_000_i64`; INT64_C token-pastes a trailing `L`.
         while stripped_length >= 1 && literal.byte_at(stripped_length - 1) == 95 {
             literal = literal.slice(0, stripped_length - 1)
-            stripped_length = len(literal)
+            stripped_length = literal.len()
         }
         native_c_emit_assignment(
             state,
@@ -560,7 +560,7 @@ fn native_c_emit_constant(mut state: NativeCFunctionEmitState, instruction: MirI
     }
     if op == opcodes::MIR_CONST_STRING() {
         let literal = inst_accessors_literals::MirInst_str_val(instruction)
-        let length = len(literal)
+        let length = literal.len()
         let mut expression = "(ark_object_header *)ark_rt_string_from_bytes("
         if length == 0 {
             expression = expression.concat("NULL, UINT32_C(0))")
@@ -611,10 +611,10 @@ fn native_c_value_member_for_emission(
     function: MirFunction,
     local_id: i32
 ) -> String {
-    if local_id >= 0 && local_id < len(state.reference_locals) &&
+    if local_id >= 0 && local_id < state.reference_locals.len() &&
     get_unchecked(state.reference_locals, local_id) != 0 {
         // Funcref locals must not be treated as heap refs for ark_value member selection.
-        if local_id < len(state.funcref_locals) &&
+        if local_id < state.funcref_locals.len() &&
         get_unchecked(state.funcref_locals, local_id) != 0 {
             return String_from("i64")
         }
@@ -624,7 +624,7 @@ fn native_c_value_member_for_emission(
         }
         return String_from("ref")
     }
-    if local_id >= 0 && local_id < len(state.funcref_locals) &&
+    if local_id >= 0 && local_id < state.funcref_locals.len() &&
     get_unchecked(state.funcref_locals, local_id) != 0 {
         return String_from("i64")
     }
@@ -643,7 +643,7 @@ fn native_c_base_type_is_funcref_vector(function: MirFunction, base_local: i32) 
 }
 
 fn native_c_type_name_elem_is_scalar(elem: String) -> bool {
-    if len(elem) == 0 {
+    if elem.len() == 0 {
         return false
     }
     if elem.clone().eq(String_from("i32")) || elem.clone().eq(String_from("I32")) {
@@ -666,15 +666,15 @@ fn native_c_type_name_elem_is_scalar(elem: String) -> bool {
 
 fn native_c_option_result_elem_type_name(type_name: String) -> String {
     if type_name.clone().starts_with(String_from("option:")) {
-        return type_name.slice(7, len(type_name))
+        return type_name.slice(7, type_name.len())
     }
     if type_name.clone().starts_with(String_from("Option_")) {
-        return type_name.slice(7, len(type_name))
+        return type_name.slice(7, type_name.len())
     }
     if type_name.clone().starts_with(String_from("result:")) {
-        let rest = type_name.slice(7, len(type_name))
+        let rest = type_name.slice(7, type_name.len())
         let mut index = 0
-        while index < len(rest) {
+        while index < rest.len() {
             if rest.byte_at(index) == 58 {
                 return rest.slice(0, index)
             }
@@ -683,9 +683,9 @@ fn native_c_option_result_elem_type_name(type_name: String) -> String {
         return rest
     }
     if type_name.clone().starts_with(String_from("Result_")) {
-        let rest = type_name.slice(7, len(type_name))
+        let rest = type_name.slice(7, type_name.len())
         let mut index = 0
-        while index < len(rest) {
+        while index < rest.len() {
             if rest.byte_at(index) == 95 {
                 return rest.slice(0, index)
             }
@@ -713,7 +713,7 @@ fn native_c_self_alias_intrinsic_expression(
     arguments: Vec<i32>
 ) -> String {
     let short = native_c_short_callee_name(function_name)
-    let argument_count = len(arguments)
+    let argument_count = arguments.len()
     if argument_count == 1 {
         return native_c_self_alias_unary_intrinsic(function, short, get_unchecked(arguments, 0))
     }
@@ -802,7 +802,7 @@ fn native_c_option_result_payload_is_heap_ref(
     let base_name = local_record::mir_local_type_name(base_local)
     let elem_name = native_c_option_result_elem_type_name(base_name.clone())
     // Option/Result field 0 is the discriminant tag; payload starts at 1.
-    if len(elem_name) > 0 {
+    if elem_name.len() > 0 {
         if field_index < 1 {
             return false
         }
@@ -920,7 +920,7 @@ fn native_c_struct_get_member(
     // while field 0+ holds a real object pointer. Prefer ref when the destination
     // local is already a heap-shaped type_name.
     if base >= 0 &&
-    base < len(state.reference_locals) &&
+    base < state.reference_locals.len() &&
     get_unchecked(state.reference_locals, base) != 0 &&
     destination >= 0 &&
     destination < function_locals_view::MirFunction_local_count(function) {
@@ -1017,7 +1017,7 @@ fn native_c_emit_struct(
         // Payload binds mistyped as i32 must still receive pointer stores.
         if member.clone().eq(String_from("ref")) &&
         destination >= 0 &&
-        destination < len(state.reference_locals) &&
+        destination < state.reference_locals.len() &&
         get_unchecked(state.reference_locals, destination) == 0 {
             set(state.reference_locals, destination, 1)
         }
@@ -1033,8 +1033,8 @@ fn native_c_emit_struct(
         // explicitly. Consume a matching top-of-stack value so the aggregate
         // base remains the expression result (Option/Result construction).
         let value = if explicit_value >= 0 {
-            if len(state.value_stack) > 0 {
-                let top = get_unchecked(state.value_stack, len(state.value_stack) - 1)
+            if state.value_stack.len() > 0 {
+                let top = get_unchecked(state.value_stack, state.value_stack.len() - 1)
                 if top == explicit_value {
                     pop(state.value_stack)
                 }
@@ -1205,10 +1205,10 @@ fn native_c_emit_local(
         if source != (0 - 1) {
             if source != destination {
                 let source_is_ref = source >= 0 &&
-                source < len(state.reference_locals) &&
+                source < state.reference_locals.len() &&
                 get_unchecked(state.reference_locals, source) != 0
                 let dest_is_ref = destination >= 0 &&
-                destination < len(state.reference_locals) &&
+                destination < state.reference_locals.len() &&
                 get_unchecked(state.reference_locals, destination) != 0
                 // Match/if arms can local_set a heap scrutinee into a scalar
                 // arm local that is never read (e.g. None => panic(...)).
@@ -1272,10 +1272,10 @@ fn native_c_emit_binary(mut state: NativeCFunctionEmitState, instruction: MirIns
     // operands to the right-hand local.  In that shape the value stack retains
     // the distinct left operand; ordinary explicitly annotated instructions
     // remain authoritative so stale enclosing-expression values cannot leak in.
-    if left_id == right_id && len(state.value_stack) >= 2 {
+    if left_id == right_id && state.value_stack.len() >= 2 {
         right_id = native_c_stack_pop(state, "binary rhs")
         left_id = native_c_stack_pop(state, "binary lhs")
-    } else if len(state.value_stack) >= 2 {
+    } else if state.value_stack.len() >= 2 {
         let _right_stack = native_c_stack_pop(state, "binary rhs")
         let _left_stack = native_c_stack_pop(state, "binary lhs")
     }
@@ -1318,10 +1318,10 @@ fn native_c_emit_binary(mut state: NativeCFunctionEmitState, instruction: MirIns
         expression = (if vt == value_types::VT_I64() { "ark_shr_i64(" } else { "ark_shr_i32(" }).concat(left.concat(", ".concat(right.concat(")"))))
     } else {
         let operator = native_c_binary_operator(op)
-        if len(operator) == 0 { return false }
-        let compares_references = (left_id >= 0 && left_id < len(state.reference_locals) &&
+        if operator.len() == 0 { return false }
+        let compares_references = (left_id >= 0 && left_id < state.reference_locals.len() &&
             get_unchecked(state.reference_locals, left_id) != 0) ||
-        (right_id >= 0 && right_id < len(state.reference_locals) &&
+        (right_id >= 0 && right_id < state.reference_locals.len() &&
             get_unchecked(state.reference_locals, right_id) != 0)
         if compares_references && (op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ()) {
             expression = "(".concat(left.concat(" ".concat(operator.concat(" ".concat(right.concat(")"))))))
@@ -1350,7 +1350,7 @@ fn native_c_emit_unary(mut state: NativeCFunctionEmitState, instruction: MirInst
     if op != opcodes::MIR_NEG() && op != opcodes::MIR_NOT() && op != opcodes::MIR_EQZ() {
         return false
     }
-    if len(state.value_stack) > 0 {
+    if state.value_stack.len() > 0 {
         let _stack_source = native_c_stack_pop(state, "unary operand")
     }
     let source_id = inst_accessors_operands::MirInst_arg0(instruction)
@@ -1386,7 +1386,7 @@ fn native_c_emit_conversion(mut state: NativeCFunctionEmitState, instruction: Mi
     if op != opcodes::MIR_EXTEND_I32_TO_I64() && op != opcodes::MIR_TRUNC_I64_TO_I32() {
         return false
     }
-    if len(state.value_stack) > 0 {
+    if state.value_stack.len() > 0 {
         let _stack_source = native_c_stack_pop(state, "conversion operand")
     }
     let destination = inst_accessors_operands::MirInst_dest(instruction)
@@ -1411,7 +1411,7 @@ fn native_c_emit_hof(
     if op == opcodes::MIR_REF_FUNC() {
         let result = hof_call::native_c_emit_ref_func(mir_module, instruction)
         if !hof_call::native_c_hof_is_handled(result) { return false }
-        if len(hof_call::native_c_hof_diagnostic(result)) > 0 {
+        if hof_call::native_c_hof_diagnostic(result).len() > 0 {
             native_c_fail(state, hof_call::native_c_hof_diagnostic(result))
             return true
         }
@@ -1429,12 +1429,12 @@ fn native_c_emit_hof(
     }
     let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
     // Stack layout matches wasm: [args..., callee]. CALL_REF shares this shape.
-    if len(state.value_stack) < argument_count + 1 {
+    if state.value_stack.len() < argument_count + 1 {
         native_c_fail(state, String_from("compiler ICE: native-cpp indirect call stack underflow"))
         return true
     }
     let callee_local = native_c_stack_pop(state, String_from("indirect call callee"))
-    let first_argument = len(state.value_stack) - argument_count
+    let first_argument = state.value_stack.len() - argument_count
     let mut arguments = Vec::new<i32>()
     let mut argument_index = 0
     while argument_index < argument_count {
@@ -1460,7 +1460,7 @@ fn native_c_emit_hof(
             table,
             local_record::mir_local_value_type(dest_local)
         )
-        if len(encoded) > 0 {
+        if encoded.len() > 0 {
             dest_result_encoding = encoded
         } else if dest_vt == value_types::VT_I32() {
             dest_result_encoding = String_from("i32")
@@ -1491,7 +1491,7 @@ fn native_c_emit_hof(
         native_c_fail(state, String_from("compiler ICE: native-cpp indirect call not handled"))
         return true
     }
-    if len(hof_call::native_c_hof_diagnostic(result)) > 0 {
+    if hof_call::native_c_hof_diagnostic(result).len() > 0 {
         native_c_fail(state, hof_call::native_c_hof_diagnostic(result))
         return true
     }
@@ -1512,7 +1512,7 @@ fn native_c_emit_hof(
 }
 
 fn native_c_short_callee_name(mangled: String) -> String {
-    let length = len(mangled)
+    let length = mangled.len()
     let mut index = length - 2
     while index >= 0 {
         if mangled.byte_at(index) == 58 && mangled.byte_at(index + 1) == 58 {
@@ -1676,7 +1676,7 @@ fn native_c_emit_call(
         let constructor = core_call::native_c_vec_new_call(function, instruction)
         if core_call::native_c_core_call_is_handled(constructor) {
             let destination = inst_accessors_operands::MirInst_dest(instruction)
-            native_c_stack_discard_to(state, len(state.value_stack))
+            native_c_stack_discard_to(state, state.value_stack.len())
             if destination >= 0 {
                 native_c_emit_assignment(
                     state,
@@ -1709,7 +1709,7 @@ fn native_c_emit_call(
             callee.clone()
         )
         if !function_id::function_id_is_valid(resolved) {
-            let length = len(callee)
+            let length = callee.len()
             let mut index = length - 2
             let mut short = callee.clone()
             while index >= 0 {
@@ -1766,7 +1766,7 @@ fn native_c_emit_call(
     if function_id_raw < 0 {
         let unresolved = inst_record::mir_inst_str_val(instruction)
         let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
-        if argument_count == 1 && len(state.value_stack) >= 1 &&
+        if argument_count == 1 && state.value_stack.len() >= 1 &&
         (unresolved.clone().eq(String_from("__intrinsic_i32_to_i64")) ||
             unresolved.clone().eq(String_from("i32_to_i64"))) {
             let source = native_c_stack_pop(state, String_from("i32_to_i64"))
@@ -1784,7 +1784,7 @@ fn native_c_emit_call(
             native_c_stack_push(state, assigned)
             return true
         }
-        if argument_count == 1 && len(state.value_stack) >= 1 &&
+        if argument_count == 1 && state.value_stack.len() >= 1 &&
         (unresolved.clone().eq(String_from("__intrinsic_i64_to_i32")) ||
             unresolved.clone().eq(String_from("i64_to_i32"))) {
             let source = native_c_stack_pop(state, String_from("i64_to_i32"))
@@ -1802,7 +1802,7 @@ fn native_c_emit_call(
             native_c_stack_push(state, assigned)
             return true
         }
-        if argument_count == 2 && len(state.value_stack) >= 2 &&
+        if argument_count == 2 && state.value_stack.len() >= 2 &&
         (unresolved.clone().eq(String_from("__intrinsic_push_char")) ||
             unresolved.clone().eq(String_from("push_char"))) {
             let char_local = native_c_stack_pop(state, String_from("push_char codepoint"))
@@ -1815,7 +1815,7 @@ fn native_c_emit_call(
             )
             return true
         }
-        if argument_count == 1 && len(state.value_stack) >= 1 &&
+        if argument_count == 1 && state.value_stack.len() >= 1 &&
         unresolved.clone().eq(String_from("clear")) {
             let vec_local = native_c_stack_pop(state, String_from("clear vector"))
             native_c_append(
@@ -1839,7 +1839,7 @@ fn native_c_emit_call(
     )
     let table = module_spine::MirModule_type_table(mir_module)
     let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
-    if len(symbol) == 0 {
+    if symbol.len() == 0 {
         native_c_fail(state, "compiler ICE: native-cpp cannot mangle direct call signature")
         return true
     }
@@ -1849,22 +1849,22 @@ fn native_c_emit_call(
     // stack, so the stack top may be a stale condition value (bool tag).
     // Prefer the encoded local only when it disagrees with the stack top.
     let explicit_first_arg = inst_accessors_operands::MirInst_arg0(instruction)
-    let stack_top_arg = if len(state.value_stack) > 0 {
-        get_unchecked(state.value_stack, len(state.value_stack) - 1)
+    let stack_top_arg = if state.value_stack.len() > 0 {
+        get_unchecked(state.value_stack, state.value_stack.len() - 1)
     } else {
         0 - 1
     }
     let use_explicit_first_arg = argument_count == 1 &&
     explicit_first_arg >= 0 &&
-    (len(state.value_stack) < 1 || stack_top_arg != explicit_first_arg)
-    if !use_explicit_first_arg && len(state.value_stack) < argument_count {
+    (state.value_stack.len() < 1 || stack_top_arg != explicit_first_arg)
+    if !use_explicit_first_arg && state.value_stack.len() < argument_count {
         native_c_fail(
             state,
             String_from("target `native-cpp` does not support call in function `").concat(
                 function_identity::MirFunction_name(function).concat(
                     (String_from("` (argument stack underflow; unsupported call shape; callee=`")).concat(
                         inst_record::mir_inst_str_val(instruction).concat(
-                            String_from("`; argc=").concat((argument_count).to_string().concat(String_from("; stack=").concat((len(state.value_stack)).to_string().concat(String_from(")")))))
+                            String_from("`; argc=").concat((argument_count).to_string().concat(String_from("; stack=").concat((state.value_stack.len()).to_string().concat(String_from(")")))))
                         )
                     )
                 )
@@ -1873,13 +1873,13 @@ fn native_c_emit_call(
         return true
     }
     let first_argument = if use_explicit_first_arg {
-        if len(state.value_stack) >= 1 {
-            len(state.value_stack) - 1
+        if state.value_stack.len() >= 1 {
+            state.value_stack.len() - 1
         } else {
-            len(state.value_stack)
+            state.value_stack.len()
         }
     } else {
-        len(state.value_stack) - argument_count
+        state.value_stack.len() - argument_count
     }
     let mut arguments = Vec::new<i32>()
     let mut argument_index = 0
@@ -1904,7 +1904,7 @@ fn native_c_emit_call(
             current_name.clone(),
             arguments
         )
-        if len(alias_expr) > 0 {
+        if alias_expr.len() > 0 {
             argument_index = 0
             while argument_index < argument_count {
                 native_c_note_use(state, get_unchecked(arguments, argument_index))
@@ -1929,7 +1929,7 @@ fn native_c_emit_call(
     let specialized = core_call::native_c_emit_core_call(mir_module, function, instruction, arguments)
     let is_specialized = core_call::native_c_core_call_is_handled(specialized)
     if is_specialized &&
-    len(core_call::native_c_core_call_diagnostic(specialized)) > 0 {
+    core_call::native_c_core_call_diagnostic(specialized).len() > 0 {
         native_c_fail(state, core_call::native_c_core_call_diagnostic(specialized))
         return true
     }
@@ -1957,7 +1957,7 @@ fn native_c_emit_call(
                 state.heap_enum_flags
             ).eq(String_from("ark_object_header *")) &&
             argument_local >= 0 &&
-            argument_local < len(state.reference_locals) &&
+            argument_local < state.reference_locals.len() &&
             get_unchecked(state.reference_locals, argument_local) == 0 {
                 let param_vt = signature_entry::signature_entry_param_at(signature, argument_index)
                 let param_type_id = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(param_vt))
@@ -2056,7 +2056,7 @@ fn native_c_emit_control(mut state: NativeCFunctionEmitState, instruction: MirIn
         return true
     }
     if op == opcodes::MIR_ELSE() {
-        let index = len(state.control_ids) - 1
+        let index = state.control_ids.len() - 1
         if index < 0 || get_unchecked(state.control_kinds, index) != opcodes::MIR_IF() {
             native_c_fail(
                 state,
@@ -2077,7 +2077,7 @@ fn native_c_emit_control(mut state: NativeCFunctionEmitState, instruction: MirIn
         return true
     }
     if op == opcodes::MIR_END() {
-        let index = len(state.control_ids) - 1
+        let index = state.control_ids.len() - 1
         if index < 0 {
             native_c_fail(state, "compiler ICE: native-cpp MIR_END has no matching control marker")
             return true
@@ -2170,8 +2170,8 @@ fn native_c_emit_instruction(
     signature: SignatureEntry,
     instruction: MirInst
 ) {
-    while len(state.current_uses) > 0 { pop(state.current_uses) }
-    while len(state.current_defs) > 0 { pop(state.current_defs) }
+    while state.current_uses.len() > 0 { pop(state.current_uses) }
+    while state.current_defs.len() > 0 { pop(state.current_defs) }
     // Always advance through the clear plan so shadow markers and emits stay aligned.
     native_c_emit_pending_root_clears(state, instruction)
     let op = inst_accessors_shape::MirInst_op(instruction)
@@ -2261,9 +2261,9 @@ fn native_c_local_allows_unit_enum_tag(table: TypeTable, function: MirFunction, 
 
 fn native_c_vec_element_is_heap_type(mut vec_type: String) -> bool {
     if vec_type.clone().starts_with(String_from("Vec<")) && vec_type.clone().ends_with(String_from(">")) {
-        vec_type = vec_type.slice(4, len(vec_type) - 1)
+        vec_type = vec_type.slice(4, vec_type.len() - 1)
     } else if vec_type.clone().starts_with(String_from("vec:")) {
-        vec_type = vec_type.slice(4, len(vec_type))
+        vec_type = vec_type.slice(4, vec_type.len())
     } else {
         return false
     }
@@ -2326,7 +2326,7 @@ fn native_c_emit_local_declarations(
     let mut producer_index = 0
     while producer_index < local_count {
         let producer_local = function_locals_view::MirFunction_local_at(function, producer_index)
-        let prior_reference = if producer_index < len(state.reference_locals) {
+        let prior_reference = if producer_index < state.reference_locals.len() {
             get_unchecked(state.reference_locals, producer_index)
         } else {
             0
@@ -2618,7 +2618,7 @@ fn native_c_emit_local_declarations(
         } else {
             abi::native_c_type_for_local(table, local, state.heap_enum_flags)
         }
-        if len(c_type) == 0 {
+        if c_type.len() == 0 {
             native_c_fail(
                 state,
                 "compiler ICE: native-cpp cannot lower local type in function `".concat(function_identity::MirFunction_name(function).concat("`"))
@@ -2668,7 +2668,7 @@ fn native_c_emit_local_declarations(
         state,
         (String_from("    ark_gc_push_frame((size_t)")).concat((root_count).to_string().concat(String_from(");\n")))
     )
-    while len(state.root_slot_of_local) > 0 {
+    while state.root_slot_of_local.len() > 0 {
         pop(state.root_slot_of_local)
     }
     let mut map_local = 0
@@ -2724,13 +2724,13 @@ fn native_c_emit_function_instructions(
         // Fall-through edge: materialize phis of the next block from this pred.
         if block_index + 1 < block_count {
             let copies = phi_edge::native_c_phi_edge_copies(function, block_index, block_index + 1)
-            if len(copies) > 0 {
+            if copies.len() > 0 {
                 native_c_append(state, copies)
             }
         }
         block_index = block_index + 1
     }
-    if len(state.control_ids) != 0 {
+    if state.control_ids.len() != 0 {
         native_c_fail(state, "compiler ICE: native-cpp function has unterminated control markers")
     }
 }
@@ -2791,7 +2791,7 @@ fn native_c_emit_function_body(
     if !native_c_function_emit_success(state) { return state }
     let mut root_count = 0
     let mut root_scan = 0
-    while root_scan < len(state.reference_locals) {
+    while root_scan < state.reference_locals.len() {
         if get_unchecked(state.reference_locals, root_scan) != 0 {
             root_count = root_count + 1
         }

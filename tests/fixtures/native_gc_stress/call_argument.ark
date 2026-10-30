@@ -1,6 +1,6 @@
 use std::text
 fn consume(value: String) -> i32 {
-    len(value)
+    value.len()
 }
 
 fn main() -> i32 {

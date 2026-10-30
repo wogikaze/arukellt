@@ -10,5 +10,5 @@ fn main() {
         push(v, i)
     }
     let mapped = v.iter().map(double).collect()
-    Test::assert_eq_i32(len(mapped), len(v))
+    Test::assert_eq_i32(mapped.len(), v.len())
 }

@@ -100,7 +100,7 @@ fn session_record_parse_diagnostics(mut snap: AnalysisSnapshot, parse_result: Pa
 
 fn session_record_parse_warnings(mut snap: AnalysisSnapshot, parse_result: ParseResult) {
     let warnings = program::ParseResult_warnings(parse_result)
-    let warning_count = len(warnings)
+    let warning_count = warnings.len()
     let mut wi = 0
     while wi < warning_count {
         let warning = get_unchecked(warnings, wi)
@@ -146,7 +146,7 @@ fn session_record_typecheck_diagnostics(mut snap: AnalysisSnapshot, check_result
 fn session_record_lint_diagnostics(mut snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
     // Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
     let lint_warns = lint_checks::run_post_resolve_lint(decls, "wasm32")
-    let lw_count = len(lint_warns)
+    let lw_count = lint_warns.len()
     let mut li = 0
     while li < lw_count {
         let w = get_unchecked(lint_warns, li)
@@ -161,7 +161,7 @@ fn session_record_lint_diagnostics(mut snap: AnalysisSnapshot, decls: Vec<AstNod
     }
     // Typecheck warnings (W0007 unused binding, W0001 shared-mut-alias)
     let tc_warns = session_typecheck_query::session_typecheck_warnings(check_result)
-    let tw_count = len(tc_warns)
+    let tw_count = tc_warns.len()
     let mut ti = 0
     while ti < tw_count {
         let w = get_unchecked(tc_warns, ti)

@@ -2,7 +2,7 @@ use corehir::fn_info
 use mir::value_types
 
 fn mir_fn_info_return_vt(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: i32) -> i32 {
-    if info_index < 0 || info_index >= len(fn_infos) {
+    if info_index < 0 || info_index >= fn_infos.len() {
         return fallback
     }
     value_types::VT_I32()

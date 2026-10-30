@@ -43,7 +43,7 @@ fn main() {
 
     // chain: both sources in order, plus the generic IntoIterator path.
     let chained = a.iter().chain(b.iter()).collect()
-    Test::assert_eq_i32(len(chained), 7)
+    Test::assert_eq_i32(chained.len(), 7)
     Test::assert_eq_i32(get_unchecked(chained, 4), 10)
     let mut chained_total: i32 = 0
     for value in a.iter().chain(b.iter()) {
@@ -53,55 +53,55 @@ fn main() {
 
     // enumerate: zero-based Pair positions.
     let enumerated = a.iter().enumerate().collect()
-    Test::assert_eq_i32(len(enumerated), 4)
+    Test::assert_eq_i32(enumerated.len(), 4)
     Test::assert_eq_i32(get_unchecked(enumerated, 3).first, 3)
     Test::assert_eq_i32(get_unchecked(enumerated, 3).second, 4)
 
     // zip: stops at the shorter source and keeps both payloads.
     let zipped = a.iter().zip(b.iter()).collect()
-    Test::assert_eq_i32(len(zipped), 3)
+    Test::assert_eq_i32(zipped.len(), 3)
     Test::assert_eq_i32(get_unchecked(zipped, 2).first, 3)
     Test::assert_eq_i32(get_unchecked(zipped, 2).second, 30)
     let mut short: Vec<i32> = Vec::new<i32>()
     push(short, 99)
     let narrow = a.iter().zip(short.iter()).collect()
-    Test::assert_eq_i32(len(narrow), 1)
+    Test::assert_eq_i32(narrow.len(), 1)
     Test::assert_eq_i32(get_unchecked(narrow, 0).second, 99)
 
     // Collector chains: map, filter, take, skip, flat_map, step_by, scan.
     let mapped = a.iter().map(double).collect()
     Test::assert_eq_i32(get_unchecked(mapped, 3), 8)
     let filtered = a.iter().filter(is_even).collect()
-    Test::assert_eq_i32(len(filtered), 2)
+    Test::assert_eq_i32(filtered.len(), 2)
     let pipeline = a.iter().map(double).filter(is_even).take(2).collect()
-    Test::assert_eq_i32(len(pipeline), 2)
+    Test::assert_eq_i32(pipeline.len(), 2)
     Test::assert_eq_i32(get_unchecked(pipeline, 1), 4)
     let skipped = a.iter().skip(2).collect()
     Test::assert_eq_i32(get_unchecked(skipped, 0), 3)
     let flattened = a.iter().flat_map(dup).collect()
-    Test::assert_eq_i32(len(flattened), 8)
+    Test::assert_eq_i32(flattened.len(), 8)
     let peeked = a.iter().peekable().collect()
-    Test::assert_eq_i32(len(peeked), 4)
+    Test::assert_eq_i32(peeked.len(), 4)
     let stepped = a.iter().step_by(2).collect()
-    Test::assert_eq_i32(len(stepped), 2)
+    Test::assert_eq_i32(stepped.len(), 2)
     let scanned = a.iter().scan(0, running_sum).collect()
     Test::assert_eq_i32(get_unchecked(scanned, 3), 10)
     // Unique / rev collectors share collect_iterator<T>; collect pins the
     // first-occurrence and reverse-order results, not only next / count.
     let unique = a.iter().unique().collect()
-    Test::assert_eq_i32(len(unique), 4)
+    Test::assert_eq_i32(unique.len(), 4)
     Test::assert_eq_i32(get_unchecked(unique, 0), 1)
     Test::assert_eq_i32(get_unchecked(unique, 3), 4)
     Test::assert_eq_i32(a.iter().unique().count(), 4)
     let reversed = a.iter().rev().collect()
-    Test::assert_eq_i32(len(reversed), 4)
+    Test::assert_eq_i32(reversed.len(), 4)
     Test::assert_eq_i32(get_unchecked(reversed, 0), 4)
     Test::assert_eq_i32(get_unchecked(reversed, 3), 1)
     Test::assert_eq_i32(a.iter().rev().count(), 4)
 
     // Range constructors expose the same into_iter entry point.
     let ranged = Range::new(0, 3).into_iter().collect()
-    Test::assert_eq_i32(len(ranged), 3)
+    Test::assert_eq_i32(ranged.len(), 3)
     let inclusive = RangeInclusive::new(0, 2).into_iter().collect()
-    Test::assert_eq_i32(len(inclusive), 3)
+    Test::assert_eq_i32(inclusive.len(), 3)
 }

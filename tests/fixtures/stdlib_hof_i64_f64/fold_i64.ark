@@ -11,7 +11,7 @@ fn main() {
     push(v, 30i64)
     let mut total: i64 = 0i64
     let mut fold_index: i32 = 0
-    while fold_index < len(v) {
+    while fold_index < v.len() {
         total = add(total, get_unchecked(v, fold_index))
         fold_index = fold_index + 1
     }

@@ -29,11 +29,11 @@ fn lower_core_let_store_value(mut ctx: LowerCtx, local_idx: i32, mut val_idx: i3
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
     // Same rule as lower_core_let: one-character nominal types (ADR-089)
     // keep their storage type across the copy.
-    if len(init_type) > 0 && len(type_name) == 0 {
+    if init_type.len() > 0 && type_name.len() == 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
     }
     if type_name.clone().starts_with("vec:") {
-        if init_type.clone().starts_with("vec:") || len(init_type) == 0 {
+        if init_type.clone().starts_with("vec:") || init_type.len() == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, val_idx, type_name.clone())
         }
     }

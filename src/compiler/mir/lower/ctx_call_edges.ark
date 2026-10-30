@@ -44,7 +44,7 @@ fn ctx_edge_overflow_names(ctx: LowerCtx) -> Vec<String> {
 }
 
 fn ctx_edge_ensure_header(mut ctx: LowerCtx) {
-    if len(ctx.fn_indices) > 0 {
+    if ctx.fn_indices.len() > 0 {
         return
     }
     push(ctx.fn_indices, 0)
@@ -70,7 +70,7 @@ fn ctx_edge_begin_function(mut ctx: LowerCtx) {
 }
 
 fn ctx_edge_restore_parent(mut ctx: LowerCtx) {
-    if len(ctx.fn_indices) < ctx_edge_header_len() {
+    if ctx.fn_indices.len() < ctx_edge_header_len() {
         return
     }
     let child_frame = ctx.gc_type_base
@@ -104,7 +104,7 @@ fn ctx_edge_complete_pending_map(mut ctx: LowerCtx, mir_index: i32) {
 }
 
 fn ctx_edge_pending_map_open(ctx: LowerCtx) -> bool {
-    let n = len(ctx.fn_indices)
+    let n = ctx.fn_indices.len()
     if n < ctx_edge_header_len() + 2 {
         return false
     }
@@ -118,7 +118,7 @@ fn ctx_edge_record_callee(mut ctx: LowerCtx, payload: i32) {
 }
 
 fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return
     }
     let ni = ctx_fn_index::ctx_fn_index_find(ctx, name.clone())
@@ -133,12 +133,12 @@ fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
             ctx_edge_record_callee(ctx, ctx_edge_name_tag(alias_ni))
             return
         }
-        let overflow = len(ctx.edge_names)
+        let overflow = ctx.edge_names.len()
         push(ctx.edge_names, alias)
         ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
         return
     }
-    let overflow = len(ctx.edge_names)
+    let overflow = ctx.edge_names.len()
     push(ctx.edge_names, name)
     ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
 }
@@ -161,7 +161,7 @@ fn ctx_edge_record_inst(mut ctx: LowerCtx, inst: MirInstDraft) {
     }
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     let fallback = core_op_call::mir_call_normal_fallback_symbol_draft(m, inst)
-    if len(fallback) == 0 {
+    if fallback.len() == 0 {
         return
     }
     if module_spine::MirModule_signature_spine_populated(m) {

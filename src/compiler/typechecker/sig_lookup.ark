@@ -9,7 +9,7 @@ fn simple_type(tag: i32) -> TypeInfo {
 
 fn lookup_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     let index = name_index::name_index_get(env.fn_sig_index, name)
-    if index >= 0 && index < len(fn_sigs) {
+    if index >= 0 && index < fn_sigs.len() {
         return get_unchecked(fn_sigs, index)
     }
     contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
