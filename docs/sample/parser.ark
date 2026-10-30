@@ -9,15 +9,14 @@
 //
 // NOTE: This is a v0 Ark parser example.
 // It demonstrates the language's expressiveness and limitations.
-use std::prelude::{byte_at, clone, ends_with, is_none, is_some, lines, split, starts_with, substring, trim}
-use std::prelude::{unwrap}
-use std::text
+use std::host::stdio::Stdio
+use std::test::Test
 fn str_find(s: String, needle: String) -> Option<i32> {
-    let n = len(needle)
-    let m = len(s)
+    let n = needle.len()
+    let m = s.len()
     let mut i = 0
     while i + n <= m {
-        if substring(s, i, i + n) == needle {
+        if s.slice(i, i + n).eq(needle) {
             return Some(i)
         }
         i = i + 1
@@ -26,15 +25,34 @@ fn str_find(s: String, needle: String) -> Option<i32> {
 }
 
 fn str_char_count(s: String) -> i32 {
-    len(s)
+    s.len()
+}
+
+// Split on newline bytes without `String::split`. On wasm32 the current
+// string-split intrinsic returns a corrupt first segment for longer inputs;
+// this scan uses only `byte_at` and `slice`, which the sample already relies
+// on. Replace it with `s.split("\n")` once the intrinsic is fixed.
+fn split_lines(s: String) -> Vec<String> {
+    let mut parts: Vec<String> = Vec::new<String>()
+    let mut start = 0
+    let mut i = 0
+    while i < s.len() {
+        if s.byte_at(i) == 10 {
+            parts.push(s.slice(start, i))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    parts.push(s.slice(start, s.len()))
+    parts
 }
 
 fn parser_trim_start(s: String) -> String {
     let mut i = 0
-    while i < len(s) && byte_at(s, i) == 32 || byte_at(s, i) == 9 || byte_at(s, i) == 13 {
+    while i < s.len() && (s.byte_at(i) == 32 || s.byte_at(i) == 9 || s.byte_at(i) == 13) {
         i = i + 1
     }
-    substring(s, i, len(s))
+    s.slice(i, s.len())
 }
 
 fn char_byte_len(c: i32) -> i32 {
@@ -54,7 +72,7 @@ fn char_byte_len(c: i32) -> i32 {
 }
 
 fn char_at_char_index(s: String, i: i32) -> i32 {
-    byte_at(s, i)
+    s.byte_at(i)
 }
 
 // ── Warning codes ────────────────────────────────────────────────────────────
@@ -153,23 +171,23 @@ fn FrontMatterField_new(key: String, raw: String) -> FrontMatterField {
 // Extract a front matter block from the very start of text.
 // Returns Option<FmResult> where remainder is the content after front matter.
 fn extract_front_matter(text: String) -> Option<FmResult> {
-    if !starts_with(text, "---\n") {
-        if !starts_with(text, "---\r\n") {
+    if !text.starts_with("---\n") {
+        if !text.starts_with("---\r\n") {
             return None
         }
     }
-    let after_open = unwrap(str_find(text, "\n")) + 1
-    let rest = substring(text, after_open, len(text))
-    let close_pos = str_find(rest, "\n---\n")
-    let close = match close_pos {
+    let after_open = str_find(text, "\n").unwrap() + 1
+    let rest = text.slice(after_open, text.len())
+    let close_pos: Option<i32> = str_find(rest, "\n---\n")
+    let close: Option<FmBounds> = match close_pos {
         Option::Some(p) => Some(FmBounds { fm_end: p, content_start: p + 5 }),
-        None => {
-            let close2 = str_find(rest, "\n---\r\n")
+        Option::None => {
+            let close2: Option<i32> = str_find(rest, "\n---\r\n")
             match close2 {
                 Option::Some(p) => Some(FmBounds { fm_end: p, content_start: p + 6 }),
-                None => {
-                    if ends_with(rest, "\n---") {
-                        Some(FmBounds { fm_end: len(rest) - 4, content_start: len(rest) })
+                Option::None => {
+                    if rest.ends_with("\n---") {
+                        Some(FmBounds { fm_end: rest.len() - 4, content_start: rest.len() })
                     } else {
                         None
                     }
@@ -178,31 +196,31 @@ fn extract_front_matter(text: String) -> Option<FmResult> {
         },
     }
     match close {
-        None => None,
+        Option::None => None,
         Option::Some(b) => {
-            let fm_str = substring(rest, 0, b.fm_end)
-            let remainder = if b.content_start < len(rest) {
-                substring(rest, b.content_start, len(rest))
+            let fm_str = rest.slice(0, b.fm_end)
+            let remainder = if b.content_start < rest.len() {
+                rest.slice(b.content_start, rest.len())
             } else {
                 ""
             }
             let mut fields: Vec<FrontMatterField> = Vec::new<FrontMatterField>()
-            let lines = split(fm_str, "\n")
+            let lines = split_lines(fm_str)
             let mut i = 0
-            while i < len(lines) {
-                let line = trim(get(lines, i))
-                if len(line) > 0 {
-                    if !starts_with(line, "#") {
-                        let colon = str_find(line, ":")
+            while i < lines.len() {
+                let line = lines.get_unchecked(i).trim()
+                if line.len() > 0 {
+                    if !line.starts_with("#") {
+                        let colon: Option<i32> = str_find(line, ":")
                         match colon {
                             Option::Some(idx) => {
-                                let key = trim(substring(line, 0, idx))
-                                let raw = trim(substring(line, idx + 1, len(line)))
-                                if len(key) > 0 {
-                                    push(fields, FrontMatterField_new(key, raw))
+                                let key = line.slice(0, idx).trim()
+                                let raw = line.slice(idx + 1, line.len()).trim()
+                                if key.len() > 0 {
+                                    fields.push(FrontMatterField_new(key, raw))
                                 }
                             },
-                            None => {
+                            Option::None => {
                             },
                         }
                     }
@@ -236,11 +254,11 @@ struct ParseCtx {
 
 fn ParseCtx_new(input: String, source: String) -> ParseCtx {
     let mut starts = Vec::new<i32>()
-    push(starts, 0)
+    starts.push(0)
     let mut i = 0
-    while i < len(input) {
-        if byte_at(input, i) == 10 {
-            push(starts, i + 1)
+    while i < input.len() {
+        if input.byte_at(i) == 10 {
+            starts.push(i + 1)
         }
         i = i + 1
     }
@@ -257,30 +275,30 @@ fn ctx_pos(ctx: ParseCtx, offset: i32) -> Pos {
     if offset < 0 {
         return Pos { line: 1, col: 1 }
     }
-    if offset > len(ctx.input) {
+    if offset > ctx.input.len() {
         return Pos { line: 1, col: 1 }
     }
     let mut lo = 0
-    let mut hi = len(ctx.line_starts) - 1
+    let mut hi = ctx.line_starts.len() - 1
     while lo < hi {
-        let mid = lo + hi + 1 / 2
-        if get_unchecked(ctx.line_starts, mid) <= offset {
+        let mid = (lo + hi + 1) / 2
+        if ctx.line_starts.get_unchecked(mid) <= offset {
             lo = mid
         } else {
             hi = mid - 1
         }
     }
     let line = lo + 1
-    let line_start = get_unchecked(ctx.line_starts, lo)
-    let col = str_char_count(substring(ctx.input, line_start, offset)) + 1
+    let line_start = ctx.line_starts.get_unchecked(lo)
+    let col = str_char_count(ctx.input.slice(line_start, offset)) + 1
     Pos { line: line, col: col }
 }
 
-fn ctx_warn(ctx: ParseCtx, warnings: Vec<Warning>, code: String, msg: String, at_offset: i32) {
+fn ctx_warn(ctx: ParseCtx, mut warnings: Vec<Warning>, code: String, msg: String, at_offset: i32) {
     let pos = ctx_pos(ctx, at_offset)
     let line = pos.line
     let col = pos.col
-    push(warnings, Warning_new(code, msg, ctx.source, line, col))
+    warnings.push(Warning_new(code, msg, ctx.source, line, col))
 }
 
 // ── AST types ────────────────────────────────────────────────────────────────
@@ -347,12 +365,12 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
     let mut warnings: Vec<Warning> = Vec::new<Warning>()
     let content = match extract_front_matter(text) {
         Option::Some(r) => {
-            push(events, Event::FrontMatter(r.fields))
+            events.push(Event::FrontMatter(r.fields))
             r.remainder
         },
-        None => text,
+        Option::None => text,
     }
-    let lines = split(content, "\n")
+    let lines = split_lines(content)
     let fn_defs = collect_fn_defs(lines)
     let mut fn_refs: Vec<String> = Vec::new<String>()
     parse_blocks(lines, events, warnings, ctx, true, fn_defs, fn_refs)
@@ -364,8 +382,8 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
 fn fnv1a(s: String) -> i32 {
     let mut h: i32 = -2128831035
     let mut i = 0
-    while i < len(s) {
-        let b = byte_at(s, i)
+    while i < s.len() {
+        let b = s.byte_at(i)
         h = h ^ b
         h = h * 16777619
         i = i + 1
@@ -380,27 +398,27 @@ fn split_source_blocks(input: String) -> Vec<String> {
     let mut block_end: i32 = 0
     let mut in_fence: bool = false
     let mut pos: i32 = 0
-    let lines = split(input, "\n")
+    let lines = input.split("\n")
     let mut i = 0
-    while i < len(lines) {
-        let line = get(lines, i)
-        let line_end = pos + len(line)
+    while i < lines.len() {
+        let line = lines.get_unchecked(i)
+        let line_end = pos + line.len()
         let trimmed = parser_trim_start(line)
-        if starts_with(trimmed, "```") {
+        if trimmed.starts_with("```") {
             in_fence = !in_fence
         }
-        if !in_fence && len(trimmed) == 0 {
+        if !in_fence && trimmed.len() == 0 {
             match block_start {
                 Option::Some(start) => {
-                    push(result, substring(input, start, block_end))
+                    result.push(input.slice(start, block_end))
                     block_start = None
                 },
-                None => {
+                Option::None => {
                 },
             }
         } else {
             match block_start {
-                None => {
+                Option::None => {
                     block_start = Some(pos)
                 },
                 Option::Some(_) => {
@@ -413,9 +431,9 @@ fn split_source_blocks(input: String) -> Vec<String> {
     }
     match block_start {
         Option::Some(start) => {
-            push(result, substring(input, start, block_end))
+            result.push(input.slice(start, block_end))
         },
-        None => {
+        Option::None => {
         },
     }
     result
@@ -526,29 +544,29 @@ struct FnDef {
 fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
     let mut defs: Vec<FnDef> = Vec::new<FnDef>()
     let mut i = 0
-    while i < len(lines) {
-        let t = parser_trim_start(get(lines, i))
-        if starts_with(t, "[^") {
-            let rest = substring(t, 2, len(t))
+    while i < lines.len() {
+        let t = parser_trim_start(lines.get_unchecked(i))
+        if t.starts_with("[^") {
+            let rest = t.slice(2, t.len())
             let colon_idx = str_find(rest, "]: ")
             match colon_idx {
                 Option::Some(ci) => {
-                    let id = substring(rest, 0, ci)
-                    if len(id) > 0 && is_none(str_find(id, " ")) {
+                    let id = rest.slice(0, ci)
+                    if id.len() > 0 && str_find(id, " ").is_none() {
                         let mut already = false
                         let mut j = 0
-                        while j < len(defs) {
-                            if get_unchecked(defs, j).id == id {
+                        while j < defs.len() {
+                            if defs.get_unchecked(j).id.eq(id) {
                                 already = true
                             }
                             j = j + 1
                         }
                         if !already {
-                            push(defs, FnDef { id: id, content: substring(rest, ci + 3, len(rest)) })
+                            defs.push(FnDef { id: id, content: rest.slice(ci + 3, rest.len()) })
                         }
                     }
                 },
-                None => {
+                Option::None => {
                 },
             }
         }
@@ -559,9 +577,9 @@ fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
 
 fn fn_defs_find(defs: Vec<FnDef>, id: String) -> Option<String> {
     let mut i = 0
-    while i < len(defs) {
-        if get_unchecked(defs, i).id == id {
-            return Some(get_unchecked(defs, i).content)
+    while i < defs.len() {
+        if defs.get_unchecked(i).id.eq(id) {
+            return Some(defs.get_unchecked(i).content)
         }
         i = i + 1
     }
@@ -570,8 +588,8 @@ fn fn_defs_find(defs: Vec<FnDef>, id: String) -> Option<String> {
 
 fn fn_refs_contains(refs: Vec<String>, id: String) -> bool {
     let mut i = 0
-    while i < len(refs) {
-        if get_unchecked(refs, i) == id {
+    while i < refs.len() {
+        if refs.get_unchecked(i).eq(id) {
             return true
         }
         i = i + 1
@@ -581,8 +599,8 @@ fn fn_refs_contains(refs: Vec<String>, id: String) -> bool {
 
 fn fn_refs_position(refs: Vec<String>, id: String) -> Option<i32> {
     let mut i = 0
-    while i < len(refs) {
-        if get_unchecked(refs, i) == id {
+    while i < refs.len() {
+        if refs.get_unchecked(i).eq(id) {
             return Some(i)
         }
         i = i + 1
@@ -590,118 +608,118 @@ fn fn_refs_position(refs: Vec<String>, id: String) -> Option<i32> {
     None
 }
 
-fn emit_fn_section(fn_defs: Vec<FnDef>, fn_refs: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx) {
+fn emit_fn_section(fn_defs: Vec<FnDef>, fn_refs: Vec<String>, mut events: Vec<Event>, mut warnings: Vec<Warning>, ctx: ParseCtx) {
     let mut i = 0
-    while i < len(fn_defs) {
-        let def = get(fn_defs, i)
+    while i < fn_defs.len() {
+        let def = fn_defs.get_unchecked(i)
         if !fn_refs_contains(fn_refs, def.id) {
             ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF(), "Footnote '[^".concat((def.id).concat("' is defined but never referenced.".concat(""))), 0)
         }
         i = i + 1
     }
-    if len(fn_refs) == 0 {
+    if fn_refs.len() == 0 {
         return
     }
-    push(events, Event::Start(Tag::FootnoteSection))
+    events.push(Event::Start(Tag::FootnoteSection))
     let mut idx = 0
-    while idx < len(fn_refs) {
-        let id = get(fn_refs, idx)
+    while idx < fn_refs.len() {
+        let id = fn_refs.get_unchecked(idx)
         let num = idx + 1
         let content = fn_defs_find(fn_defs, id)
         match content {
             Option::Some(c) => {
-                push(events, Event::Start(Tag::FootnoteItem(num)))
+                events.push(Event::Start(Tag::FootnoteItem(num)))
                 let mut nested_refs: Vec<String> = Vec::new<String>()
                 parse_inline(c, events, warnings, ctx, false, fn_defs, nested_refs)
-                push(events, Event::End(Tag::FootnoteItem(num)))
+                events.push(Event::End(Tag::FootnoteItem(num)))
             },
-            None => {
+            Option::None => {
             },
         }
         idx = idx + 1
     }
-    push(events, Event::End(Tag::FootnoteSection))
+    events.push(Event::End(Tag::FootnoteSection))
 }
 
 // ── Block parser ──────────────────────────────────────────────────────────────
-fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, root: bool, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) {
+fn parse_blocks(lines: Vec<String>, mut events: Vec<Event>, mut warnings: Vec<Warning>, ctx: ParseCtx, root: bool, fn_defs: Vec<FnDef>, mut fn_refs: Vec<String>) {
     let mut i = 0
     let mut section_stack: Vec<i32> = Vec::new<i32>()
-    while i < len(lines) {
-        let line = get(lines, i)
+    while i < lines.len() {
+        let line = lines.get_unchecked(i)
         let tline = parser_trim_start(line)
-        if len(tline) == 0 {
+        if tline.len() == 0 {
             i = i + 1
         } else {
-            if starts_with(tline, "[^") && is_some(str_find(tline, "]: ")) {
+            if tline.starts_with("[^") && str_find(tline, "]: ").is_some() {
                 i = i + 1
             } else {
-                if starts_with(tline, "@[") {
-                    let bracket_end = str_find(substring(tline, 2, len(tline)), "]")
+                if tline.starts_with("@[") {
+                    let bracket_end = str_find(tline.slice(2, tline.len()), "]")
                     match bracket_end {
                         Option::Some(be) => {
-                            let type_name = substring(tline, 2, 2 + be)
-                            let after = substring(tline, 2 + be + 1, len(tline))
-                            if type_name == "card" {
-                                if starts_with(after, "(") && ends_with(after, ")") {
-                                    let url = substring(after, 1, len(after) - 1)
-                                    if !starts_with(url, "http://") && !starts_with(url, "https://") {
+                            let type_name = tline.slice(2, 2 + be)
+                            let after = tline.slice(2 + be + 1, tline.len())
+                            if type_name.eq("card") {
+                                if after.starts_with("(") && after.ends_with(")") {
+                                    let url = after.slice(1, after.len() - 1)
+                                    if !url.starts_with("http://") && !url.starts_with("https://") {
                                         ctx_warn(ctx, warnings, CARD_NON_HTTP(), "Card link URL '".concat(url.concat("' should start with http:// or https://")), 0)
                                     }
-                                    push(events, Event::CardLink(url))
+                                    events.push(Event::CardLink(url))
                                 } else {
-                                    ctx_warn(ctx, warnings, CARD_MALFORMED(), "Malformed @[card] syntax near '".concat(substring(tline, 0, min_i32(len(tline), 40)).concat("'.")), 0)
+                                    ctx_warn(ctx, warnings, CARD_MALFORMED(), "Malformed @[card] syntax near '".concat(tline.slice(0, min_i32(tline.len(), 40)).concat("'.")), 0)
                                 }
                             } else {
                                 ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE(), "Unknown embed type '".concat(type_name.concat("': only 'card' is supported.")), 0)
                             }
                         },
-                        None => {
+                        Option::None => {
                         },
                     }
                     i = i + 1
                 } else {
-                    if starts_with(tline, "```") {
-                        let info = trim(substring(tline, 3, len(tline)))
+                    if tline.starts_with("```") {
+                        let info = tline.slice(3, tline.len()).trim()
                         let colon = str_find(info, ":")
                         let lang = match colon {
-                            Option::Some(c) => substring(info, 0, c),
-                            None => info,
+                            Option::Some(c) => info.slice(0, c),
+                            Option::None => info,
                         }
                         let filename = match colon {
-                            Option::Some(c) => substring(info, c + 1, len(info)),
-                            None => "",
+                            Option::Some(c) => info.slice(c + 1, info.len()),
+                            Option::None => "",
                         }
-                        push(events, Event::BlockId(fnv1a(tline)))
-                        push(events, Event::Start(Tag::CodeBlock(lang, filename)))
+                        events.push(Event::BlockId(fnv1a(tline)))
+                        events.push(Event::Start(Tag::CodeBlock(lang, filename)))
                         i = i + 1
-                        while i < len(lines) && !starts_with(parser_trim_start(get(lines, i)), "```") {
-                            push(events, Event::Text(get(lines, i)))
-                            push(events, Event::Text("\n"))
+                        while i < lines.len() && !parser_trim_start(lines.get_unchecked(i)).starts_with("```") {
+                            events.push(Event::Text(lines.get_unchecked(i)))
+                            events.push(Event::Text("\n"))
                             i = i + 1
                         }
-                        if i < len(lines) {
+                        if i < lines.len() {
                             i = i + 1
                         }
-                        push(events, Event::End(Tag::CodeBlock(lang, filename)))
+                        events.push(Event::End(Tag::CodeBlock(lang, filename)))
                     } else {
-                        if starts_with(tline, "#") {
+                        if tline.starts_with("#") {
                             let mut level = 0
-                            while level < len(tline) && byte_at(tline, level) == 35 {
+                            while level < tline.len() && tline.byte_at(level) == 35 {
                                 level = level + 1
                             }
                             if level > 0 && level <= 6 {
-                                let valid = level == len(tline) || byte_at(tline, level) == 32
+                                let valid = level == tline.len() || tline.byte_at(level) == 32
                                 if valid {
                                     if root {
                                         close_sections_until(events, section_stack, level)
-                                        push(events, Event::Start(Tag::Section(level)))
-                                        push(section_stack, level)
+                                        events.push(Event::Start(Tag::Section(level)))
+                                        section_stack.push(level)
                                     }
-                                    push(events, Event::BlockId(fnv1a(tline)))
-                                    push(events, Event::Start(Tag::Heading(level)))
-                                    parse_inline(trim(substring(tline, level, len(tline))), events, warnings, ctx, false, fn_defs, fn_refs)
-                                    push(events, Event::End(Tag::Heading(level)))
+                                    events.push(Event::BlockId(fnv1a(tline)))
+                                    events.push(Event::Start(Tag::Heading(level)))
+                                    parse_inline(tline.slice(level, tline.len()).trim(), events, warnings, ctx, false, fn_defs, fn_refs)
+                                    events.push(Event::End(Tag::Heading(level)))
                                     i = i + 1
                                 } else {
                                     i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
@@ -710,14 +728,14 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                 i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
                             }
                         } else {
-                            if starts_with(line, "---") && all_chars_eq(line, 45) {
-                                if root && len(line) == 3 {
+                            if line.starts_with("---") && all_chars_eq(line, 45) {
+                                if root && line.len() == 3 {
                                     pop_section(events, section_stack)
                                 }
-                                push(events, Event::Rule)
+                                events.push(Event::Rule)
                                 i = i + 1
                             } else {
-                                if starts_with(line, ";;;") {
+                                if line.starts_with(";;;") {
                                     if root {
                                         let count = count_occurrences(line, ";;;")
                                         let mut k = 0
@@ -728,21 +746,21 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                     }
                                     i = i + 1
                                 } else {
-                                    if starts_with(line, ">") {
+                                    if line.starts_with(">") {
                                         let mut bq_lines: Vec<String> = Vec::new<String>()
                                         let mut j = i
-                                        while j < len(lines) {
-                                            let ln = get(lines, j)
-                                            if starts_with(ln, ">") {
-                                                let mut content = substring(ln, 1, len(ln))
-                                                if starts_with(content, " ") {
-                                                    content = substring(content, 1, len(content))
+                                        while j < lines.len() {
+                                            let ln = lines.get_unchecked(j)
+                                            if ln.starts_with(">") {
+                                                let mut content = ln.slice(1, ln.len())
+                                                if content.starts_with(" ") {
+                                                    content = content.slice(1, content.len())
                                                 }
-                                                push(bq_lines, content)
+                                                bq_lines.push(content)
                                                 j = j + 1
                                             } else {
-                                                if len(trim(ln)) == 0 && j > i && j + 1 < len(lines) && starts_with(get(lines, j + 1), ">") {
-                                                    push(bq_lines, "")
+                                                if ln.trim().len() == 0 && j > i && j + 1 < lines.len() && lines.get_unchecked(j + 1).starts_with(">") {
+                                                    bq_lines.push("")
                                                     j = j + 1
                                                 } else {
                                                     break
@@ -750,56 +768,46 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                             }
                                         }
                                         let src_hash = fnv1a_lines(bq_lines)
-                                        push(events, Event::BlockId(src_hash))
-                                        push(events, Event::Start(Tag::Blockquote))
+                                        events.push(Event::BlockId(src_hash))
+                                        events.push(Event::Start(Tag::Blockquote))
                                         parse_blocks(bq_lines, events, warnings, ctx, false, fn_defs, fn_refs)
-                                        push(events, Event::End(Tag::Blockquote))
+                                        events.push(Event::End(Tag::Blockquote))
                                         i = j
                                     } else {
-                                        if is_table_line(line) && i + 1 < len(lines) && is_table_line(get(lines, i + 1)) {
-                                            let sep_line = trim(get(lines, i + 1))
-                                            if is_some(str_find(sep_line, "-|")) || is_some(str_find(sep_line, "|-")) {
+                                        if is_table_line(line) && i + 1 < lines.len() && is_table_line(lines.get_unchecked(i + 1)) {
+                                            let sep_line = lines.get_unchecked(i + 1).trim()
+                                            if str_find(sep_line, "-|").is_some() || str_find(sep_line, "|-").is_some() {
                                                 let head = parse_table_cells(line)
-                                                let sep = parse_table_cells(get(lines, i + 1))
+                                                let sep = parse_table_cells(lines.get_unchecked(i + 1))
                                                 let aligns = parse_alignments(sep)
-                                                push(events, Event::BlockId(fnv1a(line)))
-                                                push(events, Event::Start(Tag::Table(clone(aligns))))
-                                                push(events, Event::Start(Tag::TableHead))
-                                                push(events, Event::Start(Tag::TableRow))
+                                                events.push(Event::BlockId(fnv1a(line)))
+                                                events.push(Event::Start(Tag::Table(aligns.clone())))
+                                                events.push(Event::Start(Tag::TableHead))
+                                                events.push(Event::Start(Tag::TableRow))
                                                 let mut ci = 0
-                                                while ci < len(head) {
-                                                    let a = if ci < len(aligns) {
-                                                        get(aligns, ci)
-                                                    } else {
-                                                        Alignment::AlignNone
-                                                    }
-                                                    push(events, Event::Start(Tag::TableCell(clone(a))))
-                                                    parse_inline(get(head, ci), events, warnings, ctx, false, fn_defs, fn_refs)
-                                                    push(events, Event::End(Tag::TableCell(a)))
+                                                while ci < head.len() {
+                                                    events.push(Event::Start(Tag::TableCell(alignment_at(aligns, ci))))
+                                                    parse_inline(head.get_unchecked(ci), events, warnings, ctx, false, fn_defs, fn_refs)
+                                                    events.push(Event::End(Tag::TableCell(alignment_at(aligns, ci))))
                                                     ci = ci + 1
                                                 }
-                                                push(events, Event::End(Tag::TableRow))
-                                                push(events, Event::End(Tag::TableHead))
+                                                events.push(Event::End(Tag::TableRow))
+                                                events.push(Event::End(Tag::TableHead))
                                                 let mut j = i + 2
-                                                while j < len(lines) && is_table_line(get(lines, j)) {
-                                                    push(events, Event::Start(Tag::TableRow))
-                                                    let row = parse_table_cells(get(lines, j))
+                                                while j < lines.len() && is_table_line(lines.get_unchecked(j)) {
+                                                    events.push(Event::Start(Tag::TableRow))
+                                                    let row = parse_table_cells(lines.get_unchecked(j))
                                                     let mut ci2 = 0
-                                                    while ci2 < len(row) {
-                                                        let a2 = if ci2 < len(aligns) {
-                                                            get(aligns, ci2)
-                                                        } else {
-                                                            Alignment::AlignNone
-                                                        }
-                                                        push(events, Event::Start(Tag::TableCell(clone(a2))))
-                                                        parse_inline(get(row, ci2), events, warnings, ctx, false, fn_defs, fn_refs)
-                                                        push(events, Event::End(Tag::TableCell(a2)))
+                                                    while ci2 < row.len() {
+                                                        events.push(Event::Start(Tag::TableCell(alignment_at(aligns, ci2))))
+                                                        parse_inline(row.get_unchecked(ci2), events, warnings, ctx, false, fn_defs, fn_refs)
+                                                        events.push(Event::End(Tag::TableCell(alignment_at(aligns, ci2))))
                                                         ci2 = ci2 + 1
                                                     }
-                                                    push(events, Event::End(Tag::TableRow))
+                                                    events.push(Event::End(Tag::TableRow))
                                                     j = j + 1
                                                 }
-                                                push(events, Event::End(Tag::Table(aligns)))
+                                                events.push(Event::End(Tag::Table(aligns)))
                                                 i = j
                                             } else {
                                                 i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
@@ -807,11 +815,11 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                         } else {
                                             if is_ul_line(tline) || is_ol_line(tline) {
                                                 let is_ol = is_ol_line(tline)
-                                                push(events, Event::BlockId(fnv1a(tline)))
-                                                push(events, Event::Start(Tag::List(is_ol)))
+                                                events.push(Event::BlockId(fnv1a(tline)))
+                                                events.push(Event::Start(Tag::List(is_ol)))
                                                 let mut j = i
-                                                while j < len(lines) {
-                                                    let l2 = parser_trim_start(get(lines, j))
+                                                while j < lines.len() {
+                                                    let l2 = parser_trim_start(lines.get_unchecked(j))
                                                     let matches_type = if is_ol {
                                                         is_ol_line(l2)
                                                     } else {
@@ -819,20 +827,20 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                                     }
                                                     if matches_type {
                                                         let content = if is_ul_line(l2) {
-                                                            substring(l2, 2, len(l2))
+                                                            l2.slice(2, l2.len())
                                                         } else {
                                                             let digs = count_leading_digits(l2)
-                                                            substring(l2, digs + 2, len(l2))
+                                                            l2.slice(digs + 2, l2.len())
                                                         }
-                                                        push(events, Event::Start(Tag::Item))
+                                                        events.push(Event::Start(Tag::Item))
                                                         parse_inline(content, events, warnings, ctx, false, fn_defs, fn_refs)
-                                                        push(events, Event::End(Tag::Item))
+                                                        events.push(Event::End(Tag::Item))
                                                         j = j + 1
                                                     } else {
                                                         break
                                                     }
                                                 }
-                                                push(events, Event::End(Tag::List(is_ol)))
+                                                events.push(Event::End(Tag::List(is_ol)))
                                                 i = j
                                             } else {
                                                 i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
@@ -848,24 +856,24 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
         }
     }
     if root {
-        while len(section_stack) > 0 {
+        while section_stack.len() > 0 {
             pop_section(events, section_stack)
         }
     }
 }
 
 // ── Block parser helpers ─────────────────────────────────────────────────────
-fn pop_section(events: Vec<Event>, stack: Vec<i32>) {
-    if len(stack) > 0 {
-        let level = get_unchecked(stack, len(stack) - 1)
-        let _ = pop(stack)
-        push(events, Event::End(Tag::Section(level)))
+fn pop_section(mut events: Vec<Event>, mut stack: Vec<i32>) {
+    if stack.len() > 0 {
+        let level = stack.get_unchecked(stack.len() - 1)
+        let _ = stack.pop()
+        events.push(Event::End(Tag::Section(level)))
     }
 }
 
-fn close_sections_until(events: Vec<Event>, stack: Vec<i32>, level: i32) {
-    while len(stack) > 0 {
-        let top = get_unchecked(stack, len(stack) - 1)
+fn close_sections_until(mut events: Vec<Event>, mut stack: Vec<i32>, level: i32) {
+    while stack.len() > 0 {
+        let top = stack.get_unchecked(stack.len() - 1)
         if top >= level {
             pop_section(events, stack)
         } else {
@@ -875,21 +883,21 @@ fn close_sections_until(events: Vec<Event>, stack: Vec<i32>, level: i32) {
 }
 
 fn is_table_line(line: String) -> bool {
-    starts_with(parser_trim_start(line), "|")
+    parser_trim_start(line).starts_with("|")
 }
 
 fn is_ul_line(tline: String) -> bool {
-    starts_with(tline, "- ") || starts_with(tline, "* ")
+    tline.starts_with("- ") || tline.starts_with("* ")
 }
 
 fn is_ol_line(tline: String) -> bool {
     let digs = count_leading_digits(tline)
-    digs > 0 && starts_with(substring(tline, digs, len(tline)), ". ")
+    digs > 0 && tline.slice(digs, tline.len()).starts_with(". ")
 }
 
 fn count_leading_digits(s: String) -> i32 {
     let mut count = 0
-    while count < len(s) && is_ascii_digit(byte_at(s, count)) {
+    while count < s.len() && is_ascii_digit(s.byte_at(count)) {
         count = count + 1
     }
     count
@@ -909,10 +917,10 @@ fn all_chars_eq(s: String, c: i32) -> bool {
 fn count_occurrences(s: String, needle: String) -> i32 {
     let mut count = 0
     let mut pos = 0
-    while pos + len(needle) <= len(s) {
-        if substring(s, pos, pos + len(needle)) == needle {
+    while pos + needle.len() <= s.len() {
+        if s.slice(pos, pos + needle.len()).eq(needle) {
             count = count + 1
-            pos = pos + len(needle)
+            pos = pos + needle.len()
         } else {
             pos = pos + 1
         }
@@ -923,11 +931,11 @@ fn count_occurrences(s: String, needle: String) -> i32 {
 fn fnv1a_lines(lines: Vec<String>) -> i32 {
     let mut h: i32 = -2128831035
     let mut i = 0
-    while i < len(lines) {
-        let line = get(lines, i)
+    while i < lines.len() {
+        let line = lines.get_unchecked(i)
         let mut j = 0
-        while j < len(line) {
-            h = h ^ byte_at(line, j)
+        while j < line.len() {
+            h = h ^ line.byte_at(j)
             h = h * 16777619
             j = j + 1
         }
@@ -937,22 +945,22 @@ fn fnv1a_lines(lines: Vec<String>) -> i32 {
 }
 
 fn parse_table_cells(line: String) -> Vec<String> {
-    let t = trim(line)
-    let t2 = if starts_with(t, "|") {
-        substring(t, 1, len(t))
+    let t = line.trim()
+    let t2 = if t.starts_with("|") {
+        t.slice(1, t.len())
     } else {
         t
     }
-    let t3 = if ends_with(t2, "|") {
-        substring(t2, 0, len(t2) - 1)
+    let t3 = if t2.ends_with("|") {
+        t2.slice(0, t2.len() - 1)
     } else {
         t2
     }
-    let parts = split(t3, "|")
+    let parts = t3.split("|")
     let mut result: Vec<String> = Vec::new<String>()
     let mut i = 0
-    while i < len(parts) {
-        push(result, trim(get(parts, i)))
+    while i < parts.len() {
+        result.push(parts.get_unchecked(i).trim())
         i = i + 1
     }
     result
@@ -961,20 +969,20 @@ fn parse_table_cells(line: String) -> Vec<String> {
 fn parse_alignments(sep_cells: Vec<String>) -> Vec<Alignment> {
     let mut aligns: Vec<Alignment> = Vec::new<Alignment>()
     let mut i = 0
-    while i < len(sep_cells) {
-        let s = trim(get(sep_cells, i))
-        let left = starts_with(s, ":")
-        let right = ends_with(s, ":")
+    while i < sep_cells.len() {
+        let s = sep_cells.get_unchecked(i).trim()
+        let left = s.starts_with(":")
+        let right = s.ends_with(":")
         if left && right {
-            push(aligns, Alignment::Center)
+            aligns.push(Alignment::Center)
         } else {
             if left {
-                push(aligns, Alignment::Left)
+                aligns.push(Alignment::Left)
             } else {
                 if right {
-                    push(aligns, Alignment::Right)
+                    aligns.push(Alignment::Right)
                 } else {
-                    push(aligns, Alignment::AlignNone)
+                    aligns.push(Alignment::AlignNone)
                 }
             }
         }
@@ -983,224 +991,238 @@ fn parse_alignments(sep_cells: Vec<String>) -> Vec<Alignment> {
     aligns
 }
 
-fn is_block_start(line: String, tline: String) -> bool {
-    len(tline) == 0 || starts_with(tline, "```") || starts_with(tline, "#") || starts_with(line, "---") && all_chars_eq(line, 45) || starts_with(line, ";;;") || starts_with(line, ">") || is_table_line(line) || starts_with(tline, "- ") || starts_with(tline, "* ") || is_ol_line(tline) || starts_with(tline, "@[") || starts_with(tline, "[^") && is_some(str_find(tline, "]: "))
+// `Alignment` has no `Clone` impl, and cloning a unit enum read from a
+// `Vec<Alignment>` traps on wasm32-gc. Re-read the element at each use site
+// instead; the fallback keeps short rows aligned with the separator.
+fn alignment_at(aligns: Vec<Alignment>, index: i32) -> Alignment {
+    if index < aligns.len() {
+        aligns.get_unchecked(index)
+    } else {
+        Alignment::AlignNone
+    }
 }
 
-fn parse_paragraph(lines: Vec<String>, start: i32, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) -> i32 {
+fn is_block_start(line: String, tline: String) -> bool {
+    tline.len() == 0 || tline.starts_with("```") || tline.starts_with("#") || line.starts_with("---") && all_chars_eq(line, 45) || line.starts_with(";;;") || line.starts_with(">") || is_table_line(line) || tline.starts_with("- ") || tline.starts_with("* ") || is_ol_line(tline) || tline.starts_with("@[") || tline.starts_with("[^") && str_find(tline, "]: ").is_some()
+}
+
+fn parse_paragraph(lines: Vec<String>, start: i32, mut events: Vec<Event>, mut warnings: Vec<Warning>, ctx: ParseCtx, fn_defs: Vec<FnDef>, mut fn_refs: Vec<String>) -> i32 {
     let mut para: Vec<String> = Vec::new<String>()
     let mut j = start
-    while j < len(lines) {
-        let ln = get(lines, j)
+    while j < lines.len() {
+        let ln = lines.get_unchecked(j)
         let t = parser_trim_start(ln)
         if is_block_start(ln, t) {
             break
         } else {
-            push(para, ln)
+            para.push(ln)
             j = j + 1
         }
     }
-    if len(para) > 0 {
+    if para.len() > 0 {
         let para_hash = fnv1a_lines(para)
-        push(events, Event::BlockId(para_hash))
-        push(events, Event::Start(Tag::Paragraph))
+        events.push(Event::BlockId(para_hash))
+        events.push(Event::Start(Tag::Paragraph))
         let mut pidx = 0
-        while pidx < len(para) {
-            parse_inline(get(para, pidx), events, warnings, ctx, false, fn_defs, fn_refs)
-            if pidx < len(para) - 1 {
-                push(events, Event::HardBreak)
+        while pidx < para.len() {
+            parse_inline(para.get_unchecked(pidx), events, warnings, ctx, false, fn_defs, fn_refs)
+            if pidx < para.len() - 1 {
+                events.push(Event::HardBreak)
             }
             pidx = pidx + 1
         }
-        push(events, Event::End(Tag::Paragraph))
+        events.push(Event::End(Tag::Paragraph))
     }
     j
 }
 
 // ── Inline parser ─────────────────────────────────────────────────────────────
-fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, in_annotation: bool, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) {
+fn parse_inline(text: String, mut events: Vec<Event>, mut warnings: Vec<Warning>, ctx: ParseCtx, in_annotation: bool, fn_defs: Vec<FnDef>, mut fn_refs: Vec<String>) {
     let mut pos = 0
-    while pos < len(text) {
-        let remaining = substring(text, pos, len(text))
-        if starts_with(remaining, "$$") {
-            let end = str_find(substring(remaining, 2, len(remaining)), "$$")
+    while pos < text.len() {
+        let remaining = text.slice(pos, text.len())
+        if remaining.starts_with("$$") {
+            let end = str_find(remaining.slice(2, remaining.len()), "$$")
             match end {
                 Option::Some(e) => {
-                    push(events, Event::MathDisplay(substring(remaining, 2, 2 + e)))
+                    events.push(Event::MathDisplay(remaining.slice(2, 2 + e)))
                     pos = pos + 2 + e + 2
                 },
-                None => {
+                Option::None => {
                     ctx_warn(ctx, warnings, MATH_UNCLOSED_DISPLAY(), "Unclosed '$$' math block: no matching '$$' found.", pos)
                     pos = pos + 1
                 },
             }
         } else {
-            if starts_with(remaining, "$") && !starts_with(remaining, "$$") {
-                let end = str_find(substring(remaining, 1, len(remaining)), "$")
+            if remaining.starts_with("$") && !remaining.starts_with("$$") {
+                let end = str_find(remaining.slice(1, remaining.len()), "$")
                 match end {
                     Option::Some(e) => {
-                        push(events, Event::MathInline(substring(remaining, 1, 1 + e)))
+                        events.push(Event::MathInline(remaining.slice(1, 1 + e)))
                         pos = pos + 1 + e + 1
                     },
-                    None => {
+                    Option::None => {
                         ctx_warn(ctx, warnings, MATH_UNCLOSED_INLINE(), "Unclosed '$' math expression: no matching '$' found.", pos)
                         pos = pos + 1
                     },
                 }
             } else {
-                if starts_with(remaining, "`") {
-                    let end = str_find(substring(remaining, 1, len(remaining)), "`")
+                if remaining.starts_with("`") {
+                    let end = str_find(remaining.slice(1, remaining.len()), "`")
                     match end {
                         Option::Some(e) => {
-                            push(events, Event::Start(Tag::Code))
-                            push(events, Event::Text(substring(remaining, 1, 1 + e)))
-                            push(events, Event::End(Tag::Code))
+                            events.push(Event::Start(Tag::Code))
+                            events.push(Event::Text(remaining.slice(1, 1 + e)))
+                            events.push(Event::End(Tag::Code))
                             pos = pos + 1 + e + 1
                         },
-                        None => {
-                            push(events, Event::Text(substring(remaining, 0, 1)))
+                        Option::None => {
+                            events.push(Event::Text(remaining.slice(0, 1)))
                             pos = pos + 1
                         },
                     }
                 } else {
-                    if starts_with(remaining, "~~") {
-                        let end = str_find(substring(remaining, 2, len(remaining)), "~~")
+                    if remaining.starts_with("~~") {
+                        let end = str_find(remaining.slice(2, remaining.len()), "~~")
                         match end {
                             Option::Some(e) => {
-                                push(events, Event::Start(Tag::Strikethrough))
-                                parse_inline(substring(remaining, 2, 2 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                                push(events, Event::End(Tag::Strikethrough))
+                                events.push(Event::Start(Tag::Strikethrough))
+                                parse_inline(remaining.slice(2, 2 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                events.push(Event::End(Tag::Strikethrough))
                                 pos = pos + 2 + e + 2
                             },
-                            None => {
-                                push(events, Event::Text(substring(remaining, 0, 2)))
+                            Option::None => {
+                                events.push(Event::Text(remaining.slice(0, 2)))
                                 pos = pos + 2
                             },
                         }
                     } else {
-                        if starts_with(remaining, "**") {
-                            let end = str_find(substring(remaining, 2, len(remaining)), "**")
+                        if remaining.starts_with("**") {
+                            let end = str_find(remaining.slice(2, remaining.len()), "**")
                             match end {
                                 Option::Some(e) => {
-                                    push(events, Event::Start(Tag::Strong))
-                                    parse_inline(substring(remaining, 2, 2 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                                    push(events, Event::End(Tag::Strong))
+                                    events.push(Event::Start(Tag::Strong))
+                                    parse_inline(remaining.slice(2, 2 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                    events.push(Event::End(Tag::Strong))
                                     pos = pos + 2 + e + 2
                                 },
-                                None => {
-                                    push(events, Event::Text(substring(remaining, 0, 2)))
+                                Option::None => {
+                                    events.push(Event::Text(remaining.slice(0, 2)))
                                     pos = pos + 2
                                 },
                             }
                         } else {
-                            if starts_with(remaining, "*") && !starts_with(remaining, "**") {
-                                let end = str_find(substring(remaining, 1, len(remaining)), "*")
+                            if remaining.starts_with("*") && !remaining.starts_with("**") {
+                                let end = str_find(remaining.slice(1, remaining.len()), "*")
                                 match end {
                                     Option::Some(e) => {
-                                        push(events, Event::Start(Tag::Emphasis))
-                                        parse_inline(substring(remaining, 1, 1 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                                        push(events, Event::End(Tag::Emphasis))
+                                        events.push(Event::Start(Tag::Emphasis))
+                                        parse_inline(remaining.slice(1, 1 + e), events, warnings, ctx, in_annotation, fn_defs, fn_refs)
+                                        events.push(Event::End(Tag::Emphasis))
                                         pos = pos + 1 + e + 1
                                     },
-                                    None => {
-                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                    Option::None => {
+                                        events.push(Event::Text(remaining.slice(0, 1)))
                                         pos = pos + 1
                                     },
                                 }
                             } else {
-                                if starts_with(remaining, "\\n") {
-                                    push(events, Event::HardBreak)
+                                if remaining.starts_with("\\n") {
+                                    events.push(Event::HardBreak)
                                     pos = pos + 2
                                 } else {
-                                    if starts_with(remaining, "\\") && len(remaining) >= 2 {
-                                        let ch = byte_at(remaining, 1)
+                                    if remaining.starts_with("\\") && remaining.len() >= 2 {
+                                        let ch = remaining.byte_at(1)
                                         let ch_len = char_byte_len(ch)
-                                        push(events, Event::Text(substring(remaining, 1, 1 + ch_len)))
+                                        events.push(Event::Text(remaining.slice(1, 1 + ch_len)))
                                         pos = pos + 1 + ch_len
                                     } else {
-                                        if starts_with(remaining, "![") {
+                                        if remaining.starts_with("![") {
                                             let close_alt = find_matching_bracket(remaining, 1)
                                             match close_alt {
                                                 Option::Some(ca) => {
-                                                    if ca + 1 < len(remaining) && byte_at(remaining, ca + 1) == 40 {
-                                                        let cp = str_find(substring(remaining, ca + 2, len(remaining)), ")")
+                                                    if ca + 1 < remaining.len() && remaining.byte_at(ca + 1) == 40 {
+                                                        let cp = str_find(remaining.slice(ca + 2, remaining.len()), ")")
                                                         match cp {
                                                             Option::Some(p) => {
                                                                 let close_src = ca + 2 + p
-                                                                let alt = substring(remaining, 2, ca)
-                                                                let src = substring(remaining, ca + 2, close_src)
-                                                                push(events, Event::Start(Tag::Image(src, alt)))
-                                                                push(events, Event::End(Tag::Image(src, alt)))
+                                                                let alt = remaining.slice(2, ca)
+                                                                let src = remaining.slice(ca + 2, close_src)
+                                                                events.push(Event::Start(Tag::Image(src, alt)))
+                                                                events.push(Event::End(Tag::Image(src, alt)))
                                                                 pos = pos + close_src + 1
                                                             },
-                                                            None => {
-                                                                push(events, Event::Text(substring(remaining, 0, 1)))
+                                                            Option::None => {
+                                                                events.push(Event::Text(remaining.slice(0, 1)))
                                                                 pos = pos + 1
                                                             },
                                                         }
                                                     } else {
-                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                        events.push(Event::Text(remaining.slice(0, 1)))
                                                         pos = pos + 1
                                                     }
                                                 },
-                                                None => {
-                                                    push(events, Event::Text(substring(remaining, 0, 1)))
+                                                Option::None => {
+                                                    events.push(Event::Text(remaining.slice(0, 1)))
                                                     pos = pos + 1
                                                 },
                                             }
                                         } else {
-                                            if starts_with(remaining, "[^") {
-                                                let bracket_end = str_find(substring(remaining, 2, len(remaining)), "]")
+                                            if remaining.starts_with("[^") {
+                                                let bracket_end = str_find(remaining.slice(2, remaining.len()), "]")
                                                 match bracket_end {
                                                     Option::Some(be) => {
-                                                        let id = substring(remaining, 2, 2 + be)
-                                                        if len(id) > 0 && is_none(str_find(id, " ")) {
+                                                        let id = remaining.slice(2, 2 + be)
+                                                        if id.len() > 0 && str_find(id, " ").is_none() {
                                                             let total_len = 2 + be + 1
-                                                            let has_def = is_some(fn_defs_find(fn_defs, id))
+                                                            let has_def = match fn_defs_find(fn_defs, id) {
+                                                                Option::Some(_) => true,
+                                                                Option::None => false,
+                                                            }
                                                             if has_def {
                                                                 let existing = fn_refs_position(fn_refs, id)
                                                                 let num = match existing {
                                                                     Option::Some(p) => p + 1,
-                                                                    None => {
-                                                                        push(fn_refs, id)
-                                                                        len(fn_refs)
+                                                                    Option::None => {
+                                                                        fn_refs.push(id)
+                                                                        fn_refs.len()
                                                                     },
                                                                 }
-                                                                push(events, Event::FootnoteRef(num))
+                                                                events.push(Event::FootnoteRef(num))
                                                             } else {
                                                                 ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF(), "Footnote reference '[^".concat(id.concat("]' has no matching definition.")), pos)
-                                                                push(events, Event::Text(substring(remaining, 0, total_len)))
+                                                                events.push(Event::Text(remaining.slice(0, total_len)))
                                                             }
                                                             pos = pos + total_len
                                                         } else {
-                                                            push(events, Event::Text(substring(remaining, 0, 1)))
+                                                            events.push(Event::Text(remaining.slice(0, 1)))
                                                             pos = pos + 1
                                                         }
                                                     },
-                                                    None => {
-                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                    Option::None => {
+                                                        events.push(Event::Text(remaining.slice(0, 1)))
                                                         pos = pos + 1
                                                     },
                                                 }
                                             } else {
-                                                if starts_with(remaining, "[") {
+                                                if remaining.starts_with("[") {
                                                     let close_bracket = find_matching_bracket(remaining, 0)
                                                     match close_bracket {
                                                         Option::Some(cb) => {
-                                                            let content = substring(remaining, 1, cb)
-                                                            if cb + 1 < len(remaining) && byte_at(remaining, cb + 1) == 40 {
-                                                                let cp = str_find(substring(remaining, cb + 2, len(remaining)), ")")
+                                                            let content = remaining.slice(1, cb)
+                                                            if cb + 1 < remaining.len() && remaining.byte_at(cb + 1) == 40 {
+                                                                let cp = str_find(remaining.slice(cb + 2, remaining.len()), ")")
                                                                 match cp {
                                                                     Option::Some(p) => {
                                                                         let close_paren = cb + 2 + p
-                                                                        let href = substring(remaining, cb + 2, close_paren)
-                                                                        push(events, Event::Start(Tag::Link(href)))
+                                                                        let href = remaining.slice(cb + 2, close_paren)
+                                                                        events.push(Event::Start(Tag::Link(href)))
                                                                         parse_inline(content, events, warnings, ctx, in_annotation, fn_defs, fn_refs)
-                                                                        push(events, Event::End(Tag::Link(href)))
+                                                                        events.push(Event::End(Tag::Link(href)))
                                                                         pos = pos + close_paren + 1
                                                                     },
-                                                                    None => {
-                                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                    Option::None => {
+                                                                        events.push(Event::Text(remaining.slice(0, 1)))
                                                                         pos = pos + 1
                                                                     },
                                                                 }
@@ -1208,111 +1230,111 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                 let slash = find_slash_at_depth_zero(content)
                                                                 match slash {
                                                                     Option::Some(si) => {
-                                                                        let base = substring(content, 0, si)
-                                                                        let ruby = substring(content, si + 1, len(content))
-                                                                        let token = substring(remaining, 0, cb + 1)
-                                                                        if len(base) == 0 {
+                                                                        let base = content.slice(0, si)
+                                                                        let ruby = content.slice(si + 1, content.len())
+                                                                        let token = remaining.slice(0, cb + 1)
+                                                                        if base.len() == 0 {
                                                                             ctx_warn(ctx, warnings, RUBY_EMPTY_BASE(), "Ruby '[".concat(content.concat("': base text is empty.")), pos)
                                                                         }
-                                                                        if len(ruby) == 0 {
+                                                                        if ruby.len() == 0 {
                                                                             ctx_warn(ctx, warnings, RUBY_EMPTY_READING(), "Ruby '[".concat(content.concat("': reading is empty.")), pos)
                                                                         }
-                                                                        if len(base) > 0 && len(ruby) > 0 && base == ruby {
+                                                                        if base.len() > 0 && ruby.len() > 0 && base.eq(ruby) {
                                                                             ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': base and reading are identical.")))), pos)
                                                                         }
                                                                         if is_purely_katakana(base) && is_purely_hiragana(ruby) {
                                                                             ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': katakana base with hiragana reading.")))), pos)
                                                                         } else {
-                                                                            if len(base) > 0 && has_kana(base) {
+                                                                            if base.len() > 0 && has_kana(base) {
                                                                                 ctx_warn(ctx, warnings, RUBY_KANA_BASE(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': base text contains kana.")))), pos)
                                                                             }
                                                                         }
-                                                                        if len(ruby) > 0 && has_kanji(ruby) {
+                                                                        if ruby.len() > 0 && has_kanji(ruby) {
                                                                             ctx_warn(ctx, warnings, RUBY_KANJI_READING(), "Ruby '[".concat(base.concat("/".concat(ruby.concat("': reading contains kanji.")))), pos)
                                                                         }
-                                                                        push(events, Event::Start(Tag::Ruby(ruby)))
+                                                                        events.push(Event::Start(Tag::Ruby(ruby)))
                                                                         parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
-                                                                        push(events, Event::End(Tag::Ruby(ruby)))
+                                                                        events.push(Event::End(Tag::Ruby(ruby)))
                                                                         pos = pos + cb + 1
                                                                     },
-                                                                    None => {
-                                                                        if is_some(str_find(content, "/")) {
-                                                                            ctx_warn(ctx, warnings, RUBY_MALFORMED(), "Possibly malformed ruby syntax '[".concat(substring(content, 0, min_i32(len(content), 30)).concat("'].")), pos)
+                                                                    Option::None => {
+                                                                        if str_find(content, "/").is_some() {
+                                                                            ctx_warn(ctx, warnings, RUBY_MALFORMED(), "Possibly malformed ruby syntax '[".concat(content.slice(0, min_i32(content.len(), 30)).concat("'].")), pos)
                                                                         }
-                                                                        push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                        events.push(Event::Text(remaining.slice(0, 1)))
                                                                         pos = pos + 1
                                                                     },
                                                                 }
                                                             }
                                                         },
-                                                        None => {
-                                                            if is_some(str_find(substring(remaining, 1, len(remaining)), "/")) || is_some(str_find(substring(remaining, 1, len(remaining)), "]")) {
-                                                                ctx_warn(ctx, warnings, RUBY_MALFORMED(), "Possibly malformed ruby syntax near '".concat(substring(remaining, 0, min_i32(len(remaining), 30)).concat("'.")), pos)
+                                                        Option::None => {
+                                                            if str_find(remaining.slice(1, remaining.len()), "/").is_some() || str_find(remaining.slice(1, remaining.len()), "]").is_some() {
+                                                                ctx_warn(ctx, warnings, RUBY_MALFORMED(), "Possibly malformed ruby syntax near '".concat(remaining.slice(0, min_i32(remaining.len(), 30)).concat("'.")), pos)
                                                             }
-                                                            push(events, Event::Text(substring(remaining, 0, 1)))
+                                                            events.push(Event::Text(remaining.slice(0, 1)))
                                                             pos = pos + 1
                                                         },
                                                     }
                                                 } else {
-                                                    if starts_with(remaining, "{") {
+                                                    if remaining.starts_with("{") {
                                                         let close_brace = find_matching_brace(remaining)
                                                         match close_brace {
                                                             Option::Some(end) => {
-                                                                let content = substring(remaining, 1, end)
+                                                                let content = remaining.slice(1, end)
                                                                 let parts = split_at_depth_zero(content, 47)
-                                                                if len(parts) >= 2 {
-                                                                    let base = get(parts, 0)
+                                                                if parts.len() >= 2 {
+                                                                    let base = parts.get_unchecked(0)
                                                                     let mut notes: Vec<String> = Vec::new<String>()
                                                                     let mut ni = 1
-                                                                    while ni < len(parts) {
-                                                                        push(notes, get(parts, ni))
+                                                                    while ni < parts.len() {
+                                                                        notes.push(parts.get_unchecked(ni))
                                                                         ni = ni + 1
                                                                     }
-                                                                    if len(base) == 0 {
+                                                                    if base.len() == 0 {
                                                                         ctx_warn(ctx, warnings, ANNO_EMPTY_BASE(), "Anno '".concat(content.concat("': base text is empty.")), pos)
                                                                     }
-                                                                    if len(notes) == 1 && contains_kanji(base) && is_purely_kana_or_punct(get(notes, 0)) {
-                                                                        ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(), "Anno '{".concat(base.concat("/".concat(get(notes, 0).concat("}' looks like a Ruby reading.")))), pos)
+                                                                    if notes.len() == 1 && contains_kanji(base) && is_purely_kana_or_punct(notes.get_unchecked(0)) {
+                                                                        ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(), "Anno '{".concat(base.concat("/".concat(notes.get_unchecked(0).concat("}' looks like a Ruby reading.")))), pos)
                                                                     }
-                                                                    push(events, Event::Start(Tag::Anno(clone(notes))))
+                                                                    events.push(Event::Start(Tag::Anno(notes.clone())))
                                                                     parse_inline(base, events, warnings, ctx, true, fn_defs, fn_refs)
                                                                     let mut nidx = 0
-                                                                    while nidx < len(notes) {
-                                                                        push(events, Event::Start(Tag::AnnoNote))
-                                                                        parse_inline(get(notes, nidx), events, warnings, ctx, true, fn_defs, fn_refs)
-                                                                        push(events, Event::End(Tag::AnnoNote))
+                                                                    while nidx < notes.len() {
+                                                                        events.push(Event::Start(Tag::AnnoNote))
+                                                                        parse_inline(notes.get_unchecked(nidx), events, warnings, ctx, true, fn_defs, fn_refs)
+                                                                        events.push(Event::End(Tag::AnnoNote))
                                                                         nidx = nidx + 1
                                                                     }
-                                                                    push(events, Event::End(Tag::Anno(notes)))
+                                                                    events.push(Event::End(Tag::Anno(notes)))
                                                                     pos = pos + end + 1
                                                                 } else {
-                                                                    push(events, Event::Text(substring(remaining, 0, 1)))
+                                                                    events.push(Event::Text(remaining.slice(0, 1)))
                                                                     pos = pos + 1
                                                                 }
                                                             },
-                                                            None => {
-                                                                ctx_warn(ctx, warnings, ANNO_MALFORMED(), "Possibly malformed anno syntax near '".concat(substring(remaining, 0, min_i32(len(remaining), 30)).concat("'.")), pos)
-                                                                push(events, Event::Text(substring(remaining, 0, 1)))
+                                                            Option::None => {
+                                                                ctx_warn(ctx, warnings, ANNO_MALFORMED(), "Possibly malformed anno syntax near '".concat(remaining.slice(0, min_i32(remaining.len(), 30)).concat("'.")), pos)
+                                                                events.push(Event::Text(remaining.slice(0, 1)))
                                                                 pos = pos + 1
                                                             },
                                                         }
                                                     } else {
                                                         let next_special = find_next_special(remaining)
                                                         if next_special == 0 {
-                                                            let ch = byte_at(remaining, 0)
+                                                            let ch = remaining.byte_at(0)
                                                             let ch_len = char_byte_len(ch)
-                                                            let t = substring(remaining, 0, ch_len)
+                                                            let t = remaining.slice(0, ch_len)
                                                             if !in_annotation && contains_kanji(t) {
-                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), "Kanji without ruby: '".concat(trim(t).concat("'")), pos)
+                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), "Kanji without ruby: '".concat(t.trim().concat("'")), pos)
                                                             }
-                                                            push(events, Event::Text(t))
+                                                            events.push(Event::Text(t))
                                                             pos = pos + ch_len
                                                         } else {
-                                                            let t = substring(remaining, 0, next_special)
+                                                            let t = remaining.slice(0, next_special)
                                                             if !in_annotation && contains_kanji(t) {
-                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), "Kanji without ruby: '".concat(trim(t).concat("'")), pos)
+                                                                ctx_warn(ctx, warnings, KANJI_NO_RUBY(), "Kanji without ruby: '".concat(t.trim().concat("'")), pos)
                                                             }
-                                                            push(events, Event::Text(t))
+                                                            events.push(Event::Text(t))
                                                             pos = pos + next_special
                                                         }
                                                     }
@@ -1334,8 +1356,8 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
 fn find_matching_bracket(text: String, start: i32) -> Option<i32> {
     let mut bracket = 0
     let mut i = start
-    while i < len(text) {
-        let c = byte_at(text, i)
+    while i < text.len() {
+        let c = text.byte_at(i)
         if c == 91 {
             bracket = bracket + 1
         }
@@ -1353,8 +1375,8 @@ fn find_matching_bracket(text: String, start: i32) -> Option<i32> {
 fn find_matching_brace(text: String) -> Option<i32> {
     let mut depth = 0
     let mut i = 0
-    while i < len(text) {
-        let c = byte_at(text, i)
+    while i < text.len() {
+        let c = text.byte_at(i)
         if c == 123 {
             depth = depth + 1
         }
@@ -1372,8 +1394,8 @@ fn find_matching_brace(text: String) -> Option<i32> {
 fn find_slash_at_depth_zero(content: String) -> Option<i32> {
     let mut blk = 0
     let mut i = 0
-    while i < len(content) {
-        let c = byte_at(content, i)
+    while i < content.len() {
+        let c = content.byte_at(i)
         if c == 91 {
             blk = blk + 1
         }
@@ -1393,8 +1415,8 @@ fn split_at_depth_zero(content: String, sep: i32) -> Vec<String> {
     let mut last = 0
     let mut blk = 0
     let mut i = 0
-    while i < len(content) {
-        let c = byte_at(content, i)
+    while i < content.len() {
+        let c = content.byte_at(i)
         if c == 91 {
             blk = blk + 1
         }
@@ -1402,25 +1424,25 @@ fn split_at_depth_zero(content: String, sep: i32) -> Vec<String> {
             blk = blk - 1
         }
         if c == sep && blk == 0 {
-            push(parts, substring(content, last, i))
+            parts.push(content.slice(last, i))
             last = i + 1
         }
         i = i + 1
     }
-    push(parts, substring(content, last, len(content)))
+    parts.push(content.slice(last, content.len()))
     parts
 }
 
 fn find_next_special(text: String) -> i32 {
     let mut i = 0
-    while i < len(text) {
-        let c = byte_at(text, i)
+    while i < text.len() {
+        let c = text.byte_at(i)
         if c == 36 || c == 91 || c == 123 || c == 96 || c == 92 || c == 42 || c == 126 || c == 33 {
             return i
         }
         i = i + 1
     }
-    len(text)
+    text.len()
 }
 
 fn is_ascii_digit(c: i32) -> bool {
@@ -1472,3 +1494,21 @@ fn min_i32(a: i32, b: i32) -> i32 {
 // Lint checks
 // {text} with no / — plain text
 // Plain text up to next special character
+
+// ── Runnable sample ──────────────────────────────────────────────────────────
+//
+// Run with `scripts/run/arukellt-selfhost.sh run docs/sample/parser.ark`
+// (wasm32) or compile with `--target wasm32-gc --emit component` and run the
+// component under Wasmtime.
+fn main() {
+    let document = "---\ntitle: Gloss\nauthor: sample\n---\n# Heading\n\nHello [漢字/かんじ] and $x^2$.\n\n- one\n- two\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n```ark\nfn main() {}\n```\n\nFootnote[^note] and {漢字/かんじ}.\n\n[^note]: note body\n"
+    let result = parse_with_source(document, "sample.ark")
+    Test::assert_eq_i32(result.warnings.len(), 0)
+    Test::assert_eq_i32(result.events.len(), 70)
+
+    let lint_result = parse_with_source("$unclosed", "lint.ark")
+    Test::assert_eq_i32(lint_result.warnings.len(), 1)
+    Test::assert_eq_string(lint_result.warnings.get_unchecked(0).code, MATH_UNCLOSED_INLINE())
+
+    Stdio::println("parser sample ok: events=".concat(result.events.len().to_string()))
+}

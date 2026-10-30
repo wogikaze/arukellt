@@ -3684,3 +3684,7 @@ diag:diagnostics/return_type_arg_mismatch.ark
 # Vec clone is deep without `use std::core::clone` (ADR-091 addendum).
 run:clone_no_import/vec_clone_deep.ark
 test:clone_no_import/vec_clone_deep_wasm32.ark
+# The runnable Gloss parser sample lives outside tests/fixtures (like the
+# bench entry above), so it is registered with a repo-relative `..` path.
+# Its `main` asserts parser output and exits non-zero on failure.
+run:../../docs/sample/parser.ark
