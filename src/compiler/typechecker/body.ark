@@ -3,6 +3,7 @@ use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::body_params
 use typechecker::body_returns
+use typechecker::call_fn
 use typechecker::contract_env_record
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
@@ -36,6 +37,7 @@ fn check_fn_body_with_sig(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<
     if child_count > 0 {
         let body = ast_access::node_child_at(fn_node, child_count - 1)
         infer::check_stmt(env, scope, fn_sigs, enum_defs, body)
+        call_fn::finalize_deferred_len_receivers(env)
         body_returns::check_tail_escape(env, scope, fn_sigs, body)
         proof_contracts::check_proof_contracts(env, fn_sigs, enum_defs, fn_node, sig)
         contract_env_record::type_env_finalize_unused_bindings(env)
@@ -71,6 +73,7 @@ fn check_test_body(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInf
     if cc > 0 {
         let body = ast_access::node_child_at(node, cc - 1)
         infer::check_stmt(env, scope, fn_sigs, enum_defs, body)
+        call_fn::finalize_deferred_len_receivers(env)
         contract_env_record::type_env_finalize_unused_bindings(env)
     }
 }

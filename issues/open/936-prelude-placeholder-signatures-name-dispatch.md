@@ -117,7 +117,38 @@ unchecked, name-only path in the typechecker.
   targets; `stdlib_vec/prelude_generic_signatures.ark` runs `len` on `Vec` and
   `String` plus generic `push`/`get`/`pop` on both targets.
 
-Remaining acceptance work (not landed here):
+## Update (2026-10-30, `wave/issue-936-2`) — `len` owner must be decided by the end of the body
+
+The first increment still accepted a `len` receiver whose type was a type
+variable, because the variable might bind to `String` or `Vec<T>` later in the
+body. That also let an unconstrained `T` reach lowering, where bare `len` is
+bound to `string.len` by name, instead of being rejected.
+
+- `src/compiler/typechecker/call_fn.ark`: a `len` call on a type variable now
+  records the receiver on `TypeEnv.deferred_len_receiver_types` instead of
+  accepting it. `finalize_deferred_len_receivers` resolves each receiver after
+  the body has run: `String` / `Vec<T>` pass (a later binding may still supply
+  the owner), a still-unresolved variable is E0200
+  ("cannot infer the type of the `len` receiver: argument 1 must be String or
+  Vec<T>"), and a variable that resolved to another concrete type reuses the
+  call-site mismatch message. `TY_UNKNOWN` receivers stay quiet because they
+  are error-recovery values; the general unknown-type rule stays with #939.
+- `src/compiler/typechecker/body.ark`: function and test bodies finalize the
+  deferred receivers right after statement checking. The return-contract pass
+  re-infers the body afterwards; those additional entries are discarded with
+  the per-function env.
+- Fixtures: `diagnostics/prelude_len_unconstrained_receiver.ark` and its
+  `_wasm32` companion assert the unconstrained-`T` case on both targets.
+  `stdlib_vec/prelude_generic_signatures.ark` now also runs `len` inside a
+  generic `Vec<T>` helper for `Vec<i32>` and `Vec<String>`.
+- The deferred-accept path (a fresh receiver variable that a later call binds
+  to `String`) has no run fixture: a `len` inside an unannotated closure still
+  emits invalid Wasm because lowering re-infers the parameter as an integer
+  and dispatches `string.len` by name. The pinned compiler fails the same way,
+  so this is the existing #933/#934 lowering gap, not a regression from the
+  checker finalizer.
+
+Remaining acceptance work (updated):
 
 - The emitter still selects the intrinsic through the callee-name tables.
   Bare `len` is bound to `string.len` in `data/core-ops.toml`, and MIR rewrites
@@ -131,9 +162,6 @@ Remaining acceptance work (not landed here):
   conversions (`builtins::is_concrete_prelude_builtin`,
   `builtin_call_return_type`) and for `eq`/`assert_eq_i64`; those are outside
   this increment's Vec-operation scope.
-- A `len` call whose receiver is still a type variable is deferred: the
-  variable may later bind to `Vec<T>`, so the checker cannot reject
-  `len(x)` on an unconstrained `T` that is instantiated with a scalar.
 - #928 is not changed by this diff; it remains tracked separately.
 
 ## Notes

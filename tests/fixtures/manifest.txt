@@ -248,6 +248,8 @@ diag:diagnostics/prelude_concrete_arg_type.ark
 diag:diagnostics/prelude_conversion_string_arg_type.ark
 diag:diagnostics/prelude_len_arg_type.ark
 diag:diagnostics/prelude_len_arg_type_wasm32.ark
+diag:diagnostics/prelude_len_unconstrained_receiver.ark
+diag:diagnostics/prelude_len_unconstrained_receiver_wasm32.ark
 diag:diagnostics/prelude_vec_push_arg_type.ark
 diag:diagnostics/prelude_vec_push_arg_type_wasm32.ark
 diag:diagnostics/deprecated_vec_intrinsic.ark
