@@ -164,6 +164,53 @@ Remaining acceptance work (updated):
   this increment's Vec-operation scope.
 - #928 is not changed by this diff; it remains tracked separately.
 
+## Update (2026-10-30, `wave/coreop-seal`) — `len` binds through the receiver owner's CoreOp
+
+Landed the first FunctionId → CoreOpId step for `len` (the #933 handoff used by
+this issue's acceptance item 3):
+
+- `data/core-ops.toml`: the bare `len` alias is removed. The registry binds the
+  two owner spellings instead: `String::len` → `string.len` and `Vec::len` →
+  `vec.len`. A call site now reaches the operation through the owner of the
+  receiver, not through the common callee name.
+- `src/compiler/mir/lower/call_rewrite_vec.ark`: MIR `len` lowering returns the
+  owner spelling (`Vec::len` for `Vec` / `vec:` / `array:` receivers,
+  `String::len` otherwise) instead of rewriting Vec receivers to the target-raw
+  `raw_array_len`. Both owner spellings are treated as intrinsic targets so mono
+  resolution cannot rename them.
+- `src/compiler/mir/lower/stdlib_body_defer.ark`: the `len` declaration stays
+  deferred after losing its CoreOp alias, so it remains a signature-only decl
+  instead of lowering its `Std::panic` placeholder body.
+- `src/compiler/mir_opt/stdlib_inline.ark`: the normal-call fallback resolver
+  no longer specializes `__core_vec_len_impl` to `__core_vec_len_impl__i32`.
+  Reachability prunes that mono body as an intrinsic call, so specializing the
+  call left an unpatched call and trapped at runtime; `vec.len` now stays on its
+  registry handler, which emits the length for every element type.
+- Fixtures: `stdlib_vec/prelude_len_owner_dispatch.ark` and its `_wasm32`
+  companion (`--target wasm32 --wasi-version wasi-p1`) run `len` on `String`,
+  `Vec<i32>`, `Vec<String>`, empty vectors and a generic `Vec<T>` helper on both
+  targets. Expected output: `len owner dispatch ok`.
+
+Evidence: in the linear-memory WAT for the fixture the emitted `String::len`
+body is no longer called (the call is inlined as the `string.len` intrinsic),
+and the compiler's `core-op-shadow` spine audit reports
+`mismatched=0 unresolved=0` for both targets. `verify lane`,
+`selfhost fixture-parity --filter-dir stdlib_vec`, `verify fixtures`,
+`docs check`, `selfhost diag-parity` and `selfhost fixpoint --build` stay
+green.
+
+Acceptance movement: item 3 moves for `len` only (the emitter now selects the
+intrinsic from the owner-qualified FunctionId → CoreOpId). Items 1, 2 and 4 are
+unchanged. Residuals:
+
+- `push`, `get` and `pop` still lower through the `call_rewrite_vec*`
+  element-type predicates, and `get` / `pop` / `set` are still listed in
+  `mir_is_unbound_prelude_intrinsic_shim`.
+- `len`, `push`, `get` and `pop` still declare signature-only bodies.
+- The `len` owner is still selected from the MIR local type spelling, not from a
+  checker-supplied per-call FunctionId (#933); a receiver whose type lowering
+  cannot see keeps the declaration's `String` contract.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

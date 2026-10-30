@@ -42,6 +42,19 @@ check_fallback_signature_compat = true
 # Backend lowering dispatch must use CoreOpId/handler IDs, never these strings.
 # Removal is tracked by #818.
 
+# `len` is the one prelude free with two receiver owners. Its declaration is
+# signature-only, so a call site binds the owner's CoreOp spelling selected by
+# MIR lowering from the receiver type; there is deliberately no bare `len`
+# alias to dispatch through (#936 acceptance item 3, FunctionId/CoreOp
+# handoff #933).
+[[legacy_bindings]]
+alias = "String::len"
+core_op_id = "string.len"
+
+[[legacy_bindings]]
+alias = "Vec::len"
+core_op_id = "vec.len"
+
 [[legacy_bindings]]
 alias = "String_from"
 core_op_id = "text.clone"
@@ -1785,10 +1798,6 @@ core_op_id = "runtime.is_ok"
 [[legacy_bindings]]
 alias = "join"
 core_op_id = "string.join"
-
-[[legacy_bindings]]
-alias = "len"
-core_op_id = "string.len"
 
 [[legacy_bindings]]
 alias = "lines"
