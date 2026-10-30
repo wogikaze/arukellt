@@ -43,7 +43,8 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
             ast_access::node_text(ast_access::node_child_at(node, 0)),
             receiver_owner,
             contract_fn_sig::FnSig_name(sig.clone()),
-            String_new()
+            String_new(),
+            0 - 1
         )
     }
     // infer_env is scratch, so speculation diagnostics vanish with it:
@@ -104,7 +105,8 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
         ast_access::node_text(ast_access::node_child_at(node, 0)),
         String_new(),
         contract_fn_sig::FnSig_name(sig),
-        mangled_name
+        mangled_name,
+        0 - 1
     )
     ret_ty
 }

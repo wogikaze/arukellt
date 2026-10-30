@@ -20,7 +20,8 @@ fn type_env_record_resolved_call(
     callee_name: String,
     owner_name: String,
     function_id: String,
-    mono_instance_id: String
+    mono_instance_id: String,
+    callee_decl_index: i32
 ) {
     if env.current_decl_index < 0 {
         return
@@ -37,7 +38,8 @@ fn type_env_record_resolved_call(
                 existing,
                 owner_name,
                 function_id,
-                mono_instance_id
+                mono_instance_id,
+                callee_decl_index
             )
             env.resolved_calls.set(i, merged)
             return
@@ -51,7 +53,8 @@ fn type_env_record_resolved_call(
             callee_name,
             owner_name,
             function_id,
-            mono_instance_id
+            mono_instance_id,
+            callee_decl_index
         ))
 }
 

@@ -7,6 +7,12 @@ struct FnSig {
     type_params: Vec<String>,
     type_param_bounds: Vec<TypeParamBounds>,
     param_modes: Vec<bool>,
+    // Declaration index of a top-level fn/const signature in the combined
+    // loaded+entry decl list; -1 for a signature with no single declaration
+    // (impl methods, WIT imports, synthesized prelude shapes). The checker
+    // records it on resolved calls so MIR can bind the declaration's
+    // FunctionId instead of the first entry sharing the bare name (#934).
+    decl_index: i32,
 }
 
 fn FnSig_new(
@@ -22,7 +28,8 @@ fn FnSig_new(
         return_type: return_type,
         type_params: type_params,
         type_param_bounds: type_param_bounds,
-        param_modes: Vec::new<bool>()
+        param_modes: Vec::new<bool>(),
+        decl_index: 0 - 1
     }
 }
 
@@ -43,7 +50,8 @@ fn FnSig_new_with_param_modes(
         return_type: return_type,
         type_params: type_params,
         type_param_bounds: type_param_bounds,
-        param_modes: param_modes
+        param_modes: param_modes,
+        decl_index: 0 - 1
     }
 }
 
@@ -53,24 +61,43 @@ fn FnSig_empty(return_type: TypeInfo) -> FnSig {
 
 /// Return a copy of `sig` with the name replaced (used for impl method mangling).
 fn FnSig_with_name(sig: FnSig, name: String) -> FnSig {
-    FnSig_new_with_param_modes(
-        name,
-        sig.param_types,
-        sig.param_modes,
-        sig.return_type,
-        sig.type_params,
-        sig.type_param_bounds
+    FnSig_with_decl_index(
+        FnSig_new_with_param_modes(
+            name,
+            sig.param_types,
+            sig.param_modes,
+            sig.return_type,
+            sig.type_params,
+            sig.type_param_bounds
+        ),
+        sig.decl_index
     )
 }
 
+// Attach the top-level declaration a signature was collected from. The
+// builder keeps constructors unaware of declaration positions; collection is
+// the only place that knows the index (#934).
+fn FnSig_with_decl_index(sig: FnSig, decl_index: i32) -> FnSig {
+    let mut named = sig.clone()
+    named.decl_index = decl_index
+    named
+}
+
+fn FnSig_decl_index(sig: FnSig) -> i32 {
+    sig.decl_index
+}
+
 fn FnSig_with_types(sig: FnSig, param_types: Vec<TypeInfo>, return_type: TypeInfo) -> FnSig {
-    FnSig_new_with_param_modes(
-        FnSig_name(sig),
-        param_types,
-        sig.param_modes,
-        return_type,
-        sig.type_params,
-        sig.type_param_bounds
+    FnSig_with_decl_index(
+        FnSig_new_with_param_modes(
+            FnSig_name(sig),
+            param_types,
+            sig.param_modes,
+            return_type,
+            sig.type_params,
+            sig.type_param_bounds
+        ),
+        sig.decl_index
     )
 }
 

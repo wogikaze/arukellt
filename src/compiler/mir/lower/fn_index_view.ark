@@ -1,5 +1,7 @@
 use corehir::mir_signature_method
 use corehir::mod
+use corehir::signature_entry
+use corehir::signature_registry
 use mir::lower::decl_source
 use mir::lower::fn_index
 use mir::lower::fn_index_fns
@@ -40,6 +42,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: Mi
     let typed_fn_count = fn_index_source::mir_fn_index_source_typed_fn_count(source)
     let spine = signature_registry_build::mir_build_signature_spine_from_view(view, midx, fn_names)
     module_spine::MirModule_set_signature_spine(m, spine)
+    let decl_function_ids = mir_build_decl_function_ids(decl_source, decl_count, spine)
     let synced_vts = fn_index_mono_sync::fn_index_sync_mono_returns_from_spine(
         fn_names,
         fn_return_vts,
@@ -65,8 +68,46 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: Mi
         qualified_return_vts,
         qualified_return_type_names,
         entry_main_decl_index,
-        typed_fn_count
+        typed_fn_count,
+        decl_function_ids
     )
+}
+
+// Map each top-level declaration to the FunctionId the signature spine
+// assigned it. The checker records the declaration a call resolved to, and
+// lowering binds that FunctionId, so two modules exporting one bare name do
+// not have to share the first registry entry (#934).
+//
+// A decl's registration entry is the one whose base name is the declaration's
+// own name; generic mono variants and impl methods carry the same decl index
+// but a mangled base name, and must not claim the slot. Registration order is
+// declaration order, so only the declaration entry can be first for its index.
+fn mir_build_decl_function_ids(
+    decl_source: MirLowerDeclSource,
+    decl_count: i32,
+    spine: MirSignatureSpine
+) -> Vec<i32> {
+    let registry = signature_spine::mir_signature_spine_registry(spine)
+    let registry_count = signature_registry::signature_registry_entry_count(registry)
+    let mut ids = Vec::new<i32>()
+    let mut i = 0
+    while i < decl_count {
+        ids.push(0 - 1)
+        i = i + 1
+    }
+    let mut e = 0
+    while e < registry_count {
+        let entry = signature_registry::signature_registry_entry_at(registry, e)
+        let decl_index = signature_entry::signature_entry_impl_id(entry.clone())
+        if decl_index >= 0 && decl_index < decl_count && ids.get_unchecked(decl_index) < 0 {
+            let base_name = signature_entry::signature_entry_base_name(entry)
+            if base_name.clone().eq(decl_source::mir_decl_source_name_at(decl_source, decl_index)) {
+                ids.set(decl_index, e)
+            }
+        }
+        e = e + 1
+    }
+    ids
 }
 
 // The typechecker's build_fn_sig_index gives entry-module generic decls

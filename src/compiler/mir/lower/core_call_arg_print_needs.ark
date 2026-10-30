@@ -1,6 +1,8 @@
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_decl_return
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
+use mir::lower::ctx_resolved_calls
 use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
 use mir::lower::core_expr_shape_accessors
@@ -14,11 +16,26 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
         if core_call_arg_names::mir_core_call_callee_returns_string(ctx, cn.clone()) {
             return false
         }
-        let return_type_name = ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn.clone())
+        // Prefer the checker-resolved declaration's return contract over the
+        // flat name index (see call_arg_print_needs, #934).
+        let decl_fid = ctx_resolved_calls::ctx_resolved_call_decl_fid(
+            ctx,
+            core_expr_shape_accessors::mir_core_expr_span_start(arg),
+            cn.clone()
+        )
+        let return_type_name = if decl_fid >= 0 {
+            ctx_decl_return::ctx_decl_return_type_name(ctx, decl_fid)
+        } else {
+            ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn.clone())
+        }
         if return_type_name.clone().eq("String") || return_type_name.clone().eq("str") || return_type_name.clone().eq("string") {
             return false
         }
-        let rv = ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn.clone())
+        let rv = if decl_fid >= 0 {
+            ctx_decl_return::ctx_decl_return_vt(ctx, decl_fid)
+        } else {
+            ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn.clone())
+        }
         if rv == value_types::VT_GC_REF() || rv == value_types::VT_REF() {
             return false
         }

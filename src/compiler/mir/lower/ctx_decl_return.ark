@@ -1,0 +1,58 @@
+use corehir::type_info_to_mir_value
+use mir::legacy_vt_compat
+use mir::lower::ctx_fn_return_vt
+use mir::lower::ctx_gc_enum
+use mir::module_spine
+use mir::spine_lookup
+use mir::typed_mir_compat
+use mir::value_types
+
+// Declaration-keyed return view (#934). A call or body that knows the
+// declaration's registry FunctionId reads that entry's return contract instead
+// of the first entry sharing the bare name. Returns the same legacy vt /
+// type-name spellings the rest of lowering uses, so the declaration identity
+// reaches dest typing and local emission unchanged.
+
+fn ctx_decl_return_mvt(ctx: LowerCtx, decl_fid: i32) -> MirValueType {
+    if decl_fid < 0 {
+        return typed_mir_compat::mvt_invalid()
+    }
+    spine_lookup::function_return_mvt_by_fid(ctx.module, decl_fid)
+}
+
+fn ctx_decl_return_vt(ctx: LowerCtx, decl_fid: i32) -> i32 {
+    let mvt = ctx_decl_return_mvt(ctx, decl_fid)
+    if typed_mir_compat::mvt_is_invalid(mvt) {
+        return 0 - 1
+    }
+    let table = module_spine::MirModule_type_table(ctx.module)
+    let mut vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, mvt)
+    if vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+        vt = value_types::VT_GC_REF()
+    }
+    vt
+}
+
+// True when the flat name index would describe this callable with a different
+// return width than the declaration the checker selected. Only a shadowed
+// declaration needs to override the name-keyed dest typing; an unshadowed one
+// keeps the established result-shape heuristics unchanged (#934).
+fn ctx_decl_return_shadows_name(ctx: LowerCtx, callee_name: String, decl_fid: i32) -> bool {
+    if decl_fid < 0 {
+        return false
+    }
+    let decl_vt = ctx_decl_return_vt(ctx, decl_fid)
+    if decl_vt < 0 {
+        return false
+    }
+    ctx_fn_return_vt::ctx_fn_return_vt(ctx, callee_name) != decl_vt
+}
+
+fn ctx_decl_return_type_name(ctx: LowerCtx, decl_fid: i32) -> String {
+    let mvt = ctx_decl_return_mvt(ctx, decl_fid)
+    if typed_mir_compat::mvt_is_invalid(mvt) {
+        return String_new()
+    }
+    let table = module_spine::MirModule_type_table(ctx.module)
+    type_info_to_mir_value::mvt_to_type_name(table, mvt)
+}

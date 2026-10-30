@@ -13,6 +13,9 @@ struct CoreHirModuleInfo {
 // FunctionId to its CoreOp through the registry instead of re-resolving the
 // callee spelling (#933 / #934 / #936). The body identity (decl index plus
 // impl-method ordinal) keeps spans from different loaded modules distinct.
+// `callee_decl_index` is the selected signature's top-level declaration
+// (-1 when the callable has no single top-level declaration), so lowering can
+// bind the declaration's FunctionId when a bare name is shared across modules.
 struct CoreHirResolvedCall {
     decl_index: i32,
     body_child_index: i32,
@@ -21,6 +24,7 @@ struct CoreHirResolvedCall {
     owner_name: String,
     function_id: String,
     mono_instance_id: String,
+    callee_decl_index: i32,
 }
 
 struct CoreHirTypedLocal {
@@ -51,7 +55,8 @@ fn CoreHirResolvedCall_new(
     callee_name: String,
     owner_name: String,
     function_id: String,
-    mono_instance_id: String
+    mono_instance_id: String,
+    callee_decl_index: i32
 ) -> CoreHirResolvedCall {
     CoreHirResolvedCall {
         decl_index: decl_index,
@@ -61,6 +66,7 @@ fn CoreHirResolvedCall_new(
         owner_name: owner_name,
         function_id: function_id,
         mono_instance_id: mono_instance_id,
+        callee_decl_index: callee_decl_index,
     }
 }
 
@@ -90,6 +96,10 @@ fn CoreHirResolvedCall_function_id(call: CoreHirResolvedCall) -> String {
 
 fn CoreHirResolvedCall_mono_instance_id(call: CoreHirResolvedCall) -> String {
     call.mono_instance_id.clone()
+}
+
+fn CoreHirResolvedCall_callee_decl_index(call: CoreHirResolvedCall) -> i32 {
+    call.callee_decl_index
 }
 
 fn CoreHirTypedLocal_new(name: String, type_info: TypeInfo) -> CoreHirTypedLocal {

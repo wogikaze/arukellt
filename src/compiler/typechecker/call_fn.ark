@@ -301,7 +301,8 @@ fn record_len_owner(mut env: TypeEnv, span_start: i32, callee_name: String, tag:
         callee_name,
         owner.clone(),
         owner.concat(String_from("::len")),
-        String_new()
+        String_new(),
+        0 - 1
     )
 }
 
@@ -459,7 +460,8 @@ fn infer_concrete_call_expr(
         ast_access::node_text(ast_access::node_child_at(node, 0)),
         String_new(),
         contract_fn_sig::FnSig_name(selected_sig.clone()),
-        String_new()
+        String_new(),
+        contract_fn_sig::FnSig_decl_index(selected_sig)
     )
     contract_fn_sig::FnSig_return_type(selected_sig)
 }

@@ -487,7 +487,8 @@ fn infer_resolved_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: 
             ast_access::node_text(node),
             String_new(),
             contract_fn_sig::FnSig_name(sig.clone()),
-            String_new()
+            String_new(),
+            0 - 1
         )
         return contract_fn_sig::FnSig_return_type(sig)
     }
@@ -754,7 +755,8 @@ fn infer_trait_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
         ast_access::node_text(node),
         String_new(),
         contract_fn_sig::FnSig_name(sig.clone()),
-        String_new()
+        String_new(),
+        0 - 1
     )
     // Self substitution: if the trait method's return type is a TY_TYPE_VAR
     // named "Self", substitute the receiver's concrete type (#707).

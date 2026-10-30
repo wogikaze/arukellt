@@ -10,6 +10,11 @@ struct MirLowerFnIndex {
     qualified_return_type_names: Vec<String>,
     entry_main_decl_index: i32,
     typed_fn_count: i32,
+    // Top-level decl index -> registry FunctionId raw (parallel to the decl
+    // list, -1 when the decl has no registry entry). The typechecker records
+    // the declaration identity per call; MIR binds this FunctionId instead of
+    // the first registry entry sharing a bare name (#934).
+    decl_function_ids: Vec<i32>,
 }
 
 fn MirLowerFnIndex_new(
@@ -21,7 +26,8 @@ fn MirLowerFnIndex_new(
     qualified_return_vts: Vec<i32>,
     qualified_return_type_names: Vec<String>,
     entry_main_decl_index: i32,
-    typed_fn_count: i32
+    typed_fn_count: i32,
+    decl_function_ids: Vec<i32>
 ) -> MirLowerFnIndex {
     MirLowerFnIndex {
         fn_names: fn_names,
@@ -33,6 +39,7 @@ fn MirLowerFnIndex_new(
         qualified_return_type_names: qualified_return_type_names,
         entry_main_decl_index: entry_main_decl_index,
         typed_fn_count: typed_fn_count,
+        decl_function_ids: decl_function_ids,
     }
 }
 
@@ -70,4 +77,8 @@ fn mir_fn_index_entry_main_decl_index(info: MirLowerFnIndex) -> i32 {
 
 fn mir_fn_index_typed_fn_count(info: MirLowerFnIndex) -> i32 {
     info.typed_fn_count
+}
+
+fn mir_fn_index_decl_function_ids(info: MirLowerFnIndex) -> Vec<i32> {
+    info.decl_function_ids
 }

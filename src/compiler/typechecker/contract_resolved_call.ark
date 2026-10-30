@@ -13,6 +13,12 @@
 // `owner_name` is the nominal receiver owner of the callable (`String` / `Vec`).
 // MIR lowers through the FunctionId where the checker supplies one and keeps
 // the owner for the element-typed intrinsic rewrites.
+//
+// `callee_decl_index` is the selected signature's top-level declaration in the
+// combined loaded+entry decl list (-1 for a method, WIT import, or synthesized
+// signature). Two modules can export the same bare fn name and the checker's
+// FunctionId string alone cannot tell them apart; MIR binds the declaration's
+// registry FunctionId through this index (#934 / #933).
 struct ResolvedCall {
     decl_index: i32,
     body_child_index: i32,
@@ -21,6 +27,7 @@ struct ResolvedCall {
     owner_name: String,
     function_id: String,
     mono_instance_id: String,
+    callee_decl_index: i32,
 }
 
 // A `len` receiver that was still a type variable at its call. The body may
@@ -39,7 +46,8 @@ fn ResolvedCall_new(
     callee_name: String,
     owner_name: String,
     function_id: String,
-    mono_instance_id: String
+    mono_instance_id: String,
+    callee_decl_index: i32
 ) -> ResolvedCall {
     ResolvedCall {
         decl_index: decl_index,
@@ -49,6 +57,7 @@ fn ResolvedCall_new(
         owner_name: owner_name,
         function_id: function_id,
         mono_instance_id: mono_instance_id,
+        callee_decl_index: callee_decl_index,
     }
 }
 
@@ -80,6 +89,10 @@ fn ResolvedCall_mono_instance_id(call: ResolvedCall) -> String {
     call.mono_instance_id.clone()
 }
 
+fn ResolvedCall_callee_decl_index(call: ResolvedCall) -> i32 {
+    call.callee_decl_index
+}
+
 // Complete an existing site record with a later resolution pass. The owner is
 // recorded before a generic call has minted its mono instance, and the
 // return-contract pass re-infers the same call after the body ran, so fields
@@ -88,7 +101,8 @@ fn ResolvedCall_completed(
     call: ResolvedCall,
     owner_name: String,
     function_id: String,
-    mono_instance_id: String
+    mono_instance_id: String,
+    callee_decl_index: i32
 ) -> ResolvedCall {
     let mut merged = call.clone()
     if merged.owner_name.len() == 0 {
@@ -99,6 +113,9 @@ fn ResolvedCall_completed(
     }
     if merged.mono_instance_id.len() == 0 {
         merged.mono_instance_id = mono_instance_id
+    }
+    if merged.callee_decl_index < 0 {
+        merged.callee_decl_index = callee_decl_index
     }
     merged
 }

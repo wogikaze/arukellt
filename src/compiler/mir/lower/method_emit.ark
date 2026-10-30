@@ -50,12 +50,12 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
         return mir_emit_clone_identity(ctx, first_arg_idx)
     }
     // Match direct-call dest allocation (including ::to_string GC-ref override).
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, callee_name.clone(), first_arg_idx)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, callee_name.clone(), first_arg_idx, 0 - 1)
     // Reuse the same result-type propagation as direct calls so that
     // String/Vec/Hash/struct return types are inferred consistently.
     // first_arg_idx is the receiver's local index, which corresponds to
     // the first argument of the resolved intrinsic (e.g. vec_get_unchecked).
-    call_types::mir_mark_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
+    call_types::mir_mark_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx, 0 - 1)
     // Carry the marked dest vt onto the inst like mir_emit_direct_call does.
     // VT_VOID here made GC local-decl scans adopt the callee's declared
     // return (String for __core_string_clone_impl) even when the receiver
@@ -127,7 +127,7 @@ fn mir_is_string_clone_callee(name: String) -> bool {
 fn mir_emit_clone_identity(mut ctx: LowerCtx, source: i32) -> i32 {
     let source_vt = ctx_api_local_types::ctx_local_vt(ctx, source)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
-    call_types::mir_mark_call_result_type(ctx, String_from("__intrinsic_string_clone"), dest, source)
+    call_types::mir_mark_call_result_type(ctx, String_from("__intrinsic_string_clone"), dest, source, 0 - 1)
     ctx_api_local_types::ctx_set_local_mvt(
         ctx,
         dest,

@@ -1,7 +1,9 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_decl_return
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
+use mir::lower::ctx_resolved_calls
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::value_types
@@ -33,17 +35,35 @@ fn mir_print_arg_needs_string_conversion(mut ctx: LowerCtx, arg: AstNode, arg_id
     if ast_node::node_kind_is(arg, lower_kinds::NK_CALL()) && ast_node::node_child_count(arg) > 0 {
         let callee = ast_node::node_child_at(arg, 0)
         let cn = ast_node::node_text(callee)
-        let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn)
+        // The checker resolved this call site to one declaration. Prefer its
+        // return contract over the flat name index, which keeps the first
+        // same-named declaration (a colliding callee would otherwise be
+        // formatted as that declaration's scalar return, #934).
+        let decl_fid = ctx_resolved_calls::ctx_resolved_call_decl_fid(
+            ctx,
+            ast_node::node_span_start(arg),
+            cn.clone()
+        )
+        let rtn = if decl_fid >= 0 {
+            ctx_decl_return::ctx_decl_return_type_name(ctx, decl_fid)
+        } else {
+            ctx_fn_return_type::ctx_fn_return_type_name(ctx, cn.clone())
+        }
+        let rv = if decl_fid >= 0 {
+            ctx_decl_return::ctx_decl_return_vt(ctx, decl_fid)
+        } else {
+            ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn.clone())
+        }
         if mir_print_arg_is_string_type(rtn) {
             return false
         }
-        if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_GC_REF() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_REF() {
+        if rv == value_types::VT_GC_REF() || rv == value_types::VT_REF() {
             return false
         }
         if rtn.len() > 0 {
-            if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I32() ||
-            ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I64() ||
-            ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_F64() {
+            if rv == value_types::VT_I32() ||
+            rv == value_types::VT_I64() ||
+            rv == value_types::VT_F64() {
                 return true
             }
         }
