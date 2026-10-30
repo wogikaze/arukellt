@@ -822,12 +822,14 @@ def _driver_module_graph_relative_import_violations(root: Path) -> list[str]:
         return ["driver module graph source not found"]
 
     text = graph.read_text(encoding="utf-8")
+    # The `::` test decides whether resolution starts at the package root or
+    # at the importer directory; losing it silently breaks nested modules.
     required = (
         "fn load_imported_modules_at(",
         "current_dir: String",
         "root_dir: String",
         "module_base_dir_for_import(",
-        'contains(use_path, "::")',
+        'use_path.contains("::")',
         "module_paths::parent_dir(module_local_decls::DriverLocalModuleDecls_path(loaded))",
         "load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state, false)",
     )
@@ -4558,7 +4560,23 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
                 if e["kind"] != "bench"
             }
         )
-        if disk_paths != manifest_entries:
+        # Registered fixtures normally live under tests/fixtures, but the
+        # manifest also pins runnable repo files such as the Gloss parser
+        # sample (`../../docs/sample/parser.ark`). Only in-tree entries can be
+        # compared with the disk scan; external entries are checked for
+        # existence at their manifest-relative path instead.
+        fixtures_root_resolved = fixtures_root.resolve()
+
+        def is_in_tree(relative_path: str) -> bool:
+            candidate = (fixtures_root / relative_path).resolve()
+            return candidate == fixtures_root_resolved or fixtures_root_resolved in candidate.parents
+
+        in_tree_entries = [p for p in manifest_entries if is_in_tree(p)]
+        external_entries = [p for p in manifest_entries if not is_in_tree(p)]
+        missing_external = [
+            p for p in external_entries if not (fixtures_root / p).resolve().is_file()
+        ]
+        if disk_paths != in_tree_entries or missing_external:
             h.check_fail(
                 "Fixture manifest out of sync with disk",
                 category="fixture",
@@ -4566,11 +4584,13 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
                 primary_path="tests/fixtures/manifest.txt",
             )
             disk_set = set(disk_paths)
-            manifest_set = set(manifest_entries)
+            manifest_set = set(in_tree_entries)
             for p in sorted(disk_set - manifest_set)[:10]:
                 print(f"  < {p}")
             for p in sorted(manifest_set - disk_set)[:10]:
                 print(f"  > {p}")
+            for p in missing_external[:10]:
+                print(f"  ! {p} (registered fixture not found on disk)")
             manifest_ok = False
 
     if manifest_ok:

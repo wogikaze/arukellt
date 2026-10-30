@@ -667,6 +667,7 @@ run:functions/pub_fn.ark
 run:functions/recursive.ark
 run:functions/return_value.ark
 run:generic_enum/constructor.ark
+run:generic_enum/impl_constructor.ark
 run:generic_enum/payload_match.ark
 run:generics/identity_bool.ark
 run:generics/identity_i32.ark
@@ -1136,6 +1137,7 @@ run:stdlib_core/to_string_bool.ark
 run:stdlib_core/to_string_f64.ark
 run:stdlib_core/to_string_i32.ark
 run:stdlib_core/to_string_i64.ark
+run:stdlib_core/to_string_value_contexts.ark
 run:stdlib_core/core_method_surface.ark
 run:stdlib_core/core_method_surface_wasm32.ark
 run:stdlib_core/raw_consumer_surface.ark
@@ -2471,6 +2473,7 @@ run:variables/mut_var.ark
 run:ownership/copy_and_mutability.ark
 run:ownership/adt_probe.ark
 run:ownership/call_borrow_keeps_binding.ark
+run:ownership/box_methods.ark
 run:variables/string_lit.ark
 run:variables/tuple.ark
 run:stdlib_json/json_associated_surface.ark
@@ -3198,6 +3201,7 @@ t3-run:scalar/numeric_explicit_conversions.ark
 t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:spec_examples/clause_guards.ark
 t3-run:spec_examples/multi_clause_functions.ark
+t3-run:stdlib_core/to_string_value_contexts.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_fs/host_capability_contract.ark
@@ -3717,6 +3721,10 @@ run:stdlib_string/prelude_method_replacements_wasm32.ark
 diag:diagnostics/removed_prelude_free.ark
 diag:diagnostics/removed_prelude_free_clone.ark
 diag:diagnostics/removed_prelude_import_clone.ark
+diag:diagnostics/removed_prelude_free_box_new.ark
+diag:diagnostics/removed_prelude_free_unbox.ark
+diag:diagnostics/removed_prelude_import_box_new.ark
+diag:diagnostics/removed_prelude_import_unbox.ark
 diag:diagnostics/removed_prelude_free_wasm32.ark
 diag:diagnostics/removed_prelude_try_from.ark
 diag:diagnostics/removed_prelude_try_from_wasm32.ark
