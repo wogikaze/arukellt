@@ -187,10 +187,10 @@ impl Std {
 fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            v.set(insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            v.set(insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         v.set(insertion, value)
@@ -205,10 +205,10 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            v.set(insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            v.set(insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         v.set(insertion, value)
@@ -219,10 +219,10 @@ fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
 fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            v.set(insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            v.set(insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         v.set(insertion, value)
