@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let r: Result<i32, i32> = Err(7)
@@ -6,5 +6,5 @@ fn main() {
         Result::Ok(v) => Std::panic("ok"),
         Result::Err(e) => Test::assert_eq_i32(e, 7),
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

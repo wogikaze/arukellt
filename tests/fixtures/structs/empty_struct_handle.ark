@@ -1,7 +1,7 @@
 // A zero-field struct is a first-class GC value. Construction, return, a
 // by-value parameter, and an inherent method must all keep the named
 // `(ref null $EmptyHandle)` type instead of a byte-size struct shell.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct EmptyHandle {}
 
@@ -21,5 +21,5 @@ fn tag_of(handle: EmptyHandle) -> i32 {
 
 fn main() {
     let handle: EmptyHandle = EmptyHandle::make()
-    stdio::println((tag_of(handle)).to_string())
+    Stdio::println((tag_of(handle)).to_string())
 }

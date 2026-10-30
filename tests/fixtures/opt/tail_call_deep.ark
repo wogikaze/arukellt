@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn countdown(n: i32) -> i32 {
     if n <= 0 {
@@ -10,5 +10,5 @@ fn countdown(n: i32) -> i32 {
 
 fn main() {
     let result = countdown(10)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

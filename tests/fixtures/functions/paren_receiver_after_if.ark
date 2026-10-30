@@ -2,7 +2,7 @@
 // lowers, including on the statement right after an `if` without `else`:
 // a line-start `(` begins a new statement instead of becoming postfix
 // arguments on the `if`.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn prefix_matches(path: String) -> bool {
@@ -94,21 +94,21 @@ test "grouped receiver works outside the if boundary" {
 fn main() {
     let mut values: Vec<i32> = Vec::new<i32>()
     values.push(42)
-    stdio::println(prefix_matches(String_from("std::abc")).to_string())
-    stdio::println(prefix_matches(String_from("other")).to_string())
-    stdio::println(prefix_matches(String_from("ab")).to_string())
-    stdio::println(prefix_matches_ungrouped(String_from("std::abc")).to_string())
-    stdio::println(prefix_matches_ungrouped(String_from("other")).to_string())
-    stdio::println(grouped_len_after_if(String_from("abcd")).to_string())
-    stdio::println(grouped_len_after_if(String_from("a")).to_string())
-    stdio::println(grouped_clone_after_if(String_from("abc")).to_string())
-    stdio::println(grouped_clone_after_if(String_new()).to_string())
-    stdio::println(grouped_option_after_if(values.clone()).to_string())
-    stdio::println(grouped_option_after_if(Vec::new<i32>()).to_string())
-    stdio::println(grouped_before_any_if(String_from("abcd")).to_string())
-    stdio::println(grouped_after_if_else(true).to_string())
-    stdio::println(grouped_after_if_else(false).to_string())
-    stdio::println(grouped_after_else_if_chain(5).to_string())
-    stdio::println(grouped_after_else_if_chain(0).to_string())
-    stdio::println(grouped_after_else_if_chain(0 - 1).to_string())
+    Stdio::println(prefix_matches(String_from("std::abc")).to_string())
+    Stdio::println(prefix_matches(String_from("other")).to_string())
+    Stdio::println(prefix_matches(String_from("ab")).to_string())
+    Stdio::println(prefix_matches_ungrouped(String_from("std::abc")).to_string())
+    Stdio::println(prefix_matches_ungrouped(String_from("other")).to_string())
+    Stdio::println(grouped_len_after_if(String_from("abcd")).to_string())
+    Stdio::println(grouped_len_after_if(String_from("a")).to_string())
+    Stdio::println(grouped_clone_after_if(String_from("abc")).to_string())
+    Stdio::println(grouped_clone_after_if(String_new()).to_string())
+    Stdio::println(grouped_option_after_if(values.clone()).to_string())
+    Stdio::println(grouped_option_after_if(Vec::new<i32>()).to_string())
+    Stdio::println(grouped_before_any_if(String_from("abcd")).to_string())
+    Stdio::println(grouped_after_if_else(true).to_string())
+    Stdio::println(grouped_after_if_else(false).to_string())
+    Stdio::println(grouped_after_else_if_chain(5).to_string())
+    Stdio::println(grouped_after_else_if_chain(0).to_string())
+    Stdio::println(grouped_after_else_if_chain(0 - 1).to_string())
 }

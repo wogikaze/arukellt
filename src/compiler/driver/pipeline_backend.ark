@@ -1,5 +1,5 @@
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 use compiler::phases
 use driver::config_record
 use driver::errors_phase
@@ -94,7 +94,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         if len(rendered.clone()) == 0 {
             return result_record::CompileResult_err(4, "TypedCoreHIR rendering failed")
         }
-        stdio::println(rendered)
+        Stdio::println(rendered)
         mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
         return result_record::CompileResult_ok(4)
     }

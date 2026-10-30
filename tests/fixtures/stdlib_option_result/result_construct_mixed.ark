@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
     Test::assert_true(err_r.is_err())
     Test::assert_false(ok_r.is_err())
     Test::assert_false(err_r.is_ok())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

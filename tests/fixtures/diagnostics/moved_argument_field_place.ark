@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-088 §1: a field place rooted at a moved binding is the same moved use.
 struct Holder {
@@ -6,7 +6,7 @@ struct Holder {
 }
 
 fn show(name: String) {
-    stdio::println(name)
+    Stdio::println(name)
 }
 
 fn main() {

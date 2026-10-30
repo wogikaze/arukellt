@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-059 §4: calling through a local function value reads that binding.
 // Resolving the callee does not infer it as an expression, so the callee
@@ -12,6 +12,6 @@ fn main() {
     let alias = measure
     let moved = measure(String_from("callee"))
     let live = alias(String_from("alias"))
-    stdio::println(moved.to_string())
-    stdio::println(live.to_string())
+    Stdio::println(moved.to_string())
+    Stdio::println(live.to_string())
 }

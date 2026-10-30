@@ -1,5 +1,5 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn step1(s: String) -> Result<i32, String> {
@@ -13,5 +13,5 @@ fn step2(s: String) -> Result<i32, String> {
 fn main() {
     let r = step2(String_from("20"))
     match r { Result::Ok(v) => Test::assert_eq_i32(v, 42), Result::Err(e) => Std::panic(e) }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

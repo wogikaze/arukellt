@@ -1,5 +1,5 @@
 // Issue #705: Full TOML 1.0 table header parsing.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 fn main() {
@@ -33,7 +33,7 @@ fn main() {
             }
         },
         Result::Err(e) => {
-            stdio::println(String_from("parse error: ").concat(e))
+            Stdio::println(String_from("parse error: ").concat(e))
             assert(false)
         },
     }
@@ -46,5 +46,5 @@ fn main() {
     let val = toml::TomlText::find_value(input, String_from("host"))
     assert(val.eq(String_from("localhost")))
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

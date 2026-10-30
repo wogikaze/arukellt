@@ -4,7 +4,7 @@
 // instantiated layout SkipMap<VecIter<i32>> so wasm32-gc struct.new picks the
 // named GC type instead of the unsubstituted declaration.
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Skip<I> {
     iter: I,
@@ -76,15 +76,15 @@ fn main() -> i32 {
     let mut it: Skip<VecIter<i32>> = Skip { iter: v.into_iter(), to_skip: 2 }
     let a = it.next()
     match a {
-        Option::Some(x) => stdio::println((x).to_string())
-        Option::None => stdio::println("none_a")
+        Option::Some(x) => Stdio::println((x).to_string())
+        Option::None => Stdio::println("none_a")
     }
     let it2: Skip<VecIter<i32>> = Skip { iter: v.into_iter(), to_skip: 1 }
     let mut m = it2.map(double)
     let b = m.next()
     match b {
-        Option::Some(x) => stdio::println((x).to_string())
-        Option::None => stdio::println("none_b")
+        Option::Some(x) => Stdio::println((x).to_string())
+        Option::None => Stdio::println("none_b")
     }
     0
 }

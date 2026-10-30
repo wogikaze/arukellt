@@ -1,7 +1,7 @@
 // An associated function of a generic impl can return its own method type
 // parameter. The impl binder is absent from the callee signature, so it is
 // defaulted instead of leaving the concrete call unresolved (ADR-089, #946).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct S {
     x: i32,
@@ -36,5 +36,5 @@ fn main() {
     let p: Point = Wrap::pass(Point { x: 1, y: 2 })
     let q = w.pass_with_self(Point { x: 3, y: 4 })
     let r = pass_free(Point { x: 5, y: 6 })
-    stdio::println((s.x + p.x + p.y + q.x + q.y + r.x + r.y + w.v).to_string())
+    Stdio::println((s.x + p.x + p.y + q.x + q.y + r.x + r.y + w.v).to_string())
 }

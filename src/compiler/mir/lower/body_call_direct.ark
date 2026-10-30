@@ -38,7 +38,10 @@ fn lower_direct_call_expr(mut ctx: LowerCtx, node: AstNode, callee: AstNode, chi
     }
     let callee_name = lower_direct_call_callee_name(callee)
     let is_println = call_args::mir_is_printlike_callee(callee_name.clone())
-    let stage_call_args = !is_println && child_count > 2
+    // Printlike callees lower their argument through a to_string call, so the
+    // value must be staged: an unstaged single argument would be read from
+    // the operand stack before that conversion and leave the stack unbalanced.
+    let stage_call_args = child_count > 2 || is_println
     let mut staged_arg_locals = Vec::new<i32>()
     let mut arg_widen_i64 = Vec::new<i32>()
     let mut first_arg_idx = 0 - 1

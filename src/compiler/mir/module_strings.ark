@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use mir::module_record
 use mir::types
 
@@ -9,7 +9,7 @@ use mir::types
 // emitted as a malformed data segment again.
 fn assert_string_constant_sane(s: String) {
     if len(s) < 0 {
-        stdio::eprintln("compiler ICE: string constant entered table with negative length")
+        Stdio::eprintln("compiler ICE: string constant entered table with negative length")
         Process::exit(1)
     }
 }

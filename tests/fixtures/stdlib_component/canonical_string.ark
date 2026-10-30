@@ -1,22 +1,22 @@
 use std::component::Component
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::error
 fn main() {
     let mut scratch = Component::scratch_new()
     match Component::lower_string(scratch, String_from("hi")) {
         Result::Ok(slice) => {
-            stdio::println((slice.ptr).to_string())
-            stdio::println((slice.len).to_string())
+            Stdio::println((slice.ptr).to_string())
+            Stdio::println((slice.len).to_string())
             match Component::lift_string(scratch, slice) {
-                Result::Ok(s) => stdio::println(s),
-                Result::Err(e) => stdio::println(e.message()),
+                Result::Ok(s) => Stdio::println(s),
+                Result::Err(e) => Stdio::println(e.message()),
             }
             match Component::lift_string_at(scratch, slice.ptr, slice.len) {
-                Result::Ok(s) => stdio::println(s),
-                Result::Err(e) => stdio::println(e.message()),
+                Result::Ok(s) => Stdio::println(s),
+                Result::Err(e) => Stdio::println(e.message()),
             }
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
 }
 // canonical string lower/lift round-trip (Component associated functions)

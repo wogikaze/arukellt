@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((-5).abs())
-    stdio::println((3).abs())
-    stdio::println((3).min(7))
-    stdio::println((3).max(7))
+    Stdio::println((-5).abs())
+    Stdio::println((3).abs())
+    Stdio::println((3).min(7))
+    Stdio::println((3).max(7))
 }

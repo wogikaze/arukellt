@@ -1,5 +1,5 @@
 // Issue #701 / #845: Associated function syntax for Vec — Vec::new<T>().
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     // Explicit Vec<i32> keeps MIR local type vec:i32 when associated ctor
@@ -11,5 +11,5 @@ fn main() {
     assert(len(v) == 2)
     assert(get_unchecked(v, 0) == 1)
     assert(get_unchecked(v, 1) == 2)
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

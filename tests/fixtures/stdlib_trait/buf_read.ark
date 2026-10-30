@@ -2,7 +2,7 @@
 //
 // fill_buf returns the unconsumed bytes without advancing the cursor, and
 // repeated calls stay consistent; read advances the shared cursor.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
@@ -49,5 +49,5 @@ fn main() {
         Result::Err(_e) => assert(false),
     }
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

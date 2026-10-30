@@ -1,6 +1,6 @@
 use std::test::Test
 use std::text
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // HashMap backing tables start at capacity 16 and must keep every entry
 // once inserts exceed that capacity (#895).
@@ -63,5 +63,5 @@ fn main() {
         None => Std::panic("missing grown String->String entry"),
     }
 
-    stdio::println("growth-ok")
+    Stdio::println("growth-ok")
 }

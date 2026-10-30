@@ -1,11 +1,11 @@
 use std::collections::compiler::Arena
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut a: Arena = Arena::new()
     let idx0: i32 = a.alloc(42)
     let idx1: i32 = a.alloc(99)
-    stdio::println((a.len()).to_string())
-    stdio::println((a.get(idx0)).to_string())
-    stdio::println((a.get(idx1)).to_string())
+    Stdio::println((a.len()).to_string())
+    Stdio::println((a.get(idx0)).to_string())
+    Stdio::println((a.get(idx1)).to_string())
 }

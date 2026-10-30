@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
 use std::prelude::{assert_eq}
 fn main() {
@@ -21,7 +21,7 @@ fn main() {
     assert_eq(s1, r1)
     assert_eq(s2, r2)
     assert_eq(s3, r3)
-    stdio::println("random_seed ok")
+    Stdio::println("random_seed ok")
 }
 // Test seeded_random determinism.
 // Exact outputs pin the xorshift32 implementation.

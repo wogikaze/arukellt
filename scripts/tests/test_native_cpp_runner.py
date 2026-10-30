@@ -361,7 +361,7 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         spaced.mkdir(parents=True, exist_ok=True)
         source = spaced / "hello spaced.ark"
         source.write_text(
-            'use std::host::stdio\nfn main() { stdio::println(String_from("spaced-ok")) }\n',
+            'use std::host::stdio::Stdio\nfn main() { Stdio::println(String_from("spaced-ok")) }\n',
             encoding="utf-8",
         )
         # Keep the path under the repo so WASI --dir can read it.

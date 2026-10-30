@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 13 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 4 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 24 | Superseded — see migration guidance. |
@@ -75,6 +75,7 @@
 | `Stack` | T | no | provisional | Last-in first-out stack restricted to Deque<T> push / pop at the back. |
 | `Std` | - | yes | stable | Namespace for unrecoverable process control. Use Std::panic(message) to abort. |
 | `Stderr` | - | no | experimental | Typed standard-error handle. Implements Write: write(data) emits the byte image unchanged without appending a newline, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stderr() / writer_write path (ADR-085 D9). |
+| `Stdio` | - | no | provisional | Namespace for the host standard-stream operations: Stdio::read_stdin() reads all of stdin as a String; Stdio::print / println / eprintln write string-shaped output, and println / eprintln append a newline. Byte-faithful sinks are std::io::Stdout / std::io::Stderr. The four stable free functions were deleted in the ADR-094 wave; qualified old calls fail with an E0100 hint that names Stdio. |
 | `Stdout` | - | no | experimental | Typed standard-output handle. Implements Write: write(data) emits the byte image unchanged, write_string(text) emits a string's UTF-8 bytes, and flush is synchronous. Byte-faithful replacement for the tagged stdout() / writer_write path (ADR-085 D9). |
 | `String` | - | yes | stable | UTF-8 string value. |
 | `Test` | - | no | stable | Namespace for the typed assertion and expectation helpers: Test::assert_true / assert_false, the typed equality and inequality assertions, assert_eq_debug, assert_contains, assert_eq_snapshot, assert_msg, the Result/Option expect helpers, and bench. Import use std::test::Test and call the associated functions; the module exposes no free assertion function (ADR-046). |
@@ -198,6 +199,7 @@
 | `Stack` | `new`, `with_capacity`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear`, `capacity`, `reserve`, `iter` | `IntoIterator`, `FromIterator`, `Clone`, `Eq`, `Debug` |
 | `Std` | `panic` | - |
 | `Stderr` | `new`, `write_string` | `Write` |
+| `Stdio` | `read_stdin`, `print`, `println`, `eprintln` | - |
 | `Stdout` | `new`, `write_string` | `Write` |
 | `Test` | `assert_true`, `assert_false`, `assert_eq_debug`, `assert_eq_i32`, `assert_eq_i64`, `assert_eq_f64`, `assert_eq_string`, `assert_eq_bool`, `assert_ne_i32`, `assert_ne_string`, `expect_ok_i32`, `expect_err_string`, `expect_some_i32`, `expect_none_i32`, `assert_contains`, `assert_eq_snapshot`, `assert_msg`, `bench` | - |
 | `TomlValue` | `parse`, `to_text`, `as_string`, `as_int`, `as_bool`, `as_float`, `as_array`, `as_table`, `get_field`, `table_keys` | - |
@@ -294,60 +296,6 @@ push(v, 2)
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-
-## Host Stdio
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
-| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
-| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
-| `read_stdin` | `() -> String` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
-
-### `eprintln` — `std::host::stdio`
-
-_Example — Write a diagnostic message to stderr:_
-
-```ark
-eprintln("Error: something went wrong")
-```
-
-### `print` — `std::host::stdio`
-
-_Example — Print without newlines:_
-
-```ark
-print("hello ")
-print("world")
-```
-
-### `println` — `std::host::stdio`
-
-_Example — Basic hello-world output:_
-
-```ark
-println("Hello, world!")
-```
-
-Expected output: `Hello, world!`
-
-### `read_stdin` — `std::host::stdio`
-
-_Example — Read stdin as a string:_
-
-```ark
-let input = stdio::read_stdin()
-```
-
-## Io
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `read_stdin_line` | `() -> Result<String, IoError>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
-| `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## String
 

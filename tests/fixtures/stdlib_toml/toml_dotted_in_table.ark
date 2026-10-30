@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -20,6 +20,6 @@ fn main() {
         },
         Result::Err(_) => assert(false),
     }
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 // dotted key inside [section] nests within the section table

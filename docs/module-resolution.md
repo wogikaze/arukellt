@@ -64,8 +64,8 @@ After importing, items are accessed via their module alias:
 import math
 let x = math::add(1, 2)
 
-use std::host::stdio
-stdio::println("hello")
+use std::host::stdio::Stdio
+Stdio::println("hello")
 ```
 
 A module alias can be renamed at import time:
@@ -232,7 +232,9 @@ without import.
 
 `use std::host::stdio` is normalized to a module lookup: the `::` separators
 are split into path components, and the last component is the module name.
-The module's exported functions become accessible via the alias `stdio::`.
+The module's exported types become accessible via the alias `stdio::`
+(`stdio::Stdio::println(...)`), and `use std::host::stdio::Stdio` imports the
+namespace type for the bare `Stdio::println(...)` spelling.
 
 ## 7. Visibility Rules
 

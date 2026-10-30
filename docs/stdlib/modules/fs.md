@@ -28,11 +28,12 @@ Source-backed docs for explicit host filesystem operations.
 ```ark
 import std::host::fs
 use std::host::fs::Fs
+use std::host::stdio::Stdio
 
 let content = Fs::read_to_string("data.txt")
 match content {
-    Ok(text) => println(text),
-    Err(e)   => eprintln("read error: " + e),
+    Result::Ok(text) => Stdio::println(text),
+    Result::Err(e)   => Stdio::eprintln("read error: ".concat(e)),
 }
 
 Fs::write_string("output.txt", "hello")

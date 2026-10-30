@@ -2,7 +2,7 @@
 // at an associated call: a generic trait impl returns G<T>, and a generic
 // inherent impl returns Wrap<T>. The non-generic trait impl covers the
 // concrete Self binding these names share.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct G<T> {
     value: T,
@@ -49,6 +49,6 @@ fn main() {
     let words: G<String> = G::make(String_from("ab"))
     let boxed = Boxed::make(9)
     let wrapped: Wrap<i32> = Wrap::make(11)
-    stdio::println((numbers.value + boxed.value + wrapped.value).to_string())
-    stdio::println(words.value)
+    Stdio::println((numbers.value + boxed.value + wrapped.value).to_string())
+    Stdio::println(words.value)
 }

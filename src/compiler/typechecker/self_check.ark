@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use lexer::scan
 use parser::core_api_token
@@ -12,15 +12,15 @@ fn main() {
     let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     if len(p.errors) != 0 {
-        stdio::println("TypeChecker parse errors: ".concat(len(p.errors).to_string()))
+        Stdio::println("TypeChecker parse errors: ".concat(len(p.errors).to_string()))
         return
     }
     let resolve_ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), Vec::new<String>())
     let result = entry::typecheck_module(decls, resolve_ctx, Vec::new<String>())
     let error_count = contract_result_state::typecheck_result_error_count(result)
     if error_count != 0 {
-        stdio::println("TypeChecker errors: ".concat(error_count.to_string()))
+        Stdio::println("TypeChecker errors: ".concat(error_count.to_string()))
         return
     }
-    stdio::println("TypeChecker OK.")
+    Stdio::println("TypeChecker OK.")
 }

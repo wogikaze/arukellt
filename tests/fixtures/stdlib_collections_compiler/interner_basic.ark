@@ -1,23 +1,23 @@
 use std::collections::compiler::Interner
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut i: Interner = Interner::new()
     let s0: i32 = i.intern("hello")
     let s1: i32 = i.intern("world")
     let s2: i32 = i.intern("hello")
-    stdio::println((i.len()).to_string())
-    stdio::println((s0).to_string())
-    stdio::println((s1).to_string())
-    stdio::println((s2).to_string())
+    Stdio::println((i.len()).to_string())
+    Stdio::println((s0).to_string())
+    Stdio::println((s1).to_string())
+    Stdio::println((s2).to_string())
     let looked_up: Option<String> = i.lookup(s1)
     match looked_up {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => Stdio::println(v),
+        None => Stdio::println("not found"),
     }
     let missing: Option<String> = i.lookup(99)
     match missing {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => Stdio::println(v),
+        None => Stdio::println("not found"),
     }
 }

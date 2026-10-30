@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn is_positive(x: i64) -> bool {
     x > 0i64
@@ -21,7 +21,7 @@ fn main() {
     }
     let mut i: i32 = 0
     while i < len(pos) {
-        stdio::println((get_unchecked(pos, i)).to_string())
+        Stdio::println((get_unchecked(pos, i)).to_string())
         i = i + 1
     }
 }

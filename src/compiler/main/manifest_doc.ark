@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use main::manifest_doc_fuzzy
 use main::manifest_doc_lookup
@@ -17,7 +17,7 @@ fn doc_load_manifest() -> DocManifestTable {
             manifest_doc_parse::doc_parse_manifest(content)
         },
         Result::Err(e) => {
-            stdio::eprintln("error: could not load stdlib manifest: ".concat(e))
+            Stdio::eprintln("error: could not load stdlib manifest: ".concat(e))
             Process::exit(1)
             manifest_doc_record::DocManifestTable_new(Vec::new<DocFnEntry>(), Vec::new<DocModuleEntry>())
         },
@@ -36,14 +36,14 @@ pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
         return
     }
     if len(hits) == 0 {
-        stdio::eprintln("error: symbol '".concat(symbol.clone().concat("' not found")))
+        Stdio::eprintln("error: symbol '".concat(symbol.clone().concat("' not found")))
         let candidates = manifest_doc_fuzzy::doc_find_closest(table, symbol.clone(), 3)
         if len(candidates) > 0 {
-            stdio::eprintln("")
-            stdio::eprintln("Did you mean?")
+            Stdio::eprintln("")
+            Stdio::eprintln("Did you mean?")
             let mut ci = 0
             while ci < len(candidates) {
-                stdio::eprintln("  ".concat(get_unchecked(candidates, ci)))
+                Stdio::eprintln("  ".concat(get_unchecked(candidates, ci)))
                 ci = ci + 1
             }
         }

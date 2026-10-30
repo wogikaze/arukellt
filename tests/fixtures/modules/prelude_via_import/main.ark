@@ -1,10 +1,9 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import helpers
 
 fn main() {
     let s: String = helpers::greet(String_from("world"))
-    stdio::println(s)
+    Stdio::println(s)
     let v: Vec<i32> = helpers::make_vec()
-    stdio::println((len(v)).to_string())
+    Stdio::println((len(v)).to_string())
 }

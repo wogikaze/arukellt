@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let pair: (i32, i32) = (10, 20)
     let (a, b) = pair
-    stdio::println((a).to_string())
-    stdio::println((b).to_string())
+    Stdio::println((a).to_string())
+    Stdio::println((b).to_string())
 }

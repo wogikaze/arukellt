@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let a: Option<i32> = None
     Test::expect_none_i32(a)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

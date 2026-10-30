@@ -1,5 +1,5 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
@@ -16,27 +16,27 @@ fn main() {
     data.push_byte(108)
     data.push_byte(100)
     let mut r: io::Reader = io::Reader::from_bytes(data)
-    stdio::println((r.is_eof()).to_string())
+    Stdio::println((r.is_eof()).to_string())
     let res: Result<Vec<i32>, io::IoError> = r.read(5)
     match res {
-        Result::Ok(chunk) => stdio::println(String::from_utf8_lossy(chunk)),
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Ok(chunk) => Stdio::println(String::from_utf8_lossy(chunk)),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     // After reading "Hello", cursor sits on the newline. The first read_line
     // consumes it (empty line); the second returns the remainder "World".
     match r.read_line() {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     match r.read_line() {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
-    stdio::println((r.is_eof()).to_string())
+    Stdio::println((r.is_eof()).to_string())
 }

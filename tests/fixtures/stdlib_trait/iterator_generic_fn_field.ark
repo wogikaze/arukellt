@@ -1,5 +1,5 @@
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(x: i32) -> i32 {
     x * 2
@@ -48,14 +48,14 @@ fn main() -> i32 {
             Option::None => { break },
         }
     }
-    stdio::println(total.to_string())
+    Stdio::println(total.to_string())
     let mut s: Vec<String> = Vec::new<String>()
     s.push("abc")
     s.push("de")
     let mut it2: GenMap<String, i32> = gen_map(s, strlen)
     match it2.next() {
-        Option::Some(x) => stdio::println(x.to_string()),
-        Option::None => stdio::println("none"),
+        Option::Some(x) => Stdio::println(x.to_string()),
+        Option::None => Stdio::println("none"),
     }
     0
 }

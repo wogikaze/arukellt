@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 use std::prelude::{assert_eq, assert_eq_str}
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
     let err_result: Result<i32, String> = Err("bad")
     let e = Test::expect_err_string(err_result)
     assert_eq_str(e, "bad")
-    stdio::println("expect_result ok")
+    Stdio::println("expect_result ok")
 }

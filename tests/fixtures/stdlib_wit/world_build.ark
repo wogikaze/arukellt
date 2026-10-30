@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::types
 use std::wit::world
 
@@ -11,7 +11,7 @@ fn main() {
     iface.add_func(func)
     let mut w = world::World::new(String_from("example"))
     w.add_export(iface)
-    stdio::println(w.name())
-    stdio::println((w.exports_len()).to_string())
+    Stdio::println(w.name())
+    Stdio::println((w.exports_len()).to_string())
 }
 // World build with export interface

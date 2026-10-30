@@ -1,7 +1,7 @@
 // Regression: an inherent impl method returning Result must expose its Ok/Err
 // payload types at the call site. Before the method return-name fix, MIR
 // lowering rejected this match as an untyped Result scrutinee.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Parsed {
     value: i32,
@@ -18,11 +18,11 @@ impl Parsed {
 
 fn main() {
     match Parsed::make(7) {
-        Result::Ok(parsed) => stdio::println((parsed.value).to_string()),
-        Result::Err(err) => stdio::println(err),
+        Result::Ok(parsed) => Stdio::println((parsed.value).to_string()),
+        Result::Err(err) => Stdio::println(err),
     }
     match Parsed::make(0 - 1) {
-        Result::Ok(_) => stdio::println("unexpected ok"),
-        Result::Err(err) => stdio::println(err),
+        Result::Ok(_) => Stdio::println("unexpected ok"),
+        Result::Err(err) => Stdio::println(err),
     }
 }

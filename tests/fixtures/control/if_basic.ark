@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let x: i32 = 10
     if x > 5 {
-        stdio::println("big")
+        Stdio::println("big")
     }
 }

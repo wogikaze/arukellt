@@ -1,17 +1,17 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r = ""
-    stdio::println((r.len()).to_string())
+    Stdio::println((r.len()).to_string())
     let r2 = "hello".clone()
-    stdio::println((r2.len()).to_string())
-    stdio::println(r2.clone())
+    Stdio::println((r2.len()).to_string())
+    Stdio::println(r2.clone())
     let r3 = r2.insert_text(5, " world")
-    stdio::println(r3.clone())
+    Stdio::println(r3.clone())
     let r4 = r3.delete_range(5, 11)
-    stdio::println(r4.clone())
+    Stdio::println(r4.clone())
     let r5 = r3.slice(6, 11)
-    stdio::println(r5)
+    Stdio::println(r5)
     let r6 = "line1\nline2\nline3".clone()
-    stdio::println((r6.line_count()).to_string())
+    Stdio::println((r6.line_count()).to_string())
 }

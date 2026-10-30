@@ -1,5 +1,5 @@
 // Test: array comprehension used inline as a function argument
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 fn sum_vec(v: Vec<i32>) -> i32 {
@@ -16,5 +16,5 @@ fn main() {
     push(xs, 2)
     push(xs, 3)
     let result = sum_vec([x * 10 for x in xs])
-    stdio::println(result.to_string())
+    Stdio::println(result.to_string())
 }

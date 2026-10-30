@@ -1,6 +1,6 @@
 // Negative fixture: where binding references a name not in scope
 // Should produce a compile error about undefined name
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn classify(x) -> String | x > 0 = "pos"
 fn classify(_) -> String = "other"
@@ -8,5 +8,5 @@ where
     y = undefined_name + 1
 
 fn main() {
-    stdio::println(String_from("should not reach"))
+    Stdio::println(String_from("should not reach"))
 }

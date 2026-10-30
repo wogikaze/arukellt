@@ -1,6 +1,6 @@
 // Clock namespace for the host clock reads (ADR-046, #917).
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -9,5 +9,5 @@ fn main() {
     Test::assert_true(second >= first)
     let wall = Clock::now_ms()
     Test::assert_true(wall > 0i64)
-    stdio::println("clock-namespace-ok")
+    Stdio::println("clock-namespace-ok")
 }

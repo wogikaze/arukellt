@@ -1,7 +1,7 @@
 use std::host::env::Env
 use std::host::fs::Fs
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use driver::config_record
 use driver::file
@@ -15,7 +15,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln("error writing output: ".concat(e))
+                Stdio::eprintln("error writing output: ".concat(e))
                 Process::exit(1)
             },
         }
@@ -24,7 +24,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
         let mut j = 0
         while j < err_count {
             let msg = result_record::compile_result_error_message_at(result, j)
-            stdio::eprintln("error: ".concat(msg.clone()))
+            Stdio::eprintln("error: ".concat(msg.clone()))
             j = j + 1
         }
         Process::exit(1)
@@ -36,18 +36,18 @@ fn main() {
     let argc = Env::arg_count()
     let arg_start = cli_args::legacy_arg_start(args, argc)
     if !cli_args::has_min_compile_args(argc, arg_start) {
-        stdio::eprintln("usage: arukellt compile <input> --target <target> -o <output>")
+        Stdio::eprintln("usage: arukellt compile <input> --target <target> -o <output>")
         Process::exit(1)
     }
     let subcommand = get_unchecked(args, arg_start)
     if !subcommand.clone().eq("compile") {
-        stdio::eprintln("unknown subcommand: ".concat(subcommand.clone()))
+        Stdio::eprintln("unknown subcommand: ".concat(subcommand.clone()))
         Process::exit(1)
     }
     let mut config = config_record::DriverConfig_default()
     let parsed = cli_args::parse_legacy_compile_args(args, argc, arg_start, config)
     if !cli_args::legacy_compile_args_has_output(parsed) {
-        stdio::eprintln("error: missing -o <output> flag")
+        Stdio::eprintln("error: missing -o <output> flag")
         Process::exit(1)
     }
     let result = file::compile_file(cli_args::legacy_compile_args_input_path(parsed), cli_args::legacy_compile_args_config(parsed))

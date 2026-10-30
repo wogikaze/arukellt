@@ -1,15 +1,15 @@
 // Demonstrates the new module-based API style (v3+).
 // Prefer explicit `use std::*` imports over the deprecated prelude forms.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
     let s: String = "Hello".concat(", Arukellt!")
-    stdio::println(s)
+    Stdio::println(s)
     let parts: Vec<String> = "one,two,three".split(",")
-    stdio::println((len(parts)).to_string())
+    Stdio::println((len(parts)).to_string())
     let rejoined: String = parts.join(" | ")
-    stdio::println(rejoined)
+    Stdio::println(rejoined)
 }
 // New API: text::concat instead of prelude concat()
 // New API: text::split instead of prelude split()

@@ -1,18 +1,15 @@
 // Fixture: use_qualified_call_typed.ark
 // Slice 3 of issue #039 (typecheck): verify that a module-qualified call
-// type-checks when its defining module is imported. The typechecker must look
-// up `io::read_stdin_line` in its qualified fn_sigs table and infer the
-// `Result<String, IoError>` return type.
+// type-checks when its defining module is imported. The typechecker must
+// resolve `Stdio::read_stdin` through the imported `std::host::stdio::Stdio`
+// type and infer the `String` return type.
 //
 // Expected output: true
-use std::io
+use std::host::stdio::Stdio
 
 fn main() {
     let s: String = "a,b,c"
-    let empty = match io::read_stdin_line() {
-        Ok(line) => line.is_empty(),
-        Err(_) => false,
-    }
-    let typed: bool = empty && s.eq("a,b,c")
+    let line: String = Stdio::read_stdin()
+    let typed: bool = line.is_empty() && s.eq("a,b,c")
     __intrinsic_println(typed.to_string())
 }

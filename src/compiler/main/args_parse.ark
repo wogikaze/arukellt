@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use main::args_parse_flags
 use main::args_parse_opts
@@ -38,7 +38,7 @@ fn canonicalize_target_input(mut opts: CliOptions) {
         return
     }
     if policy.clone().eq("warning") {
-        stdio::eprintln(target_contract_generated::target_alias_message(input.clone()))
+        Stdio::eprintln(target_contract_generated::target_alias_message(input.clone()))
         args_record::cli_set_target(opts, target_contract_generated::target_alias_canonical_target(input.clone()))
         if !args_record::cli_has_wasi_version(opts) {
             args_record::cli_set_wasi_version(opts, target_contract_generated::target_alias_host_profile(input))

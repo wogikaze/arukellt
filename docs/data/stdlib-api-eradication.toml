@@ -248,16 +248,15 @@ replacement = "method / associated equivalent on the receiver or namespace type"
 # 2026-10-30 (#693 / #917): the source declaration was never a manifest
 # entry, so ADR-014 D4 allowed direct deletion. `IoError::message(self)` is
 # the replacement, and a qualified `io::io_error_message(...)` call fails
-# with E0100 and that hint. No source declaration matches this rule now; it
-# stays because the host-backed std::io / std::host::stdio compatibility
-# functions below are still registered manifest entries.
-
-[[rules]]
-label = "std::io and host stdio frees"
-module = ["std::io", "std::host::stdio"]
-class = "associated-or-method"
-owner = "693"
-replacement = "Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles; `IoError::message()` returns an error's human-readable payload (the former free `io_error_message` retired with an E0100 hint). writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693)."
+# with E0100 and that hint.
+#
+# The `std::io and host stdio frees` family (9 stable entries) was retired on
+# 2026-10-30 by wave/io-stdio (#693, ADR-094). `read_stdin` / `print` /
+# `println` / `eprintln` moved to the `Stdio` namespace; `stdout` / `stderr`
+# and `print_bytes` use the typed `Stdout` / `Stderr` handles; `stdin` /
+# `read_stdin_line` were placeholders that never lowered and retired without
+# a replacement. No manifest function or top-level `pub fn` from either
+# module remains, so the family has no live rule.
 
 # The 18 std::test assertion / expectation frees were retired by #917 on
 # 2026-10-29 (wave/test-group) after the ADR-087 two-phase lifecycle: Wave 1

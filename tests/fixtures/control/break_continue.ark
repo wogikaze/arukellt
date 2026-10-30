@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut i: i32 = 0
@@ -10,6 +10,6 @@ fn main() {
         if i > 7 {
             break
         }
-        stdio::println((i).to_string())
+        Stdio::println((i).to_string())
     }
 }

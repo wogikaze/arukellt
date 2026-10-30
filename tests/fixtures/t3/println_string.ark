@@ -1,5 +1,5 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println(String_from("found"))
+    Stdio::println(String_from("found"))
 }

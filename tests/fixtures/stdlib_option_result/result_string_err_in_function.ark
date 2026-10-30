@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn validate(n: i32) -> Result<i32, String> {
@@ -8,5 +8,5 @@ fn main() {
     Test::assert_true(validate(5).is_ok())
     let r = validate(-1)
     match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => Test::assert_eq_string(e, String_from("must be positive")) }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

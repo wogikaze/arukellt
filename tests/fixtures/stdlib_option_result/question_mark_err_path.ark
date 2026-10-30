@@ -1,5 +1,5 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn parse_and_double(s: String) -> Result<i32, String> {
@@ -10,5 +10,5 @@ fn main() {
     let r = parse_and_double(String_from("abc"))
     match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => {} }
     Test::assert_true(r.is_err())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

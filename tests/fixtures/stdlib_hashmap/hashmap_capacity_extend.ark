@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{assert_eq}
 fn expect_some(v: Option<i32>, expected: i32) {
     match v {
@@ -46,5 +46,5 @@ fn main() {
     expect_some(m.get(100), 1000)
     assert_eq(m.len(), 21)
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

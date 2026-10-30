@@ -1,6 +1,6 @@
 // Test: selfhost typechecker occurs check in bind_var prevents self-referential types.
 // Exercises: normal type inference works correctly with occurs check installed.
-use std::host::stdio
+use std::host::stdio::Stdio
 fn double(n: i32) -> i32 {
     n * 2
 }
@@ -8,7 +8,7 @@ fn double(n: i32) -> i32 {
 fn main() {
     let x = 21
     let y = double(x)
-    stdio::println(y.to_string())
-    stdio::println(String_from("occurs check OK"))
+    Stdio::println(y.to_string())
+    Stdio::println(String_from("occurs check OK"))
 }
 // Simple type inference with occurs check — should compile and run fine

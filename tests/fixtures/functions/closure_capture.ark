@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let offset: i32 = 10
     let add_offset = |x: i32| -> i32 {
         x + offset
     }
-    stdio::println((add_offset(32)).to_string())
+    Stdio::println((add_offset(32)).to_string())
 }

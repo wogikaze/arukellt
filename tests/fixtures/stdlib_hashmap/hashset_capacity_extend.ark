@@ -1,5 +1,5 @@
 use std::collections::hash_set::HashSet
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{assert_eq}
 fn main() {
     let mut s = HashSet::new<i32>()
@@ -54,5 +54,5 @@ fn main() {
     assert_eq(s.len(), 0)
     assert(!s.contains(1))
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

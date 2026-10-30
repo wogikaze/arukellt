@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::function_block_queries
 use mir::function_identity
@@ -57,25 +57,25 @@ fn verify_report_print_largest_function(m: MirModule) {
         }
         fi = fi + 1
     }
-    stdio::eprintln("mir-verify: largest function ".concat(max_name.concat(" = ".concat(max_count.to_string()))))
+    Stdio::eprintln("mir-verify: largest function ".concat(max_name.concat(" = ".concat(max_count.to_string()))))
 }
 
 fn verify_mir(m: MirModule) -> i32 {
     let report = verify_mir_warn_only_verbose(m, false)
     if verify_report::mir_verify_report_w005(report) > 0 {
-        stdio::eprintln("mir-verify: fail on W005")
+        Stdio::eprintln("mir-verify: fail on W005")
         return 1
     }
     if verify_report::mir_verify_report_w006(report) > 0 {
-        stdio::eprintln("mir-verify: fail on W006")
+        Stdio::eprintln("mir-verify: fail on W006")
         return 1
     }
     if verify_report::mir_verify_report_w007(report) > 0 {
-        stdio::eprintln("mir-verify: fail on W007")
+        Stdio::eprintln("mir-verify: fail on W007")
         return 1
     }
     if verify_report::mir_verify_report_w008(report) > 0 {
-        stdio::eprintln("mir-verify: fail on W008 invalid lowering operand")
+        Stdio::eprintln("mir-verify: fail on W008 invalid lowering operand")
         return 1
     }
     0

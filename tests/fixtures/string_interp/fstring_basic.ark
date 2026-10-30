@@ -1,14 +1,14 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let name: String = String_from("world")
     // Associated form avoids the pre-existing literal-receiver + to_string(String)
     // aliasing gap; the concat/Display behavior under test is unchanged.
-    stdio::println(String::concat(String::concat("Hello, ", name.to_string()), "!"))
+    Stdio::println(String::concat(String::concat("Hello, ", name.to_string()), "!"))
     let x: i32 = 42
-    stdio::println("The answer is ".concat(x.to_string()).concat("."))
+    Stdio::println("The answer is ".concat(x.to_string()).concat("."))
     let flag: bool = true
-    stdio::println("flag is ".concat(flag.to_string()))
+    Stdio::println("flag is ".concat(flag.to_string()))
     let pi: f64 = 3.14
-    stdio::println("pi = ".concat(pi.to_string()))
+    Stdio::println("pi = ".concat(pi.to_string()))
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut items = Vec::new<Option<i32>>()
@@ -6,12 +6,12 @@ fn main() {
     items = push(items, None)
     let first: Option<i32> = get_unchecked(items, 0)
     match first {
-        Option::Some(n) => { stdio::println(n.to_string()) }
-        None => { stdio::println(String_from("none")) }
+        Option::Some(n) => { Stdio::println(n.to_string()) }
+        None => { Stdio::println(String_from("none")) }
     }
     let second: Option<i32> = get_unchecked(items, 1)
     match second {
-        Option::Some(n) => { stdio::println(n.to_string()) }
-        None => { stdio::println(String_from("none")) }
+        Option::Some(n) => { Stdio::println(n.to_string()) }
+        None => { Stdio::println(String_from("none")) }
     }
 }

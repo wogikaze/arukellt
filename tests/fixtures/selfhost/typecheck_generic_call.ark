@@ -1,7 +1,7 @@
 // Test: selfhost typechecker generic function call type argument inference
 // Verifies: calling a generic fn like identity<T>(x: T) -> T with an i32
 //           argument infers T=i32 and produces the correct return type.
-use std::host::stdio
+use std::host::stdio::Stdio
 fn identity<T>(x: T) -> T {
     x
 }
@@ -12,18 +12,18 @@ fn first<A, B>(a: A, b: B) -> A {
 
 fn main() {
     let a: i32 = identity(42)
-    stdio::println(a.to_string())
+    Stdio::println(a.to_string())
     let b: bool = identity(true)
     if b {
-        stdio::println(String_from("true"))
+        Stdio::println(String_from("true"))
     } else {
-        stdio::println(String_from("false"))
+        Stdio::println(String_from("false"))
     }
     let s: String = identity(String_from("hello"))
-    stdio::println(s)
+    Stdio::println(s)
     let f: i32 = first(99, String_from("ignored"))
-    stdio::println(f.to_string())
-    stdio::println(String_from("Generic call OK."))
+    Stdio::println(f.to_string())
+    Stdio::println(String_from("Generic call OK."))
 }
 // identity(42) → T=i32, result: i32
 // identity with bool → T=bool

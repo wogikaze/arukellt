@@ -4,7 +4,7 @@
 // `Reader::new`. Result-returning trait methods are invoked through generic
 // bounds because direct Result-returning method dispatch is a separate
 // typed-MIR Phase 5.1 compiler gap on wasm32-gc.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{Reader, Writer}
 
@@ -84,53 +84,53 @@ fn main() {
     let mut count_writer: Writer = Writer::new()
     let count: Result<i32, io::IoError> = write_once(count_writer, payload())
     match count {
-        Result::Ok(written) => stdio::println((written).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(written) => Stdio::println((written).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut bytes_writer: Writer = Writer::new()
     let bytes_handoff: Handoff<io::Writer> = write_and_flush(bytes_writer, payload())
     if !bytes_handoff.flush_ok {
-        stdio::println("flush failed")
+        Stdio::println("flush failed")
     }
     let bytes: Vec<i32> = bytes_handoff.sink.into_bytes()
-    stdio::println((len(bytes)).to_string())
-    stdio::println((get_unchecked(bytes, 0)).to_string())
-    stdio::println((get_unchecked(bytes, 4)).to_string())
+    Stdio::println((len(bytes)).to_string())
+    Stdio::println((get_unchecked(bytes, 0)).to_string())
+    Stdio::println((get_unchecked(bytes, 4)).to_string())
 
     let mut roundtrip_writer: Writer = Writer::new()
     let roundtrip_handoff: Handoff<io::Writer> = write_and_flush(roundtrip_writer, payload())
     if !roundtrip_handoff.flush_ok {
-        stdio::println("flush failed")
+        Stdio::println("flush failed")
     }
     let mut reader: Reader = roundtrip_handoff.sink.into_reader()
-    stdio::println((reader.len()).to_string())
-    stdio::println((reader.is_eof()).to_string())
+    Stdio::println((reader.len()).to_string())
+    Stdio::println((reader.is_eof()).to_string())
     match read_report(reader) {
         Result::Ok(report) => {
-            stdio::println((report.first_len).to_string())
-            stdio::println((report.first_byte0).to_string())
-            stdio::println((report.first_byte1).to_string())
-            stdio::println((report.rest_len).to_string())
-            stdio::println((report.rest_byte0).to_string())
-            stdio::println((report.eof_len).to_string())
+            Stdio::println((report.first_len).to_string())
+            Stdio::println((report.first_byte0).to_string())
+            Stdio::println((report.first_byte1).to_string())
+            Stdio::println((report.rest_len).to_string())
+            Stdio::println((report.rest_byte0).to_string())
+            Stdio::println((report.eof_len).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let from_bytes: Reader = Reader::from_bytes(payload())
-    stdio::println((from_bytes.len()).to_string())
+    Stdio::println((from_bytes.len()).to_string())
     let image: Vec<i32> = from_bytes.into_bytes()
-    stdio::println(len(image).to_string())
-    stdio::println((get_unchecked(image, 2)).to_string())
+    Stdio::println(len(image).to_string())
+    Stdio::println((get_unchecked(image, 2)).to_string())
 
     let mut empty: Reader = Reader::new()
-    stdio::println((empty.len()).to_string())
-    stdio::println((empty.is_eof()).to_string())
+    Stdio::println((empty.len()).to_string())
+    Stdio::println((empty.is_eof()).to_string())
     match read_report(empty) {
-        Result::Ok(report) => stdio::println((report.eof_len).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(report) => Stdio::println((report.eof_len).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
-    stdio::println("done")
+    Stdio::println("done")
 }

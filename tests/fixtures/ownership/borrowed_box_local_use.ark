@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::Box
 
 // ADR-088 §6: a borrowed `Box<T>` parameter may be read locally. Matching the
@@ -13,6 +13,6 @@ fn peek<T>(b: Box<T>) -> T {
 
 fn main() {
     let boxed: Box<i32> = Box::new(41)
-    stdio::println(peek(boxed).to_string())
-    stdio::println(peek(boxed).to_string())
+    Stdio::println(peek(boxed).to_string())
+    Stdio::println(peek(boxed).to_string())
 }

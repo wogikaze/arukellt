@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // From<E> error conversion with ?.
 //
@@ -55,5 +55,5 @@ fn main() {
         },
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

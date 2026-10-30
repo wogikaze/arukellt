@@ -5,24 +5,24 @@
 // list, wasm32 indexes the Preview 1 argv table. Both must print the same
 // arg_at.expected stdout (argv[0] is the program name on either path).
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("arg_count=".concat((Env::arg_count()).to_string()))
+    Stdio::println("arg_count=".concat((Env::arg_count()).to_string()))
     match Env::arg_at(0) {
-        Option::Some(text) => stdio::println("arg0=".concat(text)),
-        Option::None => stdio::println("arg0=none"),
+        Option::Some(text) => Stdio::println("arg0=".concat(text)),
+        Option::None => Stdio::println("arg0=none"),
     }
     match Env::arg_at(1) {
-        Option::Some(text) => stdio::println("arg1=".concat(text)),
-        Option::None => stdio::println("arg1=none"),
+        Option::Some(text) => Stdio::println("arg1=".concat(text)),
+        Option::None => Stdio::println("arg1=none"),
     }
     match Env::arg_at(2) {
-        Option::Some(text) => stdio::println("arg2=".concat(text)),
-        Option::None => stdio::println("arg2=none"),
+        Option::Some(text) => Stdio::println("arg2=".concat(text)),
+        Option::None => Stdio::println("arg2=none"),
     }
     match Env::arg_at(-1) {
-        Option::Some(text) => stdio::println("arg_neg=".concat(text)),
-        Option::None => stdio::println("arg_neg=none"),
+        Option::Some(text) => Stdio::println("arg_neg=".concat(text)),
+        Option::None => Stdio::println("arg_neg=none"),
     }
 }

@@ -4,12 +4,12 @@
 // Used by `manager.py verify` analysis-api gate to assert that
 // `ide::api::analyze` returns a snapshot with non-zero AST/symbol/type
 // counts and zero diagnostics.
-use std::host::stdio
+use std::host::stdio::Stdio
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
 
 fn main() {
     let x = add(1, 2)
-    stdio::println(x.to_string())
+    Stdio::println(x.to_string())
 }

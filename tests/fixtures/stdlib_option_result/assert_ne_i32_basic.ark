@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     Test::assert_ne_i32(1, 2)
     Test::assert_ne_i32(0, 1)
     Test::assert_ne_i32(-1, 1)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

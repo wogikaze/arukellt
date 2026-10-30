@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Item {
     n: i32,
@@ -17,5 +17,5 @@ fn make_items() -> Vec<Item> {
 fn main() {
     let items = make_items()
     let first = get_unchecked(items, 0)
-    stdio::println((first.n).to_string())
+    Stdio::println((first.n).to_string())
 }

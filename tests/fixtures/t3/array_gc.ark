@@ -1,5 +1,5 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let arr = [1, 2, 3]
-    stdio::print(arr[0])
+    Stdio::print(arr[0])
 }

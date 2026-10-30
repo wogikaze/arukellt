@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let mut bytes = Vec::with_capacity<i32>(2)
     push(bytes, 79)
     push(bytes, 75)
     let text = __intrinsic_string_from_bytes(bytes)
-    stdio::print(text.clone().byte_at(0))
-    stdio::print(len(text.clone()))
-    stdio::print(len(String_new()))
+    Stdio::print(text.clone().byte_at(0))
+    Stdio::print(len(text.clone()))
+    Stdio::print(len(String_new()))
 }

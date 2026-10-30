@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
@@ -8,26 +8,26 @@ fn main() {
     let cr     = json::JsonValue::encode_string("x\ry")
     let bs     = json::JsonValue::encode_string("a\\b")
     let quotes = json::JsonValue::encode_string("say \"hi\"")
-    stdio::println(tab)
-    stdio::println(nl)
-    stdio::println(cr)
-    stdio::println(bs)
-    stdio::println(quotes)
+    Stdio::println(tab)
+    Stdio::println(nl)
+    Stdio::println(cr)
+    Stdio::println(bs)
+    Stdio::println(quotes)
     // Round-trip: parse escaped JSON string → check decoded length and content
     match json::JsonValue::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
             match v.as_string() {
                 Option::Some(s) => {
                     // decoded string has 11 chars (hello + \n + world)
-                    stdio::println((len(s)).to_string())
+                    Stdio::println((len(s)).to_string())
                 },
-                None => stdio::println("not string"),
+                None => Stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // Differential golden: encode then verify exact JSON token
     let golden = "\"a\\tb\""
-    stdio::println((tab.eq(golden)).to_string())
+    Stdio::println((tab.eq(golden)).to_string())
 }
 // string escape round-trip and differential golden check

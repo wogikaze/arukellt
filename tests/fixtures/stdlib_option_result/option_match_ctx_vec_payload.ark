@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 // Regression: Option match must select the Some layout for the scrutinee
@@ -48,5 +48,5 @@ fn main() {
     }
     Test::assert_eq_i32(match_opt_inner(ctx, Some(inner)), 7)
     Test::assert_eq_i32(match_opt_inner(ctx, None), 0)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

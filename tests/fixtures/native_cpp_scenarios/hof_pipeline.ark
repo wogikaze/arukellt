@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{filter_i32}
 use std::core::iter
 fn double(x: i32) -> i32 {
@@ -20,7 +20,7 @@ fn main() {
     let mut i = 0
     let n = len(filtered)
     while i < n {
-        stdio::println(get_unchecked(filtered, i).to_string())
+        Stdio::println(get_unchecked(filtered, i).to_string())
         i = i + 1
     }
 }

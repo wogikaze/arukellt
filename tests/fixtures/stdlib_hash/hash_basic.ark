@@ -1,16 +1,16 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m: HashMap<i32, i32> = HashMap::new<i32, i32>()
     let _ = m.insert(42, 100)
     let _ = m.insert(7, 200)
-    stdio::println((m.len()).to_string())
-    stdio::println((m.get(42).unwrap()).to_string())
-    stdio::println((m.get(7).unwrap()).to_string())
-    stdio::println((m.contains_key(42)).to_string())
-    stdio::println((m.contains_key(99)).to_string())
+    Stdio::println((m.len()).to_string())
+    Stdio::println((m.get(42).unwrap()).to_string())
+    Stdio::println((m.get(7).unwrap()).to_string())
+    Stdio::println((m.contains_key(42)).to_string())
+    Stdio::println((m.contains_key(99)).to_string())
     let _ = m.insert(42, 300)
-    stdio::println((m.get(42).unwrap()).to_string())
-    stdio::println((m.len()).to_string())
+    Stdio::println((m.get(42).unwrap()).to_string())
+    Stdio::println((m.len()).to_string())
 }
 // overwrite

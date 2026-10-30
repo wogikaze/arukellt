@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let name = String_from("world")
     let x = 42
-    stdio::println("hello ".concat(name.to_string()))
-    stdio::println("x = ".concat(x.to_string()))
+    Stdio::println("hello ".concat(name.to_string()))
+    Stdio::println("x = ".concat(x.to_string()))
 }

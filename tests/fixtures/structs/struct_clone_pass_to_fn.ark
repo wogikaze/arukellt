@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 struct Pair {
     a: i32,
     b: i32,
@@ -13,6 +13,6 @@ fn main() {
     let n = take_pair(state.clone())
     state = Pair { a: 1, b: 2 }
     let m = take_pair(state.clone())
-    stdio::println(n.to_string())
-    stdio::println(m.to_string())
+    Stdio::println(n.to_string())
+    Stdio::println(m.to_string())
 }

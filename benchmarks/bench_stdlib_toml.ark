@@ -1,7 +1,7 @@
 // Stdlib benchmark: TOML parse, access, and stringify.
 // Exercises std::toml::toml_parse, toml_get, toml_as_*, toml_stringify
 // on simple key-value TOML with string/int/bool scalars and array values.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 pub fn main() {
@@ -76,5 +76,5 @@ pub fn main() {
 
         iter = iter + 1
     }
-    stdio::println((checksum).to_string())
+    Stdio::println((checksum).to_string())
 }

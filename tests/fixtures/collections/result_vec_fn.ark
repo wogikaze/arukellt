@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(n: i32) -> i32 {
     n * 2
@@ -11,8 +11,8 @@ fn main() {
     match r {
         Ok(v) => {
             let f = get_unchecked(v, 0)
-            stdio::println((f(5)).to_string())
+            Stdio::println((f(5)).to_string())
         }
-        Err(e) => stdio::println(e),
+        Err(e) => Stdio::println(e),
     }
 }

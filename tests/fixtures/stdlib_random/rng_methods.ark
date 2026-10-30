@@ -1,5 +1,5 @@
 // Rng receiver surface (ADR-046); wasm32-gc lane.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
 use std::prelude::{assert_eq}
 
@@ -16,5 +16,5 @@ fn main() {
     assert_eq(len(shuffled), 5)
     assert_eq(get_unchecked(shuffled, 0), 30)
     assert_eq(get_unchecked(shuffled, 4), 10)
-    stdio::println("rng methods ok")
+    Stdio::println("rng methods ok")
 }

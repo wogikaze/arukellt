@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn double(x: i32) -> i32 { x * 2 }
 fn main() {
@@ -11,5 +11,5 @@ fn main() {
             match m { Result::Ok(v) => Test::assert_eq_i32(v, i * 2), Result::Err(e) => Std::panic("err") }
         }
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

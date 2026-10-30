@@ -2,7 +2,7 @@
 // Simulates an ETL-style processing pipeline: generate records, filter via
 // closure, transform via closure, and aggregate.  Exercises closures, Vec
 // iteration, struct fields, and integer arithmetic across 3,000 records.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Record {
     id: i32,
@@ -57,6 +57,6 @@ fn main() {
         l = l + 1
     }
 
-    stdio::println((len(mapped)).to_string())
-    stdio::println((sum).to_string())
+    Stdio::println((len(mapped)).to_string())
+    Stdio::println((sum).to_string())
 }

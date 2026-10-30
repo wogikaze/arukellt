@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude as prelude
 
 // ADR-088 §7: the shared-to-`mut` direction is accepted at every function
@@ -22,10 +22,10 @@ fn pick_reader() -> fn(mut Point) -> i32 {
 
 fn main() {
     let mut point = Point { x: 4 }
-    stdio::println(apply(read, point).to_string())
+    Stdio::println(apply(read, point).to_string())
 
     let reader = pick_reader()
-    stdio::println(reader(point).to_string())
+    Stdio::println(reader(point).to_string())
 
     // The qualified path is recovered for the same direction check. Calling a
     // function value that points at a std prelude function is a separate

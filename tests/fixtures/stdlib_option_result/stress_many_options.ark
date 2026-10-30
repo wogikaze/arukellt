@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
         if opt.is_some() { count = count + 1 }
     }
     Test::assert_eq_i32(count, 25)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

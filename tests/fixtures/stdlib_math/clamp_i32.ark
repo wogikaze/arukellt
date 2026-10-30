@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((5).clamp(0, 10).to_string())
-    stdio::println((-3).clamp(0, 10).to_string())
-    stdio::println((15).clamp(0, 10).to_string())
-    stdio::println((0).clamp(0, 10).to_string())
-    stdio::println((10).clamp(0, 10).to_string())
+    Stdio::println((5).clamp(0, 10).to_string())
+    Stdio::println((-3).clamp(0, 10).to_string())
+    Stdio::println((15).clamp(0, 10).to_string())
+    Stdio::println((0).clamp(0, 10).to_string())
+    Stdio::println((10).clamp(0, 10).to_string())
 }

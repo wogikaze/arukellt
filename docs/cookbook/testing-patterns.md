@@ -151,12 +151,12 @@ Each test file has a `main()` that runs assertions directly:
 ```ark
 // tests/fixtures/test_path.ark
 use std::path::Path
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     assert_eq_str(Path::new("a").join("b"), "a/b")
     assert_eq_str(Path::new("a/b").parent(), "a")
     assert_eq_str(Path::new("f.txt").extension(), "txt")
-    stdio::println("all path tests passed")
+    Stdio::println("all path tests passed")
 }
 ```

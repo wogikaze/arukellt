@@ -43,11 +43,14 @@
 //! `Write` byte-faithfully. The tagged `writer_write` / `writer_write_str`
 //! pair is retired with E0100 hints.
 //!
-//! `stdin` / `stdout` / `stderr` / `read_stdin_line` / `print_bytes` remain
-//! host-backed compatibility functions. The tagged `stdout()` / `stderr()`
-//! vectors have no byte-faithful writer of their own; use the typed
-//! `Stdout` / `Stderr` handles. WASI stdin reading is unavailable, so
-//! `stdin()` is empty and `read_stdin_line()` returns `Ok("")`.
+//! The host-backed compatibility free functions were retired by ADR-094:
+//! `stdout` / `stderr` are replaced by the typed `Stdout::new()` /
+//! `Stderr::new()` handles, `print_bytes` by `Stdout::new().write(data)`, and
+//! the `stdin` / `read_stdin_line` placeholders by
+//! `std::host::stdio::Stdio::read_stdin()` (whole-input text reads). Qualified
+//! old calls fail with E0100 and a replacement hint from
+//! `resolver::removed_names`; `stdin` / `read_stdin_line` have no replacement
+//! because their byte/line surfaces never lowered.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
 use std::core::convert
@@ -829,57 +832,4 @@ impl<W: Write> Write for BufWriter<W> {
     fn flush(mut self: BufWriter<W>) -> Result<(), IoError> {
         self.flush_buffer()
     }
-}
-
-// ─── Standard I/O (stdin / stdout / stderr) ──────────────────────────────────
-/// Returns a Reader representing stdin.
-///
-/// NOTE: WASI stdin reading is not available in the current runtime.
-/// The returned Reader is always empty. Use `read_stdin_line()` for a
-/// future-compatible placeholder.
-pub fn stdin() -> Vec<i32> {
-    let mut r: Vec<i32> = Vec::new<i32>()
-    push(r, 0)
-    r
-}
-
-/// Returns the tagged stdout compatibility handle.
-///
-/// The vector carries the tag only; it has no byte-faithful write path of its
-/// own. Use `Stdout::new()` when the bytes must reach the host unchanged.
-pub fn stdout() -> Vec<i32> {
-    let mut w: Vec<i32> = Vec::new<i32>()
-    push(w, 1)
-    w
-}
-
-/// Returns the tagged stderr compatibility handle.
-///
-/// The vector carries the tag only; it has no byte-faithful write path of its
-/// own. Use `Stderr::new()` when the bytes must reach the host unchanged and
-/// without an appended newline.
-pub fn stderr() -> Vec<i32> {
-    let mut w: Vec<i32> = Vec::new<i32>()
-    push(w, 2)
-    w
-}
-
-/// Reads a line from stdin.
-///
-/// NOTE: WASI stdin reading is not available in the current runtime.
-/// Always returns `Ok("")`.
-pub fn read_stdin_line() -> Result<String, IoError> {
-    Ok("")
-}
-
-/// Prints a byte buffer directly to stdout (no trailing newline).
-pub fn print_bytes(data: Vec<i32>) {
-    let n: i32 = len(data)
-    let mut s: String = ""
-    let mut i: i32 = 0
-    while i < n {
-        s = __intrinsic_concat(s, char_to_string(get_unchecked(data, i) & 255))
-        i = i + 1
-    }
-    __intrinsic_print(s)
 }

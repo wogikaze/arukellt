@@ -1,10 +1,10 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let flag = true
     if flag {
         Process::exit(2)
     }
-    stdio::println("after branch")
+    Stdio::println("after branch")
 }

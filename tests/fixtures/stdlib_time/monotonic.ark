@@ -1,5 +1,5 @@
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::time::Duration
 
 fn main() {
@@ -11,7 +11,7 @@ fn main() {
     let t2 = Clock::monotonic_now()
     let elapsed = Duration::between(t1, t2).as_ns()
     assert(elapsed >= 0i64)
-    stdio::println("monotonic ok")
+    Stdio::println("monotonic ok")
 }
 // Do some work
 // t2 should be >= t1

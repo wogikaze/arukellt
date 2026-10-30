@@ -16,6 +16,43 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `std::io` / `std::host::stdio` 互換 free 9 個の退役 (ADR-046, ADR-094, ADR-087, #693, wave/io-stdio)
+
+- **Removed**: `std::host::stdio` の `read_stdin` / `print` / `println` /
+  `eprintln` と、`std::io` の `stdout` / `stderr` / `print_bytes` /
+  `stdin` / `read_stdin_line`。いずれも `stable` だったが、ADR-094 の
+  限定例外により W0009 window を置かず E0100 へ移行した（ADR-087 D2 の
+  migration diagnostic / migration guide / changelog の 3 条件を満たす）。
+  manifest entry と std 宣言を削除した。
+- **Replacement**: 文字列ストリームは `std::host::stdio::Stdio` の
+  associated function（`Stdio::read_stdin()` / `print(s)` / `println(s)` /
+  `eprintln(s)`）。タグ付き sink は typed handle
+  （`io::Stdout::new()` / `io::Stderr::new()`）、`print_bytes` は
+  `io::Stdout::new().write(data)`。`stdin` / `read_stdin_line` は実装の
+  なかったプレースホルダーであり、置換なしで退役した（stdin 全体は
+  `Stdio::read_stdin()`）。
+- **Compiler**: `data/core-ops.toml` から `stdio::read_stdin` /
+  `stdio::print` / `stdio::println` / `stdio::eprintln` の legacy alias を
+  削除し、`core_op_binding_generated.ark` を再生成した（650 -> 646
+  bindings）。`resolver::removed_names` は module 名 `stdio` /
+  `host::stdio` / `std::host::stdio` と `io` の各 free に E0100 hint を返す。
+  MIR の dead な `stdio::*` callee 特例も削除した。
+- **Bootstrap**: flat overlay は `std/host/stdio.ark` を同梱し、entry module
+  だけ pin が解決できる prelude `println` stub へ書き換える。pin 更新時に
+  この bridge を削除する。
+- **Migration**: `docs/stdlib/migration-guidance.md` の
+  `std::host::stdio / std::io compatibility wave` に before/after を記録。
+  compiler 自身、fixtures、benchmarks、docs examples の `stdio::*` 呼び出しを
+  `Stdio::*`（または typed handle）へ移行した。
+- **Fixtures**: `stdlib_host/stdio_namespace_surface{,_wasm32}` を追加し、
+  `diagnostics/removed_stdio_free_function` / `removed_io_stdout_free` /
+  `removed_io_stdin_free` を E0100 golden として追加した。
+  `stdlib_io/read_stdin_line_empty` は退役し、`stdlib_io/read_stdin_empty`
+  は `Stdio::read_stdin()` へ移行した。
+- **Scorecard**: public free 41 -> **32**、`pub fn` declarations 41 -> **32**、
+  manifest public entries 41 -> **32**、`associated-or-method` 16 -> **7**。
+  `std::io and host stdio frees` 規則は live match を失ったため削除した。
+
 ## 2026-10-30 — 数値変換 free function 17 個の退役 (ADR-046, ADR-067, ADR-087, #917, wave/numeric-conv)
 
 - **Removed**: prelude の数値変換 free function 17 個

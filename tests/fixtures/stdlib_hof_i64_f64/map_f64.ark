@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn square(x: f64) -> f64 {
     x * x
@@ -17,7 +17,7 @@ fn main() {
     }
     let mut i: i32 = 0
     while i < len(squared) {
-        stdio::println((get_unchecked(squared, i)).to_string())
+        Stdio::println((get_unchecked(squared, i)).to_string())
         i = i + 1
     }
 }

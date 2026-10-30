@@ -146,11 +146,11 @@ loop {
 <!-- skip-doc-check reason="syntax/notation sketch with metavariables; not a runnable program" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 for i in 0..10 {
-    stdio::println(i.to_string())
+    Stdio::println(i.to_string())
 }
 
 for item in v {
-    stdio::println(item.to_string())
+    Stdio::println(item.to_string())
 }
 ```
 

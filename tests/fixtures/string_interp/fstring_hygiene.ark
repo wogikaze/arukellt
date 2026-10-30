@@ -1,14 +1,14 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 use std::test::Test
 use std::text
 fn left_value() -> i32 {
-    stdio::println("left")
+    Stdio::println("left")
     1
 }
 
 fn right_value() -> i32 {
-    stdio::println("right")
+    Stdio::println("right")
     2
 }
 
@@ -31,7 +31,7 @@ fn main() {
     let mut loop_source: Vec<String> = Vec::new<String>()
     loop_source.push("iteration")
     for item in loop_source {
-        stdio::println(item)
+        Stdio::println(item)
     }
 
     let push = |target: i32, _value: i32| -> i32 { target }
@@ -40,7 +40,7 @@ fn main() {
     comprehension_source.push(8)
     let projected = [item for item in comprehension_source]
     for item in projected {
-        stdio::println(item.to_string())
+        Stdio::println(item.to_string())
     }
-    stdio::println("fstring_hygiene ok")
+    Stdio::println("fstring_hygiene ok")
 }

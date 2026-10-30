@@ -1,5 +1,5 @@
 // Issue #705: Full TOML 1.0 inline tables and dotted keys.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 
 fn main() {
@@ -80,5 +80,5 @@ fn main() {
         Result::Err(_) => assert(false),
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

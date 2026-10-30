@@ -1,7 +1,7 @@
 // Recursive enum receiver methods that bind variant payloads (#917).
 // The method form must emit valid core Wasm on wasm32-gc exactly like the
 // free-function form; the wildcard receiver copy is the regression shape.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{get_unchecked, len}
 
 pub enum Node {
@@ -78,5 +78,5 @@ fn main() {
     assert(first.child_count() == 0)
     assert(free_first_leaf_name(first).eq(String_from("a")))
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

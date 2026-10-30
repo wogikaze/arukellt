@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 trait Greet {}
 
@@ -14,5 +14,5 @@ impl Greet for Dog {
 
 fn main() {
     let d: Dog = Dog { name: String_from("Rex") }
-    stdio::println(d.greet())
+    Stdio::println(d.greet())
 }

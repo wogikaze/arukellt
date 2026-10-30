@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wasm
 
 fn main() {
     let magic: Vec<i32> = wasm::WasmModuleBuilder::magic()
-    stdio::println((get_unchecked(magic, 0)).to_string())
-    stdio::println((get_unchecked(magic, 1)).to_string())
-    stdio::println((wasm::Section::type_id()).to_string())
-    stdio::println((wasm::ValType::i32()).to_string())
+    Stdio::println((get_unchecked(magic, 0)).to_string())
+    Stdio::println((get_unchecked(magic, 1)).to_string())
+    Stdio::println((wasm::Section::type_id()).to_string())
+    Stdio::println((wasm::ValType::i32()).to_string())
 }

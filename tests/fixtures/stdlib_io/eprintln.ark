@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::eprintln("error message")
-    stdio::println("normal output")
+    Stdio::eprintln("error message")
+    Stdio::println("normal output")
 }

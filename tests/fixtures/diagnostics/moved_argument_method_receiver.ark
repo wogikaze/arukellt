@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-088 §1: a method receiver is a place use like an argument.
 struct Parser {
@@ -14,6 +14,6 @@ impl Parser {
 fn main() {
     let parser = Parser { rest: String_from("text") }
     let owned = parser
-    stdio::println(parser.size().to_string())
-    stdio::println(owned.size().to_string())
+    Stdio::println(parser.size().to_string())
+    Stdio::println(owned.size().to_string())
 }

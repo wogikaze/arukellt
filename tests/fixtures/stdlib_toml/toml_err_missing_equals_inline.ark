@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -8,6 +8,6 @@ fn main() {
         Result::Ok(_) => assert(false),
         Result::Err(_) => {},
     }
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 // inline table field missing = is rejected

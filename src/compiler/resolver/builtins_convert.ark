@@ -2,7 +2,7 @@
 // std/prelude.ark or registered in builtins_intrinsics.ark, and need an explicit
 // `use` (only the v2 stable set is auto-imported, ADR-072).
 // Only __intrinsic_stdin_read_to_string remains; its public wrapper is
-// std::host::stdio::read_stdin.
+// std::host::stdio::Stdio::read_stdin.
 
 fn push_convert_builtin_symbol_names(mut names: Vec<String>) {
     push(names, "__intrinsic_stdin_read_to_string")

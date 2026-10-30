@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn square(x: i32) -> i32 {
     x * x
 }
 
 fn main() {
-    stdio::println((square(7)).to_string())
+    Stdio::println((square(7)).to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn pair<A, B>(a: A, b: B) -> (A, B) {
     (a, b)
@@ -6,6 +6,6 @@ fn pair<A, B>(a: A, b: B) -> (A, B) {
 
 fn main() {
     let (x, y) = pair(42, String_from("hello"))
-    stdio::println((x).to_string())
-    stdio::println(y)
+    Stdio::println((x).to_string())
+    Stdio::println(y)
 }

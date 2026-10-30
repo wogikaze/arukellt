@@ -67,8 +67,8 @@ NOT_PRELUDE_DECLS = {
 REWRITE_RULES = {
     "concat": ("std::text", "text::concat"),
     "char_at": ("std::prelude", "byte_at"),
-    "println": ("std::host::stdio", "stdio::println"),
-    "print": ("std::host::stdio", "stdio::print"),
+    "println": ("std::host::stdio::Stdio", "Stdio::println"),
+    "print": ("std::host::stdio::Stdio", "Stdio::print"),
 }
 
 

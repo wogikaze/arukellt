@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     // Vec<T> method syntax via impl Vec<T> block (approach (a) for #700)
@@ -6,8 +6,8 @@ fn main() {
     v.push(10)
     v.push(20)
     v.push(30)
-    stdio::println(v.len())
-    stdio::println(v.get_unchecked(0))
-    stdio::println(v.get_unchecked(1))
-    stdio::println(v.get_unchecked(2))
+    Stdio::println(v.len())
+    Stdio::println(v.get_unchecked(0))
+    Stdio::println(v.get_unchecked(1))
+    Stdio::println(v.get_unchecked(2))
 }

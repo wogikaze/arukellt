@@ -1,7 +1,7 @@
 // Vec::sort_by is a stable bottom-up merge sort and takes a comparator that
 // returns Ordering directly (no `Ord::cmp` call is needed).
 use std::collections::vec
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn descending(a: i32, b: i32) -> Ordering {
     if a > b {
@@ -25,5 +25,5 @@ fn main() {
     for i in 0..v.len() {
         parts.push(v.get_unchecked(i).to_string())
     }
-    stdio::println(parts.join(" "))
+    Stdio::println(parts.join(" "))
 }

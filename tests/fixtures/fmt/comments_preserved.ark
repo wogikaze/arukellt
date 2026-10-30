@@ -1,8 +1,8 @@
 // header comment
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     // body comment
-    stdio::println("hi")
+    Stdio::println("hi")
 }

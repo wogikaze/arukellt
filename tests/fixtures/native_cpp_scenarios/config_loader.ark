@@ -1,26 +1,26 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
     match json::JsonValue::parse(String_from("{\"port\":8080,\"name\":\"svc\"}")) {
         Result::Ok(root) => match root.get_field(String_from("port")) {
             Option::Some(port_v) => match port_v.as_i32() {
-                Option::Some(port) => stdio::println(String_from("json.port=").concat(port.to_string())),
-                None => stdio::println(String_from("json.port=missing")),
+                Option::Some(port) => Stdio::println(String_from("json.port=").concat(port.to_string())),
+                None => Stdio::println(String_from("json.port=missing")),
             },
-            None => stdio::println(String_from("json.port=missing")),
+            None => Stdio::println(String_from("json.port=missing")),
         },
-        Result::Err(_) => stdio::println(String_from("json.parse=err")),
+        Result::Err(_) => Stdio::println(String_from("json.parse=err")),
     }
 
     match json::JsonValue::parse(String_from("{\"name\":\"toml-svc\"}")) {
         Result::Ok(root) => match root.get_field(String_from("name")) {
             Option::Some(name_v) => match name_v.as_string() {
-                Option::Some(name) => stdio::println(String_from("toml.name=").concat(name)),
-                None => stdio::println(String_from("toml.name=missing")),
+                Option::Some(name) => Stdio::println(String_from("toml.name=").concat(name)),
+                None => Stdio::println(String_from("toml.name=missing")),
             },
-            None => stdio::println(String_from("toml.name=missing")),
+            None => Stdio::println(String_from("toml.name=missing")),
         },
-        Result::Err(_) => stdio::println(String_from("toml.parse=err")),
+        Result::Err(_) => Stdio::println(String_from("toml.parse=err")),
     }
 }

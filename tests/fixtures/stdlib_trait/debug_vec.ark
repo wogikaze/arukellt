@@ -4,7 +4,7 @@
 // so monomorphic helpers in std::text::fmt provide Rust {:?} parity:
 //   Vec<i32>   -> [1, 2, 3]
 //   Vec<String>-> ["a", "b"]
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text::fmt
 use std::text
 fn main() {
@@ -21,8 +21,8 @@ fn main() {
 
     // Vec<i64> -> "[10, 20]"
     let mut vl: Vec<i64> = Vec::new<i64>()
-    push(vl, 10)
-    push(vl, 20)
+    push(vl, 10i64)
+    push(vl, 20i64)
     assert(fmt::DebugFormat::vec_i64(vl).eq(String_from("[10, 20]")))
 
     // Vec<f64> -> "[1.5, 2.5]" (compare against same intrinsic formatting)
@@ -43,5 +43,5 @@ fn main() {
     push(one, 42)
     assert(fmt::DebugFormat::vec_i32(one).eq(String_from("[42]")))
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

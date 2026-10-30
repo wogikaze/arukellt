@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn MIR_PHI() -> i32 {
     73
@@ -59,7 +59,7 @@ fn mir_format_phi(phi: MirPhi) -> String {
 
 fn ensure(ok: bool, msg: String) {
     if !ok {
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
 }
@@ -70,15 +70,15 @@ fn run_phi_representation_smoke() {
     mir_phi_add_arg(phi, 2, 2)
     ensure(phi.op == MIR_PHI(), String_from("expected MIR_PHI tag"))
     ensure(len(phi.args) == 2, String_from("expected two phi args"))
-    stdio::eprintln(String_from("MIR module: 1 function(s)"))
-    stdio::eprintln(String_from("  fn phi_repr_sample (4 locals, 4 blocks)"))
-    stdio::eprintln(String_from("    bb0: phis=0 instructions=1 succs=[1,2] preds=[] idom=- df=[]"))
-    stdio::eprintln(String_from("    bb1: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
-    stdio::eprintln(String_from("    bb2: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
-    stdio::eprintln(String_from("    bb3: phis=1 instructions=1 succs=[-,-] preds=[1,2] idom=0 df=[]"))
-    stdio::eprintln(String_from("      ").concat(mir_format_phi(phi)))
-    stdio::eprintln(String_from("      return -> %3"))
-    stdio::println(String_from("MIR phi representation self-check OK."))
+    Stdio::eprintln(String_from("MIR module: 1 function(s)"))
+    Stdio::eprintln(String_from("  fn phi_repr_sample (4 locals, 4 blocks)"))
+    Stdio::eprintln(String_from("    bb0: phis=0 instructions=1 succs=[1,2] preds=[] idom=- df=[]"))
+    Stdio::eprintln(String_from("    bb1: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
+    Stdio::eprintln(String_from("    bb2: phis=0 instructions=1 succs=[3,-] preds=[0] idom=0 df=[3]"))
+    Stdio::eprintln(String_from("    bb3: phis=1 instructions=1 succs=[-,-] preds=[1,2] idom=0 df=[]"))
+    Stdio::eprintln(String_from("      ").concat(mir_format_phi(phi)))
+    Stdio::eprintln(String_from("      return -> %3"))
+    Stdio::println(String_from("MIR phi representation self-check OK."))
 }
 
 fn main() {

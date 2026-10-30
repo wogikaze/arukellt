@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -9,6 +9,6 @@ fn main() {
     let mut items = Vec::new<Point>()
     items = push(items, Point { x: 1, y: 2 })
     let p = get_unchecked(items, 0)
-    stdio::println(p.x.to_string())
-    stdio::println(p.y.to_string())
+    Stdio::println(p.x.to_string())
+    Stdio::println(p.y.to_string())
 }

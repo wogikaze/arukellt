@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -6,6 +6,6 @@ fn main() {
     let content = "name = \"arukellt\"\nport = 8080"
     let val = toml::TomlText::find_value(content, "name")
     Test::assert_eq_string(val, "arukellt")
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 // find_toml_value extracts unquoted double-quoted string value

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::signal::Signal
 use std::text
 fn assert_close(actual: f64, expected: f64) {
@@ -71,5 +71,5 @@ fn main() {
     push(expected_seq, 4.0)
     assert_vec_close(roundtrip_r, expected_seq)
     assert_vec_close(roundtrip_i, zeros)
-    stdio::println("fft ok")
+    Stdio::println("fft ok")
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -7,6 +7,6 @@ struct Point {
 
 fn main() {
     let p: Point = Point { x: 10, y: 20 }
-    stdio::println((p.x).to_string())
-    stdio::println((p.y).to_string())
+    Stdio::println((p.x).to_string())
+    Stdio::println((p.y).to_string())
 }

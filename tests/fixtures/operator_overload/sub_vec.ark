@@ -2,7 +2,7 @@
 //
 // Verifies that `a - b` resolves to `Sub::sub` (mangled `Vec2::sub`)
 // when both operands are user-defined Vec2 structs, not scalars.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::ops
 
 struct Vec2 {
@@ -22,5 +22,5 @@ fn main() {
     let c = a - b
     assert(c.x == 7)
     assert(c.y == 15)
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

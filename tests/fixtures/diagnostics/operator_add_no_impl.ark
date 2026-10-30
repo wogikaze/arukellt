@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let c = String_from("x") + String_from("y")
-    stdio::println(c)
+    Stdio::println(c)
 }

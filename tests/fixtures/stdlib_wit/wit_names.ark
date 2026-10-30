@@ -1,5 +1,5 @@
 // Issue #706: WIT naming helpers through the WitName namespace type.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::names
 
 fn main() {
@@ -22,5 +22,5 @@ fn main() {
     assert(names::WitName::capitalize(String_from("document")).eq(String_from("Document")))
     assert(names::WitName::capitalize(String_from("Document")).eq(String_from("Document")))
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

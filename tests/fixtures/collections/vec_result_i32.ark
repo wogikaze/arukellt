@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut xs: Vec<Result<i32, String>> = Vec::new<i32>()
     push(xs, Ok(9))
     match get_unchecked(xs, 0) {
-        Ok(n) => stdio::println(n.to_string()),
-        Err(_) => stdio::println(String_from("err")),
+        Ok(n) => Stdio::println(n.to_string()),
+        Err(_) => Stdio::println(String_from("err")),
     }
 }

@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::dump_format_phi
 use mir::phi_access
@@ -11,14 +11,14 @@ fn mir_expect_phi_args(f: MirFunction, block_id: i32, phi: MirPhi, expected_coun
         msg = msg.concat(expected_count.to_string())
         msg = msg.concat(" actual=")
         msg = msg.concat(arg_count.to_string())
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     if expected_count > 0 {
         let arg0 = phi_access::MirPhi_arg_at(phi, 0)
         if phi_access::MirPhiArg_pred_block(arg0) != expected_pred0 || phi_access::MirPhiArg_local(arg0) != expected_local0 {
             let msg = "phi arg0 check failed for bb".concat(block_id.to_string().concat(": actual=".concat(dump_format_phi::mir_format_phi(f, phi))))
-            stdio::eprintln(msg)
+            Stdio::eprintln(msg)
             Process::exit(1)
         }
     }
@@ -26,7 +26,7 @@ fn mir_expect_phi_args(f: MirFunction, block_id: i32, phi: MirPhi, expected_coun
         let arg1 = phi_access::MirPhi_arg_at(phi, 1)
         if phi_access::MirPhiArg_pred_block(arg1) != expected_pred1 || phi_access::MirPhiArg_local(arg1) != expected_local1 {
             let msg = "phi arg1 check failed for bb".concat(block_id.to_string().concat(": actual=".concat(dump_format_phi::mir_format_phi(f, phi))))
-            stdio::eprintln(msg)
+            Stdio::eprintln(msg)
             Process::exit(1)
         }
     }

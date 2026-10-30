@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut count = 0
@@ -8,7 +8,7 @@ fn main() {
     }
     let stored = (c, 0)
     let (f, x) = stored
-    stdio::println((f()).to_string())
-    stdio::println((f()).to_string())
-    stdio::println((count + x).to_string())
+    Stdio::println((f()).to_string())
+    Stdio::println((f()).to_string())
+    Stdio::println((count + x).to_string())
 }

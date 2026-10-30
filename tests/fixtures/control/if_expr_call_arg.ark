@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn id(x: i32) -> i32 {
     x
@@ -10,11 +10,11 @@ fn main() {
     // not the operand stack. In unstaged call-arg position the argument must
     // be re-read from that local or the call underflows (#921).
     let s = (if b { 1 } else { 0 }).to_string()
-    stdio::println(s)
+    Stdio::println(s)
     let r = id(if b { 2 } else { 3 })
-    stdio::println(r.to_string())
+    Stdio::println(r.to_string())
     let m = id(match r { 2 => 4, _ => 5 })
-    stdio::println(m.to_string())
+    Stdio::println(m.to_string())
     let k = id({ let q = 7; if b { q } else { 8 } })
-    stdio::println(k.to_string())
+    Stdio::println(k.to_string())
 }

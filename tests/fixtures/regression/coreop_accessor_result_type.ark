@@ -1,7 +1,7 @@
 // A live declaration owns its return type even when its name ends with
 // `_to_string`: the generated core-op accessors return the i32 handler id, so
 // typing them as String refs lowered comparisons as reference equality.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn core_op_handler_text_to_string() -> i32 {
     305
@@ -13,9 +13,9 @@ fn text_to_string() -> String {
 
 fn main() {
     let handler_id: i32 = 305
-    stdio::println((handler_id == core_op_handler_text_to_string()).to_string())
-    stdio::println((handler_id != core_op_handler_text_to_string()).to_string())
-    stdio::println((core_op_handler_text_to_string() + 1).to_string())
-    stdio::println((core_op_handler_text_to_string() == 305 && handler_id == 305).to_string())
-    stdio::println((text_to_string() == "hi").to_string())
+    Stdio::println((handler_id == core_op_handler_text_to_string()).to_string())
+    Stdio::println((handler_id != core_op_handler_text_to_string()).to_string())
+    Stdio::println((core_op_handler_text_to_string() + 1).to_string())
+    Stdio::println((core_op_handler_text_to_string() == 305 && handler_id == 305).to_string())
+    Stdio::println((text_to_string() == "hi").to_string())
 }

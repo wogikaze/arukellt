@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let n: i32 = 42
     let b: bool = true
     let s: String = String_from("hello")
-    stdio::println(n.to_string())
-    stdio::println(b.to_string())
-    stdio::println(s)
+    Stdio::println(n.to_string())
+    Stdio::println(b.to_string())
+    Stdio::println(s)
 }

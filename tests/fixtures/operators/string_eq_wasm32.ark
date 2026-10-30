@@ -1,7 +1,7 @@
 // String equality compares UTF-8 contents, not refs or pointers, on both
 // backends. Equal values are built through different paths so identity
 // equality cannot pass by accident; scalar equality stays a control.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn accessors_match(values: Vec<String>, left: i32, right: i32) -> bool {
     values.get_unchecked(left) == values.get_unchecked(right)
@@ -14,22 +14,22 @@ fn main() {
     let other = "pear"
     let empty = String_new()
 
-    stdio::println((literal == concat).to_string())
-    stdio::println((concat == literal).to_string())
-    stdio::println((literal == dynamic).to_string())
-    stdio::println((dynamic == concat).to_string())
-    stdio::println((literal == other).to_string())
-    stdio::println((literal != other).to_string())
-    stdio::println((literal != concat).to_string())
-    stdio::println((concat != dynamic).to_string())
+    Stdio::println((literal == concat).to_string())
+    Stdio::println((concat == literal).to_string())
+    Stdio::println((literal == dynamic).to_string())
+    Stdio::println((dynamic == concat).to_string())
+    Stdio::println((literal == other).to_string())
+    Stdio::println((literal != other).to_string())
+    Stdio::println((literal != concat).to_string())
+    Stdio::println((concat != dynamic).to_string())
 
-    stdio::println((empty == String_new()).to_string())
-    stdio::println((empty == "".concat("")).to_string())
-    stdio::println((empty != literal).to_string())
-    stdio::println((empty == literal).to_string())
+    Stdio::println((empty == String_new()).to_string())
+    Stdio::println((empty == "".concat("")).to_string())
+    Stdio::println((empty != literal).to_string())
+    Stdio::println((empty == literal).to_string())
 
-    stdio::println((literal.eq(dynamic)).to_string())
-    stdio::println((literal.eq(other)).to_string())
+    Stdio::println((literal.eq(dynamic)).to_string())
+    Stdio::println((literal.eq(other)).to_string())
 
     // Both operands are inline generic accessor calls, so the MIR binop has no
     // statically peekable ref operand. The result must still compare contents.
@@ -39,28 +39,28 @@ fn main() {
     words.push(String_from("pear"))
     let needle = "apple"
 
-    stdio::println((words.get_unchecked(0) == words.get_unchecked(1)).to_string())
-    stdio::println((words.get_unchecked(0) == words.get_unchecked(2)).to_string())
-    stdio::println((words.get_unchecked(0) != words.get_unchecked(1)).to_string())
-    stdio::println((words.get_unchecked(0) != words.get_unchecked(2)).to_string())
-    stdio::println((words.get_unchecked(0) == needle).to_string())
-    stdio::println((words.get_unchecked(2) == needle).to_string())
-    stdio::println((needle == words.get_unchecked(2)).to_string())
-    stdio::println((accessors_match(words, 0, 1)).to_string())
-    stdio::println((accessors_match(words, 0, 2)).to_string())
+    Stdio::println((words.get_unchecked(0) == words.get_unchecked(1)).to_string())
+    Stdio::println((words.get_unchecked(0) == words.get_unchecked(2)).to_string())
+    Stdio::println((words.get_unchecked(0) != words.get_unchecked(1)).to_string())
+    Stdio::println((words.get_unchecked(0) != words.get_unchecked(2)).to_string())
+    Stdio::println((words.get_unchecked(0) == needle).to_string())
+    Stdio::println((words.get_unchecked(2) == needle).to_string())
+    Stdio::println((needle == words.get_unchecked(2)).to_string())
+    Stdio::println((accessors_match(words, 0, 1)).to_string())
+    Stdio::println((accessors_match(words, 0, 2)).to_string())
 
     let mut numbers: Vec<i32> = Vec::new<i32>()
     numbers.push(7)
     numbers.push(7)
     numbers.push(8)
-    stdio::println((numbers.get_unchecked(0) == numbers.get_unchecked(1)).to_string())
-    stdio::println((numbers.get_unchecked(0) != numbers.get_unchecked(2)).to_string())
+    Stdio::println((numbers.get_unchecked(0) == numbers.get_unchecked(1)).to_string())
+    Stdio::println((numbers.get_unchecked(0) != numbers.get_unchecked(2)).to_string())
 
-    stdio::println((1 == 1).to_string())
-    stdio::println((1 != 2).to_string())
-    stdio::println((1i64 == 1i64).to_string())
-    stdio::println((1.5 == 1.5).to_string())
-    stdio::println((1.5 != 2.5).to_string())
-    stdio::println((true == true).to_string())
-    stdio::println(('a' == 'a').to_string())
+    Stdio::println((1 == 1).to_string())
+    Stdio::println((1 != 2).to_string())
+    Stdio::println((1i64 == 1i64).to_string())
+    Stdio::println((1.5 == 1.5).to_string())
+    Stdio::println((1.5 != 2.5).to_string())
+    Stdio::println((true == true).to_string())
+    Stdio::println(('a' == 'a').to_string())
 }

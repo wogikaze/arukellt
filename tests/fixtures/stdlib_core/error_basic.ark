@@ -1,13 +1,13 @@
 use std::core::error
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let e1 = Error::InvalidArgument("bad input")
-    stdio::println(e1.message())
+    Stdio::println(e1.message())
     let e2 = Error::Timeout
-    stdio::println(e2.message())
+    Stdio::println(e2.message())
     let e3 = Error::IndexOutOfBounds { index: 7, len: 3 }
-    stdio::println(e3.message())
+    Stdio::println(e3.message())
     let e4 = Error::ComponentError("something went wrong")
-    stdio::println(e4.message())
+    Stdio::println(e4.message())
 }

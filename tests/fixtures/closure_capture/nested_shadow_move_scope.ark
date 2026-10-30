@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let source = String_from("outer:")
@@ -10,5 +10,5 @@ fn main() {
         inner()
     }
     outer()
-    stdio::println(source)
+    Stdio::println(source)
 }

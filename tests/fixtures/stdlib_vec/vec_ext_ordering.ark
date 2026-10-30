@@ -1,7 +1,7 @@
 // Vec<i32> extended surface: sort, dedup, lower_bound/upper_bound, insert,
 // remove, swap_remove, swap, reverse, first and last (ADR-046 method form).
 use std::collections::vec
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(values: Vec<i32>) {
     let mut parts: Vec<String> = Vec::new<String>()
@@ -10,7 +10,7 @@ fn show(values: Vec<i32>) {
         parts.push(values.get_unchecked(i).to_string())
         i = i + 1
     }
-    stdio::println(parts.join(" "))
+    Stdio::println(parts.join(" "))
 }
 
 fn main() {
@@ -24,18 +24,18 @@ fn main() {
     show(v)
     v.dedup()
     show(v)
-    stdio::println(v.lower_bound(3).to_string())
-    stdio::println(v.upper_bound(3).to_string())
+    Stdio::println(v.lower_bound(3).to_string())
+    Stdio::println(v.upper_bound(3).to_string())
     v.insert(0, 9)
     show(v)
-    stdio::println(v.remove(0).to_string())
+    Stdio::println(v.remove(0).to_string())
     show(v)
     v.reverse()
     show(v)
     v.swap(0, 1)
     show(v)
-    stdio::println(v.first().unwrap().to_string())
-    stdio::println(v.last().unwrap().to_string())
-    stdio::println(v.swap_remove(0).to_string())
+    Stdio::println(v.first().unwrap().to_string())
+    Stdio::println(v.last().unwrap().to_string())
+    Stdio::println(v.swap_remove(0).to_string())
     show(v)
 }

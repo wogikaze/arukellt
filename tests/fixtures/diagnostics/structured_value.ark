@@ -7,7 +7,7 @@
 //   2. JSON serialization via `diagnostic_to_json`.
 // The expected stdout is the canonical JSON shape committed to
 // `.expected` and is the contract migrated phases will emit.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn SEV_ERROR() -> i32 {
     1
@@ -132,5 +132,5 @@ fn diagnostic_to_json(diag: Diagnostic) -> String {
 fn main() {
     let span: DiagnosticSpan = DiagnosticSpan_new(String_from("foo.ark"), 3, 7)
     let diag: Diagnostic = Diagnostic_new(String_from("E0001"), SEV_ERROR(), span, String_from("unexpected token"))
-    stdio::println(diagnostic_to_json(diag))
+    Stdio::println(diagnostic_to_json(diag))
 }

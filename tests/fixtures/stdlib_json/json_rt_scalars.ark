@@ -1,63 +1,63 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
     // null scalar
     match json::JsonValue::parse("null") {
         Result::Ok(v) => {
-            stdio::println((v.is_null()).to_string())
-            stdio::println(v.to_text())
+            Stdio::println((v.is_null()).to_string())
+            Stdio::println(v.to_text())
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // bool true
     match json::JsonValue::parse("true") {
         Result::Ok(v) => {
             match v.as_bool() {
-                Option::Some(b) => stdio::println((b).to_string()),
-                None => stdio::println("not bool"),
+                Option::Some(b) => Stdio::println((b).to_string()),
+                None => Stdio::println("not bool"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // bool false
     match json::JsonValue::parse("false") {
         Result::Ok(v) => {
             match v.as_bool() {
-                Option::Some(b) => stdio::println((b).to_string()),
-                None => stdio::println("not bool"),
+                Option::Some(b) => Stdio::println((b).to_string()),
+                None => Stdio::println("not bool"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // number zero
     match json::JsonValue::parse("0") {
         Result::Ok(v) => {
             match v.as_i32() {
-                Option::Some(n) => stdio::println((n).to_string()),
-                None => stdio::println("not number"),
+                Option::Some(n) => Stdio::println((n).to_string()),
+                None => Stdio::println("not number"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // negative number
     match json::JsonValue::parse("-42") {
         Result::Ok(v) => {
             match v.as_i32() {
-                Option::Some(n) => stdio::println((n).to_string()),
-                None => stdio::println("not number"),
+                Option::Some(n) => Stdio::println((n).to_string()),
+                None => Stdio::println("not number"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // type checks
     match json::JsonValue::parse("null") {
-        Result::Ok(v) => stdio::println((v.is_bool()).to_string()),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println((v.is_bool()).to_string()),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("true") {
-        Result::Ok(v) => stdio::println((v.is_bool()).to_string()),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println((v.is_bool()).to_string()),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
 }
 // scalar edge cases: null, bool, number, type predicate checks

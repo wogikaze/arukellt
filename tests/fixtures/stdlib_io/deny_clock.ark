@@ -1,7 +1,7 @@
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let t = Clock::monotonic_now()
-    stdio::println((t).to_string())
+    Stdio::println((t).to_string())
 }

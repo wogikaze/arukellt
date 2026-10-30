@@ -1,6 +1,6 @@
 //
 // Public typecheck entrypoint and shared typechecker data contracts.
-use std::host::stdio
+use std::host::stdio::Stdio
 use typechecker::mod
 
 struct Symbol {
@@ -31,5 +31,5 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths:
 }
 
 fn main() {
-    stdio::println("TypeChecker module loaded.")
+    Stdio::println("TypeChecker module loaded.")
 }

@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("")
-    stdio::println("after empty")
+    Stdio::println("")
+    Stdio::println("after empty")
 }

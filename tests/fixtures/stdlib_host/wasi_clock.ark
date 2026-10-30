@@ -2,10 +2,10 @@
 // Verifies that clock_time_get is available via std::host::clock
 // and returns a non-negative timestamp.
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let t = Clock::now_ms()
     assert(t >= 0i64)
-    stdio::println("wasi_clock ok")
+    Stdio::println("wasi_clock ok")
 }

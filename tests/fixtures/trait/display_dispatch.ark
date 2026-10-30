@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 // #702: the free-function and method forms of `to_string` must agree for
@@ -14,5 +14,5 @@ fn main() {
         String_from("hello").to_string(),
         String_from("hello").to_string()
     )
-    stdio::println("OK")
+    Stdio::println("OK")
 }

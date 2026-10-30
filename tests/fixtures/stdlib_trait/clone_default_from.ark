@@ -10,7 +10,7 @@
 // available. This fixture verifies that the trait definitions and impls
 // compile correctly. Generic dispatch will be tested once `Self` support
 // is added.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::clone
 use std::core::convert
 
@@ -18,14 +18,14 @@ fn main() {
     // Direct call to Clone::clone for i32 (via impl method dispatch).
     let n: i32 = 42
     let m: i32 = n.clone()
-    stdio::println((m).to_string())
+    Stdio::println((m).to_string())
 
     // Direct call to Clone::clone for String (via impl method dispatch).
     let s: String = String_from("hello")
     let t: String = s.clone()
-    stdio::println(t)
+    Stdio::println(t)
 
     // Direct call to Into<i64> for i32 (via impl method dispatch).
     let wide: i64 = 456i32.into()
-    stdio::println((wide).to_string())
+    Stdio::println((wide).to_string())
 }

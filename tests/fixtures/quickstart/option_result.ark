@@ -1,5 +1,5 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn parse_positive(s: String) -> Result<i32, String> {
     let n =i32::try_from(s)?
@@ -11,7 +11,7 @@ fn parse_positive(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_positive(String_from("42")) {
-        Ok(n) => stdio::println(n.to_string()),
-        Err(e) => stdio::println(e),
+        Ok(n) => Stdio::println(n.to_string()),
+        Err(e) => Stdio::println(e),
     }
 }

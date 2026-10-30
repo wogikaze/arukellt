@@ -81,13 +81,13 @@ fn synthesize_test_fn(test_node: AstNode, index: i32) -> AstNode {
     node
 }
 
-// The `__test_main` body (and its `use std::host::stdio`) are built by
+// The `__test_main` body (and its `use std::host::stdio::Stdio`) are built by
 // parsing a generated snippet — the call/print statement shapes stay in
 // sync with the real grammar instead of hand-built child layouts.
 fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode> {
     let mut src = String_new()
     if !has_stdio_use(decls) {
-        src = src.concat("use std::host::stdio\n")
+        src = src.concat("use std::host::stdio::Stdio\n")
     }
     src = src.concat("fn __test_main() {\n")
     let name_count = len(names)
@@ -95,7 +95,7 @@ fn synthesize_test_main(names: Vec<String>, decls: Vec<AstNode>) -> Vec<AstNode>
     while i < name_count {
         src = src.concat("    __test_".concat(i.to_string()))
         src = src.concat("()\n")
-        src = src.concat("    stdio::println(\"  PASS ".concat(escape_test_name(get_unchecked(names, i))))
+        src = src.concat("    Stdio::println(\"  PASS ".concat(escape_test_name(get_unchecked(names, i))))
         src = src.concat("\")\n")
         i = i + 1
     }
@@ -109,7 +109,7 @@ fn has_stdio_use(decls: Vec<AstNode>) -> bool {
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if ast::ast_node_kind(decl) == kinds::NK_USE() {
-            if ast::ast_node_text(decl).eq("std::host::stdio") && ast::ast_node_child_count(decl) == 0 {
+            if ast::ast_node_text(decl).eq("std::host::stdio::Stdio") && ast::ast_node_child_count(decl) == 0 {
                 return true
             }
         }

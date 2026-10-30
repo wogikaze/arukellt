@@ -2,7 +2,7 @@
 // instance. Its body reaches self.buffered() only from if conditions, so the
 // mono demand edge depends on inferring conditions; the helper parameter also
 // keeps the nested Result<Option<String>, IoError> payload type.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{BufReader, Reader}
 use std::text
@@ -10,10 +10,10 @@ use std::text
 fn show(value: Result<Option<String>, io::IoError>) {
     match value {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 

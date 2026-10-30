@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Counter {
     n: i32,
@@ -19,5 +19,5 @@ fn main() {
     counter.bump()
     add(counter, 2)
     let bump = |mut v: i32| v + 1
-    stdio::println(bump(counter.n).to_string())
+    Stdio::println(bump(counter.n).to_string())
 }

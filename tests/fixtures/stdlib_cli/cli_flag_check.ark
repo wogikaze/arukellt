@@ -1,29 +1,29 @@
 use std::cli::Cli
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((Env::arg_count()).to_string())
-    stdio::println((Env::has_flag("--verbose")).to_string())
+    Stdio::println((Env::arg_count()).to_string())
+    Stdio::println((Env::has_flag("--verbose")).to_string())
     match Env::arg_at(0) {
-        Option::Some(s) => stdio::println(s),
-        None => stdio::println("no arg"),
+        Option::Some(s) => Stdio::println(s),
+        None => Stdio::println("no arg"),
     }
     let mut args = Vec::new<String>()
     push(args, "--debug")
     push(args, "--output")
     push(args, "out.txt")
-    stdio::println((Cli::flag(args, "--debug")).to_string())
-    stdio::println((Cli::flag(args, "--verbose")).to_string())
+    Stdio::println((Cli::flag(args, "--debug")).to_string())
+    Stdio::println((Cli::flag(args, "--verbose")).to_string())
     match Cli::option(args, "--output") {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => Stdio::println(v),
+        None => Stdio::println("not found"),
     }
     let mut args2 = Vec::new<String>()
     push(args2, "--name=world")
     match Cli::option(args2, "--name") {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => Stdio::println(v),
+        None => Stdio::println("not found"),
     }
 }
 // arg_count and parse_args return empty vectors in test runner

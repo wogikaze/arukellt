@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::printer
 use std::wit::types
 use std::wit::world
@@ -13,6 +13,6 @@ fn main() {
     let mut w = world::World::new(String_from("demo"))
     w.add_export(iface)
     let text = w.to_wit()
-    stdio::println(text)
+    Stdio::println(text)
 }
 // World::to_wit renders the world block

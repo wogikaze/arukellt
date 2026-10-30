@@ -1,6 +1,6 @@
 // Fs namespace for the whole-path host filesystem helpers (ADR-046, #917).
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -33,5 +33,5 @@ fn main() {
     Test::assert_false(Fs::is_readable_file(String_from("tests/fixtures/stdlib_fs/missing.txt")))
     Test::assert_true(Fs::is_file(String_from("tests/fixtures/stdlib_fs/present.txt")))
     Test::assert_false(Fs::is_dir(String_from("tests/fixtures/stdlib_fs")))
-    stdio::println("fs-namespace-ok")
+    Stdio::println("fs-namespace-ok")
 }

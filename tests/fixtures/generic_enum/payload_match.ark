@@ -2,7 +2,7 @@
 // payload at the substituted type. The checker instantiated the declared
 // payload (`T`), but MIR still chose the open GC reference representation and
 // the emitted module failed validation (`expected i32, found (ref null ...)`).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::Box
 
 enum Wrap<T> {
@@ -23,7 +23,7 @@ fn make_box() -> Box<i32> {
 
 fn main() {
     let wrapped: Wrap<i32> = Wrap::Some(41)
-    stdio::println((peek_wrap(wrapped) + 1).to_string())
-    stdio::println((make_box().take() + 1).to_string())
-    stdio::println((Box::new(41).take() + 1).to_string())
+    Stdio::println((peek_wrap(wrapped) + 1).to_string())
+    Stdio::println((make_box().take() + 1).to_string())
+    Stdio::println((Box::new(41).take() + 1).to_string())
 }

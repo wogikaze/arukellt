@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let mut some_count: i32 = 0
@@ -12,5 +12,5 @@ fn main() {
     }
     Test::assert_eq_i32(some_count, 80)
     Test::assert_eq_i32(none_count, 20)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

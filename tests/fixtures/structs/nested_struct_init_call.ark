@@ -1,7 +1,7 @@
 // Regression test: struct init with function call as field value
 // The function call returns a struct, which previously corrupted the outer
 // struct init's scratch memory area.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Inner {
     name: String,
@@ -20,13 +20,13 @@ fn make_inner(n: String) -> Inner {
 
 fn main() {
     let mut o = Outer { inner: make_inner(String_from("test")), label: String_from("outer") }
-    stdio::println(o.inner.name)
-    stdio::println(o.label)
-    stdio::println((o.inner.count).to_string())
-    stdio::println((len(o.inner.items)).to_string())
+    Stdio::println(o.inner.name)
+    Stdio::println(o.label)
+    Stdio::println((o.inner.count).to_string())
+    Stdio::println((len(o.inner.items)).to_string())
     push(o.inner.items, 42)
-    stdio::println((len(o.inner.items)).to_string())
-    stdio::println((get_unchecked(o.inner.items, 0)).to_string())
+    Stdio::println((len(o.inner.items)).to_string())
+    Stdio::println((get_unchecked(o.inner.items, 0)).to_string())
 }
 // Inline function call in struct init field — this triggered the bug
 // Also test push after nested init

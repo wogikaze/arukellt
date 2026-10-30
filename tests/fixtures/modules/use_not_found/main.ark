@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::nonexistent
 
 fn main() {
-    stdio::println("should not reach")
+    Stdio::println("should not reach")
 }

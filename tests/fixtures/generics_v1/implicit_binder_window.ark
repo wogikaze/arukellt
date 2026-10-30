@@ -1,7 +1,7 @@
 // ADR-014 migration window for ADR-089: binder-less impl heads still infer a
 // single-uppercase, undeclared name as a type parameter and warn (W0222). The
 // binder form `impl<T> ...` is the migration target; `--strict` reports E0222.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Wrap<T> {
     item: T,
@@ -40,5 +40,5 @@ fn main() {
     let label_source: Wrap<i32> = Wrap { item: 0 }
     let p = Pair { first: 3 }
     let q = p
-    stdio::println((n + q.first + p.first + label_source.label()).to_string())
+    Stdio::println((n + q.first + p.first + label_source.label()).to_string())
 }

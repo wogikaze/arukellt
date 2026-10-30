@@ -1,7 +1,7 @@
 // Test: selfhost typechecker literal and binary expression type inference
 // Exercises: int literal → i32, float literal → f64, binary arithmetic,
 //            let binding inference, bool literal → bool, chained binops.
-use std::host::stdio
+use std::host::stdio::Stdio
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
@@ -12,23 +12,23 @@ fn mul(x: i32, y: i32) -> i32 {
 
 fn main() {
     let mut x = 1 + 2
-    stdio::println(x.to_string())
+    Stdio::println(x.to_string())
     let y = 10 - 3 * 2
-    stdio::println(y.to_string())
+    Stdio::println(y.to_string())
     let flag = x > 2
     if flag {
-        stdio::println(String_from("flag is true"))
+        Stdio::println(String_from("flag is true"))
     } else {
-        stdio::println(String_from("flag is false"))
+        Stdio::println(String_from("flag is false"))
     }
     let f = 1.5 + 2.5
-    stdio::println((f).to_string())
+    Stdio::println((f).to_string())
     let z: i32 = 5 + 6
-    stdio::println(z.to_string())
+    Stdio::println(z.to_string())
     let sum = add(x, z)
-    stdio::println(sum.to_string())
+    Stdio::println(sum.to_string())
     let product = mul(x, z)
-    stdio::println(product.to_string())
+    Stdio::println(product.to_string())
 }
 // let x = 1 + 2  →  infers x: i32
 // chained arithmetic

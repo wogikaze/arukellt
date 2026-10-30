@@ -5,7 +5,7 @@
 // for two struct types (`GcTarget`, `LinearTarget`), then dispatches calls
 // through a generic function bounded by the trait. Monomorphization-based
 // static dispatch must resolve each call to the correct impl method.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 /// Abstract memory access protocol. Two operations: load and store.
 trait MemoryAccess {
@@ -59,21 +59,21 @@ fn main() {
 
     // Dispatch through the generic trait-bounded functions.
     let gc_load = probe_load(gc, 5)
-    stdio::println(gc_load)
+    Stdio::println(gc_load)
 
     let lin_load = probe_load(lin, 5)
-    stdio::println(lin_load)
+    Stdio::println(lin_load)
 
     let gc_store = probe_store(gc, 7, 3)
-    stdio::println(gc_store)
+    Stdio::println(gc_store)
 
     let lin_store = probe_store(lin, 7, 3)
-    stdio::println(lin_store)
+    Stdio::println(lin_store)
 
     // Direct trait method calls on concrete instances.
     let direct_gc = gc.load_byte(9)
-    stdio::println(direct_gc)
+    Stdio::println(direct_gc)
 
     let direct_lin = lin.load_byte(9)
-    stdio::println(direct_lin)
+    Stdio::println(direct_lin)
 }

@@ -343,7 +343,7 @@ constraint).
 A `match` expression does not cover all variants of the scrutinee type.
 
 ```arukellt
-use std::host::stdio
+use std::host::stdio::Stdio
 enum Color {
     Red,
     Green,
@@ -353,8 +353,8 @@ enum Color {
 fn main() {
     let c: Color = Color::Red
     match c {
-        Color::Red => stdio::println("red"),
-        Color::Green => stdio::println("green"),
+        Color::Red => Stdio::println("red"),
+        Color::Green => Stdio::println("green"),
     }
 }
 ```

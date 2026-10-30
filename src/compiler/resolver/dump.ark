@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
 use resolver::context
@@ -13,12 +13,12 @@ fn dump_scope(ctx: ResolveCtx) {
     while i < scope_count {
         let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, i)
         let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
-        stdio::eprintln("scope[".concat(i.to_string().concat("] (".concat(sym_count.to_string().concat(" symbols)")))))
+        Stdio::eprintln("scope[".concat(i.to_string().concat("] (".concat(sym_count.to_string().concat(" symbols)")))))
         let mut j = 0
         while j < sym_count {
             let sym = scope_stack_scopes::Scope_symbol_at(scope, j)
             let kind_str = names::sym_kind_name(scope_stack_symbols::Symbol_kind(sym))
-            stdio::eprintln("  ".concat(kind_str.concat(" ".concat(scope_stack_symbols::Symbol_name(sym)))))
+            Stdio::eprintln("  ".concat(kind_str.concat(" ".concat(scope_stack_symbols::Symbol_name(sym)))))
             j = j + 1
         }
         i = i + 1
@@ -28,9 +28,9 @@ fn dump_scope(ctx: ResolveCtx) {
         let mut ei = 0
         let message_count = context::ResolveCtx_error_message_count(ctx)
         while ei < message_count {
-            stdio::eprintln("error: ".concat(context::ResolveCtx_error_at(ctx, ei)))
+            Stdio::eprintln("error: ".concat(context::ResolveCtx_error_at(ctx, ei)))
             ei = ei + 1
         }
-        stdio::eprintln(error_count.to_string().concat(" resolve error(s)"))
+        Stdio::eprintln(error_count.to_string().concat(" resolve error(s)"))
     }
 }

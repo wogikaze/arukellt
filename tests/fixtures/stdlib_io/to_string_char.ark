@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let ch: char = 'A'
-    stdio::println(ch.to_string())
+    Stdio::println(ch.to_string())
     let ch2: char = 'z'
-    stdio::println(ch2.to_string())
+    Stdio::println(ch2.to_string())
 }

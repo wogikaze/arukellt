@@ -1,4 +1,5 @@
 use std::text
+use std::host::stdio::Stdio
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
@@ -107,6 +108,6 @@ fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
         i = i + 1
     }
     if diff > 0 {
-        stdio::eprintln("sig-reg: host intrinsic stub diff count=".concat((diff).to_string()))
+        Stdio::eprintln("sig-reg: host intrinsic stub diff count=".concat((diff).to_string()))
     }
 }

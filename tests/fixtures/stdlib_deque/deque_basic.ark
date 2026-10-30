@@ -1,11 +1,11 @@
 // Deque<T> construction, both-end pushes/pops, capacity and clear.
 use std::collections::deque::Deque
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(value: Option<i32>) {
     match value {
-        Option::Some(item) => stdio::println(item.to_string()),
-        Option::None => stdio::println(String_from("none")),
+        Option::Some(item) => Stdio::println(item.to_string()),
+        Option::None => Stdio::println(String_from("none")),
     }
 }
 
@@ -38,5 +38,5 @@ fn main() {
     assert(reserved.len() == 0)
     assert(reserved.is_empty())
     assert(reserved.capacity() == 8)
-    stdio::println((reserved.capacity()).to_string())
+    Stdio::println((reserved.capacity()).to_string())
 }

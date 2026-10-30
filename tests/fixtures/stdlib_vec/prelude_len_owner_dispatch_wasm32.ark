@@ -1,7 +1,7 @@
 // `len` is a signature-only prelude free with two receiver owners. The owner
 // selected from the receiver type binds String::len or Vec::len instead of a
 // bare `len` name (#936 / #933).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{len, push}
 use std::test::Test
 
@@ -25,5 +25,5 @@ fn main() {
     push(words, String_from("a"))
     push(words, String_from("bb"))
     Test::assert_eq_i32(items_len(words), 2)
-    stdio::println("len owner dispatch ok")
+    Stdio::println("len owner dispatch ok")
 }

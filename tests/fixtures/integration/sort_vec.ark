@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::collections::vec
 use std::core
 use std::core::cmp
@@ -26,5 +26,5 @@ fn main() {
         push(parts, (get_unchecked(v, i)).to_string())
         i = i + 1
     }
-    stdio::println(parts.join(String_from(" ")))
+    Stdio::println(parts.join(String_from(" ")))
 }

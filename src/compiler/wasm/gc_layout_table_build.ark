@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use mir::gc_layout_plan
 use mir::module_gc_layout_plan
 use wasm::gc_layout_table
@@ -74,7 +74,7 @@ fn gc_layout_table_drain_plan(
     // [plan_seen, count) checks each appended binding exactly once while
     // keeping identical ICE coverage for a fresh table (plan_seen = 0).
     if !gc_layout_plan::mir_gc_layout_plan_validate_range(plan, table.plan_seen) {
-        stdio::eprintln("compiler ICE: backend received invalid MIR GC layout plan")
+        Stdio::eprintln("compiler ICE: backend received invalid MIR GC layout plan")
         Process::exit(1)
     }
     while table.plan_seen < count {
@@ -103,7 +103,7 @@ fn gc_layout_table_drain_plan(
             )
             if type_idx < 0 {
                 if final_pass {
-                    stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
+                    Stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
                     Process::exit(1)
                 }
                 push(still_pending, index)
@@ -118,7 +118,7 @@ fn gc_layout_table_drain_plan(
                     gc_layout_plan_struct_type_index(binding, type_idx)
                 )
                 if !gc_layout_table::gc_layout_id_is_valid(layout_id) {
-                    stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
+                    Stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
                     Process::exit(1)
                 }
             }

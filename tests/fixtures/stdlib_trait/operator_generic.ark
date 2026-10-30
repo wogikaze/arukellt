@@ -1,5 +1,5 @@
 // Generic operator obligations use the same Trait registry as concrete syntax.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::ops
 
 struct Point {
@@ -19,8 +19,8 @@ fn add_any<T: Add>(lhs: T, rhs: T) -> T {
 
 fn main() {
     let point = add_any(Point { x: 1, y: 2 }, Point { x: 3, y: 4 })
-    stdio::println(point.x)
-    stdio::println(point.y)
+    Stdio::println(point.x)
+    Stdio::println(point.y)
     let scalar = add_any(10, 32)
-    stdio::println(scalar)
+    Stdio::println(scalar)
 }

@@ -26,11 +26,11 @@ The `std::core` family provides the fundamental building blocks shared across th
 
 ```ark
 use std::core::{Range}
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let r = Range::new(0, 10)
 if r.contains(5) {
-    stdio::println("5 is in range")
+    Stdio::println("5 is in range")
 }
 let len = r.len()  // 10
 ```

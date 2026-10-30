@@ -1,15 +1,15 @@
 use std::csv
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     match csv::Csv::parse("a,b\n1,2") {
-        Result::Ok(rows) => stdio::println((len(rows)).to_string()),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(rows) => Stdio::println((len(rows)).to_string()),
+        Result::Err(e) => Stdio::println(e),
     }
     let mut rows = Vec::new<Vec<String>>()
     push(rows, csv::Csv::parse_row("x,y"))
     push(rows, csv::Csv::parse_row("1,2"))
-    stdio::println(csv::Csv::stringify(rows))
+    Stdio::println(csv::Csv::stringify(rows))
 }
 // csv_parse row count
 // csv_stringify round-trip shape

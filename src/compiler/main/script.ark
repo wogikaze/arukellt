@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 use main::args_record
@@ -17,14 +17,14 @@ pub fn cmd_script(opts: CliOptions) {
             }
             let found = toml::TomlText::find_value(scripts_content.clone(), script_name.clone())
             if len(found) > 0 {
-                stdio::println(found.clone())
+                Stdio::println(found.clone())
                 return
             }
-            stdio::eprintln(String_from("error: script '").concat(script_name.clone().concat(String_from("' not found in ark.toml [scripts]"))))
+            Stdio::eprintln(String_from("error: script '").concat(script_name.clone().concat(String_from("' not found in ark.toml [scripts]"))))
             Process::exit(1)
         },
         Result::Err(e) => {
-            stdio::eprintln(String_from("error: cannot read ark.toml: ").concat(e))
+            Stdio::eprintln(String_from("error: cannot read ark.toml: ").concat(e))
             Process::exit(1)
         },
     }

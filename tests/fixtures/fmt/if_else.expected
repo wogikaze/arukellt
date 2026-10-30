@@ -6,8 +6,8 @@ fn fib(n: i32) -> i32 {
     }
 }
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println(fib(10))
+    Stdio::println(fib(10))
 }

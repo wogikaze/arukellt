@@ -3,7 +3,7 @@
 // allocates `Some` with the {fnptr, env} pair payload; a bare `option:`
 // scrutinee type made match cast to the generic enum-base variant and
 // trap at runtime on both backends.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(x: i32) -> i32 {
     x * 2
@@ -29,14 +29,14 @@ fn main() {
     let _ = m.insert(1, double)
 
     // Option<fn> produced inside one function, matched in the caller.
-    stdio::println(apply_or_zero(fetch_concrete(m, 1), 7).to_string())
+    Stdio::println(apply_or_zero(fetch_concrete(m, 1), 7).to_string())
     // The same through a monomorphized generic wrapper.
-    stdio::println(apply_or_zero(fetch_generic(m, 1), 7).to_string())
+    Stdio::println(apply_or_zero(fetch_generic(m, 1), 7).to_string())
     // Missing key keeps the None arm reachable.
-    stdio::println(apply_or_zero(fetch_concrete(m, 9), 7).to_string())
+    Stdio::println(apply_or_zero(fetch_concrete(m, 9), 7).to_string())
     // Direct get still binds the fnref payload in-place.
     match m.get(1) {
-        Option::Some(f) => stdio::println((f(3)).to_string()),
-        Option::None => stdio::println("none"),
+        Option::Some(f) => Stdio::println((f(3)).to_string()),
+        Option::None => Stdio::println("none"),
     }
 }

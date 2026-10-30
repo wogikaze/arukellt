@@ -5,7 +5,7 @@
 //   - process: exit/abort are callable (no direct test of side effects)
 use std::host::clock::Clock
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     // ── Host clock contract ──
@@ -14,24 +14,24 @@ fn main() {
     let t_ms = Clock::now_ms()
     assert(t_ms >= 0i64)
     if t_ns > 0i64 {
-        stdio::println("clock:non-zero-ns")
+        Stdio::println("clock:non-zero-ns")
     } else {
-        stdio::println("clock:zero-ns")
+        Stdio::println("clock:zero-ns")
     }
     if t_ms > 0i64 {
-        stdio::println("clock:non-zero-ms")
+        Stdio::println("clock:non-zero-ms")
     } else {
-        stdio::println("clock:zero-ms")
+        Stdio::println("clock:zero-ms")
     }
 
     // ── Host env contract ──
     let ac = Env::arg_count()
     assert(ac >= 0)
-    stdio::println("env:args:".concat((ac).to_string()))
+    Stdio::println("env:args:".concat((ac).to_string()))
 
     // var may return None on targets without environ support
     match Env::var("PATH") {
-        Option::Some(_) => stdio::println("env:path-set"),
-        None => stdio::println("env:path-unset"),
+        Option::Some(_) => Stdio::println("env:path-set"),
+        None => Stdio::println("env:path-unset"),
     }
 }

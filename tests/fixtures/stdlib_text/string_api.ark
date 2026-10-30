@@ -1,24 +1,24 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
-    stdio::println("hello world".slice_bytes(0, 5))
-    stdio::println("hello world".slice_bytes(6, 11))
-    stdio::println("hello world".slice_bytes(0, 0))
-    stdio::println(("".is_empty()).to_string())
-    stdio::println(("a".is_empty()).to_string())
-    stdio::println(("hello".len_bytes()).to_string())
-    stdio::println(("".len_bytes()).to_string())
+    Stdio::println("hello world".slice_bytes(0, 5))
+    Stdio::println("hello world".slice_bytes(6, 11))
+    Stdio::println("hello world".slice_bytes(0, 0))
+    Stdio::println(("".is_empty()).to_string())
+    Stdio::println(("a".is_empty()).to_string())
+    Stdio::println(("hello".len_bytes()).to_string())
+    Stdio::println(("".len_bytes()).to_string())
     let parts = "a,b,c".split(",")
-    stdio::println((len(parts)).to_string())
-    stdio::println(parts.join("-"))
-    stdio::println("foo".concat("bar"))
-    stdio::println(("hello".starts_with("hel")).to_string())
-    stdio::println(("hello".ends_with("llo")).to_string())
-    stdio::println("ABC".to_lower())
-    stdio::println("abc".to_upper())
-    stdio::println("ab".repeat(3))
-    stdio::println("hello world".replace("world", "arukellt"))
+    Stdio::println((len(parts)).to_string())
+    Stdio::println(parts.join("-"))
+    Stdio::println("foo".concat("bar"))
+    Stdio::println(("hello".starts_with("hel")).to_string())
+    Stdio::println(("hello".ends_with("llo")).to_string())
+    Stdio::println("ABC".to_lower())
+    Stdio::println("abc".to_upper())
+    Stdio::println("ab".repeat(3))
+    Stdio::println("hello world".replace("world", "arukellt"))
 }
 // slice_bytes: extract substring by byte range
 // is_empty

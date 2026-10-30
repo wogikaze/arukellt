@@ -66,7 +66,7 @@ fn main() {
 }
 """
 
-INLINE_PROBE_GC_SOURCE = """use std::host::stdio
+INLINE_PROBE_GC_SOURCE = """use std::host::stdio::Stdio
 
 fn identity<T>(x: T) -> T {
     x
@@ -75,7 +75,7 @@ fn identity<T>(x: T) -> T {
 fn main() {
     let a = identity(7)
     let b = identity(String_from("ok"))
-    stdio::println(b)
+    Stdio::println(b)
 }
 """
 
@@ -110,7 +110,7 @@ INLINE_PROBE_SOURCES = {
 
 # Probes that additionally execute the emitted module; a non-zero exit
 # catches silent miscompiles that pass validation (wrong-instance binds).
-# Only assert-only programs can run standalone: stdio::println imports a
+# Only assert-only programs can run standalone: Stdio::println imports a
 # WASI host capability that plain wasmtime run does not provide.
 RUN_PROBES = {"generics-dual-inline-linear"}
 

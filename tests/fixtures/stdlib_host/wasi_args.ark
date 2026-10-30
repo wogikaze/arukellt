@@ -2,10 +2,10 @@
 // Verifies that the argument intrinsics are available via std::host::env::Env
 // and that Env::arg_count returns a non-negative value.
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let count = Env::arg_count()
     assert(count >= 0)
-    stdio::println("wasi_args ok")
+    Stdio::println("wasi_args ok")
 }

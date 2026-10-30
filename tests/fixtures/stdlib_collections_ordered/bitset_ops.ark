@@ -1,16 +1,16 @@
 use std::collections::ordered::BitSet
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut bits = BitSet::new()
     bits.set(5)
     bits.set(42)
     bits.set(100)
-    stdio::println((bits.test(5)).to_string())
-    stdio::println((bits.test(6)).to_string())
+    Stdio::println((bits.test(5)).to_string())
+    Stdio::println((bits.test(6)).to_string())
     bits.clear(5)
-    stdio::println((bits.test(5)).to_string())
-    stdio::println((bits.count()).to_string())
+    Stdio::println((bits.test(5)).to_string())
+    Stdio::println((bits.count()).to_string())
     let mut left = BitSet::with_capacity(64)
     left.set(1)
     left.set(3)
@@ -18,11 +18,11 @@ fn main() {
     right.set(2)
     right.set(3)
     let united = left.union(right)
-    stdio::println((united.count()).to_string())
-    stdio::println((united.test(1)).to_string())
-    stdio::println((united.test(2)).to_string())
-    stdio::println((united.test(3)).to_string())
+    Stdio::println((united.count()).to_string())
+    Stdio::println((united.test(1)).to_string())
+    Stdio::println((united.test(2)).to_string())
+    Stdio::println((united.test(3)).to_string())
     let shared = left.intersection(right)
-    stdio::println((shared.count()).to_string())
-    stdio::println((shared.test(3)).to_string())
+    Stdio::println((shared.count()).to_string())
+    Stdio::println((shared.test(3)).to_string())
 }

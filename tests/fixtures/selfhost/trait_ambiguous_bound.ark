@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 trait Foo {
     fn id(x: i32) -> i32,
 }
@@ -22,5 +22,5 @@ fn ambiguous<T: Foo>() -> i32 {
 fn main() {
     // T cannot be inferred → ambiguous trait bound
     let item = ambiguous()
-    stdio::println(item.to_string())
+    Stdio::println(item.to_string())
 }

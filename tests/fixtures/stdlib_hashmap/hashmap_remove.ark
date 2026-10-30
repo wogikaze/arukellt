@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{assert_eq}
 fn expect_some(v: Option<i32>, expected: i32) {
     match v {
@@ -52,7 +52,7 @@ fn main() {
     assert_eq(m.len(), 0)
     assert(!m.contains_key(3))
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 
 fn expect_none_option_pair(entry: Option<(i32, i32)>) {

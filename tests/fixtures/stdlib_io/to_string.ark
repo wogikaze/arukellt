@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println(42.to_string())
-    stdio::println(9001i64.to_string())
-    stdio::println(3.5.to_string())
-    stdio::println(true.to_string())
-    stdio::println(('Z').to_string())
-    stdio::println(String_from("plain text").to_string())
+    Stdio::println(42.to_string())
+    Stdio::println(9001i64.to_string())
+    Stdio::println(3.5.to_string())
+    Stdio::println(true.to_string())
+    Stdio::println(('Z').to_string())
+    Stdio::println(String_from("plain text").to_string())
 }

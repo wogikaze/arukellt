@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 41 `pub fn` declarations under
-`std/**/*.ark`; 41 map to a manifest entry and
-0 are unregistered. Eradication scope = 41 manifest
-public entries + 0 unregistered declarations = **41 symbols**.
+**Real surface denominator:** 32 `pub fn` declarations under
+`std/**/*.ark`; 32 map to a manifest entry and
+0 are unregistered. Eradication scope = 32 manifest
+public entries + 0 unregistered declarations = **32 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 41 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 41 | — |
+| Eradication-scope symbols (real std surface) | 32 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 32 | — |
 | Unregistered std declarations (no manifest entry) | 0 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 41 | 0 |
+| Manifest public entries (registered scope) | 32 | 0 |
 | `prelude_wrapper` entries | 9 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 4 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -38,7 +38,7 @@ public entries + 0 unregistered declarations = **41 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 25 |
-| `associated-or-method` | Replacement must land as method/associated first | 16 |
+| `associated-or-method` | Replacement must land as method/associated first | 7 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -55,7 +55,6 @@ registered entries and unregistered `pub fn` declarations.
 | monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 1 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
 | legacy linear deque frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | method / associated equivalent on the receiver or namespace type |
-| std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 0 | Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles; `IoError::message()` returns an error's human-readable payload (the former free `io_error_message` retired with an E0100 hint). writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693). |
 | experimental host fd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 0 | No public replacement: the fd_* helpers are experimental, `wasm32` / WASI P1 only, and have no wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that does not lower on the primary target. The non-public `__intrinsic_fd_*` bridges remain (ADR-046 D2). Recorded as the retained exception in docs/stdlib/migration-guidance.md. |
 
 ## Inventory (manifest entries)
@@ -96,15 +95,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `fd_fdstat_errno` | `std::host::fs` | `associated-or-method` | experimental host fd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_seek` | `std::host::fs` | `associated-or-method` | experimental host fd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `fd_tell` | `std::host::fs` | `associated-or-method` | experimental host fd frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `eprintln` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `print` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `println` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `read_stdin` | `std::host::stdio` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `print_bytes` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `read_stdin_line` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `stderr` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `stdin` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
-| `stdout` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |
 | `__intrinsic_string_is_empty` | `(prelude)` | `intrinsic-only` | private intrinsics | — |
 
 ## Inventory (unregistered std declarations)

@@ -2,7 +2,7 @@
 // Exercises allocation of composite structs (Vec2 -> Rect -> BBox) and a
 // depth-limited binary-tree recursion to measure nested struct allocation
 // throughput.  Covers: allocation-heavy, struct-heavy, recursion-heavy, container.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Vec2 {
     x: i32,
@@ -56,6 +56,6 @@ fn main() {
         total = total + graph_sum(10, i + 1)
         i = i + 1
     }
-    stdio::println((total).to_string())
-    stdio::println("done")
+    Stdio::println((total).to_string())
+    Stdio::println("done")
 }

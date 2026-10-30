@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
@@ -28,7 +28,7 @@ fn print_ast(node: AstNode, depth: i32) {
     if node_kind == kinds::NK_INT_LIT() {
         line = line.concat("(".concat(core_ast_literal_fields::AstNode_int_val(node).to_string().concat(")")))
     }
-    stdio::println(line)
+    Stdio::println(line)
     let mut i = 0
     let child_count = core_ast_children::AstNode_child_count(node)
     while i < child_count {

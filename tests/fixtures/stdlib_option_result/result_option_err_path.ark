@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn find_item(found: bool) -> Result<Option<i32>, String> {
     if !found { Err(String_from("not found")) }
@@ -10,5 +10,5 @@ fn main() {
         Result::Ok(opt) => Std::panic("ok"),
         Result::Err(e) => Test::assert_eq_string(e, String_from("not found")),
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

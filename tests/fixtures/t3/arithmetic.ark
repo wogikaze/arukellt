@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((10 + 3).to_string())
-    stdio::println((10 - 3).to_string())
-    stdio::println((10 * 3).to_string())
-    stdio::println((10 / 3).to_string())
-    stdio::println((10 % 3).to_string())
+    Stdio::println((10 + 3).to_string())
+    Stdio::println((10 - 3).to_string())
+    Stdio::println((10 * 3).to_string())
+    Stdio::println((10 / 3).to_string())
+    Stdio::println((10 % 3).to_string())
 }

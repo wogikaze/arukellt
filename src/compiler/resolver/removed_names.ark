@@ -148,10 +148,10 @@ fn removed_name_specific_hint(name: String) -> String {
     if name.clone().eq("map_option_String_String") { return "removed free function; use `o.map(f)` via `use std::core::container`" }
     if name.clone().eq("map_result_i32_i32") { return "removed free function; use `r.map(f)` via `use std::core::container`" }
     if name.clone().eq("char_at") { return "removed prelude wrapper; use `s.byte_at(i)` on `String` instead" }
-    if name.clone().eq("println") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::println(...)`" }
-    if name.clone().eq("print") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::print(...)`" }
-    if name.clone().eq("eprintln") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::eprintln(...)`" }
-    if name.clone().eq("read_to_string") { return "removed prelude binding; import `use std::host::stdio` and call `stdio::read_stdin()`" }
+    if name.clone().eq("println") { return "removed prelude binding; import `use std::host::stdio::Stdio` and call `Stdio::println(...)`" }
+    if name.clone().eq("print") { return "removed prelude binding; import `use std::host::stdio::Stdio` and call `Stdio::print(...)`" }
+    if name.clone().eq("eprintln") { return "removed prelude binding; import `use std::host::stdio::Stdio` and call `Stdio::eprintln(...)`" }
+    if name.clone().eq("read_to_string") { return "removed prelude binding; import `use std::host::stdio::Stdio` and call `Stdio::read_stdin()`" }
     if name.clone().eq("exists") { return "removed prelude binding; import `use std::host::fs::Fs` and call `Fs::is_readable_file(...)`" }
     if name.clone().eq("get_var") { return "removed module function; import `use std::host::env::Env` and call `Env::var(name)`" }
     if name.clone().eq("var_or_default") { return "removed module function; import `use std::host::env::Env` and call `Env::var_or_default(name, default)`" }
@@ -316,6 +316,25 @@ fn removed_host_env_member_hint(name: String) -> String {
     }
     if name.clone().eq("has_flag") {
         return String_from("use `Env::has_flag(flag)` from `use std::host::env::Env` instead")
+    }
+    String_new()
+}
+
+// The std::host::stdio free functions were deleted in the 2026-10-30
+// wave/io-stdio change (#693, ADR-094). `Stdio` is the only string-shaped
+// standard-stream surface.
+fn removed_host_stdio_member_hint(name: String) -> String {
+    if name.clone().eq("read_stdin") {
+        return String_from("use `Stdio::read_stdin()` from `use std::host::stdio::Stdio` instead")
+    }
+    if name.clone().eq("print") {
+        return String_from("use `Stdio::print(s)` from `use std::host::stdio::Stdio` instead")
+    }
+    if name.clone().eq("println") {
+        return String_from("use `Stdio::println(s)` from `use std::host::stdio::Stdio` instead")
+    }
+    if name.clone().eq("eprintln") {
+        return String_from("use `Stdio::eprintln(s)` from `use std::host::stdio::Stdio` instead")
     }
     String_new()
 }
@@ -905,6 +924,9 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if module.clone().eq("env") || module.clone().eq("host::env") || module.clone().eq("std::env") || module.clone().eq("std::host::env") {
         return removed_host_env_member_hint(name)
+    }
+    if module.clone().eq("stdio") || module.clone().eq("host::stdio") || module.clone().eq("std::host::stdio") {
+        return removed_host_stdio_member_hint(name)
     }
     if module.clone().eq("process") || module.clone().eq("host::process") || module.clone().eq("std::process") || module.clone().eq("std::host::process") {
         return removed_host_process_member_hint(name)
@@ -1749,6 +1771,11 @@ fn removed_raw_member_hint(name: String) -> String {
 
 fn removed_io_free_hint(name: String) -> String {
     if name.clone().eq("io_error_message") { return String_from("use `e.message()` on the `IoError` value instead") }
+    if name.clone().eq("stdout") { return String_from("use `io::Stdout::new()` from `use std::io::Stdout` instead") }
+    if name.clone().eq("stderr") { return String_from("use `io::Stderr::new()` from `use std::io::Stderr` instead") }
+    if name.clone().eq("print_bytes") { return String_from("use `io::Stdout::new().write(data)` from `use std::io::Stdout` instead") }
+    if name.clone().eq("stdin") { return String_from("no replacement for the old io::stdin placeholder; use `Stdio::read_stdin()` for whole-input reads") }
+    if name.clone().eq("read_stdin_line") { return String_from("no replacement for the old io::read_stdin_line placeholder; use `Stdio::read_stdin()` for whole-input reads") }
     String_new()
 }
 
@@ -1902,6 +1929,19 @@ test mod "removed_names" {
         assert(len(removed_name_hint("ok_or")) > 0)
     }
     test "io shims" { assert(len(removed_name_hint("eprintln")) > 0) }
+    test "retired io and host stdio frees have replacements" {
+        assert(len(removed_module_member_hint("stdio", "read_stdin")) > 0)
+        assert(len(removed_module_member_hint("host::stdio", "print")) > 0)
+        assert(len(removed_module_member_hint("std::host::stdio", "println")) > 0)
+        assert(len(removed_module_member_hint("std::host::stdio", "eprintln")) > 0)
+        assert(len(removed_module_member_hint("io", "stdout")) > 0)
+        assert(len(removed_module_member_hint("std::io", "stderr")) > 0)
+        assert(len(removed_module_member_hint("std::io", "print_bytes")) > 0)
+        assert(len(removed_module_member_hint("std::io", "stdin")) > 0)
+        assert(len(removed_module_member_hint("std::io", "read_stdin_line")) > 0)
+        assert(len(removed_module_member_hint("stdio", "unrelated")) == 0)
+        assert(len(removed_module_member_hint("io", "unrelated")) == 0)
+    }
     test "deprecated prelude hints" {
         assert(len(removed_name_hint("concat")) > 0)
         assert(len(removed_name_hint("char_at")) > 0)

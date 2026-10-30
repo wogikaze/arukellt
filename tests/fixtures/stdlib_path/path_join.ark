@@ -1,21 +1,21 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::path::Path
 
 fn main() {
-    stdio::println(Path::new("/home/user").join("data.txt"))
-    stdio::println(Path::new("/foo/").join("bar"))
-    stdio::println(Path::new("").join("baz"))
-    stdio::println(Path::new("/a").join(""))
-    stdio::println(Path::new("/home/user/file.txt").parent())
-    stdio::println(Path::new("/a/b/c").parent())
-    stdio::println((Path::new("/foo/bar").is_absolute()).to_string())
-    stdio::println((Path::new("relative").is_absolute()).to_string())
-    stdio::println((Path::new("").is_absolute()).to_string())
-    stdio::println(Path::new("/home/user/readme.md").file_name())
-    stdio::println(Path::new("alone.txt").file_name())
-    stdio::println(Path::new("hello.txt").extension())
-    stdio::println(Path::new("archive.tar.gz").extension())
-    stdio::println(Path::new("noext").extension())
+    Stdio::println(Path::new("/home/user").join("data.txt"))
+    Stdio::println(Path::new("/foo/").join("bar"))
+    Stdio::println(Path::new("").join("baz"))
+    Stdio::println(Path::new("/a").join(""))
+    Stdio::println(Path::new("/home/user/file.txt").parent())
+    Stdio::println(Path::new("/a/b/c").parent())
+    Stdio::println((Path::new("/foo/bar").is_absolute()).to_string())
+    Stdio::println((Path::new("relative").is_absolute()).to_string())
+    Stdio::println((Path::new("").is_absolute()).to_string())
+    Stdio::println(Path::new("/home/user/readme.md").file_name())
+    Stdio::println(Path::new("alone.txt").file_name())
+    Stdio::println(Path::new("hello.txt").extension())
+    Stdio::println(Path::new("archive.tar.gz").extension())
+    Stdio::println(Path::new("noext").extension())
 }
 // join: basic
 // parent

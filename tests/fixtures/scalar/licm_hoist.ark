@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let base: i32 = 5
@@ -9,7 +9,7 @@ fn main() {
         total = total + step
         i = i + 1
     }
-    stdio::println((total).to_string())
+    Stdio::println((total).to_string())
 }
 // base + 1 is loop-invariant; LICM should hoist it before the loop.
 // 3 iterations * 6 = 18

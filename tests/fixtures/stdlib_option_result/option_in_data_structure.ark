@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let a: Option<Option<i32>> = Some(Some(1))
@@ -9,5 +9,5 @@ fn main() {
         },
         None => Std::panic("outer none"),
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

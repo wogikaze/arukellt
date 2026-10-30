@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -9,5 +9,5 @@ fn main() {
         Test::assert_true(b.is_none())
         Test::assert_true(a.is_some() != b.is_some())
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

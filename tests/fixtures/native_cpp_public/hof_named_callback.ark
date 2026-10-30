@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn add_one(x: i32) -> i32 {
     x + 1
@@ -10,5 +10,5 @@ fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
 
 fn main() {
     let result = apply(add_one, 41)
-    stdio::println(String_from("result=").concat(result.to_string()))
+    Stdio::println(String_from("result=").concat(result.to_string()))
 }

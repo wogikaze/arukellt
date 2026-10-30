@@ -1,5 +1,5 @@
 use std::core::error
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn check_error(e: Error) -> String {
     match e {
@@ -12,9 +12,9 @@ fn check_error(e: Error) -> String {
 
 fn main() {
     let e1 = Error::InvalidArgument("bad")
-    stdio::println(check_error(e1))
+    Stdio::println(check_error(e1))
     let e2 = Error::NotFound("file.txt")
-    stdio::println(check_error(e2))
+    Stdio::println(check_error(e2))
     let e3 = Error::Timeout
-    stdio::println(check_error(e3))
+    Stdio::println(check_error(e3))
 }

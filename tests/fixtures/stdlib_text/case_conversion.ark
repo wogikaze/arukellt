@@ -1,21 +1,21 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
-    stdio::println(("HELLO").to_lower())
-    stdio::println(("hello").to_upper())
-    stdio::println(("Hello World").to_lower())
-    stdio::println(("Hello World").to_upper())
-    stdio::println(("abc").to_lower())
-    stdio::println(("XYZ").to_upper())
-    stdio::println(("").to_lower())
-    stdio::println(("").to_upper())
-    stdio::println(("123!@#").to_lower())
-    stdio::println(("123!@#").to_upper())
-    stdio::println(("A").to_lower())
-    stdio::println(("z").to_upper())
-    stdio::println(("HELLO WORLD").to_lower())
-    stdio::println(("hello world").to_upper())
+    Stdio::println(("HELLO").to_lower())
+    Stdio::println(("hello").to_upper())
+    Stdio::println(("Hello World").to_lower())
+    Stdio::println(("Hello World").to_upper())
+    Stdio::println(("abc").to_lower())
+    Stdio::println(("XYZ").to_upper())
+    Stdio::println(("").to_lower())
+    Stdio::println(("").to_upper())
+    Stdio::println(("123!@#").to_lower())
+    Stdio::println(("123!@#").to_upper())
+    Stdio::println(("A").to_lower())
+    Stdio::println(("z").to_upper())
+    Stdio::println(("HELLO WORLD").to_lower())
+    Stdio::println(("hello world").to_upper())
 }
 // Case conversion: to_lower, to_upper (ASCII-only)
 // Basic conversion

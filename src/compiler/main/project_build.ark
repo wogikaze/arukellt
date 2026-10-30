@@ -1,7 +1,7 @@
 use std::host::fs::Fs
 use std::toml
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use driver::config_record
 use driver::file
@@ -23,18 +23,18 @@ fn print_project_compile_errors(entry: String, result: CompileResult) {
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln(output::format_error(entry.clone(), msg.clone()))
+        Stdio::eprintln(output::format_error(entry.clone(), msg.clone()))
         i = i + 1
     }
 }
 
 fn exit_missing_build_entry() {
-    stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
+    Stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
     Process::exit(1)
 }
 
 fn exit_build_manifest_read_error(manifest_path: String, error: String) {
-    stdio::eprintln(String_from("error: cannot read ").concat(manifest_path.clone().concat(String_from(": ").concat(error))))
+    Stdio::eprintln(String_from("error: cannot read ").concat(manifest_path.clone().concat(String_from(": ").concat(error))))
     Process::exit(1)
 }
 
@@ -47,12 +47,12 @@ fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: S
     if manifest_has_pkg_name(info) {
         let pkg_label = manifest_pkg_name(info).concat(String_from(" v").concat(manifest_pkg_version(info)))
         let target_label = (String_from(" (")).concat(entry.clone().concat(String_from(")")))
-        stdio::eprintln(
+        Stdio::eprintln(
             String_from("building ").concat(pkg_label.concat(target_label))
         )
     } else {
         let target_label = (String_from(" (entry: ")).concat(entry.clone().concat(String_from(")")))
-        stdio::eprintln(String_from("building ").concat(manifest_path.clone().concat(target_label)))
+        Stdio::eprintln(String_from("building ").concat(manifest_path.clone().concat(target_label)))
     }
 }
 
@@ -73,12 +73,12 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
         Result::Ok(_) => {
             let size_label = (String_from(" (")).concat(byte_count.to_string().concat(String_from(" bytes)")))
             let arrow_label = entry.clone().concat(String_from(" -> ").concat(out_path.clone()))
-            stdio::eprintln(
+            Stdio::eprintln(
                 String_from("built ").concat(arrow_label.concat(size_label))
             )
         },
         Result::Err(e) => {
-            stdio::eprintln(String_from("error writing output: ").concat(e))
+            Stdio::eprintln(String_from("error writing output: ").concat(e))
             Process::exit(1)
         },
     }

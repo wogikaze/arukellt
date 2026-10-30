@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn classify(x: i32) -> String {
     if x < 0 {
@@ -11,7 +11,7 @@ fn classify(x: i32) -> String {
 }
 
 fn main() {
-    stdio::println(classify(-5))
-    stdio::println(classify(0))
-    stdio::println(classify(42))
+    Stdio::println(classify(-5))
+    Stdio::println(classify(0))
+    Stdio::println(classify(42))
 }

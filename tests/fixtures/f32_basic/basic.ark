@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn add_f32(a: f32, b: f32) -> f32 {
     a + b
 }
@@ -7,5 +7,5 @@ fn main() {
     let x: f32 = 1.5f32
     let y: f32 = 2.5f32
     let z: f32 = add_f32(x, y)
-    stdio::println(z.to_string())
+    Stdio::println(z.to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
     match r { Result::Ok(v) => Test::assert_eq_i32(v, 10), Result::Err(e) => Std::panic(e) }
     let r2: Result<i32, String> = if n > 100 { Ok(n) } else { Err(String_from("too small")) }
     Test::assert_true(r2.is_err())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

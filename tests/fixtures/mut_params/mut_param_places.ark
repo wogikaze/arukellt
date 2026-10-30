@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Counter {
     n: i32,
@@ -31,17 +31,17 @@ fn main() {
     counter.bump()
     bump_param(counter)
     add_to(counter, 2)
-    stdio::println(counter.value().to_string())
+    Stdio::println(counter.value().to_string())
 
     let mut wrapper = Wrapper { counter: Counter { n: 10 } }
     bump_param(wrapper.counter)
-    stdio::println(wrapper.counter.value().to_string())
+    Stdio::println(wrapper.counter.value().to_string())
 
     let mut base = 5
     let increment = |mut v: i32| {
         v = v + 1
         v
     }
-    stdio::println(increment(base).to_string())
-    stdio::println(base.to_string())
+    Stdio::println(increment(base).to_string())
+    Stdio::println(base.to_string())
 }

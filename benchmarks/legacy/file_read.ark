@@ -2,7 +2,7 @@
 // Writes a file once, then reads it many times to stress the host fs
 // path and string construction.
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let mut path = "arukellt_bench_file_read.txt"
@@ -18,7 +18,7 @@ fn main() {
     match write_result {
         Result::Ok(_) => {},
         Result::Err(e) => {
-            stdio::println("write error: ".concat(e))
+            Stdio::println("write error: ".concat(e))
             return
         },
     }
@@ -32,12 +32,12 @@ fn main() {
                 checksum = checksum + len(contents)
             },
             Result::Err(e) => {
-                stdio::println("read error: ".concat(e))
+                Stdio::println("read error: ".concat(e))
                 return
             },
         }
         iter = iter + 1
     }
 
-    stdio::println((checksum).to_string())
+    Stdio::println((checksum).to_string())
 }

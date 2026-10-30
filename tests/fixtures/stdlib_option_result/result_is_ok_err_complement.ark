@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -6,5 +6,5 @@ fn main() {
     let err_r: Result<i32, i32> = Err(5)
     Test::assert_true(ok_r.is_ok() != ok_r.is_err())
     Test::assert_true(err_r.is_ok() != err_r.is_err())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

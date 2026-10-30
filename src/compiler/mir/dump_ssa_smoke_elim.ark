@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::dominance
 use mir::dump_core
@@ -30,11 +30,11 @@ fn run_phi_elimination_smoke() {
     let phi0 = block_phi_access::MirBlock_phi_at(join_block, 0)
     let phi_fmt = dump_format_phi::mir_format_phi(f, phi0)
     if !phi_fmt.eq("phi %join_val.1 = [bb1 -> %then_val.1, bb2 -> %else_val.1] : i32") {
-        stdio::eprintln("phi elim smoke: unexpected phi line: ".concat(phi_fmt))
+        Stdio::eprintln("phi elim smoke: unexpected phi line: ".concat(phi_fmt))
         Process::exit(1)
     }
     dump_format_preview::mir_stdio_print_phi_elimination_preview(f, join_bb)
     module_functions::MirModule_push_function(m, f)
     dump_core::dump_mir(m)
-    stdio::println("MIR SSA phi elimination preview self-check OK.")
+    Stdio::println("MIR SSA phi elimination preview self-check OK.")
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 fn main() {
@@ -10,7 +10,7 @@ fn main() {
     v = v.iter().rev().collect()
     let mut i: i32 = 0
     while i < len(v) {
-        stdio::println(get_unchecked(v, i))
+        Stdio::println(get_unchecked(v, i))
         i = i + 1
     }
 }

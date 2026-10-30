@@ -1,23 +1,23 @@
 // Typed Stderr writes bytes without appending a newline. The fixture writes
 // two fragments and then counts to stdout: captured stderr is `err bytes!`,
 // so an appended newline would show up between the fragments.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io::{IoError, Stderr, Write}
 
 fn main() {
     let err: Stderr = Stderr::new()
     match err.write("err bytes".to_utf8_bytes()) {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(_) => stdio::println("stderr write failed"),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(_) => Stdio::println("stderr write failed"),
     }
     let empty: Result<i32, IoError> = err.write(Vec::new<i32>())
     match empty {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(_) => stdio::println("stderr empty write failed"),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(_) => Stdio::println("stderr empty write failed"),
     }
     match err.write_string("!") {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(_) => stdio::println("stderr write_string failed"),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(_) => Stdio::println("stderr write_string failed"),
     }
-    stdio::println("stderr done")
+    Stdio::println("stderr done")
 }

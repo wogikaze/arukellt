@@ -25,7 +25,7 @@ class AliasConsolidationTests(unittest.TestCase):
 
     def test_println_aliases_share_core_op(self) -> None:
         self.assertEqual(self.alias_map["println"], "runtime.println")
-        self.assertEqual(self.alias_map["stdio::println"], "runtime.println")
+        self.assertEqual(self.alias_map["__intrinsic_println"], "runtime.println")
 
     def test_process_exit_aliases_share_core_op(self) -> None:
         for alias in ("process::exit", "host::process::exit", "__runtime_abi_process_exit"):

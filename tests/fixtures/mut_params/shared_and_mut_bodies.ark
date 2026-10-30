@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-088 §2/§3: a `mut` parameter or `mut self` may be assigned in the
 // body; a shared parameter or shared receiver stays readable but immutable.
@@ -29,9 +29,9 @@ fn main() {
     let mut counter = Counter { n: 1 }
     counter.bump()
     bump_param(counter)
-    stdio::println(read_param(counter).to_string())
-    stdio::println(counter.value().to_string())
+    Stdio::println(read_param(counter).to_string())
+    Stdio::println(counter.value().to_string())
 
     let shared = Counter { n: 7 }
-    stdio::println(read_param(shared).to_string())
+    Stdio::println(read_param(shared).to_string())
 }

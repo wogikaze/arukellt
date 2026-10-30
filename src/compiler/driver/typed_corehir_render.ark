@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use corehir::fn_info
 use corehir::raw_decls
@@ -51,7 +51,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
     let modules = raw_record::raw_program_modules(program)
     let source_module_index = typed_corehir_main_module_index(program)
     if source_module_index < 0 || source_module_index >= len(modules) {
-        stdio::eprintln("TypedCoreHIR reject: entry main module not found")
+        Stdio::eprintln("TypedCoreHIR reject: entry main module not found")
         return ""
     }
     let source_module = get_unchecked(modules, source_module_index)
@@ -81,7 +81,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         if decl_index >= source_decl_start && decl_index < source_decl_end {
             let rendered = typed_corehir_contract_render::render_function(program, function_index)
             if len(rendered.clone()) == 0 {
-                stdio::eprintln(
+                Stdio::eprintln(
                     typed_corehir_render_diagnostics::diagnose_typed_corehir_rejection(program)
                 )
                 return ""
@@ -95,7 +95,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         function_index = function_index + 1
     }
     if first_function {
-        stdio::eprintln("TypedCoreHIR reject: no functions in entry main module")
+        Stdio::eprintln("TypedCoreHIR reject: no functions in entry main module")
         return ""
     }
     out = out.concat("]}")

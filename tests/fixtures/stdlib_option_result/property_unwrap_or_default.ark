@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
         if i % 2 == 0 { Test::assert_eq_i32(v, i) }
         else { Test::assert_eq_i32(v, -1) }
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

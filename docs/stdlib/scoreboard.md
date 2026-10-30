@@ -8,10 +8,8 @@
 | `prelude` | 18 | 4 | 1 | 0 | 13 | 5/5 (100%) | no |
 | `std::collections::linear` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::host::fs` | 3 | 0 | 0 | 3 | 0 | **0/3 (0%)** | yes |
-| `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
-| `std::io` | 5 | 5 | 0 | 0 | 0 | 4/5 (80%) | no |
 
-**Total**: 41 APIs, 13 stable, 1 provisional, 3 experimental, 24 deprecated, 13/17 (76%) fixture coverage
+**Total**: 32 APIs, 4 stable, 1 provisional, 3 experimental, 24 deprecated, 5/8 (62%) fixture coverage
 
 ## Legend
 

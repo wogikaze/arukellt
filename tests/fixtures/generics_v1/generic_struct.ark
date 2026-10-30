@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Pair<T> {
     first: T,
@@ -7,6 +7,6 @@ struct Pair<T> {
 
 fn main() {
     let p: Pair<i32> = Pair { first: 10, second: 20 }
-    stdio::println((p.first).to_string())
-    stdio::println((p.second).to_string())
+    Stdio::println((p.first).to_string())
+    Stdio::println((p.second).to_string())
 }

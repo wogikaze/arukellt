@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::block_inst_access
 use mir::block_inst_mutation
@@ -24,7 +24,7 @@ fn stdlib_resolve_normal_calls_validated(m: MirModule) -> i32 {
         function_index = function_index + 1
     }
     if failures > 0 {
-        stdio::eprintln(String_from("mir-opt translation validation rejected stdlib call-target block(s): ").concat((failures).to_string()))
+        Stdio::eprintln(String_from("mir-opt translation validation rejected stdlib call-target block(s): ").concat((failures).to_string()))
     }
     total
 }

@@ -4,7 +4,7 @@
 // via Result.  Exercises nested struct allocation, Result error handling,
 // enum match, and iteration over 10,000 config key-value pairs.
 // No file I/O — pure computation with a deterministic dataset.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum ConfigSection {
     Server {
@@ -78,6 +78,6 @@ fn main() {
         }
         i = i + 1
     }
-    stdio::println((sum).to_string())
-    stdio::println((skipped).to_string())
+    Stdio::println((sum).to_string())
+    Stdio::println((skipped).to_string())
 }

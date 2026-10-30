@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct MyStruct {
     marker: i32,
@@ -15,5 +15,5 @@ fn trait_bound_identity<T: Foo>(x: T) -> T {
 }
 
 fn main() {
-    stdio::println(String_from("issue504 syntax ok"))
+    Stdio::println(String_from("issue504 syntax ok"))
 }

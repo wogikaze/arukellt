@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use analysis
 use dap
@@ -12,10 +12,10 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
     match read_result {
         Result::Ok(text) => {
             let snap = analysis::analyze(input_file.clone(), text)
-            stdio::print(analysis::snapshot_summary(snap))
+            Stdio::print(analysis::snapshot_summary(snap))
         },
         Result::Err(e) => {
-            stdio::eprintln("error reading input: ".concat(e))
+            Stdio::eprintln("error reading input: ".concat(e))
             Process::exit(1)
         },
     }
@@ -23,17 +23,17 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
 
 pub fn cmd_dap(opts: CliOptions) {
     if !args_record::cli_has_input_file(opts) {
-        stdio::print(dap::run_dap_session(stdio::read_stdin()))
+        Stdio::print(dap::run_dap_session(Stdio::read_stdin()))
         return
     }
     let input_file = args_record::cli_input_file(opts)
     let read_result = Fs::read_to_string(input_file.clone())
     match read_result {
         Result::Ok(text) => {
-            stdio::print(dap::run_dap_session(text))
+            Stdio::print(dap::run_dap_session(text))
         },
         Result::Err(e) => {
-            stdio::eprintln("error reading input: ".concat(e))
+            Stdio::eprintln("error reading input: ".concat(e))
             Process::exit(1)
         },
     }
@@ -41,17 +41,17 @@ pub fn cmd_dap(opts: CliOptions) {
 
 pub fn cmd_lsp(opts: CliOptions) {
     if !args_record::cli_has_input_file(opts) {
-        stdio::print(lsp::run_session(stdio::read_stdin()))
+        Stdio::print(lsp::run_session(Stdio::read_stdin()))
         return
     }
     let input_file = args_record::cli_input_file(opts)
     let read_result = Fs::read_to_string(input_file.clone())
     match read_result {
         Result::Ok(text) => {
-            stdio::print(lsp::run_session(text))
+            Stdio::print(lsp::run_session(text))
         },
         Result::Err(e) => {
-            stdio::eprintln("error reading input: ".concat(e))
+            Stdio::eprintln("error reading input: ".concat(e))
             Process::exit(1)
         },
     }

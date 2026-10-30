@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
 use std::prelude::{assert_eq}
 fn main() {
@@ -8,7 +8,7 @@ fn main() {
     assert_eq(a, b)
     let r = Rng::new(42).range(0, 10)
     assert_eq(r, 2)
-    stdio::println("random_basic ok")
+    Stdio::println("random_basic ok")
 }
 // seeded_random(1) is a fixed xorshift32 output
 // seeded_random is deterministic for the same seed

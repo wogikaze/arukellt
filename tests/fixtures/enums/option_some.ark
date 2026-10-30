@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let x: Option<i32> = Some(42)
     match x {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("none"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("none"),
     }
 }

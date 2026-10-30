@@ -1,5 +1,5 @@
 // Path receiver surface (ADR-046); linear wasm32 lane.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::path::Path
 use std::prelude::{assert_eq_i64, assert_eq_str}
 
@@ -15,5 +15,5 @@ fn main() {
     let parts: Vec<String> = Path::new("/usr/local/bin").components()
     assert_eq_i64(parts.len(), 3i64)
     assert_eq_str(Path::new("/usr").into_string(), "/usr")
-    stdio::println("path methods ok")
+    Stdio::println("path methods ok")
 }

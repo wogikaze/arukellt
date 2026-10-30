@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn unwrap_or_default<T>(opt: Option<T>, default: T) -> T {
     match opt {
@@ -10,6 +10,6 @@ fn unwrap_or_default<T>(opt: Option<T>, default: T) -> T {
 fn main() {
     let a: Option<i32> = Some(42)
     let b: Option<i32> = None
-    stdio::println((unwrap_or_default(a, 0)).to_string())
-    stdio::println((unwrap_or_default(b, 0)).to_string())
+    Stdio::println((unwrap_or_default(a, 0)).to_string())
+    Stdio::println((unwrap_or_default(b, 0)).to_string())
 }

@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
-    let s: String = stdio::read_stdin()
+    let s: String = Stdio::read_stdin()
     Test::assert_eq_string(s, "")
 }

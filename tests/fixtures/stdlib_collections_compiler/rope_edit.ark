@@ -1,28 +1,28 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     // Start with a base string
     let r = "Hello World".clone()
-    stdio::println(r.clone())
+    Stdio::println(r.clone())
     // Insert comma at position 5 (after "Hello")
     let r2 = r.insert_text(5, ",")
-    stdio::println(r2.clone())
+    Stdio::println(r2.clone())
     // Insert exclamation at end
     let r3 = r2.insert_text(12, "!")
-    stdio::println(r3.clone())
+    Stdio::println(r3.clone())
     // Delete " World" (indices 6..12)
     let r4 = r3.delete_range(6, 12)
-    stdio::println(r4.clone())
+    Stdio::println(r4.clone())
     // Slice the remaining text
     let s = r4.slice(0, 6)
-    stdio::println(s)
+    Stdio::println(s)
     // Empty rope
     let empty = ""
-    stdio::println((empty.len()).to_string())
+    Stdio::println((empty.len()).to_string())
     // Insert into empty rope
     let e2 = empty.insert_text(0, "hello")
-    stdio::println(e2.clone())
+    Stdio::println(e2.clone())
     // Delete from beginning
     let e3 = e2.delete_range(0, 2)
-    stdio::println(e3.clone())
+    Stdio::println(e3.clone())
 }

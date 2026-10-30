@@ -720,54 +720,18 @@ methods = ["open", "create", "close"]
 trait_impls = ["Read", "Write", "Seek"]
 
 # === std::host::stdio ===
+# The four stable stdio free functions were retired in the 2026-10-30
+# wave/io-stdio change (#693, ADR-094). The surface is the `Stdio` namespace
+# only; qualified old calls fail with E0100 hints from resolver::removed_names.
 
-[[functions]]
-name = "read_stdin"
+[[types]]
+name = "Stdio"
 module = "std::host::stdio"
-stability = "stable"
-params = []
-returns = "String"
-intrinsic = "__intrinsic_stdin_read_to_string"
-doc_category = "host_stdio"
-doc = "Read all available bytes from standard input into a string."
-availability = { t1 = true, t3 = true }
-examples = [{code = "let input = stdio::read_stdin()", description = "Read stdin as a string"}]
-
-[[functions]]
-name = "print"
-module = "std::host::stdio"
-stability = "stable"
-params = ["String"]
-returns = "()"
-intrinsic = "__intrinsic_print"
-doc_category = "host_stdio"
-doc = "Write a string to standard output without appending a newline."
-availability = { t1 = true, t3 = true }
-examples = [{code = "print(\"hello \")\nprint(\"world\")", description = "Print without newlines"}]
-
-[[functions]]
-name = "println"
-module = "std::host::stdio"
-stability = "stable"
-params = ["String"]
-returns = "()"
-intrinsic = "__intrinsic_println"
-doc_category = "host_stdio"
-doc = "Write a string to standard output followed by a newline."
-availability = { t1 = true, t3 = true }
-examples = [{code = "println(\"Hello, world!\")", description = "Basic hello-world output", output = "Hello, world!"}]
-
-[[functions]]
-name = "eprintln"
-module = "std::host::stdio"
-stability = "stable"
-params = ["String"]
-returns = "()"
-intrinsic = "__intrinsic_eprintln"
-doc_category = "host_stdio"
-doc = "Write a string to standard error followed by a newline."
-availability = { t1 = true, t3 = true }
-examples = [{code = "eprintln(\"Error: something went wrong\")", description = "Write a diagnostic message to stderr"}]
+stability = "provisional"
+prelude = false
+kind = "struct"
+doc = "Namespace for the host standard-stream operations: Stdio::read_stdin() reads all of stdin as a String; Stdio::print / println / eprintln write string-shaped output, and println / eprintln append a newline. Byte-faithful sinks are std::io::Stdout / std::io::Stderr. The four stable free functions were deleted in the ADR-094 wave; qualified old calls fail with an E0100 hint that names `Stdio`."
+methods = ["read_stdin", "print", "println", "eprintln"]
 
 # === std::host::clock ===
 
@@ -1279,46 +1243,6 @@ generic_params = ["W"]
 doc = "Buffered byte sink over a Write handle; flushes at capacity and on flush/into_inner."
 methods = ["new", "write_string", "into_inner"]
 trait_impls = ["Write"]
-
-[[functions]]
-name = "stdin"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "stdout"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "stderr"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = []
-returns = "Vec<i32>"
-
-[[functions]]
-name = "read_stdin_line"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = []
-returns = "Result<String, IoError>"
-
-[[functions]]
-name = "print_bytes"
-module = "std::io"
-doc_category = "io"
-stability = "stable"
-params = ["Vec<i32>"]
-returns = "()"
 
 [[modules]]
 name = "std::collections::deque"

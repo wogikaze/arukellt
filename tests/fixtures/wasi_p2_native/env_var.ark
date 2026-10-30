@@ -1,13 +1,13 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::host::env::Env
 
 fn main() {
     match Env::var("ARUKELLT_P2_ENV_PROOF") {
         Option::Some(value) => {
-            stdio::println(value)
+            Stdio::println(value)
         }
         Option::None => {
-            stdio::println("missing")
+            Stdio::println("missing")
         }
     }
 }

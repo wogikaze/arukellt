@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut i: i32 = 0
     while i < 3 {
-        stdio::println((i).to_string())
+        Stdio::println((i).to_string())
         i = i + 1
     }
 }

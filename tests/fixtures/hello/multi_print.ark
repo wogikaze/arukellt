@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("first")
-    stdio::println("second")
-    stdio::println("third")
+    Stdio::println("first")
+    Stdio::println("second")
+    Stdio::println("third")
 }

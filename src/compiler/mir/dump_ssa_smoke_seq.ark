@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use mir::inst_accessors_operands
 use mir::block_inst_access
 use mir::dominance
@@ -25,5 +25,5 @@ fn run_ssa_sequential_def_rename_smoke() {
     dump_expect::mir_expect_local_ref_eq(f, inst_accessors_operands::MirInst_arg0(ret), "%t.2", "sequential return use")
     module_functions::MirModule_push_function(m, f)
     dump_core::dump_mir(m)
-    stdio::println("MIR SSA sequential-def rename self-check OK.")
+    Stdio::println("MIR SSA sequential-def rename self-check OK.")
 }

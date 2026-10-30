@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let mut sum: i32 = 0
@@ -7,5 +7,5 @@ fn main() {
         match opt { Option::Some(v) => sum = sum + v, None => {} }
     }
     Test::assert_eq_i32(sum, 55)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

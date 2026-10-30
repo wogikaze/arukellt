@@ -1,6 +1,6 @@
 // The receiver-method lowering must write the grown array back into the
 // owning record, not only into the load temp (ADR-091 §4 / #917).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{String_from, String_new}
 use std::test::Test
 
@@ -18,5 +18,5 @@ fn main() {
     empty.text.push_char('A')
     Test::assert_eq_i32(empty.text.len_bytes(), 1)
     Test::assert_eq_string(empty.text, "A")
-    stdio::println("push_char field ok")
+    Stdio::println("push_char field ok")
 }

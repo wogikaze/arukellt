@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let x = 5
@@ -7,11 +7,11 @@ fn main() {
         n if n > 0 => "positive",
         _ => "other",
     }
-    stdio::println(result)
+    Stdio::println(result)
     let y: Option<i32> = Some(42)
     match y {
-        Option::Some(v) if v > 10 => stdio::println("large some"),
-        Option::Some(v) => stdio::println("small some"),
-        None => stdio::println("none"),
+        Option::Some(v) if v > 10 => Stdio::println("large some"),
+        Option::Some(v) => Stdio::println("small some"),
+        None => Stdio::println("none"),
     }
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(n: i32) -> i32 {
     n * 2
@@ -12,5 +12,5 @@ fn call_opt(opt: Option<fn(i32) -> i32>, x: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println((call_opt(Some(double), 5)).to_string())
+    Stdio::println((call_opt(Some(double), 5)).to_string())
 }

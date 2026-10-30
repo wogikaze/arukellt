@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let unused_val = 42
-    stdio::println((0).to_string())
+    Stdio::println((0).to_string())
 }

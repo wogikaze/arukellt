@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let max: i32 = 2147483647
     let wrapped: i32 = max + 1
-    stdio::println(wrapped.to_string())
+    Stdio::println(wrapped.to_string())
 }

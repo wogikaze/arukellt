@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
-    stdio::println((42).to_string())
+    Stdio::println((42).to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-088 §6: a borrowed non-`Box` parameter may escape by sharing. `share`
 // returns its parameter as a shared reference, so the caller's binding and the
@@ -20,5 +20,5 @@ fn main() {
     let mut p = Point { x: 1 }
     let mut alias = share(p)
     bump(alias)
-    stdio::println(p.x.to_string())
+    Stdio::println(p.x.to_string())
 }

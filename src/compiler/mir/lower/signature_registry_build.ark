@@ -1,4 +1,5 @@
 use std::text
+use std::host::stdio::Stdio
 use corehir::kinds
 use corehir::mir_signature_method
 use corehir::signature_registry
@@ -78,7 +79,7 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     let reg_function = reg_count - host_count - builtin_count
     if fn_count != reg_function {
         let counts = (fn_count).to_string().concat(String_from(" reg=").concat((reg_function).to_string()))
-        stdio::eprintln(String_from("sig-reg: fn_index/registry count mismatch fn=").concat(counts))
+        Stdio::eprintln(String_from("sig-reg: fn_index/registry count mismatch fn=").concat(counts))
     }
 }
 
@@ -183,7 +184,7 @@ fn sig_reg_index_top_level_fn(
     }
 }
 
-// Imported stdlib modules are addressed as `path::join`/`stdio::println` in
+// Imported stdlib modules are addressed as `path::join`/`Stdio::println` in
 // source, while the flattened declaration keeps the `std::`/`std::host::`
 // prefixes. Keep both names on the same registry entry so qualified calls use
 // the declaration's signature and FunctionId.

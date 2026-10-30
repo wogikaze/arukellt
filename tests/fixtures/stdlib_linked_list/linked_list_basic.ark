@@ -1,11 +1,11 @@
 // LinkedList<T> both-end operations, free-list reuse, clear, and owning iteration.
 use std::collections::linked_list::LinkedList
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(value: Option<i32>) {
     match value {
-        Option::Some(item) => stdio::println(item.to_string()),
-        Option::None => stdio::println(String_from("none")),
+        Option::Some(item) => Stdio::println(item.to_string()),
+        Option::None => Stdio::println(String_from("none")),
     }
 }
 
@@ -26,9 +26,9 @@ fn main() {
     show(list.back())
     let values: Vec<i32> = list.iter().collect()
     assert(len(values) == 3)
-    stdio::println((get_unchecked(values, 0)).to_string())
-    stdio::println((get_unchecked(values, 1)).to_string())
-    stdio::println((get_unchecked(values, 2)).to_string())
+    Stdio::println((get_unchecked(values, 0)).to_string())
+    Stdio::println((get_unchecked(values, 1)).to_string())
+    Stdio::println((get_unchecked(values, 2)).to_string())
 
     show(list.pop_front())
     show(list.pop_back())
@@ -56,5 +56,5 @@ fn main() {
     for value in owned {
         total = total + value
     }
-    stdio::println((total).to_string())
+    Stdio::println((total).to_string())
 }

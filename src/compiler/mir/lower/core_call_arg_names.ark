@@ -1,10 +1,13 @@
 use mir::lower::ctx_fn_return_type
 fn mir_core_is_printlike_callee(name: String) -> bool {
-    name.clone().eq("stdio::println") ||
+    name.clone().eq("Stdio::println") ||
+    name.clone().eq("Stdio::print") ||
+    name.clone().eq("Stdio::eprintln") ||
+    name.clone().eq("stdio::Stdio::println") ||
+    name.clone().eq("stdio::Stdio::print") ||
+    name.clone().eq("stdio::Stdio::eprintln") ||
     name.clone().eq("println") ||
-    name.clone().eq("stdio::print") ||
     name.clone().eq("print") ||
-    name.clone().eq("stdio::eprintln") ||
     name.clone().eq("eprintln") ||
     name.clone().eq("__intrinsic_println") ||
     name.clone().eq("__intrinsic_eprintln") ||

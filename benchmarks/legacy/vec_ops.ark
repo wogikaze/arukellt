@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
@@ -7,22 +7,22 @@ fn main() {
         push(v, i)
         i = i + 1
     }
-    stdio::println((len(v)).to_string())
+    Stdio::println((len(v)).to_string())
     let mut sum: i32 = 0
     let mut j: i32 = 0
     while j < len(v) {
         sum = sum + get_unchecked(v, j)
         j = j + 1
     }
-    stdio::println((sum).to_string())
+    Stdio::println((sum).to_string())
     if v.iter().contains(500) {
-        stdio::println("found 500")
+        Stdio::println("found 500")
     } else {
-        stdio::println("not found 500")
+        Stdio::println("not found 500")
     }
     if v.iter().contains(9999) {
-        stdio::println("found 9999")
+        Stdio::println("found 9999")
     } else {
-        stdio::println("not found 9999")
+        Stdio::println("not found 9999")
     }
 }

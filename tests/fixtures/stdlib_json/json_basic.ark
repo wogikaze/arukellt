@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 
 fn main() {
-    stdio::println(json::JsonValue::stringify_i32(42))
-    stdio::println(json::JsonValue::stringify_bool(true))
-    stdio::println(json::JsonValue::stringify_string("hello"))
-    stdio::println(json::JsonValue::null_text())
-    stdio::println((json::JsonValue::parse_i32("123")).to_string())
-    stdio::println((json::JsonValue::parse_bool("true")).to_string())
+    Stdio::println(json::JsonValue::stringify_i32(42))
+    Stdio::println(json::JsonValue::stringify_bool(true))
+    Stdio::println(json::JsonValue::stringify_string("hello"))
+    Stdio::println(json::JsonValue::null_text())
+    Stdio::println((json::JsonValue::parse_i32("123")).to_string())
+    Stdio::println((json::JsonValue::parse_bool("true")).to_string())
 }

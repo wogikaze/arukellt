@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let a = 1000u16
     let b = 500u16
-    stdio::println(a + b)
-    stdio::println(a - b)
-    stdio::println(a * 2u16)
+    Stdio::println(a + b)
+    Stdio::println(a - b)
+    Stdio::println(a * 2u16)
 }

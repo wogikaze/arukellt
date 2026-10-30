@@ -1,5 +1,5 @@
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn join_state(state: String, x: String) -> Option<String> {
     if len(state) > 2 {
@@ -15,19 +15,19 @@ fn main() {
     push(v, String_from("cc"))
     let mut sc = v.iter().scan(String_from(""), join_state)
     match sc.next() {
-        Some(x) => stdio::println(x),
-        None => stdio::println("none1"),
+        Some(x) => Stdio::println(x),
+        None => Stdio::println("none1"),
     }
     match sc.next() {
-        Some(x) => stdio::println(x),
-        None => stdio::println("none2"),
+        Some(x) => Stdio::println(x),
+        None => Stdio::println("none2"),
     }
     match sc.next() {
-        Some(x) => stdio::println(x),
-        None => stdio::println("none3"),
+        Some(x) => Stdio::println(x),
+        None => Stdio::println("none3"),
     }
     match sc.next() {
-        Some(x) => stdio::println(x),
-        None => stdio::println("none4"),
+        Some(x) => Stdio::println(x),
+        None => Stdio::println("none4"),
     }
 }

@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
-    stdio::println("ab".repeat(3))
-    stdio::println("x".repeat(5))
+    Stdio::println("ab".repeat(3))
+    Stdio::println("x".repeat(5))
     let empty = "hi".repeat(0)
-    stdio::println((empty.len_bytes()).to_string())
-    stdio::println((empty.is_empty()).to_string())
-    stdio::println(("hello".is_empty()).to_string())
+    Stdio::println((empty.len_bytes()).to_string())
+    Stdio::println((empty.is_empty()).to_string())
+    Stdio::println(("hello".is_empty()).to_string())
 }

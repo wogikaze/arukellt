@@ -1,45 +1,45 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
     match json::JsonValue::parse("null") {
-        Result::Ok(v) => stdio::println(json::JsonValue::pretty_text(v, 2)),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(json::JsonValue::pretty_text(v, 2)),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("true") {
-        Result::Ok(v) => stdio::println(json::JsonValue::pretty_text(v, 2)),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(json::JsonValue::pretty_text(v, 2)),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("\"hello\"") {
-        Result::Ok(v) => stdio::println(json::JsonValue::pretty_text(v, 2)),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(json::JsonValue::pretty_text(v, 2)),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("[1,2,3]") {
-        Result::Ok(v) => stdio::println(json::JsonValue::pretty_text(v, 2)),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(json::JsonValue::pretty_text(v, 2)),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("{\"k\":1}") {
-        Result::Ok(v) => stdio::println(json::JsonValue::pretty_text(v, 2)),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(json::JsonValue::pretty_text(v, 2)),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("{\"a\":[1,2],\"b\":{\"c\":3}}") {
-        Result::Ok(v) => stdio::println(json::JsonValue::pretty_text(v, 2)),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(json::JsonValue::pretty_text(v, 2)),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("42") {
         Result::Ok(v) => {
-            stdio::println((v.is_number()).to_string())
-            stdio::println((v.is_null()).to_string())
+            Stdio::println((v.is_number()).to_string())
+            Stdio::println((v.is_null()).to_string())
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("[1,2,3]") {
-        Result::Ok(v) => stdio::println((v.is_array()).to_string()),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println((v.is_array()).to_string()),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     match json::JsonValue::parse("{\"k\":1}") {
-        Result::Ok(v) => stdio::println((v.is_object()).to_string()),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println((v.is_object()).to_string()),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
 }
 // is_* type predicates

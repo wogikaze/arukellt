@@ -131,7 +131,7 @@ suite("VSIX Live Editor Release Gate (#554)", function () {
     const file = path.join(dir, "type_error.ark");
     fs.writeFileSync(
       file,
-      "use std::host::stdio\nfn main() {\n    stdio::println(undefined_var)\n}\n",
+      "use std::host::stdio::Stdio\nfn main() {\n    Stdio::println(undefined_var)\n}\n",
       "utf8"
     );
 

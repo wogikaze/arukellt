@@ -1,4 +1,5 @@
 use std::text
+use std::host::stdio::Stdio
 struct MirVerifyReport {
     w001: i32,
     w002: i32,
@@ -103,5 +104,5 @@ fn mir_verify_report_print_summary(report: MirVerifyReport) {
     let tail = " W007=".concat(
         (report.w007).to_string().concat(" W008=".concat((report.w008).to_string().concat(" W009=".concat((report.w009).to_string().concat(" W010=".concat((report.w010).to_string()))))))
     )
-    stdio::eprintln(head.concat(middle.concat(tail)))
+    Stdio::eprintln(head.concat(middle.concat(tail)))
 }

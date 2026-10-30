@@ -1,5 +1,5 @@
 use std::io
 
 fn main() {
-    let _: Vec<i32> = io::buf_reader_new(io::stdin(), 8)
+    let _: Vec<i32> = io::buf_reader_new(io::Reader::new(), 8)
 }

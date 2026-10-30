@@ -1,14 +1,14 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
     match json::JsonValue::parse("tru") {
-        Result::Ok(v) => stdio::println(v.to_text()),
+        Result::Ok(v) => Stdio::println(v.to_text()),
         Result::Err(err) => match err {
-            json::JsonParseError::EmptyInput => stdio::println("empty-input"),
-            json::JsonParseError::InvalidLiteral(kind) => stdio::println("invalid-literal:".concat(kind)),
-            json::JsonParseError::TrailingCharacters => stdio::println("trailing-characters"),
-            json::JsonParseError::UnexpectedCharacter(ch) => stdio::println("unexpected-char:".concat((ch).to_string())),
+            json::JsonParseError::EmptyInput => Stdio::println("empty-input"),
+            json::JsonParseError::InvalidLiteral(kind) => Stdio::println("invalid-literal:".concat(kind)),
+            json::JsonParseError::TrailingCharacters => Stdio::println("trailing-characters"),
+            json::JsonParseError::UnexpectedCharacter(ch) => Stdio::println("unexpected-char:".concat((ch).to_string())),
         },
     }
 }

@@ -1,6 +1,6 @@
 // Issue #706: WIT AST parser — parse world/interface/record/enum/flags.
 // Accessors are `WitNode` methods (#917).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::ast
 use std::wit::types
 fn main() {
@@ -101,5 +101,5 @@ fn main() {
     assert(metadata.contains("header|test:host|0.1.0|math"))
     assert(metadata.contains("func|add|s32~s32|s32"))
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

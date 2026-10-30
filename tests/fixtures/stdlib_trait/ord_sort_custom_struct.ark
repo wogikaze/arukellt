@@ -5,12 +5,12 @@ use std::test::Test
 // `Reverse_<arg>::cmp` stub (#965).
 use std::collections::vec
 use std::core::cmp
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(values: Vec<cmp::Reverse<i32>>) {
     let mut index: i32 = 0
     while index < values.len() {
-        stdio::println(values.get_unchecked(index).inner.to_string())
+        Stdio::println(values.get_unchecked(index).inner.to_string())
         index = index + 1
     }
 }
@@ -24,7 +24,7 @@ fn main() {
     values.push(cmp::Reverse { inner: 4 })
     values.sort()
     show(values)
-    stdio::println(values.is_sorted().to_string())
-    stdio::println(values.min().inner.to_string())
-    stdio::println(values.max().inner.to_string())
+    Stdio::println(values.is_sorted().to_string())
+    Stdio::println(values.min().inner.to_string())
+    Stdio::println(values.max().inner.to_string())
 }

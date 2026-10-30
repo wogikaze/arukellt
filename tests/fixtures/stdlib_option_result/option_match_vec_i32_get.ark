@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // Regression: Option<Vec<i32>> Some(xs) must type xs as vec:i32 so
 // get_unchecked resolves (local ann Option_Vec previously left bare Vec →
@@ -13,5 +13,5 @@ fn main() {
         Some(xs) => get_unchecked(xs, 0) + get_unchecked(xs, 1),
         None => 0,
     }
-    stdio::println(sum.to_string())
+    Stdio::println(sum.to_string())
 }

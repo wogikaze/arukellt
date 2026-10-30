@@ -1,12 +1,12 @@
 use std::bytes
 use std::bytes::Bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let b = "hi".to_utf8_bytes()
-    stdio::println((b.len()).to_string())
+    Stdio::println((b.len()).to_string())
     let s = String::from_utf8_lossy(b)
-    stdio::println(s)
+    Stdio::println(s)
     let mut a = Vec::new<i32>()
     a.push_byte(1)
     a.push_byte(2)
@@ -14,27 +14,27 @@ fn main() {
     c.push_byte(3)
     c.push_byte(4)
     let merged = a.concat_bytes(c)
-    stdio::println((merged.len()).to_string())
-    stdio::println((merged.get_unchecked(0)).to_string())
-    stdio::println((merged.get_unchecked(2)).to_string())
-    stdio::println((merged.get_unchecked(3)).to_string())
+    Stdio::println((merged.len()).to_string())
+    Stdio::println((merged.get_unchecked(0)).to_string())
+    Stdio::println((merged.get_unchecked(2)).to_string())
+    Stdio::println((merged.get_unchecked(3)).to_string())
     let sub = merged.slice_bytes(1, 3)
-    stdio::println((sub.len()).to_string())
-    stdio::println((sub.get_unchecked(0)).to_string())
-    stdio::println((sub.get_unchecked(1)).to_string())
+    Stdio::println((sub.len()).to_string())
+    Stdio::println((sub.get_unchecked(0)).to_string())
+    Stdio::println((sub.get_unchecked(1)).to_string())
     let empty = Vec::new<i32>()
     let from_empty = "".to_utf8_bytes()
-    stdio::println((from_empty.len()).to_string())
+    Stdio::println((from_empty.len()).to_string())
     let s2 = String::from_utf8_lossy(empty)
-    stdio::println((len(s2)).to_string())
+    Stdio::println((len(s2)).to_string())
     let mut hb = Vec::new<i32>()
     hb.push_byte(0)
     hb.push_byte(255)
     hb.push_byte(127)
     let hex = hb.to_hex()
-    stdio::println(hex)
+    Stdio::println(hex)
     let decoded = Bytes::from_hex(hex)
-    stdio::println((hb.equals_bytes(decoded)).to_string())
+    Stdio::println((hb.equals_bytes(decoded)).to_string())
 }
 // bytes_from_string / string_from_bytes roundtrip
 // bytes_concat

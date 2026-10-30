@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn option_to_result(o: Option<i32>) -> Result<i32, String> {
@@ -13,5 +13,5 @@ fn main() {
     match ok_r { Result::Ok(v) => Test::assert_eq_i32(v, 42), Result::Err(e) => Std::panic(e) }
     let err_r = option_to_result(None)
     Test::assert_true(err_r.is_err())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

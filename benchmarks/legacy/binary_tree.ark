@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn count_nodes(depth: i32) -> i32 {
     if depth == 0 {
@@ -12,5 +12,5 @@ fn count_nodes(depth: i32) -> i32 {
 fn main() {
     let depth: i32 = 20
     let count: i32 = count_nodes(depth)
-    stdio::println((count).to_string())
+    Stdio::println((count).to_string())
 }

@@ -3,7 +3,7 @@
 // inside a monomorphized impl binds the Some(v) payload at the concrete
 // type, so the match, the field store, and the Option<T> construction
 // select the same payload layout on wasm32 and wasm32-gc.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct AccBox<T> {
     state: T,
@@ -32,7 +32,7 @@ fn sum2(a: i32, b: i32) -> Option<i32> {
 fn main() {
     let mut acc = AccBox { state: 10, f: sum2 }
     match acc.step(5) {
-        Some(v) => stdio::println(v.to_string()),
-        None => stdio::println("none"),
+        Some(v) => Stdio::println(v.to_string()),
+        None => Stdio::println("none"),
     }
 }

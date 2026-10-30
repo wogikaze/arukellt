@@ -1,15 +1,15 @@
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let w = Fs::write_string("test_output.txt", "hello from arukellt")
     match w {
-        Result::Ok(_) => stdio::println(String_from("write ok")),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(_) => Stdio::println(String_from("write ok")),
+        Result::Err(e) => Stdio::println(e),
     }
     let r = Fs::read_to_string("test_output.txt")
     match r {
-        Result::Ok(content) => stdio::println(content),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(content) => Stdio::println(content),
+        Result::Err(e) => Stdio::println(e),
     }
 }

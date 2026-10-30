@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn first<A, B, C>(a: A, b: B, c: C) -> A {
     a
@@ -6,5 +6,5 @@ fn first<A, B, C>(a: A, b: B, c: C) -> A {
 
 fn main() {
     let value: i32 = first(7, true, String_from("ignored"))
-    stdio::println((value).to_string())
+    Stdio::println((value).to_string())
 }

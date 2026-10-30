@@ -2,7 +2,7 @@
 // Exercises std::host::fs write/read host calls, string construction, Result
 // matching, and deterministic checksum accumulation.
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn line_for(i: i32) -> String {
     "record:".concat((i).to_string()).concat(":payload:abcdefghijklmnopqrstuvwxyz0123456789").concat("\n")
@@ -24,7 +24,7 @@ fn main() {
         match write_result {
             Result::Ok(_) => {},
             Result::Err(e) => {
-                stdio::println("write error: ".concat(e))
+                Stdio::println("write error: ".concat(e))
                 return
             },
         }
@@ -35,13 +35,13 @@ fn main() {
                 checksum = checksum + len(contents)
             },
             Result::Err(e) => {
-                stdio::println("read error: ".concat(e))
+                Stdio::println("read error: ".concat(e))
                 return
             },
         }
         iter = iter + 1
     }
 
-    stdio::println((len(data)).to_string())
-    stdio::println((checksum).to_string())
+    Stdio::println((len(data)).to_string())
+    Stdio::println((checksum).to_string())
 }

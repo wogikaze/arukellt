@@ -4,7 +4,7 @@
 // flat type argument.  Selfhost previously folded `count<i32>` and
 // `count<Vec<i32>>` into the same mangled name because `mono_type_key`
 // ignored nested type args.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn count<T>(v: Vec<T>) -> i32 {
     len(v)
@@ -16,7 +16,7 @@ fn main() {
     push(flat, 10)
     push(flat, 20)
     push(flat, 30)
-    stdio::println((count(flat)).to_string())
+    Stdio::println((count(flat)).to_string())
 
     // count<Vec<i32>>: nested type arg — exercises recursive
     // instantiate_type and recursive mono_type_key so the resulting
@@ -24,5 +24,5 @@ fn main() {
     let mut outer: Vec<Vec<i32>> = Vec::new<i32>()
     let inner: Vec<i32> = Vec::new<i32>()
     push(outer, inner)
-    stdio::println((count(outer)).to_string())
+    Stdio::println((count(outer)).to_string())
 }

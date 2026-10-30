@@ -10,5 +10,5 @@ use std::host::{stdio}
 
 fn main() {
     let equal = "a,b".eq("a,b")
-    stdio::println(equal.to_string())
+    stdio::Stdio::println(equal.to_string())
 }

@@ -1207,7 +1207,7 @@ def _extract_api_calls(code: str) -> set[str]:
 
     Returns identifiers immediately preceding ``(``, excluding language
     keywords and locally-defined function names.  Module-qualified calls
-    (``stdio::println``) are captured as a single token.
+    (``Stdio::println``) are captured as a single token.
     """
     # Match: identifier (possibly module-qualified) followed by (
     calls = set(re.findall(

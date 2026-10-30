@@ -1,8 +1,8 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("before abort")
+    Stdio::println("before abort")
     Process::abort()
-    stdio::println("after abort")
+    Stdio::println("after abort")
 }

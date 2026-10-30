@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println(0.to_string())
-    stdio::println((-1).to_string())
-    stdio::println(2147483647.to_string())
-    stdio::println((-2147483648).to_string())
+    Stdio::println(0.to_string())
+    Stdio::println((-1).to_string())
+    Stdio::println(2147483647.to_string())
+    Stdio::println((-2147483648).to_string())
 }

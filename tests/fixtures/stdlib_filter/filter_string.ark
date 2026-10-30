@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 fn is_long(s: String) -> bool {
@@ -15,7 +15,7 @@ fn main() {
     let result: Vec<String> = v.iter().filter(is_long).collect()
     let mut i: i32 = 0
     while i < len(result) {
-        stdio::println(get_unchecked(result, i))
+        Stdio::println(get_unchecked(result, i))
         i = i + 1
     }
 }

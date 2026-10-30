@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 /// User-defined Display trait demonstrating trait-based string conversion.
@@ -27,9 +27,9 @@ fn main() {
     let p = Point { x: 3, y: 4 }
 
     // Direct trait method call
-    stdio::println(p.to_string())
+    Stdio::println(p.to_string())
 
     // Generic function with Display bound
     let p2 = show(p)
-    stdio::println(p2.to_string())
+    Stdio::println(p2.to_string())
 }

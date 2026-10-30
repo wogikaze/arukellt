@@ -1,5 +1,5 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{BufReader, BufWriter, Reader, Writer}
 
@@ -26,26 +26,26 @@ fn main() {
     let l1: Result<Option<String>, io::IoError> = br.read_line()
     match l1 {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     let l2: Result<Option<String>, io::IoError> = br.read_line()
     match l2 {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     let l3: Result<Option<String>, io::IoError> = br.read_line()
     match l3 {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     // The tagged stdout handle cannot be a generic Write sink yet, so the
     // adapter writes into a memory Writer and the fixture prints the flushed
@@ -54,8 +54,8 @@ fn main() {
     let _: Result<i32, io::IoError> = bw.write_string("buffered")
     let _: Result<(), io::IoError> = bw.flush()
     match bw.into_inner() {
-        Result::Ok(inner) => stdio::println(String::from_utf8_lossy(inner.into_bytes())),
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Ok(inner) => Stdio::println(String::from_utf8_lossy(inner.into_bytes())),
+        Result::Err(e) => Stdio::println(e.message()),
     }
-    stdio::println("done")
+    Stdio::println("done")
 }

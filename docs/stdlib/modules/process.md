@@ -27,15 +27,15 @@ This page covers two closely related host modules: `std::host::process` for proc
 ```ark
 use std::host::env::Env
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 
 if Env::has_flag("--help") {
-    stdio::println("Usage: myapp [options]")
+    Stdio::println("Usage: myapp [options]")
     Process::exit(0)
 }
 
 let name = Env::var_or_default("USER", "unknown")
-stdio::println("Running as: ".concat(name))
+Stdio::println("Running as: ".concat(name))
 ```
 
 ---

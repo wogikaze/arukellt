@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // #906 negative fixture: `let x = Option::None` leaves the scrutinee
 // without a payload type segment, so `Option::Some(v)` cannot select a
@@ -9,7 +9,7 @@ use std::host::stdio
 fn main() {
     let x = Option::None
     match x {
-        Option::Some(v) => stdio::println(v.to_string()),
-        _ => stdio::println(String_from("none")),
+        Option::Some(v) => Stdio::println(v.to_string()),
+        _ => Stdio::println(String_from("none")),
     }
 }

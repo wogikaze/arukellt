@@ -10,12 +10,12 @@ Read a file, process its lines, and write output using `std::host::fs`, `std::ho
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let result = Fs::read_to_string("input.txt")
 match result {
-    Ok(contents) => stdio::println(contents),
-    Err(e) => stdio::eprintln(concat("error: ", e)),
+    Ok(contents) => Stdio::println(contents),
+    Err(e) => Stdio::eprintln(concat("error: ", e)),
 }
 ```
 
@@ -24,7 +24,7 @@ match result {
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 let result = Fs::read_to_string("data.csv")
@@ -36,12 +36,12 @@ match result {
         while i < n {
             let line = get(lines, i)
             if line.is_empty() == false {
-                stdio::println(concat("line ", concat(to_string(i), concat(": ", line))))
+                Stdio::println(concat("line ", concat(to_string(i), concat(": ", line))))
             }
             i = i + 1
         }
     },
-    Err(e) => stdio::eprintln(concat("read failed: ", e)),
+    Err(e) => Stdio::eprintln(concat("read failed: ", e)),
 }
 ```
 
@@ -50,7 +50,7 @@ match result {
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 // Read input, keep only non-empty lines, write to output
@@ -70,11 +70,11 @@ match result {
         }
         let write_result = Fs::write_string("output.txt", output)
         match write_result {
-            Ok(_) => stdio::println("done"),
-            Err(e) => stdio::eprintln(concat("write failed: ", e)),
+            Ok(_) => Stdio::println("done"),
+            Err(e) => Stdio::eprintln(concat("write failed: ", e)),
         }
     },
-    Err(e) => stdio::eprintln(concat("read failed: ", e)),
+    Err(e) => Stdio::eprintln(concat("read failed: ", e)),
 }
 ```
 
@@ -83,7 +83,7 @@ match result {
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn to_upper_line(line: String) -> String {
@@ -106,6 +106,6 @@ match result {
         }
         Fs::write_string("upper_names.txt", output)
     },
-    Err(e) => stdio::eprintln(concat("error: ", e)),
+    Err(e) => Stdio::eprintln(concat("error: ", e)),
 }
 ```

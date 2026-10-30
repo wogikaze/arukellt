@@ -1,5 +1,5 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 // Nested ? calls: multi-step error propagation across several
 // fallible functions, all sharing the same error type String.
 // Each ? desugars to
@@ -52,5 +52,5 @@ fn main() {
         Result::Err(e) => assert(e.eq(String_from("must be positive"))),
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

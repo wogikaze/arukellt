@@ -6,9 +6,9 @@
 //
 // Expected output: true
 use std::collections::string
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let equal = "a,b,c".eq("a,b,c")
-    stdio::println(equal.to_string())
+    Stdio::println(equal.to_string())
 }

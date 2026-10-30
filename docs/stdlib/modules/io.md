@@ -13,8 +13,8 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 
 | API | Purpose |
 |-----|---------|
-| `std::host::stdio` — `println(s)` | Write a line to stdout. |
-| `std::host::stdio` — `eprintln(s)` | Write a line to stderr. |
+| `Stdio::println(s)` from `std::host::stdio` | Write a line to stdout. |
+| `Stdio::eprintln(s)` from `std::host::stdio` | Write a line to stderr. |
 | `std::host::fs` — `Fs::read_to_string(path)` | Read a whole file as a UTF-8 string. |
 | `std::host::fs` — `Fs::write_string(path, content)` | Write or replace a UTF-8 file. |
 | `std::host::env` — `Env::args()` | Retrieve the CLI argument vector. |
@@ -23,21 +23,21 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 | `std::host::clock` — `Clock::monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
 | `std::host::random` — `Random::random_i32()` | Host-entropy random integer. |
 
-**Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
 
 **Typical usage:**
 
 ```ark
 use std::host::env::Env
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let name = Env::var_or_default("USER", "world")
-stdio::println("Hello, ".concat(name).concat("!"))
+Stdio::println("Hello, ".concat(name).concat("!"))
 
 match Fs::read_to_string("hostname") {
-    Result::Ok(text) => stdio::println(text),
-    Result::Err(e) => stdio::eprintln("error: ".concat(e)),
+    Result::Ok(text) => Stdio::println(text),
+    Result::Err(e) => Stdio::eprintln("error: ".concat(e)),
 }
 ```
 

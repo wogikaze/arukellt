@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn extract(o: Option<i32>) -> i32 {
     match o {
@@ -9,5 +9,5 @@ fn extract(o: Option<i32>) -> i32 {
 fn main() {
     Test::assert_eq_i32(extract(Some(99)), 99)
     Test::assert_eq_i32(extract(None), 0)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

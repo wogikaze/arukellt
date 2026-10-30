@@ -5,13 +5,12 @@
 //   - `use mymath` (local module import, no `std::` prefix)
 //   - Calling a pub function from the imported module: mymath::add, mymath::mul
 //   - Verifying the module file is loaded and its symbols are in scope
-use std::host::stdio
-
+use std::host::stdio::Stdio
 use mymath
 
 fn main() {
     let sum = mymath::add(10, 32)
     let product = mymath::mul(6, 7)
-    stdio::println((sum).to_string())
-    stdio::println((product).to_string())
+    Stdio::println((sum).to_string())
+    Stdio::println((product).to_string())
 }

@@ -1,24 +1,24 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
     let mut w: io::Writer = io::Writer::new()
     let r1: Result<i32, io::IoError> = w.write_string("hello")
     match r1 {
-        Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Ok(n) => Stdio::println((n).to_string()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     let r2: Result<i32, io::IoError> = w.write_string(" world")
     match r2 {
-        Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Ok(n) => Stdio::println((n).to_string()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     let b: Vec<i32> = w.into_bytes()
-    stdio::println(String::from_utf8_lossy(b))
+    Stdio::println(String::from_utf8_lossy(b))
     let rf: Result<(), io::IoError> = w.flush()
     match rf {
-        Result::Ok(_) => stdio::println("flush ok"),
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Ok(_) => Stdio::println("flush ok"),
+        Result::Err(e) => Stdio::println(e.message()),
     }
 }

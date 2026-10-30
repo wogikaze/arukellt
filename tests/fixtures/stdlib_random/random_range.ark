@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
 use std::prelude::{assert_eq}
 fn main() {
@@ -6,5 +6,5 @@ fn main() {
     assert_eq(Rng::new(99).range(10, 10), 10)
     assert_eq(Rng::new(99).range(12, 8), 12)
     assert_eq(Rng::new(99).range(-4, 3), 0)
-    stdio::println("random_range ok")
+    Stdio::println("random_range ok")
 }

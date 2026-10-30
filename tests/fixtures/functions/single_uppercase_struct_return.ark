@@ -1,7 +1,7 @@
 // A declared one-uppercase nominal struct keeps its concrete layout in
 // return positions, method returns, parameters, and tuple destructuring
 // (ADR-089).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct S {
     x: i32,
@@ -41,5 +41,5 @@ fn main() {
     let (e, n) = make_pair()
     let f = make_free()
     let g = make_free()
-    stdio::println((b.x + d.x + e.x + n + f.plus(g)).to_string())
+    Stdio::println((b.x + d.x + e.x + n + f.plus(g)).to_string())
 }

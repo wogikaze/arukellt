@@ -2,7 +2,7 @@
 //
 // Verifies that `fn dup<T: Clone>(x: T) -> T { x.clone() }` works through
 // generic trait dispatch when the trait method returns Self.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::clone
 
 // Generic function with Clone bound — calls `x.clone()` via trait dispatch.
@@ -16,10 +16,10 @@ fn main() {
     // Clone dispatch on i32 (copy semantics, Self = i32).
     let n: i32 = 42
     let m: i32 = dup(n)
-    stdio::println((m).to_string())
+    Stdio::println((m).to_string())
 
     // Clone dispatch on String (deep clone, Self = String).
     let s: String = String_from("hello")
     let t: String = dup(s)
-    stdio::println(t)
+    Stdio::println(t)
 }

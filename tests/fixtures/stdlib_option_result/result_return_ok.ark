@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn make_ok(v: i32) -> Result<i32, i32> {
@@ -8,5 +8,5 @@ fn main() {
     let r = make_ok(42)
     Test::assert_true(r.is_ok())
     match r { Result::Ok(v) => Test::assert_eq_i32(v, 42), Result::Err(e) => Std::panic("err") }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

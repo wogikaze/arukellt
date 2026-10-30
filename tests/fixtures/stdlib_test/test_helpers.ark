@@ -1,31 +1,31 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
     Test::assert_true(1 == 1)
     Test::assert_false(1 == 2)
-    stdio::println("assert_true/false OK")
+    Stdio::println("assert_true/false OK")
     Test::assert_eq_i32(42, 42)
-    stdio::println("assert_eq_i32 OK")
+    Stdio::println("assert_eq_i32 OK")
     Test::assert_eq_string("hello", "hello")
-    stdio::println("assert_eq_string OK")
+    Stdio::println("assert_eq_string OK")
     Test::assert_ne_i32(1, 2)
-    stdio::println("assert_ne_i32 OK")
+    Stdio::println("assert_ne_i32 OK")
     Test::assert_contains("hello world", "world")
     Test::assert_contains("arukellt", "aru")
-    stdio::println("assert_contains OK")
+    Stdio::println("assert_contains OK")
     Test::assert_eq_snapshot("line1\nline2", "line1\nline2")
-    stdio::println("assert_eq_snapshot OK")
+    Stdio::println("assert_eq_snapshot OK")
     Test::assert_msg(true, "this should pass")
-    stdio::println("assert_msg OK")
+    Stdio::println("assert_msg OK")
     let opt: Option<i32> = Some(10)
     let val = Test::expect_some_i32(opt)
     Test::assert_eq_i32(val, 10)
-    stdio::println("expect_some OK")
+    Stdio::println("expect_some OK")
     let none_opt: Option<i32> = None
     Test::expect_none_i32(none_opt)
-    stdio::println("expect_none OK")
-    stdio::println("all test helpers passed")
+    Stdio::println("expect_none OK")
+    Stdio::println("all test helpers passed")
 }
 // assert_true / assert_false
 // assert_eq_i32

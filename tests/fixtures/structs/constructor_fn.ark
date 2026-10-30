@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: f64,
@@ -11,6 +11,6 @@ fn point_new(x: f64, y: f64) -> Point {
 
 fn main() {
     let p: Point = point_new(3.0, 4.0)
-    stdio::println((p.x).to_string())
-    stdio::println((p.y).to_string())
+    Stdio::println((p.x).to_string())
+    Stdio::println((p.y).to_string())
 }

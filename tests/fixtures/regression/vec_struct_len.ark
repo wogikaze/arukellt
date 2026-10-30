@@ -1,7 +1,7 @@
 // Regression fixture: Vec<Struct> len() returns correct element count (issue 487)
 // The bug in mir_lower caused len() to return incorrect results for Vec<Struct>.
 // This fixture verifies len() is correct at each stage: empty, after push, and with multiple elements.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Token {
     kind: i32,
@@ -10,11 +10,11 @@ struct Token {
 
 fn main() {
     let mut tokens: Vec<Token> = Vec::new<Token>()
-    stdio::println((len(tokens)).to_string())
+    Stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 0, value: String_from("eof") })
-    stdio::println((len(tokens)).to_string())
+    Stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 1, value: String_from("ident") })
-    stdio::println((len(tokens)).to_string())
+    Stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 2, value: String_from("number") })
-    stdio::println((len(tokens)).to_string())
+    Stdio::println((len(tokens)).to_string())
 }

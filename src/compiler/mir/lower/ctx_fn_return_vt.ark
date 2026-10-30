@@ -235,11 +235,14 @@ fn is_void_returning_builtin(bare_name: String) -> bool {
     bare_name.clone().eq("hash_string::hashmap_str_str_set") {
         return true
     }
-    bare_name.clone().eq("stdio::println") ||
+    bare_name.clone().eq("Stdio::println") ||
+    bare_name.clone().eq("Stdio::print") ||
+    bare_name.clone().eq("Stdio::eprintln") ||
+    bare_name.clone().eq("stdio::Stdio::println") ||
+    bare_name.clone().eq("stdio::Stdio::print") ||
+    bare_name.clone().eq("stdio::Stdio::eprintln") ||
     bare_name.clone().eq("println") ||
-    bare_name.clone().eq("stdio::print") ||
     bare_name.clone().eq("print") ||
-    bare_name.clone().eq("stdio::eprintln") ||
     bare_name.clone().eq("eprintln") ||
     bare_name.clone().eq("stdio::eprint") ||
     bare_name.clone().eq("eprint") ||

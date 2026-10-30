@@ -1,15 +1,15 @@
 use std::collections::compiler::Arena
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut a = Arena::new()
-    stdio::println((a.len()).to_string())
+    Stdio::println((a.len()).to_string())
     let id0 = a.alloc(42)
-    stdio::println((a.len()).to_string())
+    Stdio::println((a.len()).to_string())
     let id1 = a.alloc(99)
     let id2 = a.alloc(77)
-    stdio::println((a.len()).to_string())
-    stdio::println((a.get(id0)).to_string())
-    stdio::println((a.get(id1)).to_string())
-    stdio::println((a.get(id2)).to_string())
+    Stdio::println((a.len()).to_string())
+    Stdio::println((a.get(id0)).to_string())
+    Stdio::println((a.get(id1)).to_string())
+    Stdio::println((a.get(id2)).to_string())
 }

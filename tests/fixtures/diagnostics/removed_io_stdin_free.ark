@@ -1,0 +1,7 @@
+// E0100: io::stdin was a placeholder that never lowered; ADR-094 retires it
+// without a byte-handle replacement.
+use std::io
+
+fn main() {
+    let _ = io::stdin()
+}

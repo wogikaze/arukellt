@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Direction {
     North,
@@ -10,9 +10,9 @@ enum Direction {
 fn main() {
     let d: Direction = Direction::South
     match d {
-        Direction::North => stdio::println("north"),
-        Direction::South => stdio::println("south"),
-        Direction::East => stdio::println("east"),
-        Direction::West => stdio::println("west"),
+        Direction::North => Stdio::println("north"),
+        Direction::South => Stdio::println("south"),
+        Direction::East => Stdio::println("east"),
+        Direction::West => Stdio::println("west"),
     }
 }

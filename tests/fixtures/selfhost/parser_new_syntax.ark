@@ -2,7 +2,7 @@
 // 1. ArrayRepeat [expr; count]
 // 2. Struct base ..base
 // 3. Match guards pattern if cond =>
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -29,21 +29,21 @@ fn render<T: Show>(item: T) -> String {
 
 fn main() {
     let zeros = [0; 5]
-    stdio::println(zeros[0])
-    stdio::println(zeros[4])
+    Stdio::println(zeros[0])
+    Stdio::println(zeros[4])
     let p1 = Point { x: 10, y: 20 }
     let p2 = Point { x: 30, ..p1 }
-    stdio::println(p2.x)
-    stdio::println(p2.y)
+    Stdio::println(p2.x)
+    Stdio::println(p2.y)
     let val = 7
     let msg = match val {
         n if n > 10 => "big",
         n if n > 0 => "positive",
         _ => "other",
     }
-    stdio::println(msg)
+    Stdio::println(msg)
     let label = Label { text: String_from("trait-ok") }
-    stdio::println(render(label))
+    Stdio::println(render(label))
 }
 // 1. ArrayRepeat
 // 2. Struct base expression

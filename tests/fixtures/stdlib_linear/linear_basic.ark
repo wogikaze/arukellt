@@ -1,6 +1,6 @@
 use std::collections::linear
 use std::collections::pq::PriorityQueue
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn pop_i32(mut queue: PriorityQueue<i32>) -> i32 {
     match queue.pop() {
@@ -17,19 +17,19 @@ fn main() {
     linear::deque_push_back(d, 10)
     linear::deque_push_back(d, 20)
     linear::deque_push_front(d, 5)
-    stdio::println((linear::deque_len(d)).to_string())
+    Stdio::println((linear::deque_len(d)).to_string())
     let f: i32 = linear::deque_pop_front(d)
-    stdio::println((f).to_string())
+    Stdio::println((f).to_string())
     let b: i32 = linear::deque_pop_back(d)
-    stdio::println((b).to_string())
-    stdio::println((linear::deque_len(d)).to_string())
+    Stdio::println((b).to_string())
+    Stdio::println((linear::deque_len(d)).to_string())
     let mut queue: PriorityQueue<i32> = PriorityQueue::new<i32>()
     queue.push(30)
     queue.push(10)
     queue.push(20)
-    stdio::println(queue.len().to_string())
-    stdio::println(pop_i32(queue).to_string())
-    stdio::println(pop_i32(queue).to_string())
+    Stdio::println(queue.len().to_string())
+    Stdio::println(pop_i32(queue).to_string())
+    Stdio::println(pop_i32(queue).to_string())
 }
 // Deque
 // PriorityQueue

@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     for i in 0..5 {
-        stdio::println((i).to_string())
+        Stdio::println((i).to_string())
     }
 }

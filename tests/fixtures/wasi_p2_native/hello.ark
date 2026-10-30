@@ -1,5 +1,5 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("hello p2")
+    Stdio::println("hello p2")
 }

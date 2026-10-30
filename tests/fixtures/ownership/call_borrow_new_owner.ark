@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-088 §1: a call borrows a live argument, so repeated calls are legal.
 // After `let owner = holder` moves the binding, only the new owner is used.
@@ -17,7 +17,7 @@ fn main() {
     let size = holder.name.len()
     let owner = holder
     let second = name_len(owner)
-    stdio::println(first.to_string())
-    stdio::println(size.to_string())
-    stdio::println(second.to_string())
+    Stdio::println(first.to_string())
+    Stdio::println(size.to_string())
+    Stdio::println(second.to_string())
 }

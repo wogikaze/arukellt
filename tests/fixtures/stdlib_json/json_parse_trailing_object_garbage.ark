@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
     match json::JsonValue::parse("{\"x\":1} garbage") {
-        Result::Ok(v) => stdio::println(v.to_text()),
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Ok(v) => Stdio::println(v.to_text()),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
 }

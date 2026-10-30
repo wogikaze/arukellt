@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use sub::user
 
 fn main() {
-    stdio::println(user::describe().to_string())
+    Stdio::println(user::describe().to_string())
 }

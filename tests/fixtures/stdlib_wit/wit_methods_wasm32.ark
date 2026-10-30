@@ -1,5 +1,5 @@
 // WIT method surface on the linear wasm32 target (ADR-044/ADR-046).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::names
 use std::wit::printer
 use std::wit::scan
@@ -16,16 +16,16 @@ fn main() {
     let mut w = world::World::new(String_from("demo"))
     w.add_import(math)
     w.add_export(world::Interface::new(String_from("api")))
-    stdio::println(w.name())
-    stdio::println((w.exports_len()).to_string())
+    Stdio::println(w.name())
+    Stdio::println((w.exports_len()).to_string())
 
     let list_ty = types::WitType::list(types::WitType::String)
-    stdio::println((list_ty.id()).to_string())
-    stdio::println(list_ty.wit_text())
+    Stdio::println((list_ty.id()).to_string())
+    Stdio::println(list_ty.wit_text())
     let from_4 = types::WitType::from_id(4)
-    stdio::println(from_4.name())
-    stdio::println(types::WitType::name_from_ark(String_from("i64")))
-    stdio::println(scan::WitText::trim(String_from("  scan  ")))
-    stdio::println(names::WitName::to_kebab(String_from("MyFunc")))
-    stdio::println(w.to_wit())
+    Stdio::println(from_4.name())
+    Stdio::println(types::WitType::name_from_ark(String_from("i64")))
+    Stdio::println(scan::WitText::trim(String_from("  scan  ")))
+    Stdio::println(names::WitName::to_kebab(String_from("MyFunc")))
+    Stdio::println(w.to_wit())
 }

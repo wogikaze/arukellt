@@ -1,7 +1,7 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let b: Vec<i32> = bytes::Bytes::from_hex("68656c6c6f")
-    stdio::println((b.len()).to_string())
+    Stdio::println((b.len()).to_string())
 }

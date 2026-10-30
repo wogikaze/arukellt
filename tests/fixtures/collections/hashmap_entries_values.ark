@@ -2,7 +2,7 @@
 // Bucket order is implementation-defined, so all assertions reduce to
 // order-independent aggregates that must match on wasm32-gc and wasm32.
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn add1(x: i32) -> i32 { x + 1 }
 fn add2(x: i32) -> i32 { x + 2 }
@@ -19,7 +19,7 @@ fn main() {
         acc = acc + ii_vals.get_unchecked(i)
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
     let ii_ents = m_ii.entries()
     acc = 0
     i = 0
@@ -28,7 +28,7 @@ fn main() {
         acc = acc + k * 100 + v
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
 
     // String -> i32
     let mut m_si = HashMap::new<String, i32>()
@@ -41,7 +41,7 @@ fn main() {
         acc = acc + si_vals.get_unchecked(i)
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
     let si_ents = m_si.entries()
     acc = 0
     i = 0
@@ -50,7 +50,7 @@ fn main() {
         acc = acc + k.len() * 10 + v
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
 
     // i32 -> String
     let mut m_is = HashMap::new<i32, String>()
@@ -63,7 +63,7 @@ fn main() {
         acc = acc + is_vals.get_unchecked(i).len()
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
     let is_ents = m_is.entries()
     acc = 0
     i = 0
@@ -72,7 +72,7 @@ fn main() {
         acc = acc + k + s.len()
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
 
     // String -> String
     let mut m_ss = HashMap::new<String, String>()
@@ -85,7 +85,7 @@ fn main() {
         acc = acc + ss_vals.get_unchecked(i).len()
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
     let ss_ents = m_ss.entries()
     acc = 0
     i = 0
@@ -94,7 +94,7 @@ fn main() {
         acc = acc + k.len() + s.len()
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
 
     // i32 -> fn
     let mut m_if = HashMap::new<i32, fn(i32) -> i32>()
@@ -108,7 +108,7 @@ fn main() {
         acc = acc + f(10)
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
     let if_ents = m_if.entries()
     acc = 0
     i = 0
@@ -117,7 +117,7 @@ fn main() {
         acc = acc + f(k)
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
 
     // String -> fn
     let mut m_sf = HashMap::new<String, fn(i32) -> i32>()
@@ -131,7 +131,7 @@ fn main() {
         acc = acc + f(10)
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
     let sf_ents = m_sf.entries()
     acc = 0
     i = 0
@@ -140,7 +140,7 @@ fn main() {
         acc = acc + f(k.len())
         i = i + 1
     }
-    stdio::println(acc.to_string())
+    Stdio::println(acc.to_string())
 
     // Snapshots are eager: entries()/values() materialize the current
     // pairs, so later inserts do not appear in already returned vecs.
@@ -149,7 +149,7 @@ fn main() {
     let snap_vals = m_snap.values()
     let snap_ents = m_snap.entries()
     m_snap.insert(2, 2)
-    stdio::println(snap_vals.len().to_string())
-    stdio::println(snap_ents.len().to_string())
-    stdio::println(m_snap.len().to_string())
+    Stdio::println(snap_vals.len().to_string())
+    Stdio::println(snap_ents.len().to_string())
+    Stdio::println(m_snap.len().to_string())
 }

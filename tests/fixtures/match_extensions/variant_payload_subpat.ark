@@ -7,7 +7,7 @@
 // scrutinee gap is residual, tracked separately).
 // Verified identical on wasm32-gc component and wasm32 linear core.
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Shape {
     Circle(i32),
@@ -124,15 +124,15 @@ fn guard_after_lit() -> String {
 }
 
 fn main() {
-    stdio::println(lit())
-    stdio::println(lit_let())
-    stdio::println(str_payload())
-    stdio::println(nested())
-    stdio::println(unit_child())
-    stdio::println(tuple_child())
-    stdio::println(tuple_or_elem())
-    stdio::println(bind_tuple().to_string())
-    stdio::println(bind_nested().to_string())
-    stdio::println(or_alt_payload())
-    stdio::println(guard_after_lit())
+    Stdio::println(lit())
+    Stdio::println(lit_let())
+    Stdio::println(str_payload())
+    Stdio::println(nested())
+    Stdio::println(unit_child())
+    Stdio::println(tuple_child())
+    Stdio::println(tuple_or_elem())
+    Stdio::println(bind_tuple().to_string())
+    Stdio::println(bind_nested().to_string())
+    Stdio::println(or_alt_payload())
+    Stdio::println(guard_after_lit())
 }

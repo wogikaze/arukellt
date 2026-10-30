@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
-        Result::Ok(v) => stdio::println((v).to_string()),
+        Result::Ok(v) => Stdio::println((v).to_string()),
         Result::Err(e) => Test::assert_eq_string(e, String_from("bad input")),
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

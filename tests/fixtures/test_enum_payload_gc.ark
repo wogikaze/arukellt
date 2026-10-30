@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Opt {
     Some(String),
@@ -8,7 +8,7 @@ enum Opt {
 fn main() {
     let x = Opt::Some(String_from("hello"))
     match x {
-        Opt::Some(s) => stdio::println(s),
-        Opt::None => stdio::println(String_from("none")),
+        Opt::Some(s) => Stdio::println(s),
+        Opt::None => Stdio::println(String_from("none")),
     }
 }

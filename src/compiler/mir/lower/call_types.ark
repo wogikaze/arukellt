@@ -115,7 +115,8 @@ fn mir_callee_returns_string(ctx: LowerCtx, callee_name: String) -> bool {
     callee_name.clone().eq("trim") ||
     callee_name.clone().eq("replace") ||
     callee_name.clone().eq("string::repeat") ||
-    callee_name.clone().eq("stdio::read_stdin") ||
+    callee_name.clone().eq("Stdio::read_stdin") ||
+    callee_name.clone().eq("stdio::Stdio::read_stdin") ||
     callee_name.clone().eq("__intrinsic_stdin_read_to_string") ||
     callee_name.clone().eq("__intrinsic_i32_to_string") ||
     callee_name.clone().eq("__intrinsic_i64_to_string") ||

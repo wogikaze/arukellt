@@ -542,6 +542,7 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/wit/scan.ark",
     "std/host/fs.ark",
     "std/host/clock.ark",
+    "std/host/stdio.ark",
     "std/io/mod.ark",
     "std/core/error.ark",
     "std/core/convert.ark",
@@ -4731,6 +4732,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_driver_wit_delegate(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     _patch_bootstrap_main_host_to_prelude(compiler_out)
+    _rewrite_bootstrap_stdio_calls(compiler_out)
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
@@ -4807,14 +4809,17 @@ def _prepare_flattened_selfhost_source_locked(
         shutil.copyfile(source_path, wit_dst / name)
     # Ship the checked-in host namespace sources the compiler itself imports.
     # The pin resolves the free ``std::host::*`` functions as builtins, but the
-    # checked-in compiler calls ``Fs::*`` / ``Clock::*`` / ``Process::*``;
-    # shipping the namespace source makes those spellings compile to the real
-    # impls instead of the unresolved-call fallback. ``std/host/fs.ark`` imports
-    # ``std::io``, so its module source ships as well.
+    # checked-in compiler calls ``Fs::*`` / ``Clock::*`` / ``Process::*`` /
+    # ``Stdio::*``; shipping the namespace source makes those spellings compile
+    # to the real impls instead of the unresolved-call fallback.
+    # ``std/host/fs.ark`` imports ``std::io``, so its module source ships as
+    # well. ``std/host/stdio.ark`` must ship now that ``Stdio`` is a source
+    # type rather than a pinned builtin (ADR-094).
     host_sources = (
         ("std/host/fs.ark", "host/fs.ark"),
         ("std/host/clock.ark", "host/clock.ark"),
         ("std/host/process.ark", "host/process.ark"),
+        ("std/host/stdio.ark", "host/stdio.ark"),
         ("std/io/mod.ark", "io/mod.ark"),
     )
     for source_rel, overlay_rel in host_sources:
@@ -4882,19 +4887,65 @@ def _prepare_flattened_selfhost_source_locked(
     return overlay_root
 
 
+_BOOTSTRAP_STDIO_INTRINSIC = {
+    "println": "__intrinsic_println",
+    "print": "__intrinsic_print",
+    "eprintln": "__intrinsic_eprintln",
+    "read_stdin": "__intrinsic_stdin_read_to_string",
+}
+
+# Calls at statement indentation only: the checked-in compiler also carries
+# `Stdio::...` inside generated-source string literals (init templates, test
+# desugar, lexer self-check) which must stay source text, not become intrinsic
+# calls in the compiler being built.
+_BOOTSTRAP_STDIO_CALL_RE = re.compile(
+    r"^(?P<indent>[ \t]+)(?:stdio::)?Stdio::(?P<method>println|print|eprintln|read_stdin)\(",
+    re.MULTILINE,
+)
+
+
+def _rewrite_bootstrap_stdio_calls(compiler_out: Path) -> None:
+    """Lower the checked-in ``Stdio::*`` calls to pin-known intrinsics.
+
+    The official/gc pins only know the retired free stdio surface and the
+    ``__intrinsic_*`` bridges, so a direct ``Stdio::println`` call uses the
+    pin's ordinary-call lowering while stage-2/3 treat the same spelling as a
+    printlike call that stages its argument. Rewriting the overlay source to
+    the intrinsic spelling keeps the pin and the stage-2/3 builds byte
+    identical without changing the checked-in public ``Stdio`` surface
+    (ADR-094). Delete this bridge when the pin knows ``Stdio::*`` natively.
+
+    The regex is anchored to indented statement starts so generated-source
+    string literals keep their ``Stdio::`` spelling.
+    """
+    for path in compiler_out.rglob("*.ark"):
+        if path.name == _OVERLAY_MAIN_ENTRY_REL:
+            continue
+        source = path.read_text(encoding="utf-8")
+        rewritten = _BOOTSTRAP_STDIO_CALL_RE.sub(
+            lambda match: match.group("indent")
+            + _BOOTSTRAP_STDIO_INTRINSIC[match.group("method")]
+            + "(",
+            source,
+        )
+        if rewritten != source:
+            path.write_text(rewritten, encoding="utf-8")
+
+
 def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     """Rewrite main.ark host calls to prelude free functions.
 
-    The flat overlay does not ship ``std/host/stdio.ark``, so a direct
-    entry-module ``stdio::eprintln`` fails resolution. The pin also cannot
-    lower ``Env::args`` (see ``_patch_bootstrap_host_env_paths``). The entry
-    module therefore calls the prelude host-intrinsic stubs ``args`` /
-    ``println`` and imports them explicitly. ``std/host/process.ark`` now
-    ships in the overlay, so ``Process::exit`` resolves; the legacy
-    ``process::exit`` rewrite below remains for older spellings.
+    The entry module only needs a line for the ``cli_has_error`` path. The pin
+    cannot lower ``Env::args`` (see ``_patch_bootstrap_host_env_paths``), and
+    the entry module therefore calls the prelude host-intrinsic stubs ``args``
+    / ``println`` and imports them explicitly. ``std/host/process.ark`` and
+    ``std/host/stdio.ark`` now ship in the overlay, so ``Process::exit`` and
+    ``Stdio::*`` resolve in other compiler files; the legacy ``process::exit``
+    / ``Stdio::eprintln`` rewrites below keep the entry module on the known
+    stubs.
 
     Delete condition: a pin/overlay pair that resolves the checked-in
-    ``Env::args()`` / ``stdio::eprintln`` entry module and validates the
+    ``Env::args()`` / ``Stdio::eprintln`` entry module and validates the
     generated compiler. Until then this keeps ``main`` on the known
     host-intrinsic stubs instead of the unresolved-call fallback.
     """
@@ -4934,6 +4985,14 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
         flags=re.MULTILINE,
         count=1,
     )
+    text = _sub_optional(
+        text,
+        r"^use std::host::stdio::Stdio\n",
+        "",
+        "drop use std::host::stdio::Stdio from overlay main",
+        flags=re.MULTILINE,
+        count=1,
+    )
     text = _replace_optional(text, "env::args()", "args()", "main env::args -> args")
     text = _replace_optional(text, "Env::args()", "args()", "main Env::args -> prelude args")
     text = _replace_optional(text, "process::exit(", "exit(", "main process::exit -> exit")
@@ -4942,6 +5001,12 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
     )
     text = _replace_optional(
         text, "stdio::println(", "println(", "main stdio::println -> println"
+    )
+    text = _replace_optional(
+        text, "Stdio::eprintln(", "println(", "main Stdio::eprintln -> println"
+    )
+    text = _replace_optional(
+        text, "Stdio::println(", "println(", "main Stdio::println -> println"
     )
     # The stage-3 self-compile gates prelude auto-import to the ADR-072
     # stable set, so the bare names introduced above need explicit imports.

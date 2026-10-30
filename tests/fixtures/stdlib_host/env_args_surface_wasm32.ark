@@ -4,17 +4,17 @@
 // Env::arg_count, and Env::has_flag with an empty argument vector and an
 // unset probe environment variable.
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let values = Env::args()
-    stdio::println((len(values)).to_string())
-    stdio::println((Env::arg_count()).to_string())
+    Stdio::println((len(values)).to_string())
+    Stdio::println((Env::arg_count()).to_string())
     match Env::var("ARUKELLT_ENV_ARGS_PROBE_917") {
-        Option::Some(value) => stdio::println(value),
-        Option::None => stdio::println("env-var-unset"),
+        Option::Some(value) => Stdio::println(value),
+        Option::None => Stdio::println("env-var-unset"),
     }
     assert(Env::var_or_default("ARUKELLT_ENV_ARGS_PROBE_917", "fallback") == "fallback")
     assert(!Env::has_flag("--arukellt-probe-flag"))
-    stdio::println("env-args-surface-ok")
+    Stdio::println("env-args-surface-ok")
 }

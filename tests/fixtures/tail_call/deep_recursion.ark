@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 /// Tail-recursive countdown — depth 100,000.
 /// Proves that TCO prevents stack overflow on deep recursion.
@@ -22,6 +22,6 @@ fn sum_tail(n: i32, acc: i32) -> i32 {
 fn main() {
     let a = countdown(100000)
     let b = sum_tail(10000, 0)
-    stdio::println((a).to_string())
-    stdio::println((b).to_string())
+    Stdio::println((a).to_string())
+    Stdio::println((b).to_string())
 }

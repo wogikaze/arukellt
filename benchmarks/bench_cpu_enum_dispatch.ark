@@ -3,7 +3,7 @@
 // accumulator is stable (no RNG) and exercises all variants roughly
 // evenly.  The match has 5 arms including a payload-less unit variant
 // to cover dispatch without destructuring.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Shape {
     Circle {
@@ -58,5 +58,5 @@ fn main() {
         sum = sum + result
         i = i + 1
     }
-    stdio::println((sum).to_string())
+    Stdio::println((sum).to_string())
 }

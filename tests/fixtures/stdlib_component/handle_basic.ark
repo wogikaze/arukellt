@@ -1,28 +1,28 @@
 use std::component::handle
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut t = handle::HandleTableI32::new()
-    stdio::println((t.len()).to_string())
+    Stdio::println((t.len()).to_string())
     let h0 = t.insert(42)
     let h1 = t.insert(99)
-    stdio::println((t.len()).to_string())
+    Stdio::println((t.len()).to_string())
     match t.get(h0) {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("missing"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("missing"),
     }
     match t.get(h1) {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("missing"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("missing"),
     }
     match t.remove(h0) {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("missing"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("missing"),
     }
-    stdio::println((t.len()).to_string())
+    Stdio::println((t.len()).to_string())
     match t.get(h0) {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("dropped"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("dropped"),
     }
 }
 // Tests Component Model handle table (SlotMap-backed)

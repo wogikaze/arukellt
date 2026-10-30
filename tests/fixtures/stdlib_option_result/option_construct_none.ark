@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
     let a: Option<i32> = None
     Test::assert_true(a.is_none())
     Test::assert_false(a.is_some())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

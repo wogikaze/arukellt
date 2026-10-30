@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 use std::text
 
@@ -9,5 +9,5 @@ fn main() {
     let r = try_parse(String_from("bad"))
     Test::assert_true(r.is_err())
     match r { Result::Ok(v) => Std::panic("ok"), Result::Err(e) => Test::assert_eq_string(e, String_from("parse error: bad")) }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

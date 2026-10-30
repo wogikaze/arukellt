@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 use std::core::container
 
@@ -7,5 +7,5 @@ fn main() {
     let a: Option<i32> = None
     let m = a.map(double)
     match m { Option::Some(v) => Std::panic("some"), None => {} }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

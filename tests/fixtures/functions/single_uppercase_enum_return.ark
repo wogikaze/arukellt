@@ -1,6 +1,6 @@
 // A declared one-uppercase enum keeps the open-enum type in return
 // positions, for a free function and an impl method alike (ADR-089).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum E {
     Value(i32),
@@ -31,5 +31,5 @@ fn take(e: E) -> i32 {
 fn main() {
     let a = make_free()
     let b = Holder { seed: 2 }.make_method()
-    stdio::println((take(a) + take(b)).to_string())
+    Stdio::println((take(a) + take(b)).to_string())
 }

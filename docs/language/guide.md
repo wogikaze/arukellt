@@ -30,9 +30,9 @@ complete stability picture.
 >    Each skip has a structured `reason`, `owner` (issue #), `kind`, and `expires` date.
 >
 > The majority of examples in this guide are currently skip-doc-check (kind=`non-runnable`)
-> because they use the `println`/`print` prelude alias which the bootstrap compiler does
-> not resolve in standalone mode. The underlying functions (`stdio::println`/`stdio::print`)
-> are stable and fixture-backed. See [current-state.md](../current-state.md) for the
+> because they are fragments the standalone doc-example harness cannot compile as a whole.
+> Their output helpers (`Stdio::println` / `Stdio::print` from `std::host::stdio`) are
+> stable and fixture-backed. See [current-state.md](../current-state.md) for the
 > implementation status of each feature.
 
 ---
@@ -63,18 +63,20 @@ Canonical runnable fixture: `tests/fixtures/hello/hello.ark`.
 
 <!-- fixture: hello/hello.ark -->
 ```text
+use std::host::stdio::Stdio
+
 fn main() {
-    println(String_from("Hello, world!"))
+    Stdio::println("Hello, world!")
 }
 ```
 
 With an exit code:
 
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() -> i32 {
-    stdio::println("Hello, world!")
+    Stdio::println("Hello, world!")
     0
 }
 ```
@@ -209,14 +211,14 @@ fn identity<T>(x: T) -> T {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 if x > 0 {
-    stdio::println(String_from("positive"))
+    Stdio::println(String_from("positive"))
 } else if x == 0 {
-    stdio::println(String_from("zero"))
+    Stdio::println(String_from("zero"))
 } else {
-    stdio::println(String_from("negative"))
+    Stdio::println(String_from("negative"))
 }
 ```
 
@@ -261,10 +263,10 @@ Range iteration (half-open `[start, end)`):
 <!-- fixture: for_loops/for_range.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 for i in 0..10 {
-    stdio::println((i).to_string())
+    Stdio::println((i).to_string())
 }
 ```
 
@@ -272,11 +274,11 @@ Iterate over a `Vec`:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 for item in v {
-    stdio::println((item).to_string())
+    Stdio::println((item).to_string())
 }
 ```
 
@@ -303,10 +305,10 @@ Create and access:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let p = Point { x: 3, y: 4 }
-stdio::println((p.x).to_string())
+Stdio::println((p.x).to_string())
 ```
 
 Struct update syntax (copy all fields from `base`, override selected ones):
@@ -377,12 +379,12 @@ let err: Result<i32, String> = Err(String_from("bad"))
 <!-- fixture: control/match_enum.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 match direction {
-    Direction::North => stdio::println(String_from("north")),
-    Direction::South => stdio::println(String_from("south")),
-    _ => stdio::println(String_from("east or west")),
+    Direction::North => Stdio::println(String_from("north")),
+    Direction::South => Stdio::println(String_from("south")),
+    _ => Stdio::println(String_from("east or west")),
 }
 ```
 
@@ -390,12 +392,12 @@ Match arms can include optional guards:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 match x {
-    n if n > 0 => stdio::println(String_from("positive")),
-    0          => stdio::println(String_from("zero")),
-    _          => stdio::println(String_from("negative")),
+    n if n > 0 => Stdio::println(String_from("positive")),
+    0          => Stdio::println(String_from("zero")),
+    _          => Stdio::println(String_from("negative")),
 }
 ```
 
@@ -442,11 +444,11 @@ Consume the result:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 match parse_positive(String_from("42")) {
-    Ok(n)  => stdio::println((n).to_string()),
-    Err(e) => stdio::println(e),
+    Ok(n)  => Stdio::println((n).to_string()),
+    Err(e) => Stdio::println(e),
 }
 ```
 
@@ -454,11 +456,11 @@ match parse_positive(String_from("42")) {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 match v.get(0) {
-    Some(val) => stdio::println((val).to_string()),
-    None      => stdio::println(String_from("empty")),
+    Some(val) => Stdio::println((val).to_string()),
+    None      => Stdio::println(String_from("empty")),
 }
 ```
 
@@ -626,11 +628,11 @@ Each `.ark` file is a module. `use` is the canonical import form
 ```ark
 use math
 use utils as u
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let result = math::add(1, 2)
 let val = u::compute(10)
-stdio::println(String_from("from stdio"))
+Stdio::println(String_from("from stdio"))
 ```
 
 The legacy `import` spelling is a migration form that resolves the same way
@@ -695,12 +697,12 @@ The free-function form `to_string(x)` is a compatibility spelling pending #917.
 <!-- fixture: guide/to_string_method.ark -->
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((42).to_string())    // "42"
-    stdio::println((0).to_string())     // "0"
-    stdio::println((-7).to_string())    // "-7"
+    Stdio::println((42).to_string())    // "42"
+    Stdio::println((0).to_string())     // "0"
+    Stdio::println((-7).to_string())    // "-7"
 }
 ```
 
@@ -751,10 +753,10 @@ let p = (2).pow(10)         // i32 method
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
-stdio::println(String_from("line"))    // write a line
-stdio::print(String_from("no newline"))
+Stdio::println(String_from("line"))    // write a line
+Stdio::print(String_from("no newline"))
 ```
 
 ### Assertions

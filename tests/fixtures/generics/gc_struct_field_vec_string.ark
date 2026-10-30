@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Opts {
     target: String,
@@ -15,5 +15,5 @@ fn default_opts() -> Opts {
 fn main() {
     let mut options = default_opts()
     push(options.wit_paths, String_from("x"))
-    stdio::println((len(options.wit_paths)).to_string())
+    Stdio::println((len(options.wit_paths)).to_string())
 }

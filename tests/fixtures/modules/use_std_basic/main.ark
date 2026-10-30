@@ -1,7 +1,7 @@
 use std::core
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    let x: i32 = core::identity(42)
-    stdio::println((x).to_string())
+    let x: i32 = core::Range::new(0, 42).len()
+    Stdio::println((x).to_string())
 }

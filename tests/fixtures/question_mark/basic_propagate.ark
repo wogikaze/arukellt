@@ -1,5 +1,5 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // Basic ? propagation: the error type (String) matches between the
 // fallible call and the enclosing function, so no From conversion is
@@ -27,5 +27,5 @@ fn main() {
         Result::Err(_) => {}  // expected — error propagated
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

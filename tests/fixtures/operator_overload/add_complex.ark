@@ -2,7 +2,7 @@
 //
 // Verifies that `a + b` resolves to `Add::add` (mangled `Complex::add`)
 // when both operands are user-defined Complex structs, not scalars.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::ops
 
 struct Complex {
@@ -22,5 +22,5 @@ fn main() {
     let c = a + b
     assert(c.re == 4)
     assert(c.im == 6)
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

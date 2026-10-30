@@ -1,9 +1,9 @@
 // Fixture: wasi_fs.ark
 // Verifies std::host::fs read-probe on a known fixture file.
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let ok = Fs::is_readable_file("tests/fixtures/stdlib_fs/present.txt")
-    stdio::println((ok).to_string())
+    Stdio::println((ok).to_string())
 }

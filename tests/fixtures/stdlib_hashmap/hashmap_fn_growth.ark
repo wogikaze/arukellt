@@ -1,6 +1,6 @@
 use std::test::Test
 use std::text
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(n: i32) -> i32 {
     n * 2
@@ -44,5 +44,5 @@ fn main() {
         None => Std::panic("missing grown String->fn entry"),
     }
 
-    stdio::println("fn-growth-ok")
+    Stdio::println("fn-growth-ok")
 }

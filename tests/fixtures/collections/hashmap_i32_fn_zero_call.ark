@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct FnHolder {
     f: fn() -> i32,
@@ -23,15 +23,15 @@ fn main() {
     let mut m = HashMap::new<i32, fn(i32) -> i32>()
     let _ = m.insert(1, answer_arg)
     match m.get(1) {
-        Some(f) => stdio::println((f(0)).to_string()),
-        None => stdio::println("missing"),
+        Some(f) => Stdio::println((f(0)).to_string()),
+        None => Stdio::println("missing"),
     }
     let opt: Option<fn() -> i32> = Option::Some(answer)
     match opt {
-        Some(g) => stdio::println((g()).to_string()),
-        None => stdio::println("missing"),
+        Some(g) => Stdio::println((g()).to_string()),
+        None => Stdio::println("missing"),
     }
-    stdio::println(apply0(answer).to_string())
+    Stdio::println(apply0(answer).to_string())
     let h = FnHolder { f: answer }
-    stdio::println((h.f)().to_string())
+    Stdio::println((h.f)().to_string())
 }

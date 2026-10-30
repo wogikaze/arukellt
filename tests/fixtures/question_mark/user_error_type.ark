@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // `Error` is a normal user enum. It must not be confused with a compiler
 // recovery state when it is used as a Result error payload.
@@ -24,7 +24,7 @@ fn propagate() -> Result<i32, Error> {
 fn main() {
     match propagate() {
         Result::Ok(_) => assert(false),
-        Result::Err(Error::Invalid) => stdio::println(String_from("OK")),
-        _ => stdio::println(String_from("other")),
+        Result::Err(Error::Invalid) => Stdio::println(String_from("OK")),
+        _ => Stdio::println(String_from("other")),
     }
 }

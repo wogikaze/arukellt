@@ -3,12 +3,12 @@
 // `Env::var` and `Env::arg_at` lower the direct host intrinsics; the MIR
 // call-result typing marks their Option<String> result on both targets.
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     match Env::var("ARUKELLT_ENV_PROBE_UNSET_917") {
-        Option::Some(_) => stdio::println("env-var-unexpected"),
-        Option::None => stdio::println("env-var-unset"),
+        Option::Some(_) => Stdio::println("env-var-unexpected"),
+        Option::None => Stdio::println("env-var-unset"),
     }
     assert(Env::var_or_default("ARUKELLT_ENV_PROBE_UNSET_917", "fallback") == "fallback")
     assert(Env::arg_count() >= 0)
@@ -16,5 +16,5 @@ fn main() {
         Option::Some(_) => assert(false),
         Option::None => {}
     }
-    stdio::println("env-namespace-ok")
+    Stdio::println("env-namespace-ok")
 }

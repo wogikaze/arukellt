@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct ScanBox<T> {
     vec: Vec<T>,
@@ -20,19 +20,19 @@ fn sum2(a: i32, b: i32) -> Option<i32> {
 
 fn main() {
     let sb = ScanBox { vec: Vec::new<i32>(), index: 0, length: 3, state: 0, f: sum2 }
-    stdio::println(sb.index.to_string())
+    Stdio::println(sb.index.to_string())
     match (sb.f)(2, 3) {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println("missing"),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println("missing"),
     }
     let pb_none = PeekBox { vec: Vec::new<i32>(), index: 1, peeked: None }
     match pb_none.peeked {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println("none"),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println("none"),
     }
     let pb_some = PeekBox { vec: Vec::new<i32>(), index: 2, peeked: Some(7) }
     match pb_some.peeked {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println("none"),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println("none"),
     }
 }

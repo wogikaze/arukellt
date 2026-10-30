@@ -2085,22 +2085,6 @@ alias = "stdin_read_to_string"
 core_op_id = "runtime.read_stdin"
 
 [[legacy_bindings]]
-alias = "stdio::eprintln"
-core_op_id = "runtime.eprintln"
-
-[[legacy_bindings]]
-alias = "stdio::print"
-core_op_id = "runtime.print"
-
-[[legacy_bindings]]
-alias = "stdio::println"
-core_op_id = "runtime.println"
-
-[[legacy_bindings]]
-alias = "stdio::read_stdin"
-core_op_id = "runtime.read_stdin"
-
-[[legacy_bindings]]
 alias = "string::repeat"
 core_op_id = "string.repeat"
 
@@ -4811,7 +4795,7 @@ id = "runtime.eprintln"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → stdio::eprintln (aliases: 2; stdio::eprintln, eprintln)"
+description = "Legacy handler branch → eprintln (aliases: 2; eprintln, __intrinsic_eprintln)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5403,7 +5387,7 @@ id = "runtime.print"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → stdio::print (aliases: 2; stdio::print, print)"
+description = "Legacy handler branch → print (aliases: 2; print, __intrinsic_print)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5440,7 +5424,7 @@ id = "runtime.println"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → stdio::println (aliases: 3; stdio::println, println, __intrinsic_println)"
+description = "Legacy handler branch → println (aliases: 2; println, __intrinsic_println)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5588,7 +5572,7 @@ id = "runtime.read_stdin"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → stdio::read_stdin (aliases: 3; stdio::read_stdin, stdin_read_to_string, __intrinsic_stdin_read_to_string)"
+description = "Legacy handler branch → stdin_read_to_string (aliases: 2; stdin_read_to_string, __intrinsic_stdin_read_to_string)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]

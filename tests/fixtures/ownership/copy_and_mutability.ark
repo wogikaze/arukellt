@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32
@@ -18,16 +18,16 @@ fn main() {
     mutable = 2
     let immutable_copy = immutable
 
-    stdio::println((immutable).to_string())
-    stdio::println((mutable).to_string())
-    stdio::println((immutable_copy).to_string())
+    Stdio::println((immutable).to_string())
+    Stdio::println((mutable).to_string())
+    Stdio::println((immutable_copy).to_string())
 
     let point = Point { x: 7 }
     let point_copy = point
     let point_again = point
-    stdio::println((point.x).to_string())
-    stdio::println((point_copy.x).to_string())
-    stdio::println((point_again.x).to_string())
+    Stdio::println((point.x).to_string())
+    Stdio::println((point_copy.x).to_string())
+    Stdio::println((point_again.x).to_string())
 
     let color: Color = Color::Red
     let color_copy = color
@@ -35,10 +35,10 @@ fn main() {
 
     let pair = (3, 4)
     let (first, second) = pair
-    stdio::println((first).to_string())
-    stdio::println((second).to_string())
+    Stdio::println((first).to_string())
+    Stdio::println((second).to_string())
 
     let array = [5, 6]
     let array_copy = array
-    stdio::println(array_copy[0])
+    Stdio::println(array_copy[0])
 }

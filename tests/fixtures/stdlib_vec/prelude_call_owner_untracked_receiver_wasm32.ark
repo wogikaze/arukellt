@@ -2,7 +2,7 @@
 // MIR local keeps no element type on the linear target. `len` and `pop` must
 // bind the owner-qualified CoreOps from the checker's per-call resolution,
 // not from the receiver's local type spelling (#933 / #936).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{get, len, pop, push}
 use std::test::Test
 
@@ -26,5 +26,5 @@ fn main() {
         None => Std::panic("expected Some, got None"),
     }
     Test::assert_eq_i32(len(values), 3)
-    stdio::println("prelude call owner untracked receiver ok")
+    Stdio::println("prelude call owner untracked receiver ok")
 }

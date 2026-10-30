@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Color {
     Red,
@@ -16,5 +16,5 @@ fn color_to_string(c: Color) -> String {
 
 fn main() {
     let c = Color::Red
-    stdio::println(color_to_string(c))
+    Stdio::println(color_to_string(c))
 }

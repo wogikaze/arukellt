@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{assert_eq, assert_eq_i64, assert_eq_str, assert_ne}
 fn main() {
     assert(true)
@@ -8,5 +8,5 @@ fn main() {
     let a: i64 = 42i64
     let b: i64 = 42i64
     assert_eq_i64(a, b)
-    stdio::println(String_from("all assertions passed"))
+    Stdio::println(String_from("all assertions passed"))
 }

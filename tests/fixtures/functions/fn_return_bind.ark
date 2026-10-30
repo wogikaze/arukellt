@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(n: i32) -> i32 {
     n * 2
@@ -10,5 +10,5 @@ fn id(f: fn(i32) -> i32) -> fn(i32) -> i32 {
 
 fn main() {
     let g = id(double)
-    stdio::println((g(5)).to_string())
+    Stdio::println((g(5)).to_string())
 }

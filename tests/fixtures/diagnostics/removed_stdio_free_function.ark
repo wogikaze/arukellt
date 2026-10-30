@@ -1,0 +1,7 @@
+// E0100: the host stdio free functions were retired by ADR-094; Stdio is the
+// namespace replacement from std::host::stdio.
+use std::host::stdio
+
+fn main() {
+    stdio::println("hi")
+}

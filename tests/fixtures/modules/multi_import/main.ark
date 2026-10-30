@@ -1,11 +1,10 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import math
 import strings
 
 fn main() {
     let x: i32 = math::add(10, 20)
-    stdio::println((x).to_string())
+    Stdio::println((x).to_string())
     let s: String = strings::repeat(String_from("ab"), 3)
-    stdio::println(s)
+    Stdio::println(s)
 }

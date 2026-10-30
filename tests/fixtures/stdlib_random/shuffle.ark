@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
 use std::prelude::{assert_eq}
 fn main() {
@@ -15,7 +15,7 @@ fn main() {
     assert_eq(get_unchecked(shuffled, 2), 20)
     assert_eq(get_unchecked(shuffled, 3), 50)
     assert_eq(get_unchecked(shuffled, 4), 10)
-    stdio::println("shuffle ok")
+    Stdio::println("shuffle ok")
 }
 // Same length
 // Exact permutation is reproducible for a fixed seed
