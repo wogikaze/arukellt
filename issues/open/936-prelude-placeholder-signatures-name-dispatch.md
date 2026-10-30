@@ -79,6 +79,9 @@ CoreOp (ADR-042), not through the call-site spelling.
 - [ ] No prelude function declares a placeholder signature; the remaining
       `panic` placeholder bodies are replaced by real bodies or by sealed
       CoreOp bindings.
+      (2026-10-30: moved for the Vec frees `len` / `push` / `get` / `pop` /
+      `set`; the 14 scalar conversion wrappers and `clone` still declare
+      `Std::panic` bodies — see the `wave/sealed-bodies` update.)
 - [ ] The typechecker has no name-keyed return-type or argument exemptions
       for these operations (`builtins.ark`, `call_method.ark`,
       `vec_core_mono.ark`, `hashmap_methods.ark` name lists removed or made
@@ -373,65 +376,62 @@ are unchanged. Remaining name-keyed tables and their blockers:
   the `len` declaration keeps the String spelling until the committed pin is
   refreshed. #928 is unchanged.
 
-## Update (2026-10-30, `wave/builtin-tables`) — intrinsic return tables narrowed; hashmap method table stays behind #934
+## Update (2026-10-30, `wave/sealed-bodies`) — sealed raw fallback bodies for the Vec prelude frees
 
-Enumerated the remaining name-keyed return tables and narrowed the two whose
-spellings are compiler intrinsics with no Ark declaration. Neither is fully
-retirable: the checker still needs a return type for an unresolved intrinsic
-name, so the reduction is in the table shape, not in the call path.
+The `Std::panic` placeholder bodies are gone from the Vec prelude frees.
+`len`, `push`, `get`, `pop` and the adjacent `set` now carry the operation's
+Ark fallback on the sealed raw API (ADR-042 D2):
 
-- `typechecker/builtins_hash.ark`: the 37 typed `__hm_<key><value>_*` storage
-  bridge spellings are now derived from the two-letter family and the
-  operation suffix. The typed set is unchanged: `new` / `new_with_cap` → the
-  pair, `cap` / `size` / `get_flag` → `i32`, `get_key` / `get_val` → the
-  family's key / value type. The two `i31_box` spellings stay as explicit
-  checks. File: 111 → 73 lines.
-- `typechecker/builtins_simd.ark` and `builtins_simd_lanes.ark`: the 179
-  distinct `__simd_*` / `__wasm_v128_*` spellings were replaced by a
-  classifier over the lane family prefix and the `extract_lane` / `all_true`
-  / `bitmask` / `wasm_v128_load|store` suffixes. The 145-line
-  `builtins_simd_lanes.ark` is deleted and its tests are replaced by five
-  classifier tests in `builtins_simd.ark`. A one-off Python equivalence check
-  over the 259 names reachable from `std/**`, `tests/fixtures/**` and
-  `resolver/builtins_simd.ark` produced no difference from the old
-  classifier; the unsigned `extract_lane_u` cases keep their pre-existing
-  unknown result so MIR continues to assign their value type.
-- `typechecker/hashmap_methods.ark`: attempted to let the `HashMap::*` shell
-  signatures in `std/collections/hash_map.ark` type the method surface and
-  keep the builtin table only as the capacity-group fallback. That is blocked
-  before #934: with the builtin pre-emption removed, the flat name index
-  resolves `HashMap::insert` through a same-named impl
-  (`callee=hashset_str_insert`, mono `insert__String__i32` instead of
-  `HashMap::insert__String__i32`). Six `stdlib_hashmap` test fixtures trap,
-  including `hashmap_string_i32`, `hashmap_i32_string`,
-  `hashmap_string_string`, `hashmap_pair_capacity` and
-  `hashmap_string_capacity`. #935 forbids restoring the behavior with a
-  per-method allowlist, so the table and both call sites are unchanged in
-  this increment.
-- `typechecker/builtins.ark` (`is_concrete_prelude_builtin`,
-  `is_scalar_conversion_builtin`, `builtin_call_return_type`): unchanged;
-  the concrete-call and flat-index dependency is the same #935 / #934 pair.
+- `len(s: String)` → `raw_string_len_bytes(s)`, the sealed call
+  `String::len` reaches through `__core_string_len_impl`.
+- `push<T>` → `raw_array_len` + `raw_array_grow` +
+  `raw_array_set_unchecked`, the generic analogue of
+  `__core_vec_push_i32_impl`.
+- `get<T>` → bounds check + `raw_array_get_unchecked`, mirroring
+  `__core_vec_get_impl`.
+- `pop<T>` → `raw_array_len` + `raw_array_get_unchecked` + the logical
+  `raw_array_grow` shrink, mirroring `__core_vec_pop_impl`.
+- `set<T>` → `raw_array_set_unchecked`, mirroring `__core_vec_set_impl`.
 
-Evidence (s2 built in `.build-lane`, pin `56ff0808…`):
+The bodies still defer under RFC-005 D3, so MIR emits the owner-qualified
+CoreOp at every call site (`String::len` / `Vec::len` / `Vec::push` /
+`Vec::get` / `Vec::pop` / `Vec::set`) and never this declaration. The
+pin-built s2 is byte-identical before and after the change, so no emitted
+code or runtime behavior moved. The difference is that the declaration is no
+longer a fake stub: the generic `raw_array_*` calls are checker-verified (a
+wrong arity in `push` is E0203), while the old `Std::panic` bodies were
+unchecked placeholders.
 
-- `selfhost build-compiler`: PASS, 62.6 s.
-- `verify fixtures`: PASS=1943 FAIL=0 COMPILE_VALIDATE=1943 EXECUTED=112
-  RUNTIME_UNSUPPORTED=2; `test:` PASS=42 FAIL=0. The targeted
-  `selfhost fixture-parity --filter-dir stdlib_hashmap --filter-dir
-  stdlib_simd` run is 77/77 compile+validate, 21/21 test.
-- `verify lane`, `docs check` 6/6, `selfhost diag-parity` pass.
-- `selfhost fixpoint`: s2 == s3 =
-  `1c7181a3c8bd04d9c982a35c46f2cb8abf69ddcf9daf28e6db89baffa13e0e2b`.
-  Stage 3 is the s2 self-build of the trimmed bootstrap overlay, so the
-  classifier changes are covered on the pin's prelude path as well.
+Evidence:
 
-Acceptance movement: item 2 is still open. The remaining tables and their
-exact blockers are unchanged from the previous update, except that the two
-intrinsic return tables are now family/suffix derivations rather than exact
-spelling lists. Full retirement needs declarations for the intrinsic
-spellings (the bootstrap overlay ships `std/prelude.ark`, whose SIMD fallback
-bodies call `__simd_*`), which is the #936 signature migration itself; the
-HashMap method table additionally needs #934's non-overloaded identity.
+- `selfhost build-compiler` from pin `56ff0808…`: PASS (125.3 s, overlay
+  cache miss); s2
+  `8dd7385cf27fdcd66260b0f49d88732204464c895392471f826e1b8d9df7bfd7`,
+  unchanged from the base artifact.
+- Both targets compile and run the owner-dispatch fixtures:
+  `stdlib_vec/prelude_call_owner_untracked_receiver` (len/push/get/pop) and
+  `stdlib_vec/prelude_len_owner_dispatch` (len/push) print their expected
+  lines on `wasm32-gc` and `wasm32`; `stdlib_vec/prelude_generic_signatures`
+  (len/get/pop/push) and `stdlib_vec/prelude_push_get_owner_untracked_receiver`
+  exit 0 on both.
+- `core-op-shadow`: `mismatched=0 unresolved=0` on both targets.
+
+Acceptance movement: item 1 moves for the Vec frees. Remaining item-1 work is
+outside the Vec-operation scope: the 14 scalar conversion wrappers
+(`u8_to_i32` … `f64_to_f32`, `i32_to_u32`) and `clone` still keep
+`Std::panic` bodies. The conversions belong to item 2's checker-table
+retirement (#935); `clone` is item 4 / #928. Item 2's name-keyed tables and
+item 3's element-typed `vec_*` spellings are unchanged.
+
+Residuals:
+
+- The declarations remain signature-only: the bodies are deferred until
+  #821/#822 give them a lowering path, and the `Vec::*` migration aliases
+  stay until #818.
+- `set`'s Ark fallback mirrors the registered `__core_vec_set_impl` (raw
+  write, no explicit bounds check); the OOB trap lives in the emitter's
+  `vec_set` path, and that fallback/emitter divergence belongs to the #818
+  migration cleanup.
 
 ## Notes
 

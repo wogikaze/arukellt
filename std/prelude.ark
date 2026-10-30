@@ -492,20 +492,28 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 // Vec operations. These declarations are the call contract: the checker
 // unifies the argument types with these generic signatures instead of
 // skipping the arguments because the emitter happens to lower the name
-// (#936). `len` takes its contract from the receiver's owner (`String::len`
-// or `Vec::len`); the String spelling below is the committed pin's bootstrap
+// (#936). Each body is the operation's sealed fallback on the raw API
+// (ADR-042 D2); MIR lowering still defers it under RFC-005 D3, so call sites
+// bind the owner-qualified CoreOp instead of this declaration.
+// `len` takes its contract from the receiver's owner (`String::len` or
+// `Vec::len`); the String spelling below is the committed pin's bootstrap
 // contract and cannot be replaced by the Vec signature until the pin is
 // refreshed.
 pub fn len(s: String) -> i32 {
-    Std::panic(String_new()); return 0
+    raw_string_len_bytes(s)
 }
 
 pub fn push<T>(mut v: Vec<T>, val: T) {
-    Std::panic(String_new())
+    let count: i32 = raw_array_len(v)
+    let mut grown: Vec<T> = raw_array_grow(v, count + 1)
+    raw_array_set_unchecked(grown, count, val)
 }
 
 pub fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
-    Std::panic(String_new()); return None
+    if idx < 0 || idx >= raw_array_len(v) {
+        return None
+    }
+    Some(raw_array_get_unchecked(v, idx))
 }
 
 pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
@@ -513,12 +521,19 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
 }
 
 pub fn pop<T>(mut v: Vec<T>) -> Option<T> {
-    // Rewrite to vec_pop intrinsic (prelude panic stub had no emitter) (#807).
-    vec_pop(v)
+    let count: i32 = raw_array_len(v)
+    if count == 0 {
+        return None
+    }
+    let last: i32 = count - 1
+    let value: T = raw_array_get_unchecked(v, last)
+    // Shrink the logical length through grow until set_len dispatch replaces it.
+    raw_array_grow(v, last)
+    Some(value)
 }
 
 pub fn set<T>(mut v: Vec<T>, idx: i32, val: T) {
-    Std::panic(String_new())
+    raw_array_set_unchecked(v, idx, val)
 }
 
 // Option / Result
