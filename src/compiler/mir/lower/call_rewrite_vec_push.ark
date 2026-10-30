@@ -1,5 +1,6 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_resolved_calls
 use mir::lower::ctx_types
 use mir::inst_convert
 use mir::value_types
@@ -20,9 +21,31 @@ fn mir_vec_push_rewrite_push_i64_needs_extend(rewrite: MirVecPushRewrite) -> boo
     rewrite.push_i64_needs_extend
 }
 
-fn mir_rewrite_vec_push(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecPushRewrite {
+// The prelude `push` free is signature-only. The checker records its Vec
+// receiver owner per call site (#933); lowering treats the bare spelling as
+// the prelude free only when that record says Vec. An owner-resolved call
+// whose receiver local has no element type emits the owner-qualified
+// `Vec::push`; a receiver that carries one keeps the historical element-typed
+// spelling (`vec_push`, `push_i64`, `push_f64`). A method-call rewrite (span 0)
+// and the internal spellings use that same element-type rewrite.
+fn mir_rewrite_vec_push(
+    mut ctx: LowerCtx,
+    span_start: i32,
+    callee_name: String,
+    first_arg_idx: i32,
+    second_arg_idx: i32,
+    stage_call_args: bool
+) -> MirVecPushRewrite {
     let mut rewritten = callee_name
     let mut push_i64_needs_extend = false
+    let mut is_owner_resolved_push = false
+    if is_prelude_push_name(rewritten.clone()) && span_start != 0 {
+        let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("push"))
+        if !owner.eq(String_from("Vec")) {
+            return mir_vec_push_rewrite_new(callee_name, false)
+        }
+        is_owner_resolved_push = true
+    }
     if first_arg_idx >= 0 {
         let arg_type_push = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if arg_type_push.clone().eq("vec:i64") {
@@ -34,15 +57,19 @@ fn mir_rewrite_vec_push(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
                     ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
                 }
             }
-        } else {
-            if arg_type_push.clone().eq("vec:f64") {
-                rewritten = "push_f64"
-            } else {
-                if arg_type_push.clone().starts_with("vec:") {
-                    rewritten = "vec_push"
-                }
-            }
+        } else if arg_type_push.clone().eq("vec:f64") {
+            rewritten = "push_f64"
+        } else if arg_type_push.clone().starts_with("vec:") {
+            rewritten = "vec_push"
+        } else if is_owner_resolved_push {
+            rewritten = "Vec::push"
         }
     }
     mir_vec_push_rewrite_new(rewritten, push_i64_needs_extend)
+}
+
+fn is_prelude_push_name(name: String) -> bool {
+    name.clone().eq(String_from("push")) ||
+    name.clone().eq(String_from("prelude::push")) ||
+    name.clone().eq(String_from("std::prelude::push"))
 }

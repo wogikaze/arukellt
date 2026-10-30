@@ -50,7 +50,8 @@ fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) 
     if first_arg_idx < 0 {
         return value_types::VT_VOID()
     }
-    if callee_name.clone().eq("vec_get") {
+    if callee_name.clone().eq("vec_get") ||
+    callee_name.clone().eq("Vec::get") {
         return value_types::VT_GC_REF()
     }
     if !mir_is_vec_get_unchecked_callee(callee_name.clone()) {

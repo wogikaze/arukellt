@@ -258,6 +258,61 @@ CoreOpId). Items 1, 2 and 4 are unchanged. Residuals:
 - The remaining name-keyed checker tables (`vec_core_mono`,
   `is_concrete_prelude_builtin`) and #928 are unchanged.
 
+## Update (2026-10-30, `wave/push-get-owner`) — owner handoff for `push` and `get`
+
+Completes the item 3 movement for the remaining Vec frees in the handoff set.
+`push` and `get` now select their lowering from the checker's per-call owner
+record like `len` and `pop`; the element-type predicates still choose the
+concrete numeric intrinsic, but they no longer decide whether a bare callee is
+the prelude free.
+
+- `data/core-ops.toml`: new owner-qualified aliases `Vec::push` → `vec.push`
+  and `Vec::get` → `vec.get`. The bare `push` alias stays only for the
+  migration table (method/spine spellings and the deferred declaration body)
+  until #818 removes it.
+- `src/compiler/mir/lower/call_rewrite_vec_push.ark`: a bare `push` reaches the
+  element-type rewrite only when `ctx_resolved_call_owner(span, "push")`
+  reports `Vec`; a site without a record keeps its callee. Owner-resolved
+  calls whose receiver local has no element type emit `Vec::push`; a receiver
+  that carries one keeps the historical element-typed spelling (`vec_push`,
+  `push_i64`, `push_f64`, including the i32→i64 widen), and the method-call
+  rewrite (span 0) keeps that same element-type path.
+- `src/compiler/mir/lower/call_rewrite_vec.ark`: `get` consults the record the
+  same way and emits `Vec::get` when the receiver local has no element type,
+  or the element-typed `vec_get` when it does. `Vec::push` / `Vec::get` are
+  intrinsic targets so mono resolution cannot rename them; `Vec::get` takes
+  the same `Option` dest type as `vec_get`.
+- Fixtures: `stdlib_vec/prelude_push_get_owner_untracked_receiver` and its
+  `_wasm32` companion (`--target wasm32 --wasi-version wasi-p1`) mirror the
+  len/pop untracked fixture: an if-expression receiver whose MIR local loses
+  its element type on the linear target. `get` on that local emits `Vec::get`
+  on `wasm32`; the GC local keeps its element type, so the same call keeps
+  `vec_get`.
+
+Evidence: with the owner trace enabled, the linear companion's untracked
+receiver rewrites to `Vec::push` / `Vec::get`; the concrete receivers keep
+`vec_push` / `vec_get`, and the GC local keeps its element type, so its `get`
+stays `vec_get`. The final compiler's core-op shadow audit reports
+`candidates=14 matched=14 mismatched=0 unresolved=0` on both targets, and both
+fixtures print `prelude push/get owner untracked receiver ok`.
+
+Gates: verify fixtures 1940/1940 (41/41 test fixtures), verify lane, docs
+check 6/6, selfhost diag-parity, selfhost fixpoint
+(sha256 9dec894d3de5f69f28b39924e9d2e54fab004cf4a86b008aaa84f2e067eb5a23).
+
+Acceptance movement: item 3 moves for `push` and `get`; items 1, 2 and 4 are
+unchanged. Residuals:
+
+- `len`, `push`, `get` and `pop` still declare signature-only bodies (item 1).
+- The remaining name-keyed checker tables (`vec_core_mono`,
+  `is_concrete_prelude_builtin`) and #928 are unchanged (item 2).
+- The bare `push` alias and the wasm callee-name fallback (`call_*`) remain
+  until #818; the element-typed `vec_push` / `push_i64` / `push_f64` /
+  `vec_get` spellings are still selected from the receiver's element type
+  because the linear emitter has dedicated numeric intrinsics.
+- Method-call `.push` / `.get` rewriting (span 0) keeps its historical
+  receiver-type path.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

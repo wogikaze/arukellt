@@ -46,7 +46,9 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
     callee_name.clone().eq(String_from("vec_push_f64")) ||
     callee_name.clone().eq(String_from("vec_set")) ||
     callee_name.clone().eq(String_from("vec_pop")) ||
-    callee_name.clone().eq(String_from("Vec::pop"))
+    callee_name.clone().eq(String_from("Vec::pop")) ||
+    callee_name.clone().eq(String_from("Vec::push")) ||
+    callee_name.clone().eq(String_from("Vec::get"))
 }
 
 // Free `push(v, x)` is rewritten to `Vec::push` when `impl Vec<T>` is registered
@@ -54,6 +56,8 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
 // `vec_push` CoreOp path instead of mono → `__core_vec_push_i32_impl`.
 fn is_vec_push_callee(name: String) -> bool {
     name.clone().eq(String_from("push")) ||
+    name.clone().eq(String_from("prelude::push")) ||
+    name.clone().eq(String_from("std::prelude::push")) ||
     name.clone().eq(String_from("vec_push")) ||
     name.clone().eq(String_from("push_i64")) ||
     name.clone().eq(String_from("push_f64")) ||
@@ -161,10 +165,7 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
         rewritten = mir_rewrite_vec_len(ctx, span_start, rewritten)
     }
     if is_vec_push_callee(rewritten.clone()) {
-        // Normalize to bare `push` so element-type rewrite (vec_push / push_i64)
-        // stays centralized in call_rewrite_vec_push.
-        rewritten = String_from("push")
-        let push_rewrite = call_rewrite_vec_push::mir_rewrite_vec_push(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
+        let push_rewrite = call_rewrite_vec_push::mir_rewrite_vec_push(ctx, span_start, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
         rewritten = call_rewrite_vec_push::mir_vec_push_rewrite_callee_name(push_rewrite)
         push_i64_needs_extend = call_rewrite_vec_push::mir_vec_push_rewrite_push_i64_needs_extend(push_rewrite)
     }
@@ -172,7 +173,7 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, rewritten, first_arg_idx)
     }
     if is_vec_get_callee(rewritten.clone()) {
-        rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
+        rewritten = mir_rewrite_vec_get_call(ctx, span_start, rewritten, first_arg_idx)
     }
     if is_vec_pop_callee(rewritten.clone()) {
         rewritten = mir_rewrite_vec_pop(ctx, span_start, rewritten)
@@ -206,8 +207,10 @@ fn is_vec_get_unchecked_callee(name: String) -> bool {
 }
 
 fn is_vec_get_callee(name: String) -> bool {
-    name.clone().eq(String_from("get")) ||
+    is_prelude_get_name(name.clone()) ||
     name.clone().eq(String_from("__intrinsic_get")) ||
+    name.clone().eq(String_from("Vec::get")) ||
+    name.clone().starts_with(String_from("Vec::get__")) ||
     name.clone().ends_with(String_from("::get")) ||
     name.clone().starts_with(String_from("get__")) ||
     name.contains(String_from("::get__"))
@@ -297,6 +300,44 @@ fn mir_rewrite_vec_pop(ctx: LowerCtx, span_start: i32, callee_name: String) -> S
         return String_from("Vec::pop")
     }
     callee_name
+}
+
+// `get` follows `push` through the same handoff. The checker records the Vec
+// receiver owner per call site (#933); lowering binds the owner-qualified
+// `Vec::get` when the receiver local carries no element type, and keeps the
+// element-typed `vec_get` CoreOp when the local type can select it. A site
+// without a resolution is not the prelude free, so its callee stays untouched.
+fn mir_rewrite_vec_get_call(
+    ctx: LowerCtx,
+    span_start: i32,
+    callee_name: String,
+    first_arg_idx: i32
+) -> String {
+    if callee_name.clone().eq(String_from("Vec::get")) ||
+    callee_name.clone().starts_with(String_from("Vec::get__")) {
+        return String_from("Vec::get")
+    }
+    if !is_prelude_get_name(callee_name.clone()) {
+        return call_rewrite_vec_access::mir_rewrite_vec_get(ctx, callee_name, first_arg_idx)
+    }
+    if span_start == 0 {
+        return call_rewrite_vec_access::mir_rewrite_vec_get(ctx, callee_name, first_arg_idx)
+    }
+    let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("get"))
+    if !owner.eq(String_from("Vec")) {
+        return callee_name
+    }
+    let refined = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, callee_name.clone(), first_arg_idx)
+    if refined.eq(callee_name) {
+        return String_from("Vec::get")
+    }
+    refined
+}
+
+fn is_prelude_get_name(callee_name: String) -> bool {
+    callee_name.clone().eq(String_from("get")) ||
+    callee_name.clone().eq(String_from("prelude::get")) ||
+    callee_name.clone().eq(String_from("std::prelude::get"))
 }
 
 fn mir_rewrite_vec_basic(callee_name: String) -> String {

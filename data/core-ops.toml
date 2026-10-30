@@ -61,6 +61,17 @@ core_op_id = "vec.len"
 alias = "Vec::pop"
 core_op_id = "vec.pop"
 
+# `push` and `get` complete the same handoff. Their call sites bind the
+# owner-qualified spelling from the checker's per-call record; the bare `push`
+# alias above stays only until the migration table is retired (#818).
+[[legacy_bindings]]
+alias = "Vec::push"
+core_op_id = "vec.push"
+
+[[legacy_bindings]]
+alias = "Vec::get"
+core_op_id = "vec.get"
+
 [[legacy_bindings]]
 alias = "String_from"
 core_op_id = "text.clone"
