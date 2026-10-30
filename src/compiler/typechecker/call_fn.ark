@@ -14,7 +14,9 @@ use typechecker::hashmap_methods
 use typechecker::call_unknown
 use typechecker::call_vec_ctor
 use typechecker::enum_expr
+use typechecker::contract_env_resolved_record
 use typechecker::contract_fn_sig
+use typechecker::contract_resolved_call
 use typechecker::contract_type_access
 use typechecker::names
 use typechecker::ownership
@@ -199,7 +201,15 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }
     if is_prelude_len_signature(sig.clone()) {
-        return infer_prelude_len_call(env, scope, fn_sigs, enum_defs, node, child_count - 1)
+        return infer_prelude_len_call(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            child_count - 1,
+            contract_fn_sig::FnSig_name(sig)
+        )
     }
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
         return infer_concrete_call_expr(env, scope, fn_sigs, enum_defs, node, sig, child_count - 1)
@@ -233,7 +243,8 @@ fn infer_prelude_len_call(
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
-    arg_count: i32
+    arg_count: i32,
+    callee_name: String
 ) -> TypeInfo {
     if arg_count != 1 {
         unify::type_error_bad_arity(
@@ -254,13 +265,17 @@ fn infer_prelude_len_call(
     )
     let tag = contract_type_access::TypeInfo_tag(recv_ty)
     if tag == commands::TY_STRING() || tag == commands::TY_VEC() {
+        record_len_owner(env, ast_access::node_span_start(node), callee_name, tag)
         return simple_type(commands::TY_I32())
     }
     // A type variable may still bind to String or Vec later in the same body,
     // so the owner is not decided at the call. Keep the receiver for the body
     // finalizer instead of accepting the call or rejecting it outright (#936).
     if tag == commands::TY_TYPE_VAR() {
-        push(env.deferred_len_receiver_types, recv_ty)
+        contract_env_resolved_record::type_env_push_deferred_len_receiver(
+            env,
+            contract_resolved_call::DeferredLenReceiver_new(recv_ty, ast_access::node_span_start(node), callee_name)
+        )
         return simple_type(commands::TY_I32())
     }
     // Unresolved after another diagnostic is an error-recovery value, not a
@@ -272,19 +287,49 @@ fn infer_prelude_len_call(
     simple_type(commands::TY_I32())
 }
 
+// The checker owns the owner decision. Recording it per call site is the
+// #933 handoff: MIR lowering binds the owner-qualified FunctionId
+// (`String::len` / `Vec::len`) and lets the CoreOp registry resolve it,
+// instead of recovering the owner from the receiver's MIR local type.
+fn record_len_owner(mut env: TypeEnv, span_start: i32, callee_name: String, tag: i32) {
+    let owner = if tag == commands::TY_STRING() {
+        String_from("String")
+    } else {
+        String_from("Vec")
+    }
+    contract_env_resolved_record::type_env_record_resolved_call_owner(
+        env,
+        span_start,
+        callee_name,
+        owner
+    )
+}
+
 // A `len` receiver that was still a type variable at its call is resolved
 // here, after the whole body has run: a later argument position may have bound
 // it to String or Vec. A type parameter of the enclosing body never binds
 // during its own check, so an owner that is still undecided is rejected
 // instead of letting backend name dispatch pick one (#936).
 fn finalize_deferred_len_receivers(mut env: TypeEnv) {
-    let count = len(env.deferred_len_receiver_types)
+    let count = contract_env_resolved_record::type_env_deferred_len_receiver_count(env)
     let mut i = 0
     while i < count {
-        let resolved = unify::resolve_type(env, get_unchecked(env.deferred_len_receiver_types, i))
+        let deferred = contract_env_resolved_record::type_env_deferred_len_receiver_at(env, i)
+        let resolved = unify::resolve_type(
+            env,
+            contract_resolved_call::DeferredLenReceiver_receiver_type(deferred.clone())
+        )
         let tag = contract_type_access::TypeInfo_tag(resolved)
         let has_owner = tag == commands::TY_STRING() || tag == commands::TY_VEC()
         let is_recovery = tag == commands::TY_UNKNOWN()
+        if has_owner {
+            record_len_owner(
+                env,
+                contract_resolved_call::DeferredLenReceiver_span_start(deferred.clone()),
+                contract_resolved_call::DeferredLenReceiver_callee_name(deferred),
+                tag
+            )
+        }
         if !has_owner && !is_recovery {
             if tag == commands::TY_TYPE_VAR() {
                 unify::type_error(
@@ -297,7 +342,7 @@ fn finalize_deferred_len_receivers(mut env: TypeEnv) {
         }
         i = i + 1
     }
-    env.deferred_len_receiver_types = Vec::new<TypeInfo>()
+    contract_env_resolved_record::type_env_clear_deferred_len_receivers(env)
 }
 
 fn len_receiver_mismatch_message(recv_ty: TypeInfo) -> String {

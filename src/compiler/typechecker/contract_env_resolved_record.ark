@@ -1,0 +1,57 @@
+use typechecker::contract_env_record
+use typechecker::contract_resolved_call
+
+fn type_env_resolved_call_owner_count(env: TypeEnv) -> i32 {
+    len(env.resolved_call_owners)
+}
+
+fn type_env_resolved_call_owner_at(env: TypeEnv, index: i32) -> ResolvedCallOwner {
+    get_unchecked(env.resolved_call_owners, index)
+}
+
+// The checker may infer the same call more than once (the return-contract
+// pass re-infers the body), so the same body/span/callee must not append a
+// second resolution.
+fn type_env_record_resolved_call_owner(mut env: TypeEnv, span_start: i32, callee_name: String, owner_name: String) {
+    if env.current_decl_index < 0 {
+        return
+    }
+    let count = len(env.resolved_call_owners)
+    let mut i = 0
+    while i < count {
+        let existing = get_unchecked(env.resolved_call_owners, i)
+        let same_site = existing.decl_index == env.current_decl_index &&
+        existing.body_child_index == env.current_body_child_index &&
+        existing.span_start == span_start
+        if same_site && existing.callee_name.clone().eq(callee_name.clone()) {
+            return
+        }
+        i = i + 1
+    }
+    push(
+        env.resolved_call_owners,
+        contract_resolved_call::ResolvedCallOwner_new(
+            env.current_decl_index,
+            env.current_body_child_index,
+            span_start,
+            callee_name,
+            owner_name
+        )
+    )
+}
+
+fn type_env_deferred_len_receiver_count(env: TypeEnv) -> i32 {
+    len(env.deferred_len_receivers)
+}
+
+fn type_env_deferred_len_receiver_at(env: TypeEnv, index: i32) -> DeferredLenReceiver {
+    get_unchecked(env.deferred_len_receivers, index)
+}
+
+fn type_env_push_deferred_len_receiver(mut env: TypeEnv, receiver: DeferredLenReceiver) {
+    push(env.deferred_len_receivers, receiver)
+}
+
+fn type_env_clear_deferred_len_receivers(mut env: TypeEnv) {
+    env.deferred_len_receivers = Vec::new<DeferredLenReceiver>()
+}

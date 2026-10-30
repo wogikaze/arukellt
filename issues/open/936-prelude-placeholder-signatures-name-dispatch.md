@@ -211,6 +211,53 @@ unchanged. Residuals:
   checker-supplied per-call FunctionId (#933); a receiver whose type lowering
   cannot see keeps the declaration's `String` contract.
 
+## Update (2026-10-30, `wave/functionid-handoff`) — checker-owned per-call FunctionId for `len` and `pop`
+
+The owner is no longer recovered from the MIR local type spelling. The
+typechecker records a per-call receiver resolution on the checked program and
+MIR lowering binds the owner-qualified FunctionId to its CoreOp from that
+record:
+
+- `TypeCheckResult.resolved_call_owners` carries
+  `{decl_index, body_child_index, span_start, callee_name, owner_name}`. The
+  body identity is the source decl index plus the impl-method ordinal, so a
+  call in a loaded module cannot alias a same-span call in another file.
+  `CoreHirResolvedCall` now carries this resolution through `CoreHirMirView`
+  into the lowering ctx; the old syntactic `scan_resolved_calls` is deleted.
+- `len`: `infer_prelude_len_call` records `String` / `Vec` from the unified
+  receiver type (including deferred type-variable receivers after body
+  finalization). MIR `mir_rewrite_vec_len` reads the record and emits
+  `String::len` / `Vec::len`; it no longer reads `ctx_get_local_type`, and a
+  site with no record keeps its callee instead of guessing String.
+- Generic free calls (`push`, `get`, `pop`, and any Vec/String-first-param
+  generic) record the owner of the instantiated first parameter, even when the
+  element type is still an open type variable.
+- `pop`: MIR emits the owner-qualified `Vec::pop` from the record; the new
+  `Vec::pop` → `vec.pop` registry alias binds that FunctionId to the CoreOp.
+  `push` / `get` still lower through `call_rewrite_vec*` element-type
+  predicates; their owner records are in place for the next increment.
+- Fixtures: `stdlib_vec/prelude_call_owner_untracked_receiver.ark` and its
+  `_wasm32` companion use an if-expression receiver whose MIR local has no
+  element type. Before this change the linear target emitted
+  `__core_string_len_impl` for `len(values)` and printed the Vec pointer as a
+  length; both targets now emit `Vec::len` / `Vec::pop`.
+
+Evidence: MIR dumps for both targets show `callee=Vec::len` and
+`callee=Vec::pop` with registry-bound fids; both fixture targets print
+`prelude call owner untracked receiver ok`.
+
+Acceptance movement: item 3 moves for `len` and `pop` (the emitter selects
+those intrinsics from the checker-resolved owner-qualified FunctionId →
+CoreOpId). Items 1, 2 and 4 are unchanged. Residuals:
+
+- `push` and `get` still lower through the `call_rewrite_vec*` element-type
+  predicates (owner records exist but MIR does not consume them yet), and
+  `get` / `pop` / `set` are still listed in
+  `mir_is_unbound_prelude_intrinsic_shim`.
+- `len`, `push`, `get` and `pop` still declare signature-only bodies.
+- The remaining name-keyed checker tables (`vec_core_mono`,
+  `is_concrete_prelude_builtin`) and #928 are unchanged.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

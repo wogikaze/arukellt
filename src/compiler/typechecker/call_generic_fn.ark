@@ -5,6 +5,7 @@ use typechecker::call_generic_fn_args
 use typechecker::call_generic_resolve
 use typechecker::call_generic_turbofish
 use typechecker::associated_types
+use typechecker::contract_env_resolved_record
 use typechecker::contract_fn_sig
 use typechecker::contract_struct_info
 use typechecker::contract_type_access
@@ -30,6 +31,19 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     )
     let mut arg_types = Vec::new<TypeInfo>()
     call_generic_fn_args::constrain_generic_fn_args(env, scope, fn_sigs, enum_defs, node, sig, infer_env, var_names, var_types, arg_types)
+    // Resolve the callable's nominal receiver owner from the unified first
+    // parameter, before unresolved element variables can defer the call.
+    // MIR lowering consumes this per-call resolution instead of re-deriving
+    // the owner from the receiver's local type spelling (#933 / #936).
+    let receiver_owner = generic_call_receiver_owner(sig.clone(), var_names.clone(), var_types.clone())
+    if len(receiver_owner) > 0 {
+        contract_env_resolved_record::type_env_record_resolved_call_owner(
+            env,
+            ast_access::node_span_start(node),
+            contract_fn_sig::FnSig_name(sig.clone()),
+            receiver_owner
+        )
+    }
     // infer_env is scratch, so speculation diagnostics vanish with it:
     // set(m, k, v) on a HashMap adopted prelude::set<T>(Vec<T>) and lowered
     // to a map-corrupting Vec store (#874). The callee sig is already
@@ -227,4 +241,26 @@ fn type_mentions_var(ty: TypeInfo, var_name: String) -> bool {
         i = i + 1
     }
     false
+}
+
+// The nominal owner a generic free call resolves against, read from the
+// instantiated first parameter. A call whose first parameter stays a type
+// variable has no owner to bind and records nothing.
+fn generic_call_receiver_owner(sig: FnSig, var_names: Vec<String>, var_types: Vec<TypeInfo>) -> String {
+    if contract_fn_sig::FnSig_param_count(sig.clone()) < 1 {
+        return String_new()
+    }
+    let first_param = instantiate::instantiate_type(
+        contract_fn_sig::FnSig_param_at(sig, 0),
+        var_names,
+        var_types
+    )
+    let tag = contract_type_access::TypeInfo_tag(first_param)
+    if tag == commands::TY_VEC() {
+        return String_from("Vec")
+    }
+    if tag == commands::TY_STRING() {
+        return String_from("String")
+    }
+    String_new()
 }

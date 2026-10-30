@@ -13,6 +13,8 @@ struct CoreHirMirView {
     layout_decls: Vec<CoreHirLayoutDecl>,
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,
+    // Checker-resolved call owners consumed by call lowering (#933).
+    resolved_calls: Vec<CoreHirResolvedCall>,
     body_source: CoreHirMirBodySource,
 }
 
@@ -24,8 +26,13 @@ fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {
         layout_decls: raw_layouts::program_layout_decls(program),
         typed_fns: raw::program_typed_fns(program),
         mono_instances: raw::program_mono_instances(program),
+        resolved_calls: raw::program_resolved_calls(program),
         body_source: body_source::mir_body_source_from_table(raw::program_body_table(program)),
     }
+}
+
+fn view_resolved_calls(view: CoreHirMirView) -> Vec<CoreHirResolvedCall> {
+    view.resolved_calls
 }
 
 fn view_body_source(view: CoreHirMirView) -> CoreHirMirBodySource {

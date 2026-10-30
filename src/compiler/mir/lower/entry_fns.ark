@@ -4,6 +4,7 @@ use mir::lower::entry_core_body
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_fn
 use mir::lower::entry_fallback_body
+use mir::lower::ctx_resolved_calls
 use mir::lower::ctx_corehir_probe
 use mir::lower::legacy_body
 use mir::lower::stdlib_body_defer
@@ -19,6 +20,9 @@ fn mir_emit_top_level_fn_decl(
     mir_tr: i32,
     emit_bodies: bool
 ) -> i32 {
+    // Call resolutions are keyed by the source body, which stays the same for
+    // every monomorphized copy of this decl (#933).
+    ctx_resolved_calls::ctx_set_body_identity(ctx, decl_index, 0 - 1)
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let fn_info_index = entry_view_fn::mir_entry_fn_info_index_for_decl(entry_view, decl_index)
     let mut typed_index = fn_idx

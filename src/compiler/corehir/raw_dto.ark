@@ -5,10 +5,18 @@ struct CoreHirModuleInfo {
     decl_count: i32,
 }
 
+// A call resolution produced by the typechecker, not a syntactic scan.
+// `owner_name` is the nominal receiver owner (`String` / `Vec`); MIR
+// lowers the call to the owner-qualified FunctionId and binds that symbol
+// to its CoreOp through the registry (#933). The body identity (decl index
+// plus impl-method ordinal) keeps spans from different loaded modules
+// distinct.
 struct CoreHirResolvedCall {
-    callee_name: String,
-    is_method: bool,
+    decl_index: i32,
+    body_child_index: i32,
     span_start: i32,
+    callee_name: String,
+    owner_name: String,
 }
 
 struct CoreHirTypedLocal {
@@ -32,8 +40,40 @@ fn CoreHirModuleInfo_decl_count(info: CoreHirModuleInfo) -> i32 {
     info.decl_count
 }
 
-fn CoreHirResolvedCall_new(callee_name: String, is_method: bool, span_start: i32) -> CoreHirResolvedCall {
-    CoreHirResolvedCall { callee_name: callee_name, is_method: is_method, span_start: span_start }
+fn CoreHirResolvedCall_new(
+    decl_index: i32,
+    body_child_index: i32,
+    span_start: i32,
+    callee_name: String,
+    owner_name: String
+) -> CoreHirResolvedCall {
+    CoreHirResolvedCall {
+        decl_index: decl_index,
+        body_child_index: body_child_index,
+        span_start: span_start,
+        callee_name: callee_name,
+        owner_name: owner_name,
+    }
+}
+
+fn CoreHirResolvedCall_decl_index(call: CoreHirResolvedCall) -> i32 {
+    call.decl_index
+}
+
+fn CoreHirResolvedCall_body_child_index(call: CoreHirResolvedCall) -> i32 {
+    call.body_child_index
+}
+
+fn CoreHirResolvedCall_span_start(call: CoreHirResolvedCall) -> i32 {
+    call.span_start
+}
+
+fn CoreHirResolvedCall_callee_name(call: CoreHirResolvedCall) -> String {
+    call.callee_name.clone()
+}
+
+fn CoreHirResolvedCall_owner_name(call: CoreHirResolvedCall) -> String {
+    call.owner_name.clone()
 }
 
 fn CoreHirTypedLocal_new(name: String, type_info: TypeInfo) -> CoreHirTypedLocal {

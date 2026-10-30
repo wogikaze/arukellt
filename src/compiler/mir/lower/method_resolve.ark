@@ -478,7 +478,13 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     // reuse the receiver call's `get_unchecked__String` specialization.
     let bare_builtin = mir_bare_method_name(callee_name.clone())
     if mir_type_prefix(callee_name.clone()).eq(String_from("String")) &&
-    (bare_builtin.clone().eq(String_from("len")) || bare_builtin.clone().eq(String_from("char_at"))) {
+    bare_builtin.clone().eq(String_from("len")) {
+        // Owner-qualified already: the free `len` handoff must not have to
+        // recover a String method receiver from a local type spelling (#933).
+        return String_from("String::len")
+    }
+    if mir_type_prefix(callee_name.clone()).eq(String_from("String")) &&
+    bare_builtin.clone().eq(String_from("char_at")) {
         return bare_builtin
     }
     let mono_target = ctx_mono_lookup_call(ctx, span_start, callee_name.clone())

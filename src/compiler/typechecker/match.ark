@@ -13,6 +13,7 @@ use typechecker::ast_pattern_predicates
 use typechecker::stmt_let
 use typechecker::ownership_types
 use typechecker::instantiate
+use typechecker::names
 fn infer_match_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     let arm_count = child_count - 1
@@ -146,11 +147,21 @@ fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_def
     let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, variant_name.clone())
     let type_params = contract_enum_info::EnumInfo_type_params(enum_info)
     let inst_args = enum_scrutinee_type_args(enum_info, scrutinee_ty)
+    let has_declared_payloads = len(contract_enum_info::EnumInfo_name(enum_info)) > 0
     let bind_count = ast_access::node_child_count(pat)
     let mut i = 0
     while i < bind_count {
         let bind_pat = ast_access::node_child_at(pat, i)
-        let declared_ty = contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
+        let declared_ty = if has_declared_payloads {
+            contract_enum_info::EnumInfo_variant_payload_at(enum_info, variant_index, i)
+        } else {
+            // Builtin Result / Option values carry their payload types as
+            // type arguments but no nominal EnumInfo, so a match binding
+            // used to fall back to TY_UNKNOWN. Checker-side binding is the
+            // only place the payload type exists; recovering it in lowering
+            // would hand MIR a type the checker never proved (#933).
+            builtin_variant_payload_type(scrutinee_ty.clone(), variant_name.clone(), i)
+        }
         let bind_ty = if len(inst_args) > 0 {
             instantiate::instantiate_type(declared_ty, type_params, inst_args)
         } else {
@@ -159,6 +170,24 @@ fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_def
         bind_payload_subpat_idents(env, scope, enum_defs, bind_ty, bind_pat)
         i = i + 1
     }
+}
+
+// Payload type of a builtin Result / Option variant, read from the scrutinee's
+// type arguments: Result Ok = arg0, Err = arg1; Option Some = arg0. Returns
+// TY_UNKNOWN for any other shape so custom enums keep the declared path.
+fn builtin_variant_payload_type(scrutinee_ty: TypeInfo, variant_name: String, payload_index: i32) -> TypeInfo {
+    let variant = names::unqualified_type_name(variant_name.clone())
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(scrutinee_ty)
+    let tag = contract_type_access::TypeInfo_tag(scrutinee_ty)
+    if tag == commands::TY_RESULT() {
+        if variant.clone().eq(String_from("Ok")) && payload_index == 0 && arg_count > 0 {
+            return contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, 0)
+        }
+        if variant.clone().eq(String_from("Err")) && payload_index == 0 && arg_count > 1 {
+            return contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, 1)
+        }
+    }
+    return TypeInfo_simple(commands::TY_UNKNOWN())
 }
 
 // Scrutinee type arguments in declared parameter order. Empty when the

@@ -2222,6 +2222,8 @@ run:stdlib_vec/vec_get_out_of_bounds.ark
 run:stdlib_vec/vec_get_unchecked_first.ark
 run:stdlib_vec/vec_get_unchecked_last.ark
 run:stdlib_vec/vec_get_unchecked_middle.ark
+run:stdlib_vec/prelude_call_owner_untracked_receiver.ark
+run:stdlib_vec/prelude_call_owner_untracked_receiver_wasm32.ark
 run:stdlib_vec/prelude_generic_signatures.ark
 run:stdlib_vec/prelude_len_owner_dispatch.ark
 run:stdlib_vec/prelude_len_owner_dispatch_wasm32.ark
@@ -3347,6 +3349,7 @@ t3-run:stdlib_vec/vec_get_out_of_bounds.ark
 t3-run:stdlib_vec/vec_get_unchecked_first.ark
 t3-run:stdlib_vec/vec_get_unchecked_last.ark
 t3-run:stdlib_vec/vec_get_unchecked_middle.ark
+t3-run:stdlib_vec/prelude_call_owner_untracked_receiver.ark
 t3-run:stdlib_vec/prelude_generic_signatures.ark
 t3-run:stdlib_vec/prelude_len_owner_dispatch.ark
 t3-run:stdlib_vec/vec_in_place.ark

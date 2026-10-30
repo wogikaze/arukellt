@@ -1,0 +1,80 @@
+// Per-call receiver-owner resolution produced by the typechecker and
+// consumed by MIR lowering (#933). A call site is identified by the body
+// that owns it (top-level decl index plus impl-method ordinal) and its span
+// start, so identical spans in two loaded modules never alias.
+//
+// `owner_name` is the nominal owner of the callable (`String` / `Vec`).
+// MIR composes the owner-qualified symbol and lets the CoreOp registry bind
+// it to the registry operation; the checker never names emitter symbols.
+struct ResolvedCallOwner {
+    decl_index: i32,
+    body_child_index: i32,
+    span_start: i32,
+    callee_name: String,
+    owner_name: String,
+}
+
+// A `len` receiver that was still a type variable at its call. The body may
+// bind it to String or Vec afterwards, so the owner resolution is recorded
+// once the whole body has run (#936).
+struct DeferredLenReceiver {
+    receiver_type: TypeInfo,
+    span_start: i32,
+    callee_name: String,
+}
+
+fn ResolvedCallOwner_new(
+    decl_index: i32,
+    body_child_index: i32,
+    span_start: i32,
+    callee_name: String,
+    owner_name: String
+) -> ResolvedCallOwner {
+    ResolvedCallOwner {
+        decl_index: decl_index,
+        body_child_index: body_child_index,
+        span_start: span_start,
+        callee_name: callee_name,
+        owner_name: owner_name,
+    }
+}
+
+fn ResolvedCallOwner_decl_index(owner: ResolvedCallOwner) -> i32 {
+    owner.decl_index
+}
+
+fn ResolvedCallOwner_body_child_index(owner: ResolvedCallOwner) -> i32 {
+    owner.body_child_index
+}
+
+fn ResolvedCallOwner_span_start(owner: ResolvedCallOwner) -> i32 {
+    owner.span_start
+}
+
+fn ResolvedCallOwner_callee_name(owner: ResolvedCallOwner) -> String {
+    owner.callee_name.clone()
+}
+
+fn ResolvedCallOwner_owner_name(owner: ResolvedCallOwner) -> String {
+    owner.owner_name.clone()
+}
+
+fn DeferredLenReceiver_new(receiver_type: TypeInfo, span_start: i32, callee_name: String) -> DeferredLenReceiver {
+    DeferredLenReceiver {
+        receiver_type: receiver_type,
+        span_start: span_start,
+        callee_name: callee_name,
+    }
+}
+
+fn DeferredLenReceiver_receiver_type(receiver: DeferredLenReceiver) -> TypeInfo {
+    receiver.receiver_type
+}
+
+fn DeferredLenReceiver_span_start(receiver: DeferredLenReceiver) -> i32 {
+    receiver.span_start
+}
+
+fn DeferredLenReceiver_callee_name(receiver: DeferredLenReceiver) -> String {
+    receiver.callee_name.clone()
+}

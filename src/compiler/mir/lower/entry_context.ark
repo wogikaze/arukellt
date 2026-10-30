@@ -1,6 +1,7 @@
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_api_init
 use mir::lower::ctx_mono_index
+use mir::lower::ctx_resolved_calls
 use mir::lower::ctx_types
 use mir::lower::ctx_fn_index
 use mir::lower::wit_ctx_init
@@ -17,7 +18,8 @@ fn mir_prepare_lower_ctx(
     decls: Vec<AstNode>,
     target: String,
     source_text: String,
-    fn_source_locations: Vec<SourceLocation>
+    fn_source_locations: Vec<SourceLocation>,
+    resolved_calls: Vec<CoreHirResolvedCall>
 ) -> LowerCtx {
     let mut ctx = ctx_api_init::LowerCtx_new_for_target(m, target.clone(), source_text, fn_source_locations)
     ctx_fn_mono::ctx_replace_fn_index(
@@ -34,6 +36,7 @@ fn mir_prepare_lower_ctx(
     mono_calls::mir_register_mono_rewrites(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     ctx_mono_index::ctx_set_mono_instances(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     wit_ctx_init::mir_init_wit_bindings(ctx, wit_paths, decls)
+    ctx_resolved_calls::ctx_register_resolved_calls(ctx, resolved_calls)
     entry_trace::mir_log_mono_rewrites_if_needed(mir_tr, ctx)
     ctx
 }

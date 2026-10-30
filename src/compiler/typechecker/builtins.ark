@@ -96,6 +96,9 @@ fn is_runtime_prelude_builtin(name: String) -> bool {
 
 fn builtin_call_return_type(name: String) -> TypeInfo {
     if name.clone().eq("String_from") ||
+    name.clone().eq("__intrinsic_string_from_bytes") ||
+    name.clone().eq("string_from_bytes") ||
+    name.clone().eq("bytes::string_from_bytes") ||
     name.clone().eq("i32_to_string") ||
     name.clone().eq("i64_to_string") ||
     name.clone().eq("f64_to_string") ||

@@ -1,4 +1,5 @@
 use typechecker::kinds
+use typechecker::ast_stmt_predicates
 use typechecker::ast_access
 use typechecker::closure_capture
 use typechecker::ownership
@@ -10,6 +11,14 @@ fn infer_block_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>
     while i < count {
         let child = ast_access::node_child_at(node, i)
         if i == count - 1 {
+            // A trailing statement in an if/match arm reaches infer_expr
+            // rather than check_stmt, so its condition/value expressions were
+            // never inferred (for example a `while len(x) > 0` or a
+            // `return Some(len(x))` at the end of an arm, #933).
+            if ast_stmt_predicates::node_is_return(child) ||
+            ast_stmt_predicates::node_is_while(child) {
+                check_stmt(env, scope, fn_sigs, enum_defs, child)
+            }
             // A trailing return never reaches check_return_stmt, so its
             // closure-capture, Box-escape, and function-mode checks would be
             // skipped inside if/match branches. Run them here without

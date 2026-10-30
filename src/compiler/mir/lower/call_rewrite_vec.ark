@@ -5,6 +5,7 @@ use mir::lower::call_rewrite_vec_push
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_resolved_calls
 use mir::lower::ctx_types
 use mir::inst_call
 use mir::inst_misc_control
@@ -44,7 +45,8 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
     callee_name.clone().eq(String_from("vec_push_i64")) ||
     callee_name.clone().eq(String_from("vec_push_f64")) ||
     callee_name.clone().eq(String_from("vec_set")) ||
-    callee_name.clone().eq(String_from("vec_pop"))
+    callee_name.clone().eq(String_from("vec_pop")) ||
+    callee_name.clone().eq(String_from("Vec::pop"))
 }
 
 // Free `push(v, x)` is rewritten to `Vec::push` when `impl Vec<T>` is registered
@@ -150,13 +152,13 @@ fn mir_rewrite_raw_array_namespace(callee_name: String) -> String {
     callee_name
 }
 
-fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
+fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool, span_start: i32) -> MirVecCallRewrite {
     let mut rewritten = mir_rewrite_raw_array_namespace(
         normalize_vec_constructor_callee(callee_name)
     )
     let mut push_i64_needs_extend = false
     if is_vec_len_callee(rewritten.clone()) {
-        rewritten = mir_rewrite_vec_len(ctx, first_arg_idx)
+        rewritten = mir_rewrite_vec_len(ctx, span_start, rewritten)
     }
     if is_vec_push_callee(rewritten.clone()) {
         // Normalize to bare `push` so element-type rewrite (vec_push / push_i64)
@@ -171,6 +173,9 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
     }
     if is_vec_get_callee(rewritten.clone()) {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
+    }
+    if is_vec_pop_callee(rewritten.clone()) {
+        rewritten = mir_rewrite_vec_pop(ctx, span_start, rewritten)
     }
     rewritten = mir_rewrite_vec_basic(rewritten)
     mir_vec_call_rewrite_new(rewritten, push_i64_needs_extend)
@@ -231,28 +236,71 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
     eqz_dest
 }
 
-// The prelude `len` free is signature-only and serves two receiver owners. Bind
-// the call to the owner's sealed CoreOp spelling so the emitter never has to
-// recover the owner from the bare `len` name (#936 item 3). The owner is the
-// receiver type the checker unified the argument with; an unscoped receiver
-// keeps the declaration's own String contract, matching the pre-owner binding.
-fn mir_rewrite_vec_len(ctx: LowerCtx, first_arg_idx: i32) -> String {
-    if first_arg_idx >= 0 {
-        let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if arg_type_len.clone().eq(String_from("Vec")) ||
-        arg_type_len.clone().starts_with("vec:") ||
-        arg_type_len.clone().starts_with("array:") {
-            return String_from("Vec::len")
-        }
+// The prelude `len` free is signature-only and serves two receiver owners.
+// The checker records the owner per call site (#933); lowering binds the
+// owner-qualified FunctionId the CoreOp registry already maps to
+// `string.len` / `vec.len`. No local-type re-derivation and no bare-`len`
+// name dispatch remain. A site without a resolution is not the prelude free,
+// so its callee stays untouched.
+fn mir_rewrite_vec_len(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+    if callee_name.clone().eq(String_from("String::len")) ||
+    callee_name.clone().starts_with(String_from("String::len__")) {
+        return String_from("String::len")
     }
-    String_from("String::len")
+    if callee_name.clone().eq(String_from("Vec::len")) ||
+    callee_name.clone().starts_with(String_from("Vec::len__")) {
+        return String_from("Vec::len")
+    }
+    if !is_dispatchable_len_name(callee_name) {
+        return callee_name
+    }
+    let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("len"))
+    if len(owner.clone()) == 0 {
+    }
+    if owner.eq(String_from("String")) {
+        return String_from("String::len")
+    }
+    if owner.eq(String_from("Vec")) {
+        return String_from("Vec::len")
+    }
+    callee_name
+}
+
+fn is_dispatchable_len_name(callee_name: String) -> bool {
+    callee_name.clone().eq(String_from("len")) ||
+    callee_name.clone().eq(String_from("prelude::len")) ||
+    callee_name.clone().eq(String_from("std::prelude::len")) ||
+    callee_name.clone().starts_with(String_from("len__"))
+}
+
+// `pop` is the second prelude callable proven through the owner handoff. The
+// checker records the Vec receiver owner; lowering emits the owner-qualified
+// `Vec::pop`, which the registry binds to `vec.pop`. A method-call rewrite
+// (span 0) keeps its historical Vec target because the method receiver has
+// already been resolved before call rewriting.
+fn mir_rewrite_vec_pop(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+    if callee_name.clone().eq(String_from("Vec::pop")) ||
+    callee_name.clone().starts_with(String_from("Vec::pop__")) ||
+    callee_name.clone().starts_with(String_from("pop__")) {
+        return String_from("Vec::pop")
+    }
+    if !callee_name.clone().eq(String_from("pop")) &&
+    !callee_name.clone().eq(String_from("prelude::pop")) &&
+    !callee_name.clone().eq(String_from("std::prelude::pop")) {
+        return callee_name
+    }
+    if span_start == 0 {
+        return String_from("Vec::pop")
+    }
+    let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("pop"))
+    if owner.eq(String_from("Vec")) {
+        return String_from("Vec::pop")
+    }
+    callee_name
 }
 
 fn mir_rewrite_vec_basic(callee_name: String) -> String {
     let mut rewritten = callee_name
-    if is_vec_pop_callee(rewritten.clone()) {
-        rewritten = String_from("vec_pop")
-    }
     if is_vec_set_callee(rewritten.clone()) {
         rewritten = String_from("raw_array_set_unchecked")
     }
