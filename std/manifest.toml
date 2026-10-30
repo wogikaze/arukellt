@@ -46,6 +46,7 @@ stable_functions = [
 ]
 intrinsic_compatibility_functions = [
     "get",
+    "get_unchecked",
 ]
 
 # ─────────────────────────────────────────────
@@ -278,6 +279,20 @@ doc_category = "collections"
 doc = "Append an element to the end of a Vec, mutating it in place."
 availability = { t1 = true, t3 = true }
 examples = [{code = "let v = Vec::new<i32>()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
+
+[[functions]]
+name = "get_unchecked"
+kind = "builtin"
+params = ["Vec<T>", "i32"]
+returns = "T"
+prelude = true
+stability = "deprecated"
+deprecated_by = "Vec::get_unchecked"
+deprecated_since = "0.1.0"
+remove_in = "1.0.0"
+doc_category = "collections"
+doc = "Read a Vec element without bounds checking."
+availability = { t1 = true, t3 = true }
 
 [[functions]]
 name = "pop"

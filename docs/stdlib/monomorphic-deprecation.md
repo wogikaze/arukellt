@@ -11,9 +11,10 @@ helpers are included alongside any other deprecated public entry.
 | API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |
 |-----|--------|-----------|-------------|------------------|------------------|--------|
 | `get` | `prelude` | `deprecated` | `Vec::get` | `0.1.0` | `1.0.0` | Superseded API |
+| `get_unchecked` | `prelude` | `deprecated` | `Vec::get_unchecked` | `0.1.0` | `1.0.0` | Read a Vec element without bounds checking. |
 | `pop` | `prelude` | `deprecated` | `Vec::pop` | `0.1.0` | `1.0.0` | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
 | `push` | `prelude` | `deprecated` | `Vec::push` | `0.1.0` | `1.0.0` | Append an element to the end of a Vec, mutating it in place. |
 | `set` | `prelude` | `deprecated` | `Vec::set` | `0.1.0` | `1.0.0` | Superseded API |
 | `slice_len` | `prelude` | `deprecated` | `Slice::len` | `0.1.0` | `1.0.0` | Superseded API |
 
-Total deprecated public entries: **5**.
+Total deprecated public entries: **6**.
