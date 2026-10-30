@@ -245,6 +245,8 @@ diag:diagnostics/deprecated_numeric_conversion.ark
 diag:diagnostics/deprecated_numeric_conversion_wasm32.ark
 diag:diagnostics/prelude_scalar_conversion_arg_type.ark
 diag:diagnostics/prelude_concrete_arg_type.ark
+diag:diagnostics/option_payload_type_mismatch.ark
+diag:diagnostics/option_payload_type_mismatch_wasm32.ark
 diag:diagnostics/prelude_conversion_string_arg_type.ark
 diag:diagnostics/prelude_len_arg_type.ark
 diag:diagnostics/prelude_len_arg_type_wasm32.ark
@@ -712,6 +714,8 @@ run:match_extensions/struct_pattern.ark
 run:match_extensions/tuple_arm_match.ark
 run:match_extensions/variant_payload_subpat.ark
 run:match_extensions/untyped_option_scrutinee.ark
+run:match_extensions/option_payload_types.ark
+run:match_extensions/option_payload_types_wasm32.ark
 run:match_extensions/match_field_access_scrutinee.ark
 run:module_import/use_destructure_multi.ark
 run:module_import/use_destructure_typed.ark
@@ -2557,6 +2561,7 @@ t3-compile:match_extensions/struct_pattern.ark
 t3-compile:match_extensions/tuple_arm_match.ark
 t3-compile:match_extensions/variant_payload_subpat.ark
 t3-compile:match_extensions/untyped_option_scrutinee.ark
+t3-compile:match_extensions/option_payload_types.ark
 t3-compile:memory64_struct_i32/default_fields.ark
 t3-compile:memory64_vec_i32_in_struct_fn/build_module_infos.ark
 t3-compile:modules/import_basic/main.ark
@@ -3092,6 +3097,7 @@ t3-run:match_extensions/struct_pattern.ark
 t3-run:match_extensions/tuple_arm_match.ark
 t3-run:match_extensions/variant_payload_subpat.ark
 t3-run:match_extensions/untyped_option_scrutinee.ark
+t3-run:match_extensions/option_payload_types.ark
 t3-run:match_extensions/match_field_access_scrutinee.ark
 t3-run:modules/import_basic/main.ark
 t3-run:modules/multi_import/main.ark

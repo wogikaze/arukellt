@@ -57,6 +57,17 @@ pub trait Iterator {
     fn count(self: Self) -> i32
 }
 
+/// Concrete-item producer capability for the numeric i32 consumers.
+///
+/// `Iterator`'s `Item` is an associated type, so a helper bounded only by
+/// `Iterator` sees `T::Item` as a symbolic projection and cannot prove the
+/// match payload is i32. This capability states that proof for each adapter
+/// that participates in the i32 lane, keeping the numeric helpers free of an
+/// unchecked payload read.
+trait IteratorI32 {
+    fn next_i32(mut self: Self) -> Option<i32>
+}
+
 /// Numeric sum capability for a concrete iterator item/output pair.
 pub trait IteratorSum<Item, Output> {
     fn sum(self: Self) -> Output
@@ -117,10 +128,10 @@ fn count_iterator<T: Iterator>(mut it: T) -> i32 {
     count
 }
 
-fn sum_iterator_i32<T: Iterator>(mut it: T) -> i32 {
+fn sum_iterator_i32<T: IteratorI32>(mut it: T) -> i32 {
     let mut total: i32 = 0
     while true {
-        match it.next() {
+        match it.next_i32() {
             Some(v) => total = total + v,
             None => { break },
         }
@@ -128,10 +139,10 @@ fn sum_iterator_i32<T: Iterator>(mut it: T) -> i32 {
     total
 }
 
-fn fold_iterator_i32<T: Iterator>(mut it: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+fn fold_iterator_i32<T: IteratorI32>(mut it: T, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     let mut total: i32 = init
     while true {
-        match it.next() {
+        match it.next_i32() {
             Some(v) => total = f(total, v),
             None => { break },
         }
@@ -139,10 +150,10 @@ fn fold_iterator_i32<T: Iterator>(mut it: T, init: i32, f: fn(i32, i32) -> i32) 
     total
 }
 
-fn contains_iterator_i32<T: Iterator>(mut it: T, target: i32) -> bool {
+fn contains_iterator_i32<T: IteratorI32>(mut it: T, target: i32) -> bool {
     let mut found: bool = false
     while true {
-        match it.next() {
+        match it.next_i32() {
             Some(v) => {
                 if v == target {
                     found = true
@@ -155,10 +166,10 @@ fn contains_iterator_i32<T: Iterator>(mut it: T, target: i32) -> bool {
     found
 }
 
-fn count_eq_iterator_i32<T: Iterator>(mut it: T, target: i32) -> i32 {
+fn count_eq_iterator_i32<T: IteratorI32>(mut it: T, target: i32) -> i32 {
     let mut hits: i32 = 0
     while true {
-        match it.next() {
+        match it.next_i32() {
             Some(v) => {
                 if v == target {
                     hits = hits + 1
@@ -170,10 +181,10 @@ fn count_eq_iterator_i32<T: Iterator>(mut it: T, target: i32) -> i32 {
     hits
 }
 
-fn any_iterator_i32<T: Iterator>(mut it: T, f: fn(i32) -> bool) -> bool {
+fn any_iterator_i32<T: IteratorI32>(mut it: T, f: fn(i32) -> bool) -> bool {
     let mut found: bool = false
     while true {
-        match it.next() {
+        match it.next_i32() {
             Some(v) => {
                 if f(v) {
                     found = true
@@ -186,10 +197,10 @@ fn any_iterator_i32<T: Iterator>(mut it: T, f: fn(i32) -> bool) -> bool {
     found
 }
 
-fn all_iterator_i32<T: Iterator>(mut it: T, f: fn(i32) -> bool) -> bool {
+fn all_iterator_i32<T: IteratorI32>(mut it: T, f: fn(i32) -> bool) -> bool {
     let mut all: bool = true
     while true {
-        match it.next() {
+        match it.next_i32() {
             Some(v) => {
                 if f(v) == false {
                     all = false
@@ -1434,6 +1445,116 @@ impl Iterator for RevIter {
         count_iterator(self)
     }
 
+}
+
+// ---------------------------------------------------------------------------
+// i32 producer capability for the numeric consumer lane
+// ---------------------------------------------------------------------------
+
+// Each implementation delegates to the adapter's Iterator::next, whose return
+// type is concrete here, so `IteratorI32` is the only place the i32 item type
+// is proven. The consumer helpers above stay generic without inspecting a
+// symbolic `T::Item`.
+impl IteratorI32 for VecIter<i32> {
+    fn next_i32(mut self: VecIter<i32>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for RangeIter {
+    fn next_i32(mut self: RangeIter) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for RangeInclusiveIter {
+    fn next_i32(mut self: RangeInclusiveIter) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for MapIter<i32, i32> {
+    fn next_i32(mut self: MapIter<i32, i32>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for MapFilterIter<i32, i32> {
+    fn next_i32(mut self: MapFilterIter<i32, i32>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for FilterIter<i32> {
+    fn next_i32(mut self: FilterIter<i32>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for TakeIter<MapIter<i32, i32>> {
+    fn next_i32(mut self: TakeIter<MapIter<i32, i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for TakeIter<MapFilterIter<i32, i32>> {
+    fn next_i32(mut self: TakeIter<MapFilterIter<i32, i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for TakeIter<FilterIter<i32>> {
+    fn next_i32(mut self: TakeIter<FilterIter<i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for TakeIter<VecIter<i32>> {
+    fn next_i32(mut self: TakeIter<VecIter<i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for SkipIter<VecIter<i32>> {
+    fn next_i32(mut self: SkipIter<VecIter<i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for TakeIter<SkipIter<VecIter<i32>>> {
+    fn next_i32(mut self: TakeIter<SkipIter<VecIter<i32>>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for SkipMapIter<VecIter<i32>> {
+    fn next_i32(mut self: SkipMapIter<VecIter<i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for SkipFilterIter<VecIter<i32>> {
+    fn next_i32(mut self: SkipFilterIter<VecIter<i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for ChainIter<VecIter<i32>> {
+    fn next_i32(mut self: ChainIter<VecIter<i32>>) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for UniqueIter {
+    fn next_i32(mut self: UniqueIter) -> Option<i32> {
+        self.next()
+    }
+}
+
+impl IteratorI32 for RevIter {
+    fn next_i32(mut self: RevIter) -> Option<i32> {
+        self.next()
+    }
 }
 
 // ---------------------------------------------------------------------------

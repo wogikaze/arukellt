@@ -1,0 +1,58 @@
+// A builtin Option match payload has no nominal EnumInfo, so its type comes
+// from the scrutinee's concrete type arguments. The bind for each of
+// Option<i32>/<i64>/<String>/<Point> must be that payload type, not
+// TY_UNKNOWN; otherwise the checker accepts operations that lowering then
+// emits with a mismatched value type (#933 follow-up).
+
+use std::host::stdio
+
+struct Point {
+    x: i64,
+    y: i64,
+}
+
+fn unwrap_i32(value: Option<i32>, fallback: i32) -> i32 {
+    match value {
+        Option::Some(v) => v,
+        Option::None => fallback,
+    }
+}
+
+fn unwrap_i64(value: Option<i64>, fallback: i64) -> i64 {
+    match value {
+        Option::Some(v) => v,
+        Option::None => fallback,
+    }
+}
+
+fn describe(value: Option<String>) -> String {
+    match value {
+        Option::Some(s) => s.concat("!"),
+        Option::None => String_from("none"),
+    }
+}
+
+fn point_x(value: Option<Point>) -> i64 {
+    match value {
+        Option::Some(p) => p.x,
+        Option::None => 0i64,
+    }
+}
+
+fn main() {
+    let small: Option<i32> = Option::Some(41)
+    stdio::println((unwrap_i32(small, 0) + 1).to_string())
+
+    let wide: Option<i64> = Option::Some(9000000000i64)
+    stdio::println(unwrap_i64(wide, 0i64).to_string())
+
+    let text: Option<String> = Option::Some(String_from("payload"))
+    stdio::println(describe(text))
+
+    let point: Option<Point> = Option::Some(Point { x: 7i64, y: 9i64 })
+    stdio::println(point_x(point).to_string())
+
+    let empty_text: Option<String> = Option::None
+    stdio::println(describe(empty_text))
+    stdio::println(unwrap_i32(Option::None, 5).to_string())
+}
