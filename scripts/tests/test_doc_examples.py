@@ -109,6 +109,32 @@ class TestCheckBlockInput(unittest.TestCase):
         code = 'fn main() {\n    Stdio::println("hi")\n}\n'
         self.assertEqual(self._checked_code(code), code)
 
+    def test_wrapped_snippet_is_compiled_to_a_temp_wasm(self):
+        commands: list[list[str]] = []
+
+        def fake_run(cmd, **kwargs):
+            commands.append(cmd)
+            result = MagicMock()
+            result.returncode = 0
+            result.stdout = ""
+            result.stderr = ""
+            return result
+
+        with patch.object(check_doc_examples.subprocess, "run", side_effect=fake_run):
+            passed, error = check_doc_examples.check_block(
+                "arukellt",
+                'Stdio::println("hi")\n',
+                Path("docs/test.md"),
+                0,
+                "wasm32",
+                compile_check=True,
+            )
+        self.assertTrue(passed, error)
+        self.assertEqual([cmd[1] for cmd in commands], ["check", "compile"])
+        self.assertIn("-o", commands[1])
+        self.assertTrue(commands[1][-1].endswith(".wasm"))
+        self.assertFalse((check_doc_examples.ROOT / commands[1][-1]).exists())
+
 
 class TestMainSkipsNotation(unittest.TestCase):
     def test_notation_block_is_not_sent_to_the_compiler(self):
@@ -121,10 +147,10 @@ class TestMainSkipsNotation(unittest.TestCase):
             'Stdio::println("hi")\n'
             "```\n"
         )
-        checked: list[str] = []
+        checked: list[tuple[str, bool]] = []
 
-        def fake_check_block(_arukellt, code, _md, _idx, _target):
-            checked.append(code)
+        def fake_check_block(_arukellt, code, _md, _idx, _target, compile_check=False):
+            checked.append((code, compile_check))
             return True, ""
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -139,8 +165,10 @@ class TestMainSkipsNotation(unittest.TestCase):
                 self.assertEqual(check_doc_examples.main(), 0)
 
         self.assertEqual(len(checked), 1)
-        self.assertIn("fn main() {", checked[0])
-        self.assertNotIn("// reject:", checked[0])
+        code, compile_check = checked[0]
+        self.assertIn("fn main() {", code)
+        self.assertNotIn("// reject:", code)
+        self.assertTrue(compile_check)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ Usage:
 - Wraps statement-only snippets in a synthetic `fn main()` before checking:
   `arukellt check` treats a file as a script and does not visit top-level
   statements, so an unwrapped snippet would pass without being typechecked
+<<<<<<< HEAD
   (issue #683). Leading `use` / `import` declarations stay at file scope;
   complete modules (a block that declares `fn`, `struct`, ...) are checked
   unchanged.
@@ -17,6 +18,20 @@ Usage:
   lines) and `// before` / `// after` (migration guidance alternatives) are
   reported as notation skips rather than wrapped.
 - Runs `arukellt check <snippet> --target wasm32` on each block.
+||||||| 8a8142bd0
+- Runs `arukellt check <snippet> --target wasm32` on each block.
+=======
+  (issue #683). Wrapped snippets are also compiled, because the synthetic
+  main makes them complete programs. Leading `use` / `import` declarations
+  stay at file scope; complete modules (a block that declares `fn`,
+  `struct`, ...) are checked unchanged.
+- Blocks whose body deliberately shows non-compilable notation keep the
+  same contract without an HTML marker: `// reject:` (ADR-067 rejection
+  lines) and `// before` / `// after` (migration guidance alternatives) are
+  reported as notation skips rather than wrapped.
+- Runs `arukellt check <snippet> --target wasm32` on each block, then
+  `arukellt compile --target wasm32` for wrapped statement-only snippets.
+>>>>>>> wave/doc-example-gate
 - Reports failures as "FAIL: <file> block <N>: <error>".
 - Exits 0 if all non-skipped blocks pass and every marker is valid.
 
@@ -311,16 +326,35 @@ def extract_blocks(md_path: Path) -> list[tuple[int, str, bool]]:
     return results
 
 
+def summarize_error(output: str) -> str:
+    """Pick a stable one-line failure summary from compiler output."""
+    for line in output.splitlines():
+        if line.startswith("error"):
+            return line
+    return output.splitlines()[0] if output else "(no output)"
+
+
 def check_block(
-    arukellt: str, code: str, md_path: Path, block_idx: int, target: str
+    arukellt: str,
+    code: str,
+    md_path: Path,
+    block_idx: int,
+    target: str,
+    compile_check: bool = False,
 ) -> tuple[bool, str]:
-    """Run arukellt check on a code snippet. Returns (passed, error_output)."""
+    """Run arukellt check (and optionally compile) on a snippet.
+
+    Returns (passed, error_output). Synthetic-main snippets are complete
+    programs, so they are also compile-checked to catch codegen failures
+    that typechecking misses.
+    """
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
         suffix=".ark", mode="w", encoding="utf-8", delete=False, dir=TMP_DIR
     ) as f:
         f.write(code)
         tmp_path = Path(f.name)
+    wasm_path = tmp_path.with_suffix(".wasm")
 
     try:
         arg_path = str(tmp_path.relative_to(ROOT))
@@ -337,12 +371,31 @@ def check_block(
             cwd=ROOT,
             env=env,
         )
+        if result.returncode != 0:
+            return False, (result.stderr or result.stdout).strip()
+        if not compile_check:
+            return True, ""
+        result = subprocess.run(
+            [
+                arukellt,
+                "compile",
+                arg_path,
+                "--target",
+                target,
+                "-o",
+                str(wasm_path.relative_to(ROOT)),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+            env=env,
+        )
         if result.returncode == 0:
             return True, ""
-        error_output = (result.stderr or result.stdout).strip()
-        return False, error_output
+        return False, (result.stderr or result.stdout).strip()
     finally:
         tmp_path.unlink(missing_ok=True)
+        wasm_path.unlink(missing_ok=True)
 
 
 def main() -> int:
@@ -414,13 +467,26 @@ def main() -> int:
                 code = wrapped
                 wrapped_count += 1
 
+<<<<<<< HEAD
             passed, error_output = check_block(arukellt, code, md, idx, args.target)
+||||||| 8a8142bd0
+            passed, error_output = check_block(arukellt, code, md, idx, args.target)
+=======
+            passed, error_output = check_block(
+                arukellt,
+                code,
+                md,
+                idx,
+                args.target,
+                compile_check=wrapped is not None,
+            )
+>>>>>>> wave/doc-example-gate
             if passed:
                 pass_count += 1
             else:
                 fail_count += 1
                 # Report first line of error as the inline summary, full output below
-                first_line = error_output.splitlines()[0] if error_output else "(no output)"
+                first_line = summarize_error(error_output)
                 print(f"FAIL: {rel} block {idx}: {first_line}")
                 if error_output:
                     # Indent continuation lines for readability
@@ -434,7 +500,13 @@ def main() -> int:
     print(
         f"\nDoc example check: {pass_count} pass, {fail_count} fail, "
         f"{skip_count} skip ({notation_skip_count} notation), "
+<<<<<<< HEAD
         f"{wrapped_count} wrapped, {len(marker_failures)} marker-fail, "
+||||||| 8a8142bd0
+        f"{skip_count} skip, {len(marker_failures)} marker-fail, "
+=======
+        f"{wrapped_count} wrapped+compiled, {len(marker_failures)} marker-fail, "
+>>>>>>> wave/doc-example-gate
         f"{len(marker_warnings)} marker-warn"
     )
     return 0 if fail_count == 0 and not marker_failures else 1
