@@ -95,6 +95,16 @@ fn lower_core_let(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr)
         }
         core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, resolved_type_name.clone(), child_count)
     }
+    // A HashSet value stores as the container alias (`hashmap:si32` /
+    // `vec:i32`), so the initializer's marker is the only evidence that the
+    // binding is a set. Without copying it, `let s = HashSet::new<String>()`
+    // makes `s.insert(...)` look like a HashMap call to the method rewrite.
+    if child_count >= 1 && val_idx >= 0 {
+        let set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, val_idx)
+        if len(set_family) > 0 {
+            ctx_api_local_types::ctx_mark_hashset_local(ctx, local_idx, set_family)
+        }
+    }
     if child_count >= 1 {
         let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         if core_expr_shape_calls::mir_core_expr_is_closure(init_expr) {

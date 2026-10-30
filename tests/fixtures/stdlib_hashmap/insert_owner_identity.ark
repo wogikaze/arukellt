@@ -1,0 +1,53 @@
+use std::collections::hash_set::HashSet
+use std::test::Test
+
+// Three declarations share the method name `insert`: the generic HashMap
+// shell, the HashSet<String> impl, and this user struct. Each call must keep
+// the contract of the receiver's own declaration instead of the first
+// same-named entry in the flat signature index.
+struct Accumulator {
+    total: i32,
+}
+
+impl Accumulator {
+    fn insert(mut self: Accumulator, value: i32) -> i32 {
+        self.total = self.total + value
+        self.total
+    }
+}
+
+test "insert_resolves_through_the_receiver_declaration" {
+    let mut counts = HashMap::new<String, i32>()
+    let mut seen = HashSet::new<String>()
+    let mut accumulator = Accumulator { total: 0 }
+
+    // HashMap::insert returns the previous value, not bool.
+    match counts.insert("apple", 1) {
+        Option::Some(_) => Std::panic("expected no previous value"),
+        None => {
+        },
+    }
+    match counts.insert("apple", 2) {
+        Option::Some(previous) => Test::assert_eq_i32(previous, 1),
+        None => Std::panic("expected the previous value"),
+    }
+    Test::assert_eq_i32(counts.len(), 1)
+
+    // HashSet::insert returns whether the element was new, not Option.
+    Test::assert_true(seen.insert("apple"))
+    Test::assert_false(seen.insert("apple"))
+    Test::assert_eq_i32(seen.len(), 1)
+
+    Test::assert_eq_i32(accumulator.insert(2), 2)
+    Test::assert_eq_i32(accumulator.insert(3), 5)
+
+    // remove shares the same collision and must also stay on its owner.
+    match counts.remove("apple") {
+        Option::Some(removed) => Test::assert_eq_i32(removed, 2),
+        None => Std::panic("expected the removed value"),
+    }
+    Test::assert_true(seen.remove("apple"))
+    Test::assert_false(seen.remove("apple"))
+    Test::assert_true(counts.is_empty())
+    Test::assert_true(seen.is_empty())
+}

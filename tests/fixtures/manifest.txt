@@ -1152,6 +1152,7 @@ test:stdlib_hashmap/hashmap_string_i32.ark
 test:stdlib_hashmap/hashmap_pair_capacity.ark
 test:stdlib_hashmap/hashmap_string_capacity.ark
 test:stdlib_hashmap/hashmap_string_string.ark
+test:stdlib_hashmap/insert_owner_identity.ark
 run:stdlib_hashmap/hashmap_typed_remove_extend.ark
 run:stdlib_hashset/hashset_string_capacity.ark
 run:stdlib_hashset/hashset_string_capacity_wasm32.ark
@@ -2617,6 +2618,7 @@ t3-compile:stdlib_hashmap/hashmap_insert_return.ark
 t3-compile:stdlib_hashmap/hashmap_keys_generic.ark
 t3-compile:stdlib_hashmap/hashmap_parity_edges.ark
 t3-compile:stdlib_hashmap/hashmap_remove.ark
+t3-compile:stdlib_hashmap/insert_owner_identity.ark
 t3-compile:stdlib_hashmap/hashmap_size_direct.ark
 t3-compile:stdlib_hashmap/hashmap_string_i32.ark
 t3-compile:stdlib_hashmap/hashmap_string_string.ark
@@ -3160,6 +3162,7 @@ t3-run:stdlib_hashmap/hashmap_insert_return.ark
 t3-run:stdlib_hashmap/hashmap_keys_generic.ark
 t3-run:stdlib_hashmap/hashmap_parity_edges.ark
 t3-run:stdlib_hashmap/hashmap_remove.ark
+t3-run:stdlib_hashmap/insert_owner_identity.ark
 t3-run:stdlib_hashmap/hashmap_size_direct.ark
 t3-run:stdlib_hashmap/hashmap_string_i32.ark
 t3-run:stdlib_hashmap/hashmap_string_string.ark

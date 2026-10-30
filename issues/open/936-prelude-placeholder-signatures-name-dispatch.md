@@ -443,6 +443,31 @@ Acceptance movement: item 2's `call_method.ark` entry is gone; items 1, 3 and
   bodies (item 1); the free `len` declaration keeps the String spelling until
   the committed pin is refreshed. #928 is unchanged.
 
+## Update (2026-10-30, `wave/decl-identity`) — `hashmap_methods.ark` table retired
+
+- `typechecker/hashmap_methods.ark`: the HashMap method pre-emption (arity and
+  return-type tables) is deleted. Methods type through
+  `impl<K, V> HashMap<K, V>` now that the shell binds `self` to the map pair;
+  only the constructor keeps a checker entry point.
+- `mir/lower/call_rewrite_hashset.ark`: set lowering no longer claims
+  `insert` / `remove` from the `hashmap:si32` / `vec:i32` storage alias.
+  Marked receivers and explicit HashSet spellings are the only signals; the
+  alias is shared with plain maps/vecs (#934).
+- `mir/lower/core_bindings.ark`: a CoreHIR `let` copies the set marker so the
+  marker-based path covers test bodies.
+- Fixture: `stdlib_hashmap/insert_owner_identity.ark` (HashMap, HashSet and a
+  user struct with the same `insert` name in one test).
+- Evidence: `verify fixtures` PASS=1945 FAIL=0, `test:` 43/43; `verify lane`;
+  `docs check` 6/6; `selfhost diag-parity`; fixpoint
+  `815047887860e3d4…`.
+
+Acceptance movement: item 2 moves for `hashmap_methods.ark`. Remaining
+name-keyed surfaces: `builtins::is_concrete_prelude_builtin` /
+`builtin_call_return_type`, the MIR `call_rewrite_hashmap` family tables, and
+the bare `push` CoreOp alias. Those stay behind #935 and the #933 handoff;
+narrowing them without declaration identity would only move the false-pass to
+another name. Items 1, 3 (HashMap emitter) and 4 are unchanged.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

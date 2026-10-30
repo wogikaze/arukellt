@@ -81,3 +81,15 @@ span, identical on both targets.
 
 Adding argument unification before #934/#936 will false-fail stdlib bodies
 (per the code comment). Do not land a per-name allowlist to get around that.
+
+## Update (2026-10-30, `wave/decl-identity`)
+
+HashMap method calls now reach the ordinary generic-method checking path
+instead of the deleted pre-emption, so `m.insert("k", "not i32")` on
+`HashMap<String, i32>` is unified against `impl<K, V> HashMap<K, V>`'s
+`insert(self, key: K, value: V)` (E0200 at the call). The rest of the
+acceptance work is unchanged: non-generic concrete calls still check only
+arity, and the prelude exemptions (`is_concrete_prelude_builtin`,
+`builtin_call_return_type`) still cover the names the emitter coerces. No
+per-name allowlist was added.
+

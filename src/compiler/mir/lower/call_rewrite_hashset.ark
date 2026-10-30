@@ -344,27 +344,12 @@ fn mir_rewrite_hashset_call(ctx: LowerCtx, callee_name: String, receiver_idx: i3
     if len(by_method) > 0 {
         return by_method
     }
-    // Fallback for a call that lost the marker: these names have no Vec
-    // counterpart, so a typed receiver is unambiguous evidence of a set.
-    if receiver_idx < 0 {
-        return String_new()
-    }
-    let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx)
-    let method = hashset_method_name_from_source(callee_name.clone())
-    if method.clone().eq(String_from("insert")) ||
-    method.clone().eq(String_from("contains")) ||
-    method.clone().eq(String_from("remove")) {
-        // These names have no Vec counterpart; `len` / `is_empty` do, and the
-        // String store's own `hashset_str_len` body calls `len(s)`, so they
-        // stay marker-only to avoid rewriting the implementation to itself.
-        if receiver_type.clone().eq(String_from("vec:String")) ||
-        receiver_type.clone().eq(String_from("hashmap:si32")) {
-            return hashset_str_method_target(method)
-        }
-        if receiver_type.clone().eq(String_from("vec:i32")) {
-            return hashset_i32_method_target(method)
-        }
-    }
+    // No receiver-type fallback: a HashSet value shares its storage alias with
+    // a plain container (`hashmap:si32` is also HashMap<String, i32>, and
+    // `vec:i32` is also Vec<i32>). Claiming `insert` / `remove` from that alias
+    // rewrote HashMap calls to the set store, which returns bool instead of the
+    // map's Option value (#934). The marker above and the explicit HashSet
+    // spellings are the only sound set signals.
     String_new()
 }
 
