@@ -288,9 +288,12 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("target_family" in e and "backend" in e for e in errors))
 
     def test_required_public_binding_missing(self) -> None:
-        for fn in self.manifest["functions"]:
-            if fn.get("core_op_id") == "string.starts_with":
-                fn["core_op_id"] = "string.starts_with_REMOVED"
+        # The live registry has no `required` public operation after #917
+        # retired the text frees, so synthesize one with no manifest reference.
+        op = copy.deepcopy(self._op("string.starts_with"))
+        op["id"] = "test.required_without_manifest"
+        op["binding"] = {"policy": "required"}
+        self.core_ops["operations"].append(op)
         errors = self._run()
         self.assertTrue(any("public required binding has no manifest reference" in e for e in errors))
 
@@ -414,8 +417,21 @@ class CoreOpsCheckerMainTest(unittest.TestCase):
         self.assertEqual(self._run_main("--production-structural-readiness", core_ops_path=tmp), 1)
 
     def test_main_production_rejects_legacy_emitters(self) -> None:
-        tmp = self._temp_core_ops("production", "core.invalid")
-        self.assertEqual(self._run_main("--production-structural-readiness", core_ops_path=tmp), 1)
+        # The registry no longer carries a legacy_emitter operation, so the
+        # rule is asserted directly instead of relying on live data.
+        errors: list[str] = []
+        check_core_ops.validate_lowering(
+            {
+                "id": "test.legacy_emitter",
+                "lowering": {
+                    "kind": "legacy_emitter",
+                    "legacy": {"handler_id": "test_handler", "tracking_issue": "798"},
+                },
+            },
+            "production",
+            errors,
+        )
+        self.assertTrue(any("legacy_emitter is allowed only when status = migration" in e for e in errors))
 
 
 if __name__ == "__main__":

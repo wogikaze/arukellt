@@ -2384,7 +2384,7 @@ kind = "wasm_v128"
 id = "string.starts_with"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "required" }
+binding = { policy = "optional", reason = "method-only surface after #917 (String::starts_with); no user-reachable free function remains", tracking_issue = "917" }
 description = "Return true when the receiver string starts with the given prefix."
 [operations.signature]
 inputs = [
@@ -2422,7 +2422,7 @@ required = true
 id = "string.ends_with"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "required" }
+binding = { policy = "optional", reason = "method-only surface after #917 (String::ends_with); no user-reachable free function remains", tracking_issue = "917" }
 description = "Return true when the receiver string ends with the given suffix."
 [operations.signature]
 inputs = [
