@@ -142,3 +142,68 @@ in `bootstrap/PROVENANCE.md`.
    the other shims listed in `docs/compiler/bootstrap.md` and
    `scripts/selfhost/checks.py` remain, with their deletion conditions
    unchanged.
+
+## Update 2026-10-31 — second blocker (func 7188) cleared
+
+Lane `.worktrees/wave-gc-selfbuild-7188` (`wave/gc-selfbuild-7188`), base
+`8a8142bd0`, commit `d1ccdbcfa`, same toolchain.
+
+After `9ebd82899` the gc self-build passed func 1516 and failed at func 7188
+(`edge_collect_calls`) with `type mismatch: values remaining on stack at end of
+block @0x2d06e5`. The site was
+`local.get $ta; local.get $ta; call $corehir_node_text`; the pin emits one
+`local.get $ta`.
+
+The extra load was **not** the staged call-argument reload: `corehir_node_text`
+takes one argument, so that call is not staged (`child_count > 2` / printlike
+only), and a stage-2 built from the pre-`9ebd82899` parent (`aefd33641`) emits
+the same double load. The duplicate came from `mir_emit_clone_identity`
+(`src/compiler/mir/lower/method_emit.ark`): it lowered the identity `clone` to
+a `LOCAL_GET source -> dest` copy, but the method-call lowering had already
+pushed the receiver operand, so `f(x.clone())` left two copies of `x` and the
+call popped one. String receivers use the emitter's clone intrinsic and were
+unaffected; a concrete struct receiver (`AstNode`) took the lowerer path.
+
+The fix emits the clone CoreOp (`__intrinsic_string_clone`) as a stack call
+again: the #928 constraint holds (the bare `clone` name is not resolved
+through the shared cache) and the emitter store policy chooses SET/TEE/SKIP
+from the enclosing consumer. `tests/fixtures/clone_no_import/
+clone_call_arg_in_block.ark` is the regression fixture: it fails validation on
+both targets before the fix (`values remaining on stack at end of block`) and
+passes after it.
+
+Validation evidence with `ARUKELLT_BUILD_DIR=$PWD/.build-lane`:
+
+| Gate | Result |
+|------|--------|
+| `selfhost build-compiler` | PASS, s2 `60a7b9c9…` |
+| `verify fixtures` | PASS=1970 FAIL=0 (43 test PASS) |
+| `verify lane` | PASS |
+| `docs check` | 6/6 PASS |
+| `selfhost diag-parity` | PASS |
+| `selfhost fixpoint` | PASS, s2 == s3 `60a7b9c9…` |
+| gc self-build of the overlay | rc=0, 2242 s, core 8 308 553 B `b49a8341…`, `wasm-tools validate` PASS, component 8 316 318 B `83021916…` |
+
+The new core's `$edge_collect_calls` has the pin's single
+`local.get $ta; call $corehir_node_text`, and the whole core has no
+`local.get X; local.get X; call` pair (the invalid core had 15).
+
+## Pin refresh status after func 7188
+
+The validation blocker is cleared: the gc core validates and packages. The
+refresh is **not** yet adoptable, because the accelerator fixed-point contract
+(`bootstrap/PROVENANCE.md` step 3) did not hold in the lane probe:
+
+- fixed-point s2: `60a7b9c9…`, 11 271 157 B;
+- the component built from it compiled the overlay to
+  `--target wasm32 --wasi-version wasi-p1` as `6d19759e…`, 11 281 967 B
+  (+10 810 B), and the same component used as a pin produced that same
+  `6d19759e…` s2 (build-compiler PASS, 54.5 s).
+
+Caveat: the lane helper `.build-lane/scratch/build_gc_component.py` still
+passes the legacy `--bootstrap-allow-shared-param-mutation`, which
+`bootstrap/PROVENANCE.md` reserves for the stripped legacy core path
+(`typechecker/body_params.ark` treats every parameter as mutable under it).
+The next step is the canonical no-flag self-build of the fixed-point s2. If
+p1 identity still differs, the next diagnosis is a gc-host vs p1-host
+emission difference, not the func 7188 lowering.
