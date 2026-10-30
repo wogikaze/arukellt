@@ -1659,10 +1659,11 @@ RFC-011 item 37 asks that eager helpers, lazy adapters, `IntoIterator`, and
   enumerated compositions, chain, enumerate, zip, flat_map, peek,
   step_by, scan (i32 and String lanes), unique, and rev; `collect` is the
   canonical trait path (`Vec<Self::Item>`).
-- `for key in map` iterates every supported HashMap pair through the
-  parametric `impl<K,V> IntoIterator for HashMap<K,V>` (keys snapshot
-  into `VecIter<K>`); #691 closed with all thirteen `std::seq`
-  helpers carrying `deprecated` + `deprecated_by` targets.
+- `for pair in map` iterates every supported HashMap pair through the
+  parametric `impl<K,V> IntoIterator for HashMap<K,V>` (owned `(K, V)`
+  snapshot into `HashMapIter<K, V>`, matching `map.iter()`); #691 closed
+  with all thirteen `std::seq` helpers carrying `deprecated` +
+  `deprecated_by` targets.
 - `for` lowering dispatches concrete `IntoIterator` sources through the
   same conversion + canonical `next` sequence as handwritten consumers;
   generic `T: Iterator` / `T: IntoIterator` consumers monomorphize to the

@@ -2,8 +2,8 @@
 //
 // `keys()` is a source-level generic method that monomorphizes to the
 // per-combo `hashmap_<family>_keys` adapter, including inside generic
-// bodies with deferred K/V type variables. `for k in map` iterates the
-// key snapshot through IntoIterator.
+// bodies with deferred K/V type variables. `for pair in map` iterates the
+// same pair snapshot as `iter()` through IntoIterator.
 use std::host::stdio::Stdio
 fn double(n: i32) -> i32 {
     n * 2
@@ -43,16 +43,25 @@ fn main() {
     assert(key_count(s_fn) == 1)
     assert(key_count(ii) == 2)
 
-    // for-in over fn-valued maps iterates the key snapshot.
+    // for-in over fn-valued maps yields (K, V) pairs through IntoIterator.
     let mut total = 0
-    for k in i_fn {
-        total = total + k
+    for pair in i_fn {
+        let (k, f) = pair
+        total = total + f(k)
     }
-    assert(total == 7)
+    assert(total == 14)
     let mut seen = 0
-    for k in s_fn {
-        seen = seen + k.len()
+    for pair in s_fn {
+        let (k, f) = pair
+        seen = seen + k.len() + f(0)
     }
     assert(seen == 1)
+
+    let mut flat_total = 0
+    for pair in ii {
+        let (k, v) = pair
+        flat_total = flat_total + k * 10 + v
+    }
+    assert(flat_total == 60)
     Stdio::println("OK")
 }

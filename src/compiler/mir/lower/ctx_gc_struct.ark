@@ -428,7 +428,14 @@ fn gc_struct_field_type_is_fn_value(type_name: String) -> bool {
 }
 // Map container type names to the fixed GC type-section offsets used by
 // sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
-fn gc_struct_container_ref_suffix(type_name: String) -> String {
+fn gc_struct_container_ref_suffix(type_name_raw: String) -> String {
+    // A derived generic layout keeps the annotation spelling
+    // (`HashMap<String, String>`) while locals use the storage alias
+    // (`hashmap:strstr`). Normalize before the fixed-slot table so a field
+    // such as `Entry.map` carries the same ref as the map value; without this
+    // every non-i32/i32 pair falls through to the String->i32 slot and GC
+    // struct validation rejects the field (#974).
+    let type_name = ctx_struct_field_type::ctx_struct_field_hashmap_alias(type_name_raw)
     if type_name.clone().eq(String_from("vec:String")) ||
     type_name.clone().eq(String_from("vec:string")) ||
     type_name.clone().eq(String_from("Vec<String>")) ||

@@ -26,6 +26,12 @@
 //! by handle and document the snapshot boundary. `retain` rebuilds in place by
 //! removing the rejected keys, so the map handle and its bucket capacity are
 //! preserved.
+//!
+//! `IntoIterator for HashMap<K, V>` consumes the same pair snapshot, so
+//! `for (k, v) in map` and `for (k, v) in map.iter()` observe the same item
+//! type. The `HashMap` value is still a shared handle under ADR-088, so the
+//! source binding remains readable after the loop; the cursor itself owns the
+//! snapshot and is not a borrow of the map.
 
 use std::core::iter
 
@@ -91,10 +97,10 @@ impl<K, V> HashMap<K, V> {
 /// Owned handle for one map key.
 ///
 /// Rust's `Entry<'a, K, V>` borrows the map; without a borrow checker the
-/// handle owns the map and key instead. `or_insert` / `or_insert_with` resolve
-/// the current value when consumed, so another write between `entry` and
-/// `or_insert` is visible. The handle must not outlive the map value it was
-/// opened from.
+/// handle owns the map and key instead. `or_insert` / `or_insert_with` /
+/// `or_default` resolve the current value when consumed, so another write
+/// between `entry` and `or_insert` is visible. The handle must not outlive the
+/// map value it was opened from.
 pub struct Entry<K, V> {
     map: HashMap<K, V>,
     key: K,
@@ -133,6 +139,11 @@ impl Entry<i32, i32> {
             },
         }
     }
+
+    /// Returns the stored value, inserting 0 when the key is absent.
+    fn or_default(mut self: Entry<i32, i32>) -> i32 {
+        self.or_insert(0)
+    }
 }
 impl Entry<String, i32> {
     /// Returns the key this entry was opened for.
@@ -166,6 +177,11 @@ impl Entry<String, i32> {
                 inserted
             },
         }
+    }
+
+    /// Returns the stored value, inserting 0 when the key is absent.
+    fn or_default(mut self: Entry<String, i32>) -> i32 {
+        self.or_insert(0)
     }
 }
 impl Entry<i32, String> {
@@ -201,6 +217,11 @@ impl Entry<i32, String> {
             },
         }
     }
+
+    /// Returns the stored value, inserting the empty String when absent.
+    fn or_default(mut self: Entry<i32, String>) -> String {
+        self.or_insert(String_from(""))
+    }
 }
 impl Entry<String, String> {
     /// Returns the key this entry was opened for.
@@ -234,6 +255,11 @@ impl Entry<String, String> {
                 inserted
             },
         }
+    }
+
+    /// Returns the stored value, inserting the empty String when absent.
+    fn or_default(mut self: Entry<String, String>) -> String {
+        self.or_insert(String_from(""))
     }
 }
 impl Entry<i32, fn(i32) -> i32> {
@@ -307,8 +333,9 @@ impl Entry<String, fn(i32) -> i32> {
 
 /// Snapshot cursor over the `(K, V)` pairs of a `HashMap`.
 ///
-/// The cursor owns the pairs captured by `HashMap::iter`; later map writes are
-/// not observed. Pair order is bucket order, which is implementation-defined.
+/// The cursor owns the pairs captured by `HashMap::iter` / `IntoIterator`;
+/// later map writes are not observed. Pair order is bucket order, which is
+/// implementation-defined.
 pub struct HashMapIter<K, V> {
     keys: Vec<K>,
     values: Vec<V>,
@@ -336,25 +363,25 @@ impl<K, V> Iterator for HashMapIter<K, V> {
         Option::Some((key, value))
     }
 
+    // `collect` / `count` read the snapshot fields directly. Calling
+    // `self.next()` here would resolve through the generic impl body, where
+    // the per-pair mono rebind can select another pair's `next` and hand it a
+    // mismatched cursor layout (fn-valued pairs). The direct loop keeps the
+    // cursor layout and its snapshot indices in one place.
     fn collect(mut self: HashMapIter<K, V>) -> Vec<(K, V)> {
         let mut result: Vec<(K, V)> = Vec::new<(K, V)>()
-        while true {
-            match self.next() {
-                Option::Some(pair) => result.push(pair),
-                Option::None => { break },
-            }
+        while self.index < self.length {
+            let key: K = self.keys.get_unchecked(self.index)
+            let value: V = self.values.get_unchecked(self.index)
+            self.index = self.index + 1
+            result.push((key, value))
         }
         result
     }
 
     fn count(mut self: HashMapIter<K, V>) -> i32 {
-        let mut total: i32 = 0
-        while true {
-            match self.next() {
-                Option::Some(_) => total = total + 1,
-                Option::None => { break },
-            }
-        }
+        let total: i32 = self.length - self.index
+        self.index = self.length
         total
     }
 }
@@ -425,6 +452,7 @@ impl HashMap<i32, i32> {
     ///
     /// The cursor owns the snapshots, so later map writes are not observed.
     /// Pair order is the store's bucket order, which is implementation-defined.
+    /// `IntoIterator` produces the same cursor with the same item type.
     fn iter(self: HashMap<i32, i32>) -> HashMapIter<i32, i32> {
         let keys: Vec<i32> = self.keys()
         let values: Vec<i32> = self.values()
@@ -586,19 +614,19 @@ impl HashMap<String, fn(i32) -> i32> {
 
 }
 
-// For-in over a map converts through this parametric impl. The body
-// snapshots the occupied keys into a Vec<K> through the generic
-// HashMap::keys() method (which monomorphizes to the per-family keys
-// implementation) and wraps it in the shared VecIter<K> producer, so both
-// backends share one source-level meaning without a map-specific
-// iterator state type (#691/#860).
+// For-in over a map converts through this parametric impl. The body captures
+// the same key/value snapshots as `HashMap::iter` and wraps them in the shared
+// pair cursor, so `for (k, v) in map` and `for (k, v) in map.iter()` yield the
+// same item type. The impl stays generic so `keys()` / `values()` monomorphize
+// to the receiver's pair, matching the previous keys-only body (#691/#860).
 impl<K, V> IntoIterator for HashMap<K, V> {
-    type Item = K
-    type IntoIter = VecIter<K>
+    type Item = (K, V)
+    type IntoIter = HashMapIter<K, V>
 
-    fn into_iter(self: HashMap<K, V>) -> VecIter<K> {
+    fn into_iter(self: HashMap<K, V>) -> HashMapIter<K, V> {
         let ks: Vec<K> = self.keys()
-        VecIter { vec: ks, index: 0, length: ks.len() }
+        let vs: Vec<V> = self.values()
+        HashMapIter { keys: ks, values: vs, index: 0, length: ks.len() }
     }
 }
 

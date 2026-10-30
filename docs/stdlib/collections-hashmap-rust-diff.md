@@ -101,10 +101,18 @@ the source surface uses owned snapshots and an owned entry handle instead
 - `m.iter() -> HashMapIter<K, V>` yields snapshot `(K, V)` pairs. The cursor
   owns the key/value snapshots, so later map writes are not observed. Pair
   order is implementation-defined bucket order.
+- `for pair in m` consumes the same `HashMapIter<K, V>` snapshot through
+  `IntoIterator`, so its item is an owned `(K, V)` pair and its type matches
+  `m.iter()`. This is an explicit break from the earlier keys-only
+  `for k in m` contract; update such loops to `for (k, v) in m` or
+  `for pair in m.iter()`.
 - `m.entry(key) -> Entry<K, V>` returns an owned handle that holds the map and
-  key. `key()`, `or_insert(value)`, and `or_insert_with(make)` resolve the
-  value when the handle is consumed, and write through the map handle when the
-  key is absent. Keep the handle inside the map's lifetime.
+  key. `key()`, `or_insert(value)`, `or_insert_with(make)`, and `or_default()`
+  resolve the value when the handle is consumed, and write through the map
+  handle when the key is absent. `or_default()` writes `0` for `i32` values and
+  the empty `String` for `String` values; fn-valued pairs have no default and
+  expose only `or_insert` / `or_insert_with`. Keep the handle inside the map's
+  lifetime.
 - `m.retain(keep: fn((K, V)) -> bool)` evaluates the predicate against
   key/value snapshots and then removes rejected keys. The single owned-pair
   argument is the sound form without reference pairs; it is not Rust's
@@ -112,15 +120,15 @@ the source surface uses owned snapshots and an owned entry handle instead
 - `m.keys() -> Vec<K>`, `m.values() -> Vec<V>`, `m.entries() -> Vec<(K, V)>`,
   `m.drain() -> Vec<(K, V)>`, and `m.remove_entry(key) -> Option<(K, V)>` stay
   as eager snapshots.
-- `HashMap::from_iter(m.iter())` collects the snapshot cursor into a map. Each
-  supported pair owns its concrete `FromIterator<HashMapIter<...>>` impl, so
-  the call spelling carries the pair through the cursor type.
-- `for k in m` still iterates keys through the existing `IntoIterator`
-  contract; pairs are reached with `for pair in m.iter()`.
+- `HashMap::from_iter(m.iter())` and `HashMap::from_iter(m.into_iter())`
+  collect the same snapshot cursor into a map. Each supported pair owns its
+  concrete `FromIterator<HashMapIter<...>>` impl, so the call spelling carries
+  the pair through the cursor type.
 
-`VecIter<(K, V)>` is not used as the pair cursor: tuple elements in the
-generic `VecIter` do not lower correctly on both targets, so a dedicated
-`HashMapIter<K, V>` owns the key and value snapshots instead.
+`HashMapIter<K, V>` owns separate `Vec<K>` / `Vec<V>` snapshots so its cursor
+layout does not depend on tuple element lowering. Tuple-element `VecIter` is
+supported on both targets, but adopting it as the map cursor would change the
+`iter()` surface and is not part of this contract.
 
 The deprecated flat frees used `Vec<i32>` snapshots
 (`[key0, value0, key1, value1, ...]`); the typed method results are the

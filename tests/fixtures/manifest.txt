@@ -2118,7 +2118,7 @@ run:stdlib_trait/iterator_fold_product.ark
 run:stdlib_trait/iterator_fold_sum.ark
 run:stdlib_trait/iterator_generic_fn_field.ark
 run:stdlib_trait/iterator_generic_struct_item.ark
-run:stdlib_trait/iterator_hashmap_keys.ark
+run:stdlib_trait/iterator_hashmap_pairs.ark
 run:stdlib_trait/iterator_map_basic.ark
 run:stdlib_trait/iterator_map_empty.ark
 run:stdlib_trait/iterator_map_filter_pipeline.ark

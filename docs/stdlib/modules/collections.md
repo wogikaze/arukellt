@@ -160,11 +160,17 @@ by handle and document the snapshot boundary. `retain` rebuilds in place by
 removing the rejected keys, so the map handle and its bucket capacity are
 preserved.
 
+`IntoIterator for HashMap<K, V>` consumes the same pair snapshot, so
+`for (k, v) in map` and `for (k, v) in map.iter()` observe the same item
+type. The `HashMap` value is still a shared handle under ADR-088, so the
+source binding remains readable after the loop; the cursor itself owns the
+snapshot and is not a borrow of the map.
+
 ### `std::collections::hash_map` — Public Types
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `Entry` | `struct` | `key`, `or_insert`, `or_insert_with` | - | Owned handle for one map key. |
+| `Entry` | `struct` | `key`, `or_insert`, `or_insert_with`, `or_default` | - | Owned handle for one map key. |
 | `HashMapIter` | `struct` | `is_empty` | `Iterator`, `IntoIterator` | Snapshot cursor over the (K, V) pairs of a HashMap. |
 
 _No manifest-backed functions in this module._

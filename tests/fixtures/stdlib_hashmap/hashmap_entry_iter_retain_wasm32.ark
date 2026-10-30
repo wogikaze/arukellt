@@ -6,6 +6,14 @@ fn inc(n: i32) -> i32 {
     n + 1
 }
 
+fn make_label() -> String {
+    String_from("three")
+}
+
+fn make_word() -> String {
+    String_from("word")
+}
+
 fn keep_large(pair: (i32, i32)) -> bool {
     let (key, value) = pair
     key > 1
@@ -16,9 +24,24 @@ fn keep_rich(pair: (String, i32)) -> bool {
     word.len() > 2
 }
 
+fn keep_label(pair: (i32, String)) -> bool {
+    let (key, value) = pair
+    key > 1
+}
+
+fn keep_dict(pair: (String, String)) -> bool {
+    let (key, value) = pair
+    key.len() > 1
+}
+
 fn keep_fn(pair: (i32, fn(i32) -> i32)) -> bool {
     let (key, f) = pair
     key > 1
+}
+
+fn keep_str_fn(pair: (String, fn(i32) -> i32)) -> bool {
+    let (key, f) = pair
+    key.len() > 1
 }
 
 fn main() {
@@ -34,6 +57,13 @@ fn main() {
     }
     Test::assert_eq_i32(total, 660)
 
+    let mut iter_total: i32 = 0
+    for pair in flat {
+        let (key, value) = pair
+        iter_total = iter_total + key * 100 + value
+    }
+    Test::assert_eq_i32(iter_total, 660)
+
     let mut cursor = flat.iter()
     Test::assert_false(cursor.is_empty())
     let mut cursor_count: i32 = 0
@@ -44,6 +74,9 @@ fn main() {
         }
     }
     Test::assert_eq_i32(cursor_count, 3)
+    Test::assert_eq_i32(flat.iter().count(), 3)
+    let flat_pairs: Vec<(i32, i32)> = flat.iter().collect()
+    Test::assert_eq_i32(flat_pairs.len(), 3)
 
     let mut entry = flat.entry(4)
     Test::assert_eq_i32(entry.key(), 4)
@@ -58,8 +91,9 @@ fn main() {
     let flat_copy: HashMap<i32, i32> = HashMap::from_iter(flat.iter())
     Test::assert_eq_i32(flat_copy.len(), 3)
     Test::assert_true(flat_copy.contains_key(4))
-    let flat_pairs: Vec<(i32, i32)> = flat_copy.iter().collect()
-    Test::assert_eq_i32(flat_pairs.len(), 3)
+    let flat_owned_copy: HashMap<i32, i32> = HashMap::from_iter(flat.into_iter())
+    Test::assert_eq_i32(flat_owned_copy.len(), 3)
+    Test::assert_eq_i32(flat.entry(5).or_default(), 0)
 
     let mut words: HashMap<String, i32> = HashMap::new<String, i32>()
     let _ = words.insert("a", 1)
@@ -70,13 +104,77 @@ fn main() {
         word_total = word_total + key.len() * 10 + value
     }
     Test::assert_eq_i32(word_total, 33)
+    let mut word_owned_total: i32 = 0
+    for pair in words {
+        let (key, value) = pair
+        word_owned_total = word_owned_total + key.len() * 10 + value
+    }
+    Test::assert_eq_i32(word_owned_total, 33)
     Test::assert_eq_i32(words.entry("a").or_insert(99), 1)
     Test::assert_eq_i32(words.entry("ccc").or_insert(3), 3)
+    Test::assert_eq_i32(words.iter().count(), 3)
+    let word_pairs: Vec<(String, i32)> = words.iter().collect()
+    Test::assert_eq_i32(word_pairs.len(), 3)
     words.retain(keep_rich)
     Test::assert_eq_i32(words.len(), 1)
     Test::assert_true(words.contains_key("ccc"))
     let words_copy: HashMap<String, i32> = HashMap::from_iter(words.iter())
     Test::assert_eq_i32(words_copy.len(), 1)
+    Test::assert_eq_i32(words.entry("ddd").or_default(), 0)
+
+    let mut labels: HashMap<i32, String> = HashMap::new<i32, String>()
+    let _ = labels.insert(1, "one")
+    let _ = labels.insert(2, "two")
+    let mut label_total: i32 = 0
+    for pair in labels.iter() {
+        let (key, value) = pair
+        label_total = label_total + key + value.len()
+    }
+    Test::assert_eq_i32(label_total, 9)
+    let mut label_owned_total: i32 = 0
+    for pair in labels {
+        let (key, value) = pair
+        label_owned_total = label_owned_total + key + value.len()
+    }
+    Test::assert_eq_i32(label_owned_total, 9)
+    Test::assert_eq_i32(labels.entry(1).or_insert(String_from("x")).len(), 3)
+    Test::assert_eq_i32(labels.entry(3).or_insert_with(make_label).len(), 5)
+    Test::assert_eq_i32(labels.iter().count(), 3)
+    let label_pairs: Vec<(i32, String)> = labels.iter().collect()
+    Test::assert_eq_i32(label_pairs.len(), 3)
+    labels.retain(keep_label)
+    Test::assert_eq_i32(labels.len(), 2)
+    Test::assert_true(labels.contains_key(3))
+    let labels_copy: HashMap<i32, String> = HashMap::from_iter(labels.iter())
+    Test::assert_eq_i32(labels_copy.len(), 2)
+    Test::assert_eq_i32(labels.entry(4).or_default().len(), 0)
+
+    let mut dict: HashMap<String, String> = HashMap::new<String, String>()
+    let _ = dict.insert("k", "v")
+    let _ = dict.insert("kk", "vv")
+    let mut dict_total: i32 = 0
+    for pair in dict.iter() {
+        let (key, value) = pair
+        dict_total = dict_total + key.len() + value.len()
+    }
+    Test::assert_eq_i32(dict_total, 6)
+    let mut dict_owned_total: i32 = 0
+    for pair in dict {
+        let (key, value) = pair
+        dict_owned_total = dict_owned_total + key.len() + value.len()
+    }
+    Test::assert_eq_i32(dict_owned_total, 6)
+    Test::assert_true(dict.entry("k").or_insert(String_from("z")).eq(String_from("v")))
+    Test::assert_true(dict.entry("new").or_insert_with(make_word).eq(String_from("word")))
+    Test::assert_eq_i32(dict.iter().count(), 3)
+    let dict_pairs: Vec<(String, String)> = dict.iter().collect()
+    Test::assert_eq_i32(dict_pairs.len(), 3)
+    dict.retain(keep_dict)
+    Test::assert_eq_i32(dict.len(), 2)
+    Test::assert_true(dict.contains_key("kk"))
+    let dict_copy: HashMap<String, String> = HashMap::from_iter(dict.iter())
+    Test::assert_eq_i32(dict_copy.len(), 2)
+    Test::assert_eq_i32(dict.entry("empty").or_default().len(), 0)
 
     let mut fns: HashMap<i32, fn(i32) -> i32> = HashMap::new<i32, fn(i32) -> i32>()
     let _ = fns.insert(1, inc)
@@ -87,13 +185,56 @@ fn main() {
         fn_count = fn_count + f(key)
     }
     Test::assert_eq_i32(fn_count, 5)
+    let mut fn_owned_count: i32 = 0
+    for pair in fns {
+        let (key, f) = pair
+        fn_owned_count = fn_owned_count + f(key)
+    }
+    Test::assert_eq_i32(fn_owned_count, 5)
+    let _ = fns.entry(3).or_insert(inc)
+    match fns.get(3) {
+        Option::Some(f) => Test::assert_eq_i32(f(10), 11),
+        Option::None => Std::panic("missing fn entry"),
+    }
+    Test::assert_eq_i32(fns.iter().count(), 3)
+    let fn_pairs: Vec<(i32, fn(i32) -> i32)> = fns.iter().collect()
+    Test::assert_eq_i32(fn_pairs.len(), 3)
     fns.retain(keep_fn)
-    Test::assert_eq_i32(fns.len(), 1)
+    Test::assert_eq_i32(fns.len(), 2)
     let fn_copy: HashMap<i32, fn(i32) -> i32> = HashMap::from_iter(fns.iter())
+    Test::assert_eq_i32(fn_copy.len(), 2)
     match fn_copy.get(2) {
         Option::Some(f) => Test::assert_eq_i32(f(10), 11),
         Option::None => Std::panic("missing fn entry"),
     }
+
+    let mut str_fns: HashMap<String, fn(i32) -> i32> = HashMap::new<String, fn(i32) -> i32>()
+    let _ = str_fns.insert("a", inc)
+    let _ = str_fns.insert("bb", inc)
+    let mut str_fn_total: i32 = 0
+    for pair in str_fns.iter() {
+        let (key, f) = pair
+        str_fn_total = str_fn_total + key.len() + f(1)
+    }
+    Test::assert_eq_i32(str_fn_total, 7)
+    let mut str_fn_owned_total: i32 = 0
+    for pair in str_fns {
+        let (key, f) = pair
+        str_fn_owned_total = str_fn_owned_total + key.len() + f(1)
+    }
+    Test::assert_eq_i32(str_fn_owned_total, 7)
+    let _ = str_fns.entry("ccc").or_insert(inc)
+    match str_fns.get("ccc") {
+        Option::Some(f) => Test::assert_eq_i32(f(1), 2),
+        Option::None => Std::panic("missing string fn entry"),
+    }
+    Test::assert_eq_i32(str_fns.iter().count(), 3)
+    let str_fn_pairs: Vec<(String, fn(i32) -> i32)> = str_fns.iter().collect()
+    Test::assert_eq_i32(str_fn_pairs.len(), 3)
+    str_fns.retain(keep_str_fn)
+    Test::assert_eq_i32(str_fns.len(), 2)
+    let str_fn_copy: HashMap<String, fn(i32) -> i32> = HashMap::from_iter(str_fns.iter())
+    Test::assert_eq_i32(str_fn_copy.len(), 2)
 
     Stdio::println("hashmap-entry-iter-retain-ok")
 }

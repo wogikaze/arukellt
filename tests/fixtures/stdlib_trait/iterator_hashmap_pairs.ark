@@ -1,6 +1,6 @@
 // For-in iteration over HashMap<K, V> through IntoIterator.
-// Keys enumerate in bucket order, so every assertion is order-agnostic.
-use std::collections::hash_map
+// Items are owned (K, V) snapshots; bucket order is implementation-defined,
+// so every assertion is order-agnostic.
 use std::test::Test
 
 fn main() {
@@ -12,13 +12,11 @@ fn main() {
     let mut count: i32 = 0
     let mut key_sum: i32 = 0
     let mut value_sum: i32 = 0
-    for key in numbers {
+    for pair in numbers {
+        let (key, value) = pair
         count = count + 1
         key_sum = key_sum + key
-        match numbers.get(key) {
-            Option::Some(v) => value_sum = value_sum + v,
-            None => Std::panic("iterated key missing from map"),
-        }
+        value_sum = value_sum + value
     }
     Test::assert_eq_i32(count, 3)
     Test::assert_eq_i32(key_sum, 60)
@@ -30,39 +28,51 @@ fn main() {
     let _ = words.insert("beta", 22)
     let mut word_count: i32 = 0
     let mut key_len_total: i32 = 0
-    for key in words {
+    let mut word_value_total: i32 = 0
+    for pair in words {
+        let (key, value) = pair
         word_count = word_count + 1
         key_len_total = key_len_total + key.len()
-        Test::assert_true(words.contains_key(key))
+        word_value_total = word_value_total + value
     }
     Test::assert_eq_i32(word_count, 2)
     Test::assert_eq_i32(key_len_total, 9)
+    Test::assert_eq_i32(word_value_total, 23)
 
     // HashMap<i32, String> — i32 keys over the __hm_is_* slot layout.
     let mut labels = HashMap::new<i32, String>()
     let _ = labels.insert(7, "seven")
     let _ = labels.insert(9, "nine")
     let mut label_sum: i32 = 0
-    for key in labels {
+    let mut label_len: i32 = 0
+    for pair in labels {
+        let (key, value) = pair
         label_sum = label_sum + key
+        label_len = label_len + value.len()
     }
     Test::assert_eq_i32(label_sum, 16)
+    Test::assert_eq_i32(label_len, 9)
 
     // HashMap<String, String> — String keys over the __hm_ss_* slot layout.
     let mut pairs = HashMap::new<String, String>()
     let _ = pairs.insert("k1", "v1")
     let _ = pairs.insert("k2", "v2")
     let _ = pairs.insert("k3", "v3")
-    let mut pair_len: i32 = 0
-    for key in pairs {
-        pair_len = pair_len + key.len()
+    let mut pair_key_len: i32 = 0
+    let mut pair_value_len: i32 = 0
+    for pair in pairs {
+        let (key, value) = pair
+        pair_key_len = pair_key_len + key.len()
+        pair_value_len = pair_value_len + value.len()
     }
-    Test::assert_eq_i32(pair_len, 6)
+    Test::assert_eq_i32(pair_key_len, 6)
+    Test::assert_eq_i32(pair_value_len, 6)
 
     // Empty maps iterate zero times.
     let empty = HashMap::new<i32, i32>()
     let mut empty_count: i32 = 0
-    for key in empty {
+    for pair in empty {
+        let (_key, _value) = pair
         empty_count = empty_count + 1
     }
     Test::assert_eq_i32(empty_count, 0)
