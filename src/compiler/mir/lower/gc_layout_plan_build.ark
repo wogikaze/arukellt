@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use corehir::kinds
 use corehir::type_id
@@ -268,7 +268,7 @@ fn mir_module_build_gc_layout_plan(mut module: MirModule, target: String) {
         gc_layout_plan_bind_enum_variant_slots(module)
     }
     if !gc_layout_plan_validator::mir_gc_layout_plan_valid(plan) {
-        stdio::eprintln("compiler ICE: invalid MIR GC layout plan")
+        Stdio::eprintln("compiler ICE: invalid MIR GC layout plan")
         Process::exit(1)
     }
     module_gc_layout_plan::MirModule_set_gc_layout_plan(module, plan)

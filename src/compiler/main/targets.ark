@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 pub fn cmd_targets() {
-    stdio::println("Available targets:")
-    stdio::println(target_contract_generated::target_display_line("wasm32"))
-    stdio::println(target_contract_generated::target_display_line("wasm32-gc"))
-    stdio::println(target_contract_generated::target_display_line("native-cpp"))
-    stdio::println(target_contract_generated::target_display_line("native-llvm"))
+    Stdio::println("Available targets:")
+    Stdio::println(target_contract_generated::target_display_line("wasm32"))
+    Stdio::println(target_contract_generated::target_display_line("wasm32-gc"))
+    Stdio::println(target_contract_generated::target_display_line("native-cpp"))
+    Stdio::println(target_contract_generated::target_display_line("native-llvm"))
 }
 test mod "targets_contract" {
     test "canonical_targets_are_non_empty" {

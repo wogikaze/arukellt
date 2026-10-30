@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::types
 
 fn main() {
     let string_ty = types::WitType::String
-    stdio::println((string_ty.id()).to_string())
-    stdio::println(types::WitType::Bool.name())
-    stdio::println(types::WitType::F64.name())
+    Stdio::println((string_ty.id()).to_string())
+    Stdio::println(types::WitType::Bool.name())
+    Stdio::println(types::WitType::F64.name())
 }
 // WIT type ids and names through the WitType method surface

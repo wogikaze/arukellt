@@ -1,17 +1,17 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wasm
 
 fn main() {
-    stdio::println((wasm::Opcode::unreachable()).to_string())
-    stdio::println((wasm::Opcode::nop()).to_string())
-    stdio::println((wasm::Opcode::end()).to_string())
-    stdio::println((wasm::Opcode::return_()).to_string())
-    stdio::println((wasm::Opcode::call()).to_string())
-    stdio::println((wasm::Opcode::local_get()).to_string())
-    stdio::println((wasm::Opcode::local_set()).to_string())
-    stdio::println((wasm::Opcode::i32_const()).to_string())
-    stdio::println((wasm::Opcode::i32_add()).to_string())
-    stdio::println((wasm::Opcode::i32_sub()).to_string())
-    stdio::println((wasm::Opcode::i32_eqz()).to_string())
-    stdio::println((wasm::Opcode::i32_eq()).to_string())
+    Stdio::println((wasm::Opcode::unreachable()).to_string())
+    Stdio::println((wasm::Opcode::nop()).to_string())
+    Stdio::println((wasm::Opcode::end()).to_string())
+    Stdio::println((wasm::Opcode::return_()).to_string())
+    Stdio::println((wasm::Opcode::call()).to_string())
+    Stdio::println((wasm::Opcode::local_get()).to_string())
+    Stdio::println((wasm::Opcode::local_set()).to_string())
+    Stdio::println((wasm::Opcode::i32_const()).to_string())
+    Stdio::println((wasm::Opcode::i32_add()).to_string())
+    Stdio::println((wasm::Opcode::i32_sub()).to_string())
+    Stdio::println((wasm::Opcode::i32_eqz()).to_string())
+    Stdio::println((wasm::Opcode::i32_eq()).to_string())
 }

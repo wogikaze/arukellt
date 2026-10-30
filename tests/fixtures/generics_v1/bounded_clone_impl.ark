@@ -2,7 +2,7 @@
 // The bound must be available while checking the impl method body and must be
 // enforced again when a concrete receiver selects this parametric impl.
 use std::core::clone
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Deque<T> {
     front: T,
@@ -21,5 +21,5 @@ impl<T: Clone> Clone for Deque<T> {
 fn main() {
     let deque = Deque { front: 20, back: 22 }
     let copy = deque.clone()
-    stdio::println((copy.front + copy.back).to_string())
+    Stdio::println((copy.front + copy.back).to_string())
 }

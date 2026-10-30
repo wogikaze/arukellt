@@ -1,5 +1,5 @@
 // HashSet<i32> / HashSet<String> snapshot iteration and retain (#974).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 use std::collections::hash_set::HashSet
 
@@ -45,5 +45,5 @@ fn main() {
     Test::assert_eq_i32(word_set.len(), 1)
     Test::assert_true(word_set.contains("abcd"))
 
-    stdio::println("hashset-iter-retain-ok")
+    Stdio::println("hashset-iter-retain-ok")
 }

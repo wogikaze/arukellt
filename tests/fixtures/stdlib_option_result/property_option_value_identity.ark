@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     for i in 0..20 {
@@ -8,5 +8,5 @@ fn main() {
             None => Std::panic("should be some"),
         }
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

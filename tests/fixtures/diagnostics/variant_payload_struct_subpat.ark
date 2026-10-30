@@ -1,6 +1,6 @@
 // Struct sub-patterns inside a variant payload are rejected at typecheck:
 // silently ignoring them would produce a tag-only match (#902).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -12,5 +12,5 @@ fn main() {
         Option::Some(Point { x: 5 }) => "five",
         _ => "other",
     }
-    stdio::println(r)
+    Stdio::println(r)
 }

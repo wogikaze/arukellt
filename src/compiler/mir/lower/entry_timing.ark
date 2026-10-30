@@ -1,5 +1,5 @@
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{get_unchecked, len, push, set}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
@@ -29,7 +29,7 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
         return
     }
     let ms = mir_lower_phase_ms(t_start, t_end)
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] lower.".concat(label.clone().concat(": ".concat(ms.to_string().concat("ms"))))
     )
 }
@@ -38,7 +38,7 @@ fn mir_lower_gc_late_note(enabled: i32, late_structs: i32, late_enums: i32) {
     if enabled == 0 {
         return
     }
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] lower.gc_late: structs=".concat(late_structs.to_string().concat(" enums=".concat(late_enums.to_string())))
     )
 }
@@ -47,7 +47,7 @@ fn mir_lower_prefilter_note(enabled: i32, keep: i32, skip: i32) {
     if enabled == 0 {
         return
     }
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] lower.prefilter: would_keep=".concat(keep.to_string().concat(" would_skip=".concat(skip.to_string())))
     )
 }
@@ -56,7 +56,7 @@ fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
     if enabled == 0 {
         return
     }
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] lower.reachability_fns: before=".concat(before.to_string().concat(" after=".concat(after.to_string())))
     )
 }
@@ -71,10 +71,10 @@ fn mir_lower_phase_mir_size(
     if enabled == 0 {
         return
     }
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] lower.reachability_blocks: before=".concat(blocks_before.to_string().concat(" after=".concat(blocks_after.to_string())))
     )
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] lower.reachability_insts: before=".concat(insts_before.to_string().concat(" after=".concat(insts_after.to_string())))
     )
 }
@@ -119,7 +119,7 @@ fn mir_lower_top_walls_note(enabled: i32, mut wall_ms: Vec<i32>, wall_name: Vec<
             return
         }
         set(wall_ms, best, -1)
-        stdio::eprintln(
+        Stdio::eprintln(
             "[arukellt] lower.fn_wall ".concat(rank.to_string().concat(" ".concat(get_unchecked(wall_name, best).clone().concat(" ".concat(best_ms.to_string().concat("ms"))))))
         )
         rank = rank + 1

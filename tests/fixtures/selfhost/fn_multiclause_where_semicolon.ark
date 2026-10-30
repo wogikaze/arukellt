@@ -1,6 +1,6 @@
 // Positive fixture: newline continuation and semicolon-separated where bindings
 // prove that clause grouping and where binding termination use distinct rules.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn classify(n) -> String | n > limit = "high"
 fn classify(_) -> String = "low"
@@ -9,6 +9,6 @@ limit = 5 +
 5;
 
 fn main() {
-    stdio::println(classify(11))
-    stdio::println(classify(3))
+    Stdio::println(classify(11))
+    Stdio::println(classify(3))
 }

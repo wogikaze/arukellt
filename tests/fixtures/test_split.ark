@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
     let parts = String_from("hello,world").split(String_from(","))
     let n = len(parts)
-    stdio::println(n.to_string())
+    Stdio::println(n.to_string())
 }

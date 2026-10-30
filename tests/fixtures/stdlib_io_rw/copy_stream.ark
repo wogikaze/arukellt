@@ -1,5 +1,5 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
@@ -19,10 +19,10 @@ fn main() {
     let mut dst: io::Writer = io::Writer::new()
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
     match res {
-        Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Ok(n) => Stdio::println((n).to_string()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
     let out: Vec<i32> = dst.into_bytes()
-    stdio::println(String::from_utf8_lossy(out))
-    stdio::println((src.is_eof()).to_string())
+    Stdio::println(String::from_utf8_lossy(out))
+    Stdio::println((src.is_eof()).to_string())
 }

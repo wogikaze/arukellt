@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn add_one(x: i32) -> i32 {
@@ -7,10 +7,10 @@ fn add_one(x: i32) -> i32 {
 
 fn main() {
     Test::bench("noop", 10, || {
-    })
+        })
     Test::bench("add_loop", 5, || {
-        let _v = add_one(42)
-    })
-    stdio::println("bench ok")
+            let _v = add_one(42)
+        })
+    Stdio::println("bench ok")
 }
 // bench() writes timing to stderr; stdout stays deterministic.

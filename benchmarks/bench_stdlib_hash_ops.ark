@@ -4,7 +4,7 @@
 // intrinsic adapters. The table grows past its initial capacity (16) via
 // Ark-side rehash + __hm_*_adopt (#895); checksum 35000 = 100 len +
 // sum(7*i for i in 0..100) + 100 contains + 50 removes*2 + 50 len.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let mut m = HashMap::new<String, i32>()
@@ -58,5 +58,5 @@ fn main() {
     // Remaining size
     checksum = checksum + m.len()
 
-    stdio::println((checksum).to_string())
+    Stdio::println((checksum).to_string())
 }

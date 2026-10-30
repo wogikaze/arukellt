@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut v: Vec<String> = Vec::new<String>()
@@ -16,7 +16,7 @@ fn main() {
     }
     let mut i: i32 = 0
     while i < len(v) {
-        stdio::println(get_unchecked(v, i))
+        Stdio::println(get_unchecked(v, i))
         i = i + 1
     }
 }

@@ -1,10 +1,10 @@
 // Stream<T> type annotation
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn forward_stream(s: Stream<bool>) -> Stream<bool> {
     s
 }
 
 fn main() {
-    stdio::print("ok")
+    Stdio::print("ok")
 }

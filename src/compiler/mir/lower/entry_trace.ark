@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
@@ -12,6 +12,6 @@ fn mir_lower_entry_trace_enabled() -> i32 {
 
 fn mir_log_mono_rewrites_if_needed(mir_tr: i32, ctx: LowerCtx) {
     if mir_tr != 0 {
-        stdio::eprintln("mir-lower mono rewrites: ".concat(ctx_fn_mono::ctx_mono_source_rewrite_count(ctx).to_string()))
+        Stdio::eprintln("mir-lower mono rewrites: ".concat(ctx_fn_mono::ctx_mono_source_rewrite_count(ctx).to_string()))
     }
 }

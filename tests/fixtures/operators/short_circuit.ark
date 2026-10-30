@@ -1,19 +1,19 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn returns_true() -> bool {
-    stdio::println("evaluated")
+    Stdio::println("evaluated")
     true
 }
 
 fn returns_false() -> bool {
-    stdio::println("evaluated")
+    Stdio::println("evaluated")
     false
 }
 
 fn main() {
-    stdio::println("test &&:")
+    Stdio::println("test &&:")
     let _ = false && returns_true()
-    stdio::println("test ||:")
+    Stdio::println("test ||:")
     let _ = true || returns_false()
-    stdio::println("done")
+    Stdio::println("done")
 }

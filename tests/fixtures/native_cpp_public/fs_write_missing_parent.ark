@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     match Fs::write_string(
@@ -7,11 +7,11 @@ fn main() {
         String_from("x")
     ) {
         Result::Ok(_) => {
-            stdio::println(String_from("unexpected-ok"))
+            Stdio::println(String_from("unexpected-ok"))
         },
         Result::Err(err) => {
-            stdio::eprintln(err)
-            stdio::println(String_from("write-err"))
+            Stdio::eprintln(err)
+            Stdio::println(String_from("write-err"))
         },
     }
 }

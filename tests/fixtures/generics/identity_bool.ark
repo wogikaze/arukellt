@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn identity<T>(x: T) -> T {
     x
@@ -7,6 +7,6 @@ fn identity<T>(x: T) -> T {
 fn main() {
     let a: bool = identity(true)
     let b: bool = identity(false)
-    stdio::println(a)
-    stdio::println(b)
+    Stdio::println(a)
+    Stdio::println(b)
 }

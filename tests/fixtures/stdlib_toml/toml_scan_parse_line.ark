@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -6,6 +6,6 @@ fn main() {
     Test::assert_eq_string(toml::TomlText::parse_line("name = \"x\""), "name = \"x\"")
     Test::assert_eq_string(toml::TomlText::parse_line("# comment"), "")
     Test::assert_eq_string(toml::TomlText::parse_line(""), "")
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 // toml_parse_line passes through key=value, blanks comments and empty lines

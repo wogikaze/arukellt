@@ -1,18 +1,18 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 100)
     match m.get(2) {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println((-1).to_string()),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println((-1).to_string()),
     }
-    stdio::println((m.len()).to_string())
+    Stdio::println((m.len()).to_string())
     if m.contains_key(1) {
-        stdio::println(String_from("found"))
+        Stdio::println(String_from("found"))
     }
     match m.get(99) {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println(String_from("not found")),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println(String_from("not found")),
     }
 }

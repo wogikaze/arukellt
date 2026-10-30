@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn apply(f: fn() -> i32) -> i32 {
     f()
@@ -10,6 +10,6 @@ fn main() {
         count = count + 1
         count
     }
-    stdio::println((apply(c)).to_string())
-    stdio::println((count + 0).to_string())
+    Stdio::println((apply(c)).to_string())
+    Stdio::println((count + 0).to_string())
 }

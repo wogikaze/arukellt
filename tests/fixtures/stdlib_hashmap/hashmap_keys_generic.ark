@@ -4,7 +4,7 @@
 // per-combo `hashmap_<family>_keys` adapter, including inside generic
 // bodies with deferred K/V type variables. `for k in map` iterates the
 // key snapshot through IntoIterator.
-use std::host::stdio
+use std::host::stdio::Stdio
 fn double(n: i32) -> i32 {
     n * 2
 }
@@ -54,5 +54,5 @@ fn main() {
         seen = seen + len(k)
     }
     assert(seen == 1)
-    stdio::println("OK")
+    Stdio::println("OK")
 }

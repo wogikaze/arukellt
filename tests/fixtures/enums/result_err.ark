@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r: Result<i32, String> = Err(String_from("something went wrong"))
     match r {
-        Result::Ok(val) => stdio::println((val).to_string()),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(val) => Stdio::println((val).to_string()),
+        Result::Err(e) => Stdio::println(e),
     }
 }

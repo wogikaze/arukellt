@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut outer = Vec::new<Vec<String>>()
@@ -6,5 +6,5 @@ fn main() {
     inner = push(inner, String_from("a"))
     outer = push(outer, inner)
     let got = get_unchecked(outer, 0)
-    stdio::println(get_unchecked(got, 0))
+    Stdio::println(get_unchecked(got, 0))
 }

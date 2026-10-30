@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::block_phi_access
 use mir::function_locals_view
@@ -20,7 +20,7 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
     let mut pi = 0
     while pi < pc {
         let phi = block_phi_access::MirBlock_phi_at(block, pi)
-        stdio::println(dump_format_phi::mir_format_phi(f, phi))
+        Stdio::println(dump_format_phi::mir_format_phi(f, phi))
         let phi_dest = phi_access::MirPhi_dest(phi)
         if phi_dest < 0 || phi_dest >= function_locals_view::MirFunction_local_count(f) {
             pi = pi + 1
@@ -40,7 +40,7 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
             line = line.concat(merge_name.clone())
             line = line.concat(" <- ")
             line = line.concat(dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(a)))
-            stdio::println(line)
+            Stdio::println(line)
             ai = ai + 1
         }
         let mut tail = "phi_elim_join bb"
@@ -48,7 +48,7 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
         tail = tail.concat(": ")
         tail = tail.concat(merge_name.clone())
         tail = tail.concat(" (phi removed)")
-        stdio::println(tail)
+        Stdio::println(tail)
         pi = pi + 1
     }
 }

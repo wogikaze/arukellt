@@ -4,7 +4,7 @@
 // occurrences per level, and accumulating a checksum from the numeric fields.
 // Exercises Vec iteration, enum match, struct fields, and integer arithmetic.
 // No I/O beyond the final println.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum LogLevel {
     Debug,
@@ -72,6 +72,6 @@ fn main() {
         }
         j = j + 1
     }
-    stdio::println((sum).to_string())
-    stdio::println((errors).to_string())
+    Stdio::println((sum).to_string())
+    Stdio::println((errors).to_string())
 }

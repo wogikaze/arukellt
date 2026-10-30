@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
@@ -10,7 +10,7 @@ use wasm::writer_sections
 // diverge and validators reject the module. Trap loudly instead.
 fn assert_emittable_string_len(slen: i32) {
     if slen < 0 {
-        stdio::eprintln("compiler ICE: negative string length in data section emit")
+        Stdio::eprintln("compiler ICE: negative string length in data section emit")
         Process::exit(1)
     }
 }

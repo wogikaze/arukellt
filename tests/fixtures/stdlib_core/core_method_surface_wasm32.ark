@@ -4,7 +4,7 @@ use std::core::{Range, RangeInclusive}
 use std::core::cmp
 use std::core::error
 use std::core::hash
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -40,5 +40,5 @@ fn main() {
     Test::assert_true(combined >= 0)
     Test::assert_eq_i32(combined, 1.combine_hash(2))
 
-    stdio::println("core methods ok")
+    Stdio::println("core methods ok")
 }

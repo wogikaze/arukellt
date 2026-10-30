@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Shape {
     Circle {
@@ -28,6 +28,6 @@ fn choose_shape(is_rect: bool) -> Shape {
 fn main() {
     let c = choose_shape(false)
     let r = choose_shape(true)
-    stdio::println((area(c)).to_string())
-    stdio::println((area(r)).to_string())
+    Stdio::println((area(c)).to_string())
+    Stdio::println((area(r)).to_string())
 }

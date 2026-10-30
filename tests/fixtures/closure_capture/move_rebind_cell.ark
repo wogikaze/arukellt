@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn make_counter() -> fn() -> i32 {
     let mut count = 0
@@ -10,10 +10,10 @@ fn make_counter() -> fn() -> i32 {
 
 fn main() {
     let c = make_counter()
-    stdio::println((c()).to_string())
-    stdio::println((c()).to_string())
-    stdio::println((c()).to_string())
+    Stdio::println((c()).to_string())
+    Stdio::println((c()).to_string())
+    Stdio::println((c()).to_string())
     let d = make_counter()
-    stdio::println((d()).to_string())
-    stdio::println((c()).to_string())
+    Stdio::println((d()).to_string())
+    Stdio::println((c()).to_string())
 }

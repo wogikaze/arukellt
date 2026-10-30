@@ -1,8 +1,8 @@
 // The generic constructor keeps working for an exact String element type.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut items = Vec::new<String>()
     items = push(items, String_from("exact"))
-    stdio::println(get_unchecked(items, 0))
+    Stdio::println(get_unchecked(items, 0))
 }

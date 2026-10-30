@@ -103,7 +103,7 @@ for (const [id, path] of fixtures) {
 - **Playground source ≠ fixture source**.  The playground `source`
   field uses simplified syntax (bare `println()`) for a friendlier
   first experience.  The fixture file uses full CI-compilable syntax
-  (`use std::host::stdio`, `stdio::println()`).  Both exercise the
+  (`use std::host::stdio`, `Stdio::println()`).  Both exercise the
   same language feature.  The Playground does not execute the fixture; use
   the CLI with official WASI component tooling for program execution.
 

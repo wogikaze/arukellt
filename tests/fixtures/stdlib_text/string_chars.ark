@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
     let cs = "abc".chars()
-    stdio::println((len(cs)).to_string())
+    Stdio::println((len(cs)).to_string())
     let empty_cs = "".chars()
-    stdio::println((len(empty_cs)).to_string())
+    Stdio::println((len(empty_cs)).to_string())
 }
 // chars returns individual characters (best-effort via split)
 // empty string chars

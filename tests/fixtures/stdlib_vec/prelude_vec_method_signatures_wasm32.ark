@@ -3,7 +3,7 @@
 // / `set` / `get_unchecked` and the `__core_vec_*_impl` len/is_empty forms)
 // without `use std::collections::vec` (#936). The i64 push pins the
 // generic-literal adaptation on the method path.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -28,5 +28,5 @@ fn main() {
     let mut wide: Vec<i64> = Vec::new<i64>()
     wide.push(10)
     Test::assert_eq_i64(wide.get_unchecked(0), 10i64)
-    stdio::println("prelude vec method signatures ok")
+    Stdio::println("prelude vec method signatures ok")
 }

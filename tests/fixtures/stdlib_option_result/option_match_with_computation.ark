@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn compute(o: Option<i32>) -> i32 {
     match o {
@@ -10,5 +10,5 @@ fn main() {
     Test::assert_eq_i32(compute(Some(3)), 10)
     Test::assert_eq_i32(compute(Some(0)), 1)
     Test::assert_eq_i32(compute(None), 0)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

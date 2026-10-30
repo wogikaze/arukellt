@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Expr {
     Num(i32),
@@ -17,8 +17,8 @@ fn eval(e: Expr) -> i32 {
 }
 
 fn main() {
-    stdio::println((eval(Expr::Num(42))).to_string())
-    stdio::println((eval(Expr::Add(10, 20))).to_string())
-    stdio::println((eval(Expr::Sub(50, 8))).to_string())
-    stdio::println((eval(Expr::Mul(6, 7))).to_string())
+    Stdio::println((eval(Expr::Num(42))).to_string())
+    Stdio::println((eval(Expr::Add(10, 20))).to_string())
+    Stdio::println((eval(Expr::Sub(50, 8))).to_string())
+    Stdio::println((eval(Expr::Mul(6, 7))).to_string())
 }

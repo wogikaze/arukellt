@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -7,5 +7,5 @@ fn main() {
     Test::assert_false(n.is_some())
     match n { Option::Some(v) => Std::panic("some"), None => {} }
     Test::assert_eq_i32(n.unwrap_or(42), 42)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

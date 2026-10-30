@@ -1,5 +1,5 @@
 // Regression test: chained field assignment o.inner.field = value
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Inner {
     count: i32,
@@ -19,13 +19,13 @@ struct Outer {
 fn main() {
     let mut o = Outer { middle: Middle { inner: Inner { count: 0, name: String_from("a") }, label: String_from("mid") }, id: 1 }
     o.id = 99
-    stdio::println((o.id).to_string())
+    Stdio::println((o.id).to_string())
     o.middle.label = String_from("updated")
-    stdio::println(o.middle.label)
+    Stdio::println(o.middle.label)
     o.middle.inner.count = 42
-    stdio::println((o.middle.inner.count).to_string())
+    Stdio::println((o.middle.inner.count).to_string())
     o.middle.inner.name = String_from("deep")
-    stdio::println(o.middle.inner.name)
+    Stdio::println(o.middle.inner.name)
 }
 // 1-level assignment
 // 2-level chained assignment

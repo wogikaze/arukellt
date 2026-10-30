@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     // Functional digraph: node -> successor. 2 -> 3 -> 4 -> 2 is a cycle.
@@ -24,6 +24,6 @@ fn main() {
         }
         steps = steps + 1
     }
-    stdio::println(out)
-    stdio::println(String_from("cycle at ").concat((node).to_string()))
+    Stdio::println(out)
+    Stdio::println(String_from("cycle at ").concat((node).to_string()))
 }

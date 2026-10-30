@@ -6,7 +6,7 @@
 // build read that stale slot, so payload extraction saw the wrong
 // record and either printed the Err arm or dereferenced garbage.
 // Verified identical on wasm32-gc and wasm32 linear core.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{push, len}
 use std::text
 
@@ -26,13 +26,13 @@ fn main() {
     // reuse the first match arm's `parts` binding.
     let a = step("a")
     match a.parts {
-        Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
-        Result::Err(_) => stdio::println("err"),
+        Result::Ok(parts) => Stdio::println(get_unchecked(parts, 0)),
+        Result::Err(_) => Stdio::println("err"),
     }
     let b = step("b")
     match b.parts {
-        Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
-        Result::Err(_) => stdio::println("err"),
+        Result::Ok(parts) => Stdio::println(get_unchecked(parts, 0)),
+        Result::Err(_) => Stdio::println("err"),
     }
     // Branched: sibling arms match on the same field name; the else
     // arm's scrutinee must not read the then arm's `parts` slot.
@@ -41,14 +41,14 @@ fn main() {
         if i == 0 {
             let ks = step("h")
             match ks.parts {
-                Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
-                Result::Err(_) => stdio::println("err"),
+                Result::Ok(parts) => Stdio::println(get_unchecked(parts, 0)),
+                Result::Err(_) => Stdio::println("err"),
             }
         } else {
             let ks = step("k")
             match ks.parts {
-                Result::Ok(parts) => stdio::println(get_unchecked(parts, 0)),
-                Result::Err(_) => stdio::println("err"),
+                Result::Ok(parts) => Stdio::println(get_unchecked(parts, 0)),
+                Result::Err(_) => Stdio::println("err"),
             }
         }
         i = i + 1

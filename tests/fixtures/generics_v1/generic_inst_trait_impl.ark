@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 struct GenTakeIter<I> {
@@ -94,21 +94,21 @@ fn main() {
     v.push(9)
     let it: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v.into_iter(), remaining: 2 }
     let collected = it.collect()
-    stdio::println((collected.len()).to_string())
+    Stdio::println((collected.len()).to_string())
 
     let mut v2: Vec<i32> = Vec::new<i32>()
     v2.push(3)
     v2.push(4)
     let it2: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v2.into_iter(), remaining: 5 }
-    stdio::println((it2.count()).to_string())
+    Stdio::println((it2.count()).to_string())
 
     let mut v3: Vec<i32> = Vec::new<i32>()
     v3.push(11)
     let mut it3: GenTakeIter<VecIter<i32>> = GenTakeIter { iter: v3.into_iter(), remaining: 1 }
     let first = first_i32(it3)
     match first {
-        Option::Some(x) => stdio::println((x).to_string())
-        Option::None => stdio::println("none")
+        Option::Some(x) => Stdio::println((x).to_string())
+        Option::None => Stdio::println("none")
     }
 
     let mut sv: Vec<String> = Vec::new<String>()
@@ -116,7 +116,7 @@ fn main() {
     sv.push(String_from("cd"))
     let sit: GenTakeIter<VecIter<String>> = GenTakeIter { iter: sv.into_iter(), remaining: 2 }
     let scollected = sit.collect()
-    stdio::println((scollected.len()).to_string())
+    Stdio::println((scollected.len()).to_string())
 
     let mut v4: Vec<i32> = Vec::new<i32>()
     v4.push(5)
@@ -127,5 +127,5 @@ fn main() {
     for item in fit {
         total = total + item
     }
-    stdio::println((total).to_string())
+    Stdio::println((total).to_string())
 }

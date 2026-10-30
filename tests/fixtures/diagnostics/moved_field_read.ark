@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-059 §4: a plain field read evaluates its root place. A binding moved
 // into another binding earlier is E0212 at the root, also in a let
@@ -11,6 +11,6 @@ fn main() {
     let record = Record { name: String_from("field") }
     let owner = record
     let copied = record.name
-    stdio::println(copied)
-    stdio::println(owner.name)
+    Stdio::println(copied)
+    Stdio::println(owner.name)
 }

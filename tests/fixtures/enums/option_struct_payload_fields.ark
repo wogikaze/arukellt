@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -19,26 +19,26 @@ fn main() -> i32 {
     let o: Option<Point> = Option::Some(Point { x: 7, y: 0 })
     match o {
         Option::Some(q) => {
-            stdio::println((q.x).to_string())
-            stdio::println((q.y).to_string())
+            Stdio::println((q.x).to_string())
+            Stdio::println((q.y).to_string())
         }
-        Option::None => stdio::println("none")
+        Option::None => Stdio::println("none")
     }
     let g: Option<Pair<i32, i32>> = Option::Some(Pair { first: 7, second: 0 })
     match g {
         Option::Some(q) => {
-            stdio::println((q.first).to_string())
-            stdio::println((q.second).to_string())
+            Stdio::println((q.first).to_string())
+            Stdio::println((q.second).to_string())
         }
-        Option::None => stdio::println("none")
+        Option::None => Stdio::println("none")
     }
     let w: Wrapper = Wrapper::Wrap(Point { x: 7, y: 0 })
     match w {
         Wrapper::Wrap(q) => {
-            stdio::println((q.x).to_string())
-            stdio::println((q.y).to_string())
+            Stdio::println((q.x).to_string())
+            Stdio::println((q.y).to_string())
         }
-        Wrapper::Empty => stdio::println("empty")
+        Wrapper::Empty => Stdio::println("empty")
     }
     0
 }

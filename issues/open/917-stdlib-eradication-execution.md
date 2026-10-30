@@ -1960,44 +1960,54 @@ classified there, in dependency-safe waves.
   `f64::to_bits_*` lowers through the scalar handler. No numeric conversion
   free remains user-reachable.
 
-### Landed slice (wave/assertion-frees, 2026-10-30)
+### Landed slice (wave/io-stdio, 2026-10-30)
 
-- **Feasibility**: yes. The four deprecated prelude assertion wrappers were the
-  last assertion family and the `std::test::Test` associated surface already
-  owned the runtime semantics (`assert_eq_i32` lowers to the same
-  `runtime.assert_eq` CoreOp; the `_i64`/`_string` methods are callable on both
-  targets). Nothing required a new intrinsic.
-- **Landed**: `std/prelude.ark` no longer declares `assert_eq`, `assert_ne`,
-  `assert_eq_i64`, or `assert_eq_str`, and their four manifest entries are
-  deleted. `assert(cond)` stays as the ADR-091 §3 prelude exception.
-- **E0100**: `resolver::removed_names` owns the four names with hints naming
-  the `Test` method, and `register_use` rejects selective
-  `use std::prelude::{...}` imports with the same hint. The
-  `assert_eq_i64` hint takes precedence over the older `std::test` free hint.
-  The gated-prelude classification is dropped because the names no longer
-  resolve.
-- **Widening contract**: `Test::assert_eq_i64` keeps the i32→i64 widening
-  fixtures rely on (`Test::assert_eq_i64(parts.len(), 3i64)`): call lowering
-  widens i32 actuals at i64 parameters from the signature spine, and
-  `assert_eq_i64` deliberately stays off `is_concrete_prelude_builtin`, so the
-  typechecker does not reject or truncate the widened actual.
-- **Fixtures**: 19 run fixtures (hashmap / path / random / stdlib_test / time)
-  moved to `Test::`; the two W0009 `deprecated_assertion_free*` diagnostics
-  became `removed_assertion_free*` E0100 goldens, plus a
-  `removed_assertion_import` golden for the selective-import rejection.
-- **Scorecard**: 41 → **37** public free symbols (`must delete` 25 → **21**),
-  manifest public entries 41 → **37**, `pub fn` declarations 41 → **37**,
-  `prelude_wrapper` entries 9 → **5**, monomorphic helpers 4 → **2**,
-  deprecated entries 24 → **20**.
-- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
-  (112 runtime, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
-  `verify lane` PASS; `docs check` **6/6**; `selfhost diag-parity`
-  **267/267** PASS; ADR-029 fixpoint PASS, s2 == s3 sha256
-  `51a655b81befe68e35a07f9edeaa297889c1cd98c44ad684790803f29973241a`
-  (pinned base `56ff0808…`). Changed run fixtures were checked on both
-  `wasm32-gc` and `--target wasm32`.
-- **Residuals**: no assertion free remains user-reachable. The other
-  `must delete` families (vec intrinsic-compat, deque, seq combinator) stay
-  with the remaining #917 waves. The pinned bootstrap still reports the
-  pre-retirement gated/import hints; the current s2 diagnostics are canonical
-  and no bootstrap overlay was needed.
+- **Feasibility**: yes for 7 of the 9 `std::io and host stdio frees`. The
+  four `std::host::stdio` string helpers map to a `Stdio` namespace type;
+  `stdout` / `stderr` / `print_bytes` already have byte-faithful typed
+  replacements. The two `std::io` placeholders (`stdin` / `read_stdin_line`)
+  never lowered a real stdin byte/line surface and retire without a
+  replacement.
+- **Landed**: `std::host::stdio::Stdio` (provisional) with `read_stdin` /
+  `print` / `println` / `eprintln`; the declarations now call the existing
+  `__intrinsic_*` print/stdin bridges. The nine manifest entries and their
+  `pub fn` declarations are deleted. `std::io` keeps only the trait / handle
+  surface (`IoError`, `Read` / `Write` / `BufRead` / `Seek`, `Reader` /
+  `Writer` / `Io` / `Stdout` / `Stderr` / adapters).
+- **E0100**: `resolver::removed_names` maps `stdio` / `host::stdio` /
+  `std::host::stdio` members to the `Stdio::*` spelling and the five
+  `std::io` members to `Stdout` / `Stderr` (or a no-replacement note for
+  `stdin` / `read_stdin_line`). Bare `print` / `println` / `eprintln` hints
+  now point at `Stdio::*`.
+- **Lowering**: the checked-in surface remains an ordinary associated call;
+  the printlike argument conversion and staging cover non-String arguments
+  (`Stdio::println(42)` stays valid). The pin-only overlay rewrites
+  statement-level `Stdio::*` calls to the `__intrinsic_*` bridges so the
+  stage-2/3 self-build stays byte-identical; delete that bridge at the next
+  pin refresh.
+- **Compiler**: `data/core-ops.toml` drops the `stdio::read_stdin` /
+  `stdio::print` / `stdio::println` / `stdio::eprintln` legacy aliases and
+  `core_op_binding_generated.ark` is regenerated (650 -> 646 bindings).
+  Dead `stdio::*` MIR callee special cases are replaced by the `Stdio::*`
+  spellings.
+- **Fixtures**: `stdlib_host/stdio_namespace_surface{,_wasm32}` cover the new
+  surface on both targets; `diagnostics/removed_stdio_free_function`,
+  `removed_io_stdout_free`, and `removed_io_stdin_free` pin the E0100 hints.
+  `stdlib_io/read_stdin_empty` uses `Stdio::read_stdin()`;
+  `stdlib_io/read_stdin_line_empty` is deleted; the compiler, benchmarks,
+  docs examples, and 1,100+ fixtures migrate to `Stdio::*` / typed handles.
+- **Scorecard**: public free 41 -> **32**, `pub fn` declarations 41 -> **32**,
+  manifest public entries 41 -> **32**, `associated-or-method` 16 -> **7**;
+  the `std::io and host stdio frees` rule is removed.
+- **Verification**: `verify fixtures` **1950/1950** PASS (112 runtime,
+  43/43 `test`, 2 native-cpp contracts delegated); `docs check` **6/6**;
+  `selfhost diag-parity` **269/269** PASS; `selfhost fmt-parity` PASS;
+  ADR-029 fixpoint s2 == s3 sha256
+  `37d0c218b77269f69ea6ff1d99ebeedbdad7ea6bdbfffe2bba64dc3a2c62ed0a`
+  (pinned base `56ff0808…`); `verify lane` PASS with
+  `ARUKELLT_FMT_BATCH=1` (the default multi-file formatter batch hits a
+  pre-existing "file open error" on the second path when the batch spans
+  unrelated directories; per-file batches pass).
+- **Residuals**: the WASI stdin byte-handle / line-read surface still does
+  not exist, so `stdin` / `read_stdin_line` stay retired rather than
+  replaced. The pin-only stdio overlay bridge remains until the pin refresh.

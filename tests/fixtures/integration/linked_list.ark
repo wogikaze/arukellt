@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 enum List {
     Nil,
@@ -34,6 +34,6 @@ fn main() {
     let list: List = prepend(list, 3)
     let list: List = prepend(list, 2)
     let list: List = prepend(list, 1)
-    stdio::println(list_to_string(list))
-    stdio::println((list_sum(list)).to_string())
+    Stdio::println(list_to_string(list))
+    Stdio::println((list_sum(list)).to_string())
 }

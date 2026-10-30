@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Color {
     Red,
@@ -15,5 +15,5 @@ fn color_name(c: Color) -> String {
 }
 
 fn main() {
-    stdio::println(color_name(Color::Green))
+    Stdio::println(color_name(Color::Green))
 }

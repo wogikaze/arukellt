@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let base = 10
@@ -9,5 +9,5 @@ fn main() {
     // env keeps the captured value alive (#872).
     let stored = (add, 1)
     let (f, x) = stored
-    stdio::println((f(x + 4)).to_string())
+    Stdio::println((f(x + 4)).to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -8,5 +8,5 @@ fn main() {
     let err_r: Result<i32, String> = Err(String_from("fail"))
     let none: Option<i32> = match err_r { Result::Ok(v) => Some(v), Result::Err(e) => None }
     Test::assert_true(none.is_none())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

@@ -1,9 +1,9 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 const MOD: i32 = 998244353
 
 fn main() {
-    stdio::println((MOD).to_string())
+    Stdio::println((MOD).to_string())
     let mod_i32: i32 = MOD
-    stdio::println(((mod_i32).into()).to_string())
+    Stdio::println(((mod_i32).into()).to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 struct MyStruct {
     value: i32,
 }
@@ -19,6 +19,6 @@ fn take_foo<T: Foo>(x: T) -> T {
 
 fn main() {
     let item = take_foo(MyStruct { value: 42 })
-    stdio::println(item.value.to_string())
-    stdio::println(String_from("obligation satisfied ok"))
+    Stdio::println(item.value.to_string())
+    Stdio::println(String_from("obligation satisfied ok"))
 }

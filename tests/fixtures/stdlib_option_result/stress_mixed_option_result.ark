@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let mut sum: i32 = 0
@@ -9,5 +9,5 @@ fn main() {
         match r { Result::Ok(v) => sum = sum + v, Result::Err(e) => {} }
     }
     Test::assert_true(sum > 0)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

@@ -2,7 +2,7 @@
 // and feed the monomorphization bookkeeping path.  This covers NK_METHOD_CALL
 // rather than the direct NK_CALL cases already exercised by the other
 // generics_v1 fixtures.
-use std::host::stdio
+use std::host::stdio::Stdio
 struct Picker {
     token: i32,
 }
@@ -16,7 +16,7 @@ impl Picker {
 fn main() {
     let picker = Picker { token: 0 }
     let n: i32 = picker.echo(7)
-    stdio::println(n.to_string())
+    Stdio::println(n.to_string())
     let s: String = picker.echo(String_from("method mono"))
-    stdio::println(s)
+    Stdio::println(s)
 }

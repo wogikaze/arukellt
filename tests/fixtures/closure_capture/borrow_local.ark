@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let mut source = String_from("borrow:")
     let format = |n: i32| -> String {
         source.concat(n.to_string())
     }
-    stdio::println(format(3))
+    Stdio::println(format(3))
 }

@@ -6,6 +6,11 @@
 
 決定日: 2026-10-25
 
+> 2026-10-30 追補: D9 が残した互換 free 9 件は
+> [ADR-094](ADR-094-host-stdio-namespace-free-retirement.md) で退役した。現行 surface は
+> `std::host::stdio::Stdio` と `std::io::Stdout` / `Stderr` であり、trait の決定自体は
+> 変わらない。
+
 関連: [ADR-014](ADR-014-stability-labels.md)、[ADR-036](ADR-036-trait-stdlib-redesign.md)、[ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-048](ADR-048-design-heuristics-application-order.md)
 関連: [ADR-054](ADR-054-host-linker-and-rust-runtime-retirement.md)、[ADR-059](ADR-059-language-v2-ownership-copy-mutability.md)、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-062](ADR-062-language-v2-trait-core-coherence.md)
 関連: [ADR-064](ADR-064-error-trait-namespace-and-source-boundary.md)、[ADR-076](ADR-076-language-v2-iterator-consumer-boundary.md)、[ADR-078](ADR-078-language-v2-parametric-trait-impl.md)、[ADR-079](ADR-079-language-v2-method-level-generics.md)、[ADR-084](ADR-084-language-v2-fallible-conversion-dispatch.md)

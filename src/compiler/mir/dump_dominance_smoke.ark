@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use mir::dominance
 use mir::dominance_info
 use mir::dump_core
@@ -29,12 +29,12 @@ fn run_dominance_smoke() {
     dump_expect::mir_expect_frontier(f, join_bb, 0, 0, 0)
     let dom_info = dominance::mir_collect_dom_info_for_function(f)
     if dominance_info::MirDomInfo_idom_count(dom_info) != 4 {
-        stdio::eprintln("dominance snapshot check failed: expected 4 idom entries")
+        Stdio::eprintln("dominance snapshot check failed: expected 4 idom entries")
         Process::exit(1)
     }
     dump_smoke_dominance_fixture::mir_dump_dominance_fixture_print_string_interns(m)
     dump_core::dump_mir(m)
-    stdio::println("MIR predecessor self-check OK.")
-    stdio::println("MIR dominance self-check OK.")
-    stdio::println("MIR module OK.")
+    Stdio::println("MIR predecessor self-check OK.")
+    Stdio::println("MIR dominance self-check OK.")
+    Stdio::println("MIR module OK.")
 }

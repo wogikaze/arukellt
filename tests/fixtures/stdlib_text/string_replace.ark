@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
-    stdio::println("hello world".replace("world", "arukellt"))
-    stdio::println("aaa".replace("a", "bb"))
-    stdio::println("no match".replace("xyz", "!"))
+    Stdio::println("hello world".replace("world", "arukellt"))
+    Stdio::println("aaa".replace("a", "bb"))
+    Stdio::println("no match".replace("xyz", "!"))
 }

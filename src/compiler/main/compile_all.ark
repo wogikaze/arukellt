@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use driver::file
 use driver::result_record
 use main::args_record
@@ -35,6 +35,6 @@ fn cmd_compile_all(opts: CliOptions) {
         return
     }
     if json_mode {
-        stdio::println(output::format_success_json(input_file.clone(), result_record::compile_result_phase_reached(comp_result), result_record::compile_result_output_byte_count(comp_result)))
+        Stdio::println(output::format_success_json(input_file.clone(), result_record::compile_result_phase_reached(comp_result), result_record::compile_result_output_byte_count(comp_result)))
     }
 }

@@ -1,8 +1,7 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import span_mod
 
 fn main() {
     let s = span_mod::make()
-    stdio::println((s.start + s.end).to_string())
+    Stdio::println((s.start + s.end).to_string())
 }

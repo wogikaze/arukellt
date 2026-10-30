@@ -3,7 +3,7 @@
 // use their copy impls, String uses `String::clone`, and a user-defined impl
 // must win over the compiler's identity fallback.
 use std::core::clone
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 struct Pair {
@@ -33,5 +33,5 @@ fn main() {
     Test::assert_eq_i32(method_clone.a, 2)
     Test::assert_eq_i32(method_clone.b, 3)
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

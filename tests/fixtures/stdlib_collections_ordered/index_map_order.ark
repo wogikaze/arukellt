@@ -1,22 +1,22 @@
 use std::collections::ordered::IndexMap
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m = IndexMap::new()
     m.insert(30, 300)
     m.insert(10, 100)
     m.insert(20, 200)
-    stdio::println((m.len()).to_string())
-    stdio::println((m.get(30)).to_string())
-    stdio::println((m.get(10)).to_string())
-    stdio::println((m.get(99)).to_string())
+    Stdio::println((m.len()).to_string())
+    Stdio::println((m.get(30)).to_string())
+    Stdio::println((m.get(10)).to_string())
+    Stdio::println((m.get(99)).to_string())
     let keys = m.keys()
     let mut i: i32 = 0
     while i < len(keys) {
-        stdio::println((get_unchecked(keys, i)).to_string())
+        Stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }
     m.insert(10, 999)
-    stdio::println((m.get(10)).to_string())
-    stdio::println((m.len()).to_string())
+    Stdio::println((m.get(10)).to_string())
+    Stdio::println((m.len()).to_string())
 }

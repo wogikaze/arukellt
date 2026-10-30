@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let x: Option<i32> = None
-    stdio::println((x.unwrap_or(99)).to_string())
+    Stdio::println((x.unwrap_or(99)).to_string())
 }

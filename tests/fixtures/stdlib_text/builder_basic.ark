@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
@@ -6,20 +6,20 @@ fn main() {
     let sb = sb.concat("Hello")
     let sb = sb.concat(", ")
     let sb = sb.concat("world")
-    stdio::println(sb)
+    Stdio::println(sb)
     let sb2 = ""
     let sb2 = sb2.concat("line1").concat("\n")
     let sb2 = sb2.concat("line2").concat("\n")
     let sb2 = sb2.concat("line3")
-    stdio::println(sb2)
+    Stdio::println(sb2)
     let sb3 = ""
-    stdio::println((sb3.len()).to_string())
+    Stdio::println((sb3.len()).to_string())
     let sb3 = sb3.concat("abc")
-    stdio::println((sb3.len()).to_string())
+    Stdio::println((sb3.len()).to_string())
     let sb4 = ""
     let sb4 = sb4.concat("Hi")
     let sb4 = sb4.concat(('!').to_string())
-    stdio::println(sb4)
+    Stdio::println(sb4)
 }
 // builder_new + builder_append + builder_build
 // builder_append_line

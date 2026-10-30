@@ -1,5 +1,5 @@
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct WrapIter<T> {
     item: T,
@@ -38,24 +38,24 @@ fn main() -> i32 {
     let mut it: WrapIter<i32> = wrap_iter(7)
     let first = it.next()
     match first {
-        Option::Some(x) => stdio::println((x).to_string())
-        Option::None => stdio::println("none")
+        Option::Some(x) => Stdio::println((x).to_string())
+        Option::None => Stdio::println("none")
     }
     let it2: WrapIter<i32> = wrap_iter(9)
     let mut total = 0
     for x in it2 {
         total = total + x
     }
-    stdio::println((total).to_string())
+    Stdio::println((total).to_string())
     // A second instantiation forces the for-loop desugar to resolve the
     // String variant of next rather than reusing the i32 one.
     let sit: WrapIter<String> = wrap_iter(String_from("hi"))
     for s in sit {
-        stdio::println(s)
+        Stdio::println(s)
     }
     let once: Once<i32> = Once { item: 11 }
     for x in once {
-        stdio::println((x).to_string())
+        Stdio::println((x).to_string())
     }
     0
 }

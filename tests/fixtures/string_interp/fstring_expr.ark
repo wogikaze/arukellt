@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let a: i32 = 10
     let b: i32 = 20
-    stdio::println("sum = ".concat((a + b).to_string()))
+    Stdio::println("sum = ".concat((a + b).to_string()))
     let x: i32 = 5
-    stdio::println(x.to_string().concat(" * 2 = ").concat((x * 2).to_string()))
+    Stdio::println(x.to_string().concat(" * 2 = ").concat((x * 2).to_string()))
 }

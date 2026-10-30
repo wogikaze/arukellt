@@ -1,5 +1,5 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     // try_read_u8: success
@@ -8,14 +8,14 @@ fn main() {
     let mut c1: Vec<i32> = data1.byte_cursor()
     let r1: Option<i32> = c1.try_read_u8()
     match r1 {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("none"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_u8: EOF
     let r2: Option<i32> = c1.try_read_u8()
     match r2 {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("none"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_u16_le: [10, 0] -> Some(10)
     let mut data2: Vec<i32> = Vec::new<i32>()
@@ -24,14 +24,14 @@ fn main() {
     let mut c2: Vec<i32> = data2.byte_cursor()
     let r3: Option<i32> = c2.try_read_u16_le()
     match r3 {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("none"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_u16_le: exhausted cursor -> None
     let r4: Option<i32> = c2.try_read_u16_le()
     match r4 {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("none"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_u32_le: [4,3,2,1] -> Some(16909060)
     let mut data3: Vec<i32> = Vec::new<i32>()
@@ -42,8 +42,8 @@ fn main() {
     let mut c3: Vec<i32> = data3.byte_cursor()
     let r5: Option<i32> = c3.try_read_u32_le()
     match r5 {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("none"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_u32_be: [1,2,3,4] -> Some(16909060)
     let mut data4: Vec<i32> = Vec::new<i32>()
@@ -54,8 +54,8 @@ fn main() {
     let mut c4: Vec<i32> = data4.byte_cursor()
     let r6: Option<i32> = c4.try_read_u32_be()
     match r6 {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("none"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_bytes: success - read 2 bytes from 4-byte cursor
     let mut data7: Vec<i32> = Vec::new<i32>()
@@ -66,14 +66,14 @@ fn main() {
     let mut c7: Vec<i32> = data7.byte_cursor()
     let r9: Option<Vec<i32>> = c7.try_read_bytes( 2)
     match r9 {
-        Option::Some(chunk) => stdio::println((chunk.len()).to_string()),
-        None => stdio::println("none"),
+        Option::Some(chunk) => Stdio::println((chunk.len()).to_string()),
+        None => Stdio::println("none"),
     }
     // try_read_bytes: request more than remaining -> None
     let r10: Option<Vec<i32>> = c7.try_read_bytes( 5)
     match r10 {
-        Option::Some(chunk) => stdio::println((chunk.len()).to_string()),
-        None => stdio::println("none"),
+        Option::Some(chunk) => Stdio::println((chunk.len()).to_string()),
+        None => Stdio::println("none"),
     }
 }
 // try_read_u8 success and EOF

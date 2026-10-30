@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use corehir::body_table
 use corehir::body_validator
 
@@ -57,7 +57,7 @@ fn corehir_body_builder_end_fn_contracts(mut builder: CoreHirBodyTable, start: i
 // read-only artifact boundary.
 fn corehir_body_builder_finish(builder: CoreHirBodyTable) -> CoreHirBodyTable {
     if !body_validator::corehir_body_artifact_valid(builder) {
-        stdio::eprintln(String_from("compiler ICE: invalid CoreHIR body artifact v1"))
+        Stdio::eprintln(String_from("compiler ICE: invalid CoreHIR body artifact v1"))
         Process::exit(1)
     }
     builder

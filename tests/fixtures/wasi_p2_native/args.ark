@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::host::env::Env
 
 fn main() {
     let values = Env::args()
     let mut i = 0
     while i < len(values) {
-        stdio::println(get_unchecked(values, i))
+        Stdio::println(get_unchecked(values, i))
         i = i + 1
     }
 }

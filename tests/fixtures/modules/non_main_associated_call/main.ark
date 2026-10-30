@@ -1,12 +1,12 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use helper
 
 fn main() {
-    stdio::println(helper::json_text("a\"b"))
-    stdio::println(helper::json_object("z"))
-    stdio::println(helper::json_pretty())
-    stdio::println(helper::toml_value("a = \"x\"\n"))
-    stdio::println(helper::json_document("{\"k\":\"z\"}"))
-    stdio::println(helper::toml_document("n = 42\ns = \"hi\""))
-    stdio::println(helper::csv_row("\"Smith, John\",30"))
+    Stdio::println(helper::json_text("a\"b"))
+    Stdio::println(helper::json_object("z"))
+    Stdio::println(helper::json_pretty())
+    Stdio::println(helper::toml_value("a = \"x\"\n"))
+    Stdio::println(helper::json_document("{\"k\":\"z\"}"))
+    Stdio::println(helper::toml_document("n = 42\ns = \"hi\""))
+    Stdio::println(helper::csv_row("\"Smith, John\",30"))
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum AppError {
     Io(String),
@@ -27,11 +27,11 @@ fn process() -> Result<i32, AppError> {
 
 fn main() -> i32 {
     match process() {
-        Result::Ok(n) => stdio::println(n),
+        Result::Ok(n) => Stdio::println(n),
         Result::Err(e) => {
             match e {
-                AppError::Io(msg) => stdio::println(msg),
-                AppError::Parse => stdio::println(String_from("parse error")),
+                AppError::Io(msg) => Stdio::println(msg),
+                AppError::Parse => Stdio::println(String_from("parse error")),
             }
         },
     }

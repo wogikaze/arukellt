@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Holder {
     name: String,
@@ -10,10 +10,10 @@ fn main() {
     h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
     h = Holder { name: h.name, items: push(h.items, String_from("beta")) }
     h = Holder { name: h.name, items: push(h.items, String_from("gamma")) }
-    stdio::println(h.name)
-    stdio::println(get_unchecked(h.items, 0))
-    stdio::println(get_unchecked(h.items, 1))
-    stdio::println(get_unchecked(h.items, 2))
+    Stdio::println(h.name)
+    Stdio::println(get_unchecked(h.items, 0))
+    Stdio::println(get_unchecked(h.items, 1))
+    Stdio::println(get_unchecked(h.items, 2))
     let local_ref = h.items
-    stdio::println(get_unchecked(local_ref, 0))
+    Stdio::println(get_unchecked(local_ref, 0))
 }

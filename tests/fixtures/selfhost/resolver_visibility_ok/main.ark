@@ -4,13 +4,12 @@
 // This fixture exercises that `pub` functions from an imported module are
 // accessible without error. The private helper `internal_helper` is NOT
 // called here; only the pub API is used.
-use std::host::stdio
-
+use std::host::stdio::Stdio
 use vismod
 
 fn main() {
     let msg = vismod::greet(String_from("Ark"))
     let sq = vismod::square(7)
-    stdio::println(msg)
-    stdio::println((sq).to_string())
+    Stdio::println(msg)
+    Stdio::println((sq).to_string())
 }

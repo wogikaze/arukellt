@@ -1679,7 +1679,7 @@ suite("Diagnostics (#452 / #453)", () => {
 
   test("unresolved name produces resolve diagnostic", async () => {
     const content =
-      "use std::host::stdio\nfn main() {\n    stdio::println(undefined_var)\n}\n";
+      "use std::host::stdio::Stdio\nfn main() {\n    Stdio::println(undefined_var)\n}\n";
     const fixturePath = path.join(__dirname, "fixtures", "undefined_var.ark");
     fs.writeFileSync(fixturePath, content, "utf8");
     try {

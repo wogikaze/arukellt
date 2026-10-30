@@ -1,11 +1,11 @@
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((Env::arg_count()).to_string())
-    stdio::println((Env::has_flag("--verbose")).to_string())
+    Stdio::println((Env::arg_count()).to_string())
+    Stdio::println((Env::has_flag("--verbose")).to_string())
     match Env::arg_at(0) {
-        Option::Some(s) => stdio::println(s),
-        None => stdio::println("no arg"),
+        Option::Some(s) => Stdio::println(s),
+        None => Stdio::println("no arg"),
     }
 }

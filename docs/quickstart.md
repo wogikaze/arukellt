@@ -12,10 +12,10 @@
 
 <!-- fixture: quickstart/hello.ark -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::print("Hello, world!")
+    Stdio::print("Hello, world!")
 }
 ```
 
@@ -51,15 +51,15 @@ arukellt compile --target wasm32-gc --emit component app.ark --wit host.wit
 
 <!-- fixture: quickstart/basic_types.ark -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let n: i32 = 42
     let b: bool = true
     let s: String = String_from("hello")
-    stdio::println(to_string(n))
-    stdio::println(to_string(b))
-    stdio::println(s)
+    Stdio::println(to_string(n))
+    Stdio::println(to_string(b))
+    Stdio::println(s)
 }
 ```
 
@@ -74,7 +74,7 @@ fn main() {
 
 <!-- fixture: quickstart/vec_basic.ark -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let v: Vec<i32> = Vec_new_i32()
@@ -83,11 +83,11 @@ fn main() {
 
     let first: Option<i32> = get(v, 0)
     match first {
-        Some(x) => stdio::println(to_string(x)),
-        None => stdio::println(String_from("empty")),
+        Some(x) => Stdio::println(to_string(x)),
+        None => Stdio::println(String_from("empty")),
     }
 
-    stdio::println(to_string(len(v)))
+    Stdio::println(to_string(len(v)))
 }
 ```
 
@@ -100,16 +100,16 @@ fn main() {
 
 <!-- fixture: quickstart/string_basic.ark -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let s1 = String_from("hello")
     let s2 = String_from(" world")
     let s3 = s1.concat(s2)
-    stdio::println(s3)
+    Stdio::println(s3)
 
     let sub = slice(s3, 0, 5)
-    stdio::println(sub)
+    Stdio::println(sub)
 }
 ```
 
@@ -117,7 +117,7 @@ fn main() {
 
 <!-- fixture: quickstart/option_result.ark -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn parse_positive(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
@@ -129,8 +129,8 @@ fn parse_positive(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_positive(String_from("42")) {
-        Ok(n) => stdio::println(to_string(n)),
-        Err(e) => stdio::println(e),
+        Ok(n) => Stdio::println(to_string(n)),
+        Err(e) => Stdio::println(e),
     }
 }
 ```
@@ -142,13 +142,13 @@ fn main() {
 <!-- fixture: quickstart/fs_read.ark -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r = Fs::read_to_string("tests/fixtures/quickstart/fs_read_input.txt")
     match r {
-        Ok(content) => stdio::print(content),
-        Err(e) => stdio::println(e),
+        Ok(content) => Stdio::print(content),
+        Err(e) => Stdio::println(e),
     }
 }
 ```
@@ -182,11 +182,11 @@ runtimeではfilesystem accessは拒否されます。現行`arukellt run`には
 <!-- fixture: quickstart/clock_random.ark -->
 ```ark
 use std::random::Rng
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r = Rng::new(1).next()
-    stdio::println(to_string(r))
+    Stdio::println(to_string(r))
 }
 ```
 

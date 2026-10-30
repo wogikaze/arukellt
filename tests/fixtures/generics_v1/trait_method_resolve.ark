@@ -2,7 +2,7 @@
 // callees. A generic function with a trait bound is instantiated with distinct
 // concrete types, and the lowering produces deterministic mangled callees.
 // No unresolved trait dispatch reaches the backend.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 trait Identity {
     fn id(x: i32) -> i32
@@ -36,8 +36,8 @@ fn main() {
     // apply_identity_impl calls Doubler::id (from Identity trait impl)
     // This produces 10 * 2 = 20
     let r1: i32 = apply_identity_impl(10)
-    stdio::println((r1).to_string())
-    stdio::println(String_from("trait method resolve OK."))
+    Stdio::println((r1).to_string())
+    Stdio::println(String_from("trait method resolve OK."))
 }
 // apply_identity_impl → Doubler::id (via Identity trait impl) → x*2
 // The trait method call resolves to a deterministic concrete callee:

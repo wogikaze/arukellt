@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -31,6 +31,6 @@ fn main() {
         },
         Result::Err(_) => assert(false),
     }
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 // multiple [table] headers produce separate top-level keys

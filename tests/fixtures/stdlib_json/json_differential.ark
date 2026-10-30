@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
@@ -12,34 +12,34 @@ fn main() {
             match v.get_field("a") {
                 Option::Some(av) => {
                     match av.as_i32() {
-                        Option::Some(n) => stdio::println((n).to_string()),
-                        None => stdio::println("not number"),
+                        Option::Some(n) => Stdio::println((n).to_string()),
+                        None => Stdio::println("not number"),
                     }
                 },
-                None => stdio::println("not found"),
+                None => Stdio::println("not found"),
             }
             match v.get_field("b") {
                 Option::Some(bv) => {
                     match bv.as_bool() {
-                        Option::Some(b) => stdio::println((b).to_string()),
-                        None => stdio::println("not bool"),
+                        Option::Some(b) => Stdio::println((b).to_string()),
+                        None => Stdio::println("not bool"),
                     }
                 },
-                None => stdio::println("not found"),
+                None => Stdio::println("not found"),
             }
             match v.get_field("c") {
-                Option::Some(cv) => stdio::println((cv.is_null()).to_string()),
-                None => stdio::println("not found"),
+                Option::Some(cv) => Stdio::println((cv.is_null()).to_string()),
+                None => Stdio::println("not found"),
             }
             // Re-parse the stringified output and verify it still has same structure
             match json::JsonValue::parse(out) {
                 Result::Ok(v2) => {
-                    stdio::println((v2.is_object()).to_string())
+                    Stdio::println((v2.is_object()).to_string())
                 },
-                Result::Err(e) => stdio::println("differential re-parse error:".concat(e.message())),
+                Result::Err(e) => Stdio::println("differential re-parse error:".concat(e.message())),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
 }
 // differential test: mixed-type object stringify output re-parses correctly

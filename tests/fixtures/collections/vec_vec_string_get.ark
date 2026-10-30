@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // #836: outer get on Vec<Vec<String>> → Option<Vec<String>>.
 fn main() {
@@ -7,7 +7,7 @@ fn main() {
     push(inner, String_from("ok"))
     push(outer, inner)
     match get(outer, 0) {
-        Some(row) => stdio::println(get_unchecked(row, 0)),
-        None => stdio::println("none"),
+        Some(row) => Stdio::println(get_unchecked(row, 0)),
+        None => Stdio::println("none"),
     }
 }

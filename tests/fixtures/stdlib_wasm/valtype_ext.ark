@@ -1,14 +1,14 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wasm
 
 fn main() {
-    stdio::println((wasm::ValType::i32()).to_string())
-    stdio::println((wasm::ValType::i64()).to_string())
-    stdio::println((wasm::ValType::f32()).to_string())
-    stdio::println((wasm::ValType::f64()).to_string())
-    stdio::println((wasm::ValType::v128()).to_string())
-    stdio::println((wasm::ValType::funcref()).to_string())
-    stdio::println((wasm::ValType::externref()).to_string())
+    Stdio::println((wasm::ValType::i32()).to_string())
+    Stdio::println((wasm::ValType::i64()).to_string())
+    Stdio::println((wasm::ValType::f32()).to_string())
+    Stdio::println((wasm::ValType::f64()).to_string())
+    Stdio::println((wasm::ValType::v128()).to_string())
+    Stdio::println((wasm::ValType::funcref()).to_string())
+    Stdio::println((wasm::ValType::externref()).to_string())
 }
 // Numeric value types
 // Extended value types

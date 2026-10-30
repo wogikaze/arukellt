@@ -1,7 +1,7 @@
 // Two independently bounded generic parameters with non-conventional names
 // (R/W) and distinct struct layouts. Each parameter must bind to its own
 // declared type argument; a name-based fallback gives W the first layout.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 trait Left {
     fn left(self: Left, n: i32) -> i32
@@ -41,5 +41,5 @@ fn combine<R: Left, W: Right>(t: R, u: W) -> i32 {
 fn main() {
     let mut a = Alpha { v: 10 }
     let b = Beta { v: 20, w: 5 }
-    stdio::println((combine(a, b)).to_string())
+    Stdio::println((combine(a, b)).to_string())
 }

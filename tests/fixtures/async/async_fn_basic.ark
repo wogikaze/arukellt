@@ -1,9 +1,9 @@
 // Basic async fn declaration and call.
-use std::host::stdio
+use std::host::stdio::Stdio
 async fn answer() -> i32 {
     42
 }
 
 fn main() {
-    stdio::print(answer())
+    Stdio::print(answer())
 }

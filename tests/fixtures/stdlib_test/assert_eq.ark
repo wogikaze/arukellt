@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -15,7 +15,7 @@ fn main() {
     Test::assert_eq_bool(false, false)
     Test::assert_true(1 == 1)
     Test::assert_false(1 == 2)
-    stdio::println("assert_eq ok")
+    Stdio::println("assert_eq ok")
 }
 // i32
 // i64

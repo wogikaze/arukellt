@@ -6,7 +6,7 @@
 // a rung whose count is 0 across the fixture set is not load-bearing.
 
 use std::text
-use std::host::stdio
+use std::host::stdio::Stdio
 use wasm::ctx_record
 
 fn RUNG_GET_UNCHECKED_FIELD() -> i32 { 0 }
@@ -69,5 +69,5 @@ fn emit_rung_census_print(ctx: SelfEmitCtx) {
     if len(line) == 0 {
         return
     }
-    stdio::eprintln("[arukellt] emit-rung-census:".concat(line))
+    Stdio::eprintln("[arukellt] emit-rung-census:".concat(line))
 }

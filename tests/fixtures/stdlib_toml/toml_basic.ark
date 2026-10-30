@@ -1,12 +1,12 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 
 fn main() {
-    stdio::println(toml::TomlText::parse_line("name = \"arukellt\""))
-    stdio::println(toml::TomlText::parse_line("version = \"0.1.0\""))
-    stdio::println(toml::TomlText::parse_line("# this is a comment"))
-    stdio::println(toml::TomlText::parse_line(""))
-    stdio::println(toml::TomlText::parse_line("enabled = true"))
+    Stdio::println(toml::TomlText::parse_line("name = \"arukellt\""))
+    Stdio::println(toml::TomlText::parse_line("version = \"0.1.0\""))
+    Stdio::println(toml::TomlText::parse_line("# this is a comment"))
+    Stdio::println(toml::TomlText::parse_line(""))
+    Stdio::println(toml::TomlText::parse_line("enabled = true"))
 }
 // Basic key-value lines pass through
 // Comment lines return empty

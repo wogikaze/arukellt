@@ -33,11 +33,11 @@ let scratch = Component::scratch_new()
 match Component::lower_string(scratch, String_from("hi")) {
     Result::Ok(slice) => {
         match Component::lift_string(scratch, slice) {
-            Result::Ok(text) => stdio::println(text),  // hi
-            Result::Err(_) => stdio::println("lift failed"),
+            Result::Ok(text) => Stdio::println(text),  // hi
+            Result::Err(_) => Stdio::println("lift failed"),
         }
     },
-    Result::Err(_) => stdio::println("lower failed"),
+    Result::Err(_) => Stdio::println("lower failed"),
 }
 
 let table = handle::HandleTableI32::new()

@@ -1,6 +1,6 @@
 // Issue #693: Io::copy moves bytes between concrete Reader and Writer handles
 // through the Read / Write traits.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
@@ -27,5 +27,5 @@ fn main() {
     assert(get_unchecked(image, 0) == 72)
     assert(get_unchecked(image, 5) == 32)
     assert(get_unchecked(image, 10) == 100)
-    stdio::println("OK")
+    Stdio::println("OK")
 }

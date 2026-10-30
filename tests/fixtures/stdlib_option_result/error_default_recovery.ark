@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn safe_parse(s: String) -> i32 {
     let r: Result<i32, String> = if s.eq("0") { Ok(0) } else { Err(String_from("bad")) }
@@ -7,5 +7,5 @@ fn safe_parse(s: String) -> i32 {
 fn main() {
     Test::assert_eq_i32(safe_parse(String_from("0")), 0)
     Test::assert_eq_i32(safe_parse(String_from("x")), -1)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

@@ -1,8 +1,8 @@
 // W0010: module-style qualified path used >= 3 times → prefer `use` + short name.
-use std::host::stdio
+use std::collections::linear
 
 fn main() {
-    stdio::println("a")
-    stdio::println("b")
-    stdio::println("c")
+    let _a: Vec<i32> = linear::deque_new()
+    let _b: Vec<i32> = linear::deque_new()
+    let _c: Vec<i32> = linear::deque_new()
 }

@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let x: i64 = 1000000000000i64
-    stdio::println((x).to_string())
+    Stdio::println((x).to_string())
 }

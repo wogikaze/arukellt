@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn read_pair(pos: i32) -> (i32, i32) {
     let word = pos * 10
@@ -11,6 +11,6 @@ fn read_pair(pos: i32) -> (i32, i32) {
 
 fn main() {
     let (w, p) = read_pair(3)
-    stdio::println((w).to_string())
-    stdio::println((p).to_string())
+    Stdio::println((w).to_string())
+    Stdio::println((p).to_string())
 }

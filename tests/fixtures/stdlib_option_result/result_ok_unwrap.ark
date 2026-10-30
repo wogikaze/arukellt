@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r: Result<i32, String> = Ok(100)
-    stdio::println((r.unwrap()).to_string())
+    Stdio::println((r.unwrap()).to_string())
 }

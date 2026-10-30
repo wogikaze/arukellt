@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::lower::ctx_api_local_frame
 use mir::function_return_view
@@ -33,7 +33,7 @@ fn mir_lower_trace_line(on: i32, phase: i32, np: i32, nl: i32, nb: i32, rt: i32)
     s = s.concat(nb.to_string())
     s = s.concat(" ")
     s = s.concat(rt.to_string())
-    stdio::eprintln(s)
+    Stdio::eprintln(s)
 }
 
 fn mir_lower_trace_ctx(on: i32, ctx: LowerCtx, phase: i32) {

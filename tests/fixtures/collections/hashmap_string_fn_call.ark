@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(n: i32) -> i32 {
     n * 2
@@ -8,7 +8,7 @@ fn main() {
     let mut m = HashMap::new<String, fn(i32) -> i32>()
     let _ = m.insert("x", double)
     match m.get("x") {
-        Some(f) => stdio::println((f(5)).to_string()),
-        None => stdio::println("missing"),
+        Some(f) => Stdio::println((f(5)).to_string()),
+        None => Stdio::println("missing"),
     }
 }

@@ -260,11 +260,11 @@ let scratch = Component::scratch_new()
 match Component::lower_string(scratch, String_from("hi")) {
     Result::Ok(slice) => {
         match Component::lift_string(scratch, slice) {
-            Result::Ok(text) => stdio::println(text),  // hi
-            Result::Err(_) => stdio::println("lift failed"),
+            Result::Ok(text) => Stdio::println(text),  // hi
+            Result::Err(_) => Stdio::println("lift failed"),
         }
     },
-    Result::Err(_) => stdio::println("lower failed"),
+    Result::Err(_) => Stdio::println("lower failed"),
 }
 
 let table = handle::HandleTableI32::new()
@@ -300,11 +300,11 @@ let dropped = table.remove(h)   // Some(42)
             "typical_usage": """\
 ```ark
 use std::core::{Range}
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let r = Range::new(0, 10)
 if r.contains(5) {
-    stdio::println("5 is in range")
+    Stdio::println("5 is in range")
 }
 let len = r.len()  // 10
 ```""",
@@ -376,11 +376,12 @@ let text = csv::Csv::stringify_row(row)
 ```ark
 import std::host::fs
 use std::host::fs::Fs
+use std::host::stdio::Stdio
 
 let content = Fs::read_to_string("data.txt")
 match content {
-    Ok(text) => println(text),
-    Err(e)   => eprintln("read error: " + e),
+    Result::Ok(text) => Stdio::println(text),
+    Result::Err(e)   => Stdio::eprintln("read error: ".concat(e)),
 }
 
 Fs::write_string("output.txt", "hello")
@@ -422,8 +423,8 @@ Fs::write_string("output.txt", "hello")
                 "companion to `std::host::fs`; path manipulation itself requires no host access."
             ),
             "highlights": [
-                ("`std::host::stdio` — `println(s)`", "Write a line to stdout."),
-                ("`std::host::stdio` — `eprintln(s)`", "Write a line to stderr."),
+                ("`Stdio::println(s)` from `std::host::stdio`", "Write a line to stdout."),
+                ("`Stdio::eprintln(s)` from `std::host::stdio`", "Write a line to stderr."),
                 ("`std::host::fs` — `Fs::read_to_string(path)`", "Read a whole file as a UTF-8 string."),
                 ("`std::host::fs` — `Fs::write_string(path, content)`", "Write or replace a UTF-8 file."),
                 ("`std::host::env` — `Env::args()`", "Retrieve the CLI argument vector."),
@@ -436,14 +437,14 @@ Fs::write_string("output.txt", "hello")
 ```ark
 use std::host::env::Env
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 let name = Env::var_or_default("USER", "world")
-stdio::println("Hello, ".concat(name).concat("!"))
+Stdio::println("Hello, ".concat(name).concat("!"))
 
 match Fs::read_to_string("hostname") {
-    Result::Ok(text) => stdio::println(text),
-    Result::Err(e) => stdio::eprintln("error: ".concat(e)),
+    Result::Ok(text) => Stdio::println(text),
+    Result::Err(e) => Stdio::eprintln("error: ".concat(e)),
 }
 ```""",
         },
@@ -548,15 +549,15 @@ let dir  = Path::new("/home/user/data.txt").parent()    // "/home/user"
 ```ark
 use std::host::env::Env
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 
 if Env::has_flag("--help") {
-    stdio::println("Usage: myapp [options]")
+    Stdio::println("Usage: myapp [options]")
     Process::exit(0)
 }
 
 let name = Env::var_or_default("USER", "unknown")
-stdio::println("Running as: ".concat(name))
+Stdio::println("Running as: ".concat(name))
 ```""",
         },
     },

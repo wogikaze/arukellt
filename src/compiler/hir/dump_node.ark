@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use hir::dump_names
 use hir::node_children_record
@@ -18,7 +18,7 @@ fn dump_hir_node(node: HirNode, depth: i32) {
     if node_value_record::hir_node_text_len(node) > 0 {
         line = line.concat(" '".concat(node_value_record::hir_node_text(node).concat("'")))
     }
-    stdio::eprintln(line)
+    Stdio::eprintln(line)
     let child_count = node_children_record::hir_node_child_count(node)
     let mut i = 0
     while i < child_count {

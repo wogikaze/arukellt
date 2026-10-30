@@ -1,5 +1,5 @@
 use std::bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::text
 
@@ -10,10 +10,10 @@ fn main() {
     let mut r: io::Reader = io::Reader::from_bytes(data)
     // Try to read_exact 5 bytes from a 2-byte reader -> IoError::UnexpectedEof
     match io::Io::read_exact(r, 5) {
-        Result::Ok(_) => stdio::println("unexpected-ok"),
+        Result::Ok(_) => Stdio::println("unexpected-ok"),
         Result::Err(err) => match err {
-            io::IoError::UnexpectedEof(msg) => stdio::println(msg),
-            io::IoError::Other(msg) => stdio::println("other:".concat(msg)),
+            io::IoError::UnexpectedEof(msg) => Stdio::println(msg),
+            io::IoError::Other(msg) => Stdio::println("other:".concat(msg)),
         },
     }
 }

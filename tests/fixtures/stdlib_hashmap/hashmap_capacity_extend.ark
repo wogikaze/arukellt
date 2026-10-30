@@ -1,8 +1,8 @@
-use std::host::stdio
-use std::test::Test
+use std::host::stdio::Stdio
+use std::prelude::{assert_eq}
 fn expect_some(v: Option<i32>, expected: i32) {
     match v {
-        Option::Some(x) => Test::assert_eq_i32(x, expected),
+        Option::Some(x) => assert_eq(x, expected),
         None => assert(false),
     }
 }
@@ -23,7 +23,7 @@ fn main() {
         let _ = m.insert(i, i * 10)
         i = i + 1
     }
-    Test::assert_eq_i32(m.len(), 20)
+    assert_eq(m.len(), 20)
     let mut j: i32 = 0
     while j < 20 {
         expect_some(m.get(j), j * 10)
@@ -34,7 +34,7 @@ fn main() {
     let big_cap = m.capacity()
     m.shrink_to_fit()
     assert(m.capacity() <= big_cap)
-    Test::assert_eq_i32(m.len(), 20)
+    assert_eq(m.len(), 20)
     expect_some(m.get(7), 70)
 
     // extend copies entries from another map, overwriting existing keys.
@@ -44,7 +44,7 @@ fn main() {
     m.extend(other)
     expect_some(m.get(0), 999)
     expect_some(m.get(100), 1000)
-    Test::assert_eq_i32(m.len(), 21)
+    assert_eq(m.len(), 21)
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

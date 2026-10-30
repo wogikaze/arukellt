@@ -1,6 +1,6 @@
 use std::core::convert
 use std::error
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::text
 
@@ -91,5 +91,5 @@ fn main() {
         Err(_) => assert(true),
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

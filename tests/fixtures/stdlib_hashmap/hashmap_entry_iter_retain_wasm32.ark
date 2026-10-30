@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 use std::core::iter
 
@@ -95,5 +95,5 @@ fn main() {
         Option::None => Std::panic("missing fn entry"),
     }
 
-    stdio::println("hashmap-entry-iter-retain-ok")
+    Stdio::println("hashmap-entry-iter-retain-ok")
 }

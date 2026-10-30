@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 fn main() {
@@ -8,34 +8,34 @@ fn main() {
             match table.get_field("name") {
                 Option::Some(v) => {
                     match v.as_string() {
-                        Option::Some(s) => stdio::println(s),
-                        None => stdio::println("not string"),
+                        Option::Some(s) => Stdio::println(s),
+                        None => Stdio::println("not string"),
                     }
                 },
-                None => stdio::println("key not found"),
+                None => Stdio::println("key not found"),
             }
             match table.get_field("enabled") {
                 Option::Some(v) => {
                     match v.as_bool() {
-                        Option::Some(b) => stdio::println((b).to_string()),
-                        None => stdio::println("not bool"),
+                        Option::Some(b) => Stdio::println((b).to_string()),
+                        None => Stdio::println("not bool"),
                     }
                 },
-                None => stdio::println("key not found"),
+                None => Stdio::println("key not found"),
             }
             match table.get_field("count") {
                 Option::Some(v) => {
                     match v.as_int() {
-                        Option::Some(n) => stdio::println((n).to_string()),
-                        None => stdio::println("not int"),
+                        Option::Some(n) => Stdio::println((n).to_string()),
+                        None => Stdio::println("not int"),
                     }
                 },
-                None => stdio::println("key not found"),
+                None => Stdio::println("key not found"),
             }
             let keys = table.table_keys()
-            stdio::println((len(keys)).to_string())
+            Stdio::println((len(keys)).to_string())
         },
-        Result::Err(e) => stdio::println("error:".concat(e)),
+        Result::Err(e) => Stdio::println("error:".concat(e)),
     }
 }
 // toml_parse recognises a valid key=value document

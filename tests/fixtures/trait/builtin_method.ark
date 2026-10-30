@@ -1,23 +1,23 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::collections::string
 use std::core::convert
 
 fn main() {
     // String methods (approach (a) — impl String block)
     let s = String_from("hello")
-    stdio::println(s.len())
+    Stdio::println(s.len())
 
     // i32 methods (approach (a) — impl i32 block)
     let n = 42
-    stdio::println(n.to_string())
+    Stdio::println(n.to_string())
 
     // Vec methods (approach (b) — compiler-internal fallback mapping)
     let mut v = Vec::new<i32>()
     v.push(10)
     v.push(20)
     v.push(30)
-    stdio::println(v.len())
-    stdio::println(v.get_unchecked(0))
-    stdio::println(v.get_unchecked(1))
-    stdio::println(v.get_unchecked(2))
+    Stdio::println(v.len())
+    Stdio::println(v.get_unchecked(0))
+    Stdio::println(v.get_unchecked(1))
+    Stdio::println(v.get_unchecked(2))
 }

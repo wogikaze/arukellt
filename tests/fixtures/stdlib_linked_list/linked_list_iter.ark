@@ -2,12 +2,12 @@
 use std::collections::linked_list::LinkedList
 use std::collections::linked_list::LinkedListIter
 use std::collections::linked_list::LinkedListIterMut
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(value: Option<i32>) {
     match value {
-        Option::Some(item) => stdio::println(item.to_string()),
-        Option::None => stdio::println(String_from("none")),
+        Option::Some(item) => Stdio::println(item.to_string()),
+        Option::None => Stdio::println(String_from("none")),
     }
 }
 
@@ -20,8 +20,8 @@ fn main() {
     let mut cursor: LinkedListIter<i32> = list.iter()
     show(cursor.next())
     show(cursor.next())
-    stdio::println((cursor.count()).to_string())
-    stdio::println((list.iter().count()).to_string())
+    Stdio::println((cursor.count()).to_string())
+    Stdio::println((list.iter().count()).to_string())
 
     let mut before: LinkedListIterMut<i32> = list.iter_mut()
     show(before.set_current(99))
@@ -38,11 +38,11 @@ fn main() {
     show(writable.next())
     show(writable.next())
     show(writable.set_current(0))
-    stdio::println(list.fmt_debug())
+    Stdio::println(list.fmt_debug())
 
     let values: Vec<i32> = list.iter().collect()
     assert(len(values) == 3)
-    stdio::println((get_unchecked(values, 0)).to_string())
-    stdio::println((get_unchecked(values, 1)).to_string())
-    stdio::println((get_unchecked(values, 2)).to_string())
+    Stdio::println((get_unchecked(values, 0)).to_string())
+    Stdio::println((get_unchecked(values, 1)).to_string())
+    Stdio::println((get_unchecked(values, 2)).to_string())
 }

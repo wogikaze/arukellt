@@ -1,7 +1,7 @@
 // Typed Stdout implements std::io::Write. write() emits the byte image
 // unchanged (including interior newlines) and returns its exact length;
 // write_string() emits a string's UTF-8 bytes; an empty write reports 0.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io::{Stdout, Write}
 
 fn main() {
@@ -12,16 +12,16 @@ fn main() {
     push(bytes, 66)
     push(bytes, 10)
     match out.write(bytes) {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(_) => stdio::println("stdout write failed"),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(_) => Stdio::println("stdout write failed"),
     }
     match out.write_string("text\n") {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(_) => stdio::println("stdout write_string failed"),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(_) => Stdio::println("stdout write_string failed"),
     }
     match out.write(Vec::new<i32>()) {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(_) => stdio::println("stdout empty write failed"),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(_) => Stdio::println("stdout empty write failed"),
     }
-    stdio::println("stdout done")
+    Stdio::println("stdout done")
 }

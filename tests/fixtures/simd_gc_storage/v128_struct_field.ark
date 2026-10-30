@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::simd::i32x4
 use std::simd::i32x4::I32x4
 
@@ -10,5 +10,5 @@ fn main() {
     let v = I32x4::splat(42)
     let s = Vec4 { x: v }
     let lane0 = I32x4::extract_lane(s.x, 0)
-    stdio::println((lane0).to_string())
+    Stdio::println((lane0).to_string())
 }

@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 import a
 
 fn main() {
-    stdio::println(a::from_a())
+    Stdio::println(a::from_a())
 }

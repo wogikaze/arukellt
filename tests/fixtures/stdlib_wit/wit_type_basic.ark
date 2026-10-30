@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::types
 
 fn main() {
     let list_ty = types::WitType::list(types::WitType::String)
-    stdio::println(list_ty.name())
-    stdio::println((list_ty.id()).to_string())
+    Stdio::println(list_ty.name())
+    Stdio::println((list_ty.id()).to_string())
     let opt_ty = types::WitType::option(types::WitType::U32)
-    stdio::println(opt_ty.name())
+    Stdio::println(opt_ty.name())
 }
 // compound WitType list/option through the associated constructors

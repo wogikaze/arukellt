@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut count = 0
@@ -6,10 +6,10 @@ fn main() {
         count = count + 1
     }
     c()
-    stdio::println((count + 0).to_string())
+    Stdio::println((count + 0).to_string())
     c()
     c()
-    stdio::println((count + 0).to_string())
+    Stdio::println((count + 0).to_string())
     let shown = count * 10
-    stdio::println(shown.to_string())
+    Stdio::println(shown.to_string())
 }

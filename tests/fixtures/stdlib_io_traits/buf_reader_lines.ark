@@ -3,7 +3,7 @@
 // Trait calls go through generic bounds: direct Result-returning method
 // dispatch is a separate compiler lane, while the adapter itself dispatches
 // `self.inner.read(...)` in its own impl.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{BufReader, Reader}
 use std::text
@@ -41,10 +41,10 @@ fn main() {
     while line_index < 5 {
         match read_line_of(lines) {
             Result::Ok(found) => match found {
-                Option::Some(line) => stdio::println(line),
-                Option::None => stdio::println("<eof>"),
+                Option::Some(line) => Stdio::println(line),
+                Option::None => Stdio::println("<eof>"),
             },
-            Result::Err(err) => stdio::println(err.message()),
+            Result::Err(err) => Stdio::println(err.message()),
         }
         line_index = line_index + 1
     }
@@ -54,28 +54,28 @@ fn main() {
         4
     )
     match fill_of(buffered) {
-        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match consume_of(buffered, 2) {
-        Result::Ok(_) => stdio::println("consume ok"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("consume ok"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match fill_of(buffered) {
-        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match consume_of(buffered, 3) {
-        Result::Ok(_) => stdio::println("unexpected consume success"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected consume success"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(buffered, 4) {
         Result::Ok(bytes) => {
-            stdio::println((len(bytes)).to_string())
-            stdio::println((get_unchecked(bytes, 0)).to_string())
-            stdio::println((get_unchecked(bytes, 3)).to_string())
+            Stdio::println((len(bytes)).to_string())
+            Stdio::println((get_unchecked(bytes, 0)).to_string())
+            Stdio::println((get_unchecked(bytes, 3)).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut seekable: BufReader<Reader> = BufReader::new<Reader>(
@@ -85,51 +85,51 @@ fn main() {
     match read_some(seekable, 2) {
         Result::Ok(_) => {
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match position_of(seekable) {
-        Result::Ok(pos) => stdio::println((pos).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(pos) => Stdio::println((pos).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match seek_of(seekable, io::SeekFrom::Start(0i64)) {
-        Result::Ok(pos) => stdio::println((pos).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(pos) => Stdio::println((pos).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match read_line_of(seekable) {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match position_of(seekable) {
-        Result::Ok(pos) => stdio::println((pos).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(pos) => Stdio::println((pos).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match seek_of(seekable, io::SeekFrom::Start(0i64)) {
         Result::Ok(_) => {
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(seekable, 2) {
-        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match seek_of(seekable, io::SeekFrom::Current(1i64)) {
-        Result::Ok(pos) => stdio::println((pos).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(pos) => Stdio::println((pos).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(seekable, 1) {
-        Result::Ok(bytes) => stdio::println((get_unchecked(bytes, 0)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((get_unchecked(bytes, 0)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match seek_of(seekable, io::SeekFrom::End(0i64 - 1i64)) {
-        Result::Ok(pos) => stdio::println((pos).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(pos) => Stdio::println((pos).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(seekable, 1) {
-        Result::Ok(bytes) => stdio::println((get_unchecked(bytes, 0)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((get_unchecked(bytes, 0)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut tiny: BufReader<Reader> = BufReader::new<Reader>(
@@ -138,10 +138,10 @@ fn main() {
     )
     match read_some(tiny, 4) {
         Result::Ok(bytes) => {
-            stdio::println((len(bytes)).to_string())
-            stdio::println((get_unchecked(bytes, 0)).to_string())
+            Stdio::println((len(bytes)).to_string())
+            Stdio::println((get_unchecked(bytes, 0)).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut unterminated: BufReader<Reader> = BufReader::new<Reader>(
@@ -150,16 +150,16 @@ fn main() {
     )
     match read_line_of(unterminated) {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match read_line_of(unterminated) {
         Result::Ok(found) => match found {
-            Option::Some(line) => stdio::println(line),
-            Option::None => stdio::println("<eof>"),
+            Option::Some(line) => Stdio::println(line),
+            Option::None => Stdio::println("<eof>"),
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }

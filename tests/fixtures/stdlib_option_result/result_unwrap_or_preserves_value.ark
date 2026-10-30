@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -6,5 +6,5 @@ fn main() {
     let zero: Result<i32, i32> = Ok(0)
     Test::assert_eq_i32(value.unwrap_or(0), 33)
     Test::assert_eq_i32(zero.unwrap_or(99), 0)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

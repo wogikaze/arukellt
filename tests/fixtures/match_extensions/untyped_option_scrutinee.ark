@@ -13,7 +13,7 @@
 // without requiring an Err payload spelling the inferred Result::Ok
 // scrutinee does not have.
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn inline_ctor() -> i32 {
     match Option::Some(7) {
@@ -109,17 +109,17 @@ fn merged(c: bool) -> i32 {
 }
 
 fn main() {
-    stdio::println(inline_ctor().to_string())
-    stdio::println(inline_ctor_lit())
-    stdio::println(inferred_let().to_string())
-    stdio::println(inferred_nested().to_string())
-    stdio::println(annotated_nested().to_string())
-    stdio::println(annotated_tuple().to_string())
-    stdio::println(inferred_string())
-    stdio::println(inferred_result().to_string())
-    stdio::println(inferred_result_err().to_string())
-    stdio::println(Option::Some(7).unwrap_or(9).to_string())
-    stdio::println(Option::None.unwrap_or(9).to_string())
-    stdio::println(merged(true).to_string())
-    stdio::println(merged(false).to_string())
+    Stdio::println(inline_ctor().to_string())
+    Stdio::println(inline_ctor_lit())
+    Stdio::println(inferred_let().to_string())
+    Stdio::println(inferred_nested().to_string())
+    Stdio::println(annotated_nested().to_string())
+    Stdio::println(annotated_tuple().to_string())
+    Stdio::println(inferred_string())
+    Stdio::println(inferred_result().to_string())
+    Stdio::println(inferred_result_err().to_string())
+    Stdio::println(Option::Some(7).unwrap_or(9).to_string())
+    Stdio::println(Option::None.unwrap_or(9).to_string())
+    Stdio::println(merged(true).to_string())
+    Stdio::println(merged(false).to_string())
 }

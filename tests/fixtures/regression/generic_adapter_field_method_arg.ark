@@ -1,6 +1,6 @@
 // A method called through a struct field must pass that field as the
 // receiver before the method's explicit arguments.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 trait Read {
     fn read(self: Read, n: i32) -> i32
@@ -28,6 +28,6 @@ impl<T> Read for Adapter<T> {
 
 fn main() {
     let mut a = Adapter { inner: Counter { base: 10 } }
-    stdio::println((a.read(3)).to_string())
-    stdio::println((a.read(7)).to_string())
+    Stdio::println((a.read(3)).to_string())
+    Stdio::println((a.read(7)).to_string())
 }

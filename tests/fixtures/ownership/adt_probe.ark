@@ -1,21 +1,21 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{Box, as_slice, slice_get, slice_len}
 
 fn main() {
     let boxed: Box<i32> = Box::new(42)
     let moved = boxed
     let value = moved.take()
-    stdio::println(value.to_string())
+    Stdio::println(value.to_string())
 
     let mut values: Vec<i32> = Vec::new<i32>()
     push(values, 7)
     let view = as_slice(values, 0, 1)
-    stdio::println((slice_len(view)).to_string())
-    stdio::println((len(values)).to_string())
+    Stdio::println((slice_len(view)).to_string())
+    Stdio::println((len(values)).to_string())
 
     let mut values_again: Vec<i32> = Vec::new<i32>()
     push(values_again, 8)
     let view_again = as_slice(values_again, 0, 1)
     let viewed = slice_get(view_again, 0)
-    stdio::println(viewed.to_string())
+    Stdio::println(viewed.to_string())
 }

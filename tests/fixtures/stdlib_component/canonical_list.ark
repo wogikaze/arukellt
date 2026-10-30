@@ -1,5 +1,5 @@
 use std::component::Component
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::error
 fn main() {
     let mut scratch = Component::scratch_new()
@@ -9,23 +9,23 @@ fn main() {
     push(vals, 3)
     match Component::lower_list_i32(scratch, vals) {
         Result::Ok(slice) => {
-            stdio::println((slice.len).to_string())
+            Stdio::println((slice.len).to_string())
             match Component::lift_list_i32(scratch, slice) {
                 Result::Ok(out) => {
-                    stdio::println((len(out)).to_string())
-                    stdio::println((get_unchecked(out, 0)).to_string())
+                    Stdio::println((len(out)).to_string())
+                    Stdio::println((get_unchecked(out, 0)).to_string())
                 },
-                Result::Err(e) => stdio::println(e.message()),
+                Result::Err(e) => Stdio::println(e.message()),
             }
             match Component::lift_list_i32_at(scratch, slice.ptr, slice.len) {
                 Result::Ok(out) => {
-                    stdio::println((len(out)).to_string())
-                    stdio::println((get_unchecked(out, 0)).to_string())
+                    Stdio::println((len(out)).to_string())
+                    Stdio::println((get_unchecked(out, 0)).to_string())
                 },
-                Result::Err(e) => stdio::println(e.message()),
+                Result::Err(e) => Stdio::println(e.message()),
             }
         },
-        Result::Err(e) => stdio::println(e.message()),
+        Result::Err(e) => Stdio::println(e.message()),
     }
 }
 // canonical i32 list lower/lift round-trip (Component associated functions)

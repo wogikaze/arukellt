@@ -1,13 +1,13 @@
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::host::random::Random
 
 fn main() {
     let t = Clock::monotonic_now()
     let t_str = (t).to_string()
     let not_zero = t_str != String_from("0")
-    stdio::println((not_zero).to_string())
+    Stdio::println((not_zero).to_string())
     let r = Random::random_i32()
     let has_value = r != 0 || r == 0
-    stdio::println((has_value).to_string())
+    Stdio::println((has_value).to_string())
 }

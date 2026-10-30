@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn identity<T>(x: T) -> T {
     x
@@ -6,5 +6,5 @@ fn identity<T>(x: T) -> T {
 
 fn main() {
     let result: i32 = identity(42)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
@@ -6,9 +6,9 @@ fn main() {
 
     let first: Option<i32> = get(v, 0)
     match first {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println(String_from("empty")),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println(String_from("empty")),
     }
 
-    stdio::println(len(v).to_string())
+    Stdio::println(len(v).to_string())
 }

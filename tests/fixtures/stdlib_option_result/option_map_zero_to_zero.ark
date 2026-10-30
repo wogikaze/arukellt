@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 use std::core::container
 
@@ -7,5 +7,5 @@ fn main() {
     let a: Option<i32> = Some(0)
     let m = a.map(double)
     match m { Option::Some(v) => Test::assert_eq_i32(v, 0), None => Std::panic("none") }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

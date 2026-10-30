@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Holder {
     name: String,
@@ -16,8 +16,8 @@ fn main() {
     // A plain field read in a let initializer is a read, not a move: the call
     // borrow leaves `h` live and the field is still readable here.
     let label = h.name
-    stdio::println(label)
-    stdio::println(first.to_string())
-    stdio::println(second.to_string())
-    stdio::println(h.count.to_string())
+    Stdio::println(label)
+    Stdio::println(first.to_string())
+    Stdio::println(second.to_string())
+    Stdio::println(h.count.to_string())
 }

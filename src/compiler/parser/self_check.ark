@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use lexer::scan
 use parser::core_api_token
@@ -43,7 +43,7 @@ fn main() {
     let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     let n = len(decls)
-    stdio::println("Parsed ".concat(n.to_string().concat(" declaration(s)")))
+    Stdio::println("Parsed ".concat(n.to_string().concat(" declaration(s)")))
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
@@ -52,21 +52,21 @@ fn main() {
     }
     let err_count = state_record::parser_error_count(p)
     if err_count > 0 {
-        stdio::println("Parse errors: ".concat(err_count.to_string()))
+        Stdio::println("Parse errors: ".concat(err_count.to_string()))
         let mut j = 0
         while j < err_count {
             let e = state_record::parser_error_at(p, j)
-            stdio::println("  ".concat(e.message.clone()))
+            Stdio::println("  ".concat(e.message.clone()))
             j = j + 1
         }
     } else {
-        stdio::println("No parse errors.")
+        Stdio::println("No parse errors.")
     }
-    stdio::println(issue499_parser_self_check())
-    stdio::println(issue499_parser_pipepipe_self_check())
-    stdio::println(issue499_parser_lexer_integration_self_check())
-    stdio::println(issue499_parser_block_body_lexer_integration_self_check())
-    stdio::println(issue504_parser_self_check())
-    stdio::println(issue652_parser_self_check())
-    stdio::println(issue652_parser_malformed_self_check())
+    Stdio::println(issue499_parser_self_check())
+    Stdio::println(issue499_parser_pipepipe_self_check())
+    Stdio::println(issue499_parser_lexer_integration_self_check())
+    Stdio::println(issue499_parser_block_body_lexer_integration_self_check())
+    Stdio::println(issue504_parser_self_check())
+    Stdio::println(issue652_parser_self_check())
+    Stdio::println(issue652_parser_malformed_self_check())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::block_dominance_access
 use mir::block_inst_access
@@ -35,11 +35,11 @@ fn dump_mir_function_blocks(f: MirFunction) {
         block_msg = block_msg.concat(dump_format_edges::mir_format_edge(block_dominance_access::MirBlock_idom(block)))
         block_msg = block_msg.concat(" df=")
         block_msg = block_msg.concat(dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))
-        stdio::eprintln(block_msg)
+        Stdio::eprintln(block_msg)
         let mut p = 0
         while p < phi_count {
             let phi = block_phi_access::MirBlock_phi_at(block, p)
-            stdio::eprintln("      ".concat(dump_format_phi::mir_format_phi(f, phi)))
+            Stdio::eprintln("      ".concat(dump_format_phi::mir_format_phi(f, phi)))
             p = p + 1
         }
         let mut j = 0
@@ -54,7 +54,7 @@ fn dump_mir_function_blocks(f: MirFunction) {
                 line = line.concat(" fid=")
                 line = line.concat(inst_record::mir_inst_func_id_raw(inst).to_string())
             }
-            stdio::eprintln(line)
+            Stdio::eprintln(line)
             j = j + 1
         }
         b = b + 1

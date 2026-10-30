@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(n: i32) -> i32 {
     n * 2
@@ -8,5 +8,5 @@ fn main() {
     let mut fs: Vec<fn(i32) -> i32> = Vec::new<fn(i32) -> i32>()
     push(fs, double)
     let f = get_unchecked(fs, 0)
-    stdio::println((f(5)).to_string())
+    Stdio::println((f(5)).to_string())
 }

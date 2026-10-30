@@ -1,20 +1,20 @@
 use std::collections::compiler::SlotMap
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m: SlotMap = SlotMap::new()
-    stdio::println((m.len()).to_string())
+    Stdio::println((m.len()).to_string())
     let k0: i32 = m.insert(42)
     let k1: i32 = m.insert(99)
-    stdio::println((m.len()).to_string())
-    stdio::println((m.contains(k0)).to_string())
-    stdio::println((m.contains(k1)).to_string())
+    Stdio::println((m.len()).to_string())
+    Stdio::println((m.contains(k0)).to_string())
+    Stdio::println((m.contains(k1)).to_string())
     let removed: Option<i32> = m.remove(k0)
     match removed {
-        Option::Some(v) => stdio::println((v).to_string()),
-        None => stdio::println("not found"),
+        Option::Some(v) => Stdio::println((v).to_string()),
+        None => Stdio::println("not found"),
     }
-    stdio::println((m.len()).to_string())
-    stdio::println((m.contains(k0)).to_string())
-    stdio::println((m.contains(k1)).to_string())
+    Stdio::println((m.len()).to_string())
+    Stdio::println((m.contains(k0)).to_string())
+    Stdio::println((m.contains(k1)).to_string())
 }

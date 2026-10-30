@@ -1,10 +1,9 @@
 use std::core
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import math
 
 fn main() {
     let a: i32 = math::add(10, 20)
-    let b: i32 = core::identity(a)
-    stdio::println((b).to_string())
+    let b: i32 = core::Range::new(0, a).len()
+    Stdio::println((b).to_string())
 }

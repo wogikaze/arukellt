@@ -3,7 +3,7 @@
 // unmatched case where a non-catchall last arm would previously have
 // diverged (linear ran it unconditionally, GC trapped on null).
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn classify(x: i32) -> String {
     match x {
@@ -13,7 +13,7 @@ fn classify(x: i32) -> String {
 }
 
 fn main() {
-    stdio::println(classify(1))
-    stdio::println(classify(9))
-    stdio::println(classify(2))
+    Stdio::println(classify(1))
+    Stdio::println(classify(9))
+    Stdio::println(classify(2))
 }

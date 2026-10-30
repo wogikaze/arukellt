@@ -1,5 +1,5 @@
 use std::collections::ordered::BTreeMap
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m = BTreeMap::new()
@@ -11,14 +11,14 @@ fn main() {
     let keys = m.keys()
     let mut i: i32 = 0
     while i < len(keys) {
-        stdio::println((get_unchecked(keys, i)).to_string())
+        Stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }
     let range = m.range(20, 45)
-    stdio::println((len(range)).to_string())
+    Stdio::println((len(range)).to_string())
     let mut j: i32 = 0
     while j < len(range) {
-        stdio::println((get_unchecked(range, j)).to_string())
+        Stdio::println((get_unchecked(range, j)).to_string())
         j = j + 1
     }
 }

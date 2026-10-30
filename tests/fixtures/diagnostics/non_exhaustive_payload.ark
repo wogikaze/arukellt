@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn get_opt() -> Option<i32> {
     Option::Some(5)
@@ -10,5 +10,5 @@ fn main() {
         Option::Some(0) => "zero",
         None => "none",
     }
-    stdio::println(r)
+    Stdio::println(r)
 }

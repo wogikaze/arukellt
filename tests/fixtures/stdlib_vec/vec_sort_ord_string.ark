@@ -4,12 +4,12 @@
 // `<` / `>` operators are not a String ordering contract on every target.
 use std::collections::vec
 use std::core::cmp
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(values: Vec<String>) {
     let mut index: i32 = 0
     while index < values.len() {
-        stdio::println(values.get_unchecked(index))
+        Stdio::println(values.get_unchecked(index))
         index = index + 1
     }
 }
@@ -35,9 +35,9 @@ fn main() {
     values.push("fig")
     values.push("kiwi")
     values.push("apple")
-    stdio::println(values.is_sorted().to_string())
+    Stdio::println(values.is_sorted().to_string())
     values.sort()
-    stdio::println(values.is_sorted().to_string())
+    Stdio::println(values.is_sorted().to_string())
     show(values)
 
     let mut unstable: Vec<String> = Vec::new<String>()
@@ -56,7 +56,7 @@ fn main() {
     selection.push("kiwi")
     selection.push("zebra")
     selection.select_nth(2)
-    stdio::println(selection.get_unchecked(2))
+    Stdio::println(selection.get_unchecked(2))
     let mut before_ok: bool = true
     let mut before: i32 = 0
     while before < 2 {
@@ -73,16 +73,16 @@ fn main() {
         }
         after = after + 1
     }
-    stdio::println(before_ok.to_string())
-    stdio::println(after_ok.to_string())
+    Stdio::println(before_ok.to_string())
+    Stdio::println(after_ok.to_string())
 
     let mut empty: Vec<String> = Vec::new<String>()
     empty.sort()
     empty.select_nth(0)
-    stdio::println(empty.is_sorted().to_string())
+    Stdio::println(empty.is_sorted().to_string())
 
     let mut single: Vec<String> = Vec::new<String>()
     single.push("solo")
     single.sort_unstable()
-    stdio::println(single.get_unchecked(0))
+    Stdio::println(single.get_unchecked(0))
 }

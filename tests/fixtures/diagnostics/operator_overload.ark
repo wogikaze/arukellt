@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -15,6 +15,6 @@ fn main() {
     let a = Point { x: 1, y: 2 }
     let b = Point { x: 3, y: 4 }
     let c = a + b
-    stdio::println(c.x)
-    stdio::println(c.y)
+    Stdio::println(c.x)
+    Stdio::println(c.y)
 }

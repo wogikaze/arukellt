@@ -2,7 +2,7 @@
 // a method call on outer.iter (or on a variable bound from it) records
 // and lowers the per-instantiation impl method Take::next with [VecIter<i32>].
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Take<I> {
     iter: I,
@@ -40,22 +40,22 @@ fn main() -> i32 {
     v.push(5)
     v.push(6)
     let inner: Take<VecIter<i32>> = Take { iter: v.into_iter(), remaining: 3 }
-    stdio::println((inner.remaining).to_string())
+    Stdio::println((inner.remaining).to_string())
     let outer: Take<Take<VecIter<i32>>> = Take { iter: inner, remaining: 2 }
-    stdio::println((outer.remaining).to_string())
+    Stdio::println((outer.remaining).to_string())
     let mut it2 = outer.iter
-    stdio::println((it2.remaining).to_string())
+    Stdio::println((it2.remaining).to_string())
     let a = it2.next()
     match a {
-        Option::Some(x) => stdio::println((x).to_string())
-        Option::None => stdio::println("none_a")
+        Option::Some(x) => Stdio::println((x).to_string())
+        Option::None => Stdio::println("none_a")
     }
     let inner2: Take<VecIter<i32>> = Take { iter: Vec::new<i32>().into_iter(), remaining: 1 }
     let mut outer2: Take<Take<VecIter<i32>>> = Take { iter: inner2, remaining: 1 }
     let b = outer2.iter.next()
     match b {
-        Option::Some(x) => stdio::println((x).to_string())
-        Option::None => stdio::println("none_b")
+        Option::Some(x) => Stdio::println((x).to_string())
+        Option::None => Stdio::println("none_b")
     }
     0
 }

@@ -1,5 +1,5 @@
 // Future<T> type annotation
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn forward_future(f: Future<i32>) -> Future<i32> {
     let x: Future<i32> = f
@@ -7,5 +7,5 @@ fn forward_future(f: Future<i32>) -> Future<i32> {
 }
 
 fn main() {
-    stdio::print("ok")
+    Stdio::print("ok")
 }

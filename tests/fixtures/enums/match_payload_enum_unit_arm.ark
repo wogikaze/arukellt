@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Opt {
     Some(i32),
@@ -8,16 +8,16 @@ enum Opt {
 fn main() {
     let o: Opt = Opt::None
     match o {
-        Opt::None => stdio::println("none"),
-        _ => stdio::println("other"),
+        Opt::None => Stdio::println("none"),
+        _ => Stdio::println("other"),
     }
     let s: Opt = Opt::Some(7)
     match s {
-        Opt::None => stdio::println("none"),
-        _ => stdio::println("other"),
+        Opt::None => Stdio::println("none"),
+        _ => Stdio::println("other"),
     }
     match o {
-        Opt::Some(v) => stdio::println("some"),
-        _ => stdio::println("fallback"),
+        Opt::Some(v) => Stdio::println("some"),
+        _ => Stdio::println("fallback"),
     }
 }

@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::module_strings
 fn mir_dump_dominance_fixture_print_string_interns(mut m: MirModule) {
     let s0 = module_strings::intern_string(m, "hello")
     let s1 = module_strings::intern_string(m, "world")
     let s2 = module_strings::intern_string(m, "hello")
-    stdio::println("intern 'hello': ".concat(s0.to_string()))
-    stdio::println("intern 'world': ".concat(s1.to_string()))
-    stdio::println("intern 'hello' again: ".concat(s2.to_string()))
+    Stdio::println("intern 'hello': ".concat(s0.to_string()))
+    Stdio::println("intern 'world': ".concat(s1.to_string()))
+    Stdio::println("intern 'hello' again: ".concat(s2.to_string()))
 }

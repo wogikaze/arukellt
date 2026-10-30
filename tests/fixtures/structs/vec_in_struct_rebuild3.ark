@@ -1,5 +1,5 @@
 // Phase1 C: reconstruct Holder three times; read three elements.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Holder {
     name: String,
@@ -11,7 +11,7 @@ fn main() {
     h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
     h = Holder { name: h.name, items: push(h.items, String_from("beta")) }
     h = Holder { name: h.name, items: push(h.items, String_from("gamma")) }
-    stdio::println(get_unchecked(h.items, 0))
-    stdio::println(get_unchecked(h.items, 1))
-    stdio::println(get_unchecked(h.items, 2))
+    Stdio::println(get_unchecked(h.items, 0))
+    Stdio::println(get_unchecked(h.items, 1))
+    Stdio::println(get_unchecked(h.items, 2))
 }

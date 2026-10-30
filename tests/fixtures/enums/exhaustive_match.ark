@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Traffic {
     Red,
@@ -15,7 +15,7 @@ fn action(light: Traffic) -> String {
 }
 
 fn main() {
-    stdio::println(action(Traffic::Red))
-    stdio::println(action(Traffic::Yellow))
-    stdio::println(action(Traffic::Green))
+    Stdio::println(action(Traffic::Red))
+    Stdio::println(action(Traffic::Yellow))
+    Stdio::println(action(Traffic::Green))
 }

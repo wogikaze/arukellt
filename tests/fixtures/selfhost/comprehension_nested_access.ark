@@ -1,5 +1,5 @@
 // Test: array comprehension — field access on loop variable in element expr
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 struct Point {
@@ -17,5 +17,5 @@ fn main() {
     for v in (x_coords) {
         sum = sum + v
     }
-    stdio::println(sum.to_string())
+    Stdio::println(sum.to_string())
 }

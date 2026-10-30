@@ -1,8 +1,7 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import facade
 
 fn main() {
     let v = facade::answer()
-    stdio::println((v).to_string())
+    Stdio::println((v).to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::ops
 use std::core::cmp
 
@@ -49,25 +49,25 @@ fn main() {
     let a = Vec2 { x: 1, y: 2 }
     let b = Vec2 { x: 3, y: 4 }
     let c = a + b
-    stdio::println(c.x)
-    stdio::println(c.y)
+    Stdio::println(c.x)
+    Stdio::println(c.y)
     let d = b - a
-    stdio::println(d.x)
-    stdio::println(d.y)
+    Stdio::println(d.x)
+    Stdio::println(d.y)
     let e = Vec2 { x: 1, y: 2 }
     if a == e {
-        stdio::println(1)
+        Stdio::println(1)
     } else {
-        stdio::println(0)
+        Stdio::println(0)
     }
     if a != b {
-        stdio::println(1)
+        Stdio::println(1)
     } else {
-        stdio::println(0)
+        Stdio::println(0)
     }
     if a < b {
-        stdio::println(1)
+        Stdio::println(1)
     } else {
-        stdio::println(0)
+        Stdio::println(0)
     }
 }

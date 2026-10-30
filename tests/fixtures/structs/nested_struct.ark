@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -13,8 +13,8 @@ struct Rect {
 
 fn main() {
     let r: Rect = Rect { origin: Point { x: 1, y: 2 }, width: 10, height: 20 }
-    stdio::println((r.origin.x).to_string())
-    stdio::println((r.origin.y).to_string())
-    stdio::println((r.width).to_string())
-    stdio::println((r.height).to_string())
+    Stdio::println((r.origin.x).to_string())
+    Stdio::println((r.origin.y).to_string())
+    Stdio::println((r.width).to_string())
+    Stdio::println((r.height).to_string())
 }

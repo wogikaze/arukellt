@@ -1,9 +1,8 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import api
 
 fn main() {
     let x = api::greet()
     let y = api::compute(x)
-    stdio::println((y).to_string())
+    Stdio::println((y).to_string())
 }

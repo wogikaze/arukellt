@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn describe(opt: Option<i32>) -> String {
     match opt {
@@ -8,6 +8,6 @@ fn describe(opt: Option<i32>) -> String {
 }
 
 fn main() {
-    stdio::println(describe(Some(42)))
-    stdio::println(describe(None))
+    Stdio::println(describe(Some(42)))
+    Stdio::println(describe(None))
 }

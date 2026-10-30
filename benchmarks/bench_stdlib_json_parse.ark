@@ -1,7 +1,7 @@
 // Stdlib benchmark: JSON parse, access, and stringify.
 // Exercises std::json::parse, json_get, json_as_*, and stringify on
 // structured JSON data (nested objects, arrays, scalars).
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json::parser
 use std::text
 fn main() {
@@ -68,5 +68,5 @@ fn main() {
         }
         iter = iter + 1
     }
-    stdio::println((sum).to_string())
+    Stdio::println((sum).to_string())
 }

@@ -1,5 +1,5 @@
 use std::collections::linear
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut d: Vec<i32> = linear::deque_new()
@@ -10,8 +10,8 @@ fn main() {
     linear::deque_push_back(d, 3)
     linear::deque_push_back(d, 4)
     linear::deque_push_back(d, 5)
-    stdio::println((linear::deque_pop_front(d)).to_string())  // 1
-    stdio::println((linear::deque_pop_front(d)).to_string())  // 2
+    Stdio::println((linear::deque_pop_front(d)).to_string())  // 1
+    Stdio::println((linear::deque_pop_front(d)).to_string())  // 2
     // head=2, tail=5, count=3  (vals: 3,4,5 at pos 2,3,4)
 
     // Phase 2: push_front wraps head around (15 -> 0 -> ...)
@@ -27,24 +27,24 @@ fn main() {
     // head=15, tail=7, count=8
 
     // Phase 4: pop from both ends with wrapped reads
-    stdio::println((linear::deque_pop_front(d)).to_string())  // 30 from pos15
-    stdio::println((linear::deque_pop_back(d)).to_string())   // 70 from pos7
-    stdio::println((linear::deque_pop_front(d)).to_string())  // 20 from pos0
-    stdio::println((linear::deque_pop_back(d)).to_string())   // 60 from pos6
+    Stdio::println((linear::deque_pop_front(d)).to_string())  // 30 from pos15
+    Stdio::println((linear::deque_pop_back(d)).to_string())   // 70 from pos7
+    Stdio::println((linear::deque_pop_front(d)).to_string())  // 20 from pos0
+    Stdio::println((linear::deque_pop_back(d)).to_string())   // 60 from pos6
     // head=1, tail=5, count=4  (vals: 10,3,4,5 at pos 1,2,3,4)
 
     // Phase 5: deque_to_vec after wrap
     let v: Vec<i32> = linear::deque_to_vec(d)
-    stdio::println((len(v)).to_string())  // 4
-    stdio::println((get_unchecked(v, 0)).to_string())  // 10
-    stdio::println((get_unchecked(v, 1)).to_string())  // 3
-    stdio::println((get_unchecked(v, 2)).to_string())  // 4
-    stdio::println((get_unchecked(v, 3)).to_string())  // 5
+    Stdio::println((len(v)).to_string())  // 4
+    Stdio::println((get_unchecked(v, 0)).to_string())  // 10
+    Stdio::println((get_unchecked(v, 1)).to_string())  // 3
+    Stdio::println((get_unchecked(v, 2)).to_string())  // 4
+    Stdio::println((get_unchecked(v, 3)).to_string())  // 5
 
     // Phase 6: clear after wrap
     linear::deque_clear(d)
-    stdio::println((linear::deque_len(d)).to_string())  // 0
-    stdio::println((linear::deque_is_empty(d)).to_string())  // true
+    Stdio::println((linear::deque_len(d)).to_string())  // 0
+    Stdio::println((linear::deque_is_empty(d)).to_string())  // true
 }
 // push_front wrap-around (head wraps from 0 to 15)
 // push_back after wrap

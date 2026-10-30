@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 17
-- **Historical/deprecated names:** 20
-- **Total entries:** 37
+- **Canonical names:** 8
+- **Historical/deprecated names:** 24
+- **Total entries:** 32
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -23,19 +23,10 @@ Current public API names, sorted alphabetically.
 |------|--------|-----------|----------|
 | `assert` | `prelude` | `stable` | Assert |
 | `char_to_string` | `prelude` | `stable` | Conversion |
-| `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `filter_i32` | `prelude` | `provisional` | Collections |
-| `print` | `std::host::stdio` | `stable` | Host Stdio |
-| `print_bytes` | `std::io` | `stable` | Io |
-| `println` | `std::host::stdio` | `stable` | Host Stdio |
-| `read_stdin` | `std::host::stdio` | `stable` | Host Stdio |
-| `read_stdin_line` | `std::io` | `stable` | Io |
-| `stderr` | `std::io` | `stable` | Io |
-| `stdin` | `std::io` | `stable` | Io |
-| `stdout` | `std::io` | `stable` | Io |
 | `String_from` | `prelude` | `stable` | String |
 | `String_new` | `prelude` | `stable` | String |
 
@@ -48,6 +39,10 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq`~~ | `Test::assert_eq_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_eq_str`~~ | `Test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
+| ~~`assert_ne`~~ | `Test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -78,6 +73,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 |------|--------|--------|---------------------|
 | ~~`as_slice`~~ | ⚠️ deprecated | `prelude` | → `Vec::as_slice` · [migration guide](migration-guidance.md) |
 | `assert` | ✅ `stable` | `prelude` | Assert |
+| ~~`assert_eq`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i32` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_i64`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i64` · [migration guide](migration-guidance.md) |
+| ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
+| ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
@@ -90,7 +89,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`deque_push_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_back` · [migration guide](migration-guidance.md) |
 | ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
-| `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `fd_fdstat_errno` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
@@ -99,17 +97,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
-| `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| `print_bytes` | ✅ `stable` | `std::io` | Io |
-| `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
-| `read_stdin` | ✅ `stable` | `std::host::stdio` | Host Stdio |
-| `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
-| `stderr` | ✅ `stable` | `std::io` | Io |
-| `stdin` | ✅ `stable` | `std::io` | Io |
-| `stdout` | ✅ `stable` | `std::io` | Io |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |

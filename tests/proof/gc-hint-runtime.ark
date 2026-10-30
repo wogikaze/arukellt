@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 struct Box {
     value: i32,
 }
@@ -11,5 +11,5 @@ fn main() {
         total = total + item.value
         i = i + 1
     }
-    stdio::println(total.to_string())
+    Stdio::println(total.to_string())
 }

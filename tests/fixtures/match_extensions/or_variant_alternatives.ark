@@ -4,7 +4,7 @@
 // Wasm; the folded compares now read the extracted tag local (#901).
 // Verified identical on wasm32-gc component and wasm32 linear core.
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Shape { Circle(i32), Square, Triangle }
 
@@ -22,9 +22,9 @@ fn option_side(o: Option<i32>) -> String {
 }
 
 fn main() {
-    stdio::println(classify(Shape::Square))
-    stdio::println(classify(Shape::Circle(9)))
-    stdio::println(classify(Shape::Triangle))
-    stdio::println(option_side(Option::Some(3)))
-    stdio::println(option_side(Option::None))
+    Stdio::println(classify(Shape::Square))
+    Stdio::println(classify(Shape::Circle(9)))
+    Stdio::println(classify(Shape::Triangle))
+    Stdio::println(option_side(Option::Some(3)))
+    Stdio::println(option_side(Option::None))
 }

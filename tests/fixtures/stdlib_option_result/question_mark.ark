@@ -1,5 +1,5 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn parse_and_double(s: String) -> Result<i32, String> {
     let val: i32 =i32::try_from(s)?
@@ -8,11 +8,11 @@ fn parse_and_double(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_and_double(String_from("21")) {
-        Result::Ok(val) => stdio::println(val.to_string()),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(val) => Stdio::println(val.to_string()),
+        Result::Err(e) => Stdio::println(e),
     }
     match parse_and_double(String_from("abc")) {
-        Result::Ok(val) => stdio::println(val.to_string()),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(val) => Stdio::println(val.to_string()),
+        Result::Err(e) => Stdio::println(e),
     }
 }

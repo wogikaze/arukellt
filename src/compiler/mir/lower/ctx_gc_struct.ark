@@ -1,6 +1,6 @@
 use std::text
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use corehir::kinds
 use corehir::type_id
 use corehir::type_table
@@ -87,7 +87,7 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
             // emitted type from the canon entry. Only pending slots may
             // update, and those are never materialized yet.
             if ctx.gc_seal_done && module_gc_struct::MirModule_gc_struct_sig_count(ctx.module) > i {
-                stdio::eprintln("compiler ICE: post-seal gc struct sig update after materialize")
+                Stdio::eprintln("compiler ICE: post-seal gc struct sig update after materialize")
                 Process::exit(1)
             }
             set(ctx.gc_struct_sigs, i, sig)

@@ -1,7 +1,7 @@
 // Focused regression for issue #503 slice B.
 // Exercises deterministic predecessor computation from succ0/succ1 on a
 // small diamond CFG without widening into full CFG lowering or SSA.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 struct Block {
     succ0: i32,
@@ -86,7 +86,7 @@ fn main() {
     let mut i = 0
     while i < len(blocks) {
         let block = get_unchecked(blocks, i)
-        stdio::println(String_from("bb").concat(i.to_string()).concat(String_from(" preds=").concat(format_preds(block.preds))))
+        Stdio::println(String_from("bb").concat(i.to_string()).concat(String_from(" preds=").concat(format_preds(block.preds))))
         i = i + 1
     }
 }

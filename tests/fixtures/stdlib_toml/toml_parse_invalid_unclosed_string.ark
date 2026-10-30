@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 fn main() {
     let doc = "name = \"unclosed"
     match toml::TomlValue::parse(doc) {
-        Result::Ok(_) => stdio::println("unexpected ok"),
-        Result::Err(e) => stdio::println("error:".concat(e)),
+        Result::Ok(_) => Stdio::println("unexpected ok"),
+        Result::Err(e) => Stdio::println("error:".concat(e)),
     }
 }

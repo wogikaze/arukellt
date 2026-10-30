@@ -4,7 +4,7 @@
 // Result::Ok / Result::Err construction and match on the result, with
 // ~20% of iterations producing Err paths (divisor==0) to keep error
 // branches hot. Sum is kept bounded via modulo to avoid i32 overflow.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn safe_div(a: i32, b: i32) -> Result<i32, String> {
     if b == 0 {
@@ -56,6 +56,6 @@ fn main() {
         }
         i = i + 1
     }
-    stdio::println((sum).to_string())
-    stdio::println((errors).to_string())
+    Stdio::println((sum).to_string())
+    Stdio::println((errors).to_string())
 }

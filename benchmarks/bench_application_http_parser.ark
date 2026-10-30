@@ -4,7 +4,7 @@
 // header, and accumulating a deterministic checksum.  No actual networking or
 // I/O — pure computation over 20,000 synthetic header "strings" represented as
 // integer tokens.  Exercises enum dispatch, struct allocation, and branching.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum HeaderKind {
     ContentType {
@@ -71,5 +71,5 @@ fn main() {
         }
         i = i + 1
     }
-    stdio::println((sum).to_string())
+    Stdio::println((sum).to_string())
 }

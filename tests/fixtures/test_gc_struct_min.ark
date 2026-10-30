@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct MyStruct {
     name: String,
@@ -11,6 +11,6 @@ fn MyStruct_new(name: String, value: i32) -> MyStruct {
 
 fn main() {
     let s = MyStruct_new(String_from("hello"), 42)
-    stdio::println(s.name)
-    stdio::println((s.value).to_string())
+    Stdio::println(s.name)
+    Stdio::println((s.value).to_string())
 }

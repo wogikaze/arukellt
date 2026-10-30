@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::collections::vec
 
 fn main() {
@@ -8,10 +8,10 @@ fn main() {
     push(v, 30)
     push(v, 40)
     v.drain(1, 1 + 1)
-    stdio::println(len(v))
+    Stdio::println(len(v))
     let mut i: i32 = 0
     while i < len(v) {
-        stdio::println(get_unchecked(v, i))
+        Stdio::println(get_unchecked(v, i))
         i = i + 1
     }
 }

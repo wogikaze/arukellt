@@ -1,4 +1,5 @@
 use std::text
+use std::host::stdio::Stdio
 use wasm::effective_lowering_decision
 use wasm::ctx_record
 use mir::inst_record
@@ -38,7 +39,7 @@ fn core_op_shadow_log_unresolved(mut ctx: SelfEmitCtx, callee: String, func_id_r
         return
     }
     ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
-    stdio::eprintln(
+    Stdio::eprintln(
         "core-op-shadow unresolved callee=".concat(callee.concat(" function_id=".concat((func_id_raw).to_string())))
     )
 }
@@ -53,7 +54,7 @@ fn core_op_shadow_log_mismatch(
         return
     }
     ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
-    stdio::eprintln(
+    Stdio::eprintln(
         "core-op-shadow mismatch callee=".concat(callee.clone().concat(" legacy_handler=".concat(legacy.handler_id.clone().concat(" modern_handler=".concat(modern.handler_id.clone())))))
     )
 }
@@ -75,5 +76,5 @@ fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
         (candidates).to_string().concat(" matched=".concat((matched).to_string().concat(" mismatched=".concat((mismatched).to_string().concat(" unresolved=".concat((unresolved).to_string()))))))
     )
     let spine = if ctx_record::SelfEmitCtx_spine_populated(ctx) { "1" } else { "0" }
-    stdio::eprintln(line.concat(" spine=".concat(spine)))
+    Stdio::eprintln(line.concat(" spine=".concat(spine)))
 }

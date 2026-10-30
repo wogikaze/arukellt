@@ -1,0 +1,13 @@
+// Fixture: stdio_namespace_surface_wasm32.ark
+// Verifies the Stdio namespace on --target wasm32 (linear) (ADR-094): print
+// does not append a newline, println appends one, eprintln writes stderr, and
+// read_stdin sees the empty stdin image the runner closes.
+use std::host::stdio::Stdio
+
+fn main() {
+    Stdio::print("ab\n")
+    Stdio::println("c")
+    Stdio::eprintln("d")
+    let s: String = Stdio::read_stdin()
+    assert(s == "")
+}

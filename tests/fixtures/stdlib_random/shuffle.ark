@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
-use std::test::Test
+use std::prelude::{assert_eq}
 fn main() {
     let mut v = Vec::new<i32>()
     push(v, 10)
@@ -9,13 +9,13 @@ fn main() {
     push(v, 40)
     push(v, 50)
     let shuffled = Rng::new(42).shuffle(v)
-    Test::assert_eq_i32(len(shuffled), 5)
-    Test::assert_eq_i32(get_unchecked(shuffled, 0), 30)
-    Test::assert_eq_i32(get_unchecked(shuffled, 1), 40)
-    Test::assert_eq_i32(get_unchecked(shuffled, 2), 20)
-    Test::assert_eq_i32(get_unchecked(shuffled, 3), 50)
-    Test::assert_eq_i32(get_unchecked(shuffled, 4), 10)
-    stdio::println("shuffle ok")
+    assert_eq(len(shuffled), 5)
+    assert_eq(get_unchecked(shuffled, 0), 30)
+    assert_eq(get_unchecked(shuffled, 1), 40)
+    assert_eq(get_unchecked(shuffled, 2), 20)
+    assert_eq(get_unchecked(shuffled, 3), 50)
+    assert_eq(get_unchecked(shuffled, 4), 10)
+    Stdio::println("shuffle ok")
 }
 // Same length
 // Exact permutation is reproducible for a fixed seed

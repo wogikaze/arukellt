@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
     f(x)
@@ -9,5 +9,5 @@ fn main() {
         x * 2
     }
     let result = apply(double, 21)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

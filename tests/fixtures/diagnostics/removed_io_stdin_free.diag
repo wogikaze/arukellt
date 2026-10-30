@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: io::stdin; no replacement for the old io::stdin placeholder; use `Stdio::read_stdin()` for whole-input reads

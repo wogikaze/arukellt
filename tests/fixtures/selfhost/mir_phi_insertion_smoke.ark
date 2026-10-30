@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 struct PhiArg {
     pred_block: i32,
@@ -49,15 +49,15 @@ fn format_ssa_value(ssa_name: String, version: i32) -> String {
 
 fn try_insert_simple_join_phi(join_block: Block, pred0: Block, pred1: Block, ssa_name: String, dest_vt: i32) -> Phi {
     if len(join_block.preds) != 2 {
-        stdio::eprintln(String_from("join predecessor count mismatch"))
+        Stdio::eprintln(String_from("join predecessor count mismatch"))
         Process::exit(1)
     }
     if !block_ids_contains(pred0.dom_frontier, join_block.id) {
-        stdio::eprintln(String_from("pred0 frontier missing join"))
+        Stdio::eprintln(String_from("pred0 frontier missing join"))
         Process::exit(1)
     }
     if !block_ids_contains(pred1.dom_frontier, join_block.id) {
-        stdio::eprintln(String_from("pred1 frontier missing join"))
+        Stdio::eprintln(String_from("pred1 frontier missing join"))
         Process::exit(1)
     }
     let mut phi = Phi_new(ssa_name, 3, dest_vt)
@@ -92,9 +92,9 @@ fn main() {
     push(then_block.dom_frontier, join_block.id)
     push(else_block.dom_frontier, join_block.id)
     let phi = try_insert_simple_join_phi(join_block, then_block, else_block, String_from("join_val"), 1)
-    stdio::println(String_from("diamond join bb3"))
-    stdio::println(String_from("const.i32 -> ").concat(format_ssa_value(String_from("join_val"), 1)))
-    stdio::println(String_from("const.i32 -> ").concat(format_ssa_value(String_from("join_val"), 2)))
-    stdio::println(format_phi(phi))
-    stdio::println(String_from("MIR phi insertion smoke OK."))
+    Stdio::println(String_from("diamond join bb3"))
+    Stdio::println(String_from("const.i32 -> ").concat(format_ssa_value(String_from("join_val"), 1)))
+    Stdio::println(String_from("const.i32 -> ").concat(format_ssa_value(String_from("join_val"), 2)))
+    Stdio::println(format_phi(phi))
+    Stdio::println(String_from("MIR phi insertion smoke OK."))
 }

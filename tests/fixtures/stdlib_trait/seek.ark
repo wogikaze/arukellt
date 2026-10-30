@@ -2,7 +2,7 @@
 //
 // The legacy `seek_to` clamp is gone: seeking past the end is allowed and
 // reads report EOF, while a negative effective position is an error.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::SeekFrom
 
@@ -51,5 +51,5 @@ fn main() {
         Result::Err(_) => assert(true),
     }
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

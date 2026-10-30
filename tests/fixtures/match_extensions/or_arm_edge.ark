@@ -6,34 +6,34 @@
 // or-pattern coverage moves to a bool scrutinee.
 // Verified identical on wasm32-gc component and wasm32 linear core.
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let x = 3
     // or-pattern in a non-last arm position (i32 scrutinee).
     match x {
-        1 => stdio::println("one"),
-        2 | 3 => stdio::println("two-three"),
-        _ => stdio::println("other"),
+        1 => Stdio::println("one"),
+        2 | 3 => Stdio::println("two-three"),
+        _ => Stdio::println("other"),
     }
     // or-pattern in the last arm position on a finite scrutinee:
     // the first arm misses, then the or-condition's later
     // alternative fires.
     let flag = false
     match flag {
-        true => stdio::println("t"),
-        true | false => stdio::println("tf"),
+        true => Stdio::println("t"),
+        true | false => Stdio::println("tf"),
     }
     // guarded or-pattern: pattern matches but the guard fails, so
     // control must reach the catchall below.
     match x {
-        1 | 3 if x > 10 => stdio::println("big"),
-        _ => stdio::println("other"),
+        1 | 3 if x > 10 => Stdio::println("big"),
+        _ => Stdio::println("other"),
     }
     // guarded or-pattern where the guard passes on a later
     // alternative.
     match x {
-        1 | 3 if x == 3 => stdio::println("hit"),
-        _ => stdio::println("miss"),
+        1 | 3 if x == 3 => Stdio::println("hit"),
+        _ => Stdio::println("miss"),
     }
 }

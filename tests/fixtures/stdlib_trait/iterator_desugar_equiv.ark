@@ -1,5 +1,5 @@
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // A hand-written Iterator: desugared `for` must behave identically to
 // driving `next()` manually.
@@ -32,12 +32,12 @@ fn main() -> i32 {
     for x in it2 {
         push(desugared, x)
     }
-    stdio::println(len(manual).to_string())
-    stdio::println(len(desugared).to_string())
+    Stdio::println(len(manual).to_string())
+    Stdio::println(len(desugared).to_string())
     let mut i: i32 = 0
     while i < len(manual) {
-        stdio::println(get_unchecked(manual, i).to_string())
-        stdio::println(get_unchecked(desugared, i).to_string())
+        Stdio::println(get_unchecked(manual, i).to_string())
+        Stdio::println(get_unchecked(desugared, i).to_string())
         i = i + 1
     }
     0

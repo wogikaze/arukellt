@@ -1,0 +1,7 @@
+// E0100: io::stdout was retired by ADR-094; the typed Stdout handle replaces
+// the tagged compatibility vector.
+use std::io
+
+fn main() {
+    let _ = io::stdout()
+}

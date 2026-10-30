@@ -2,7 +2,7 @@
 // canonical memory-stream surface; the legacy Vec<i32> free functions are gone.
 //
 // Verifies Writer::into_reader hands the written image to a cursor-0 Reader.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
@@ -29,5 +29,5 @@ fn main() {
         },
         Result::Err(_e) => assert(false),
     }
-    stdio::println("OK")
+    Stdio::println("OK")
 }

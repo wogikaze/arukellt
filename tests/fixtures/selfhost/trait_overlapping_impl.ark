@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 trait Foo {
     fn id(x: i32) -> i32,
@@ -21,5 +21,5 @@ impl Foo for MyStruct {
 }
 
 fn main() {
-    stdio::println(String_from("hello"))
+    Stdio::println(String_from("hello"))
 }

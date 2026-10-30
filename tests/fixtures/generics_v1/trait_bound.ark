@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 trait Printable {
     fn show(self: Printable) -> String
@@ -16,7 +16,7 @@ impl Printable for Point {
 }
 
 fn print_it<T: Printable>(item: T) {
-    stdio::println("printing...")
+    Stdio::println("printing...")
 }
 
 fn main() {

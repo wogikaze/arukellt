@@ -1,22 +1,22 @@
 use std::collections::ordered::{BitSet, SortedMap}
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut map = SortedMap::new()
     map.insert(30, 300)
     map.insert(10, 100)
     map.insert(20, 200)
-    stdio::println((map.len()).to_string())
-    stdio::println((map.get(10)).to_string())
-    stdio::println((map.get(20)).to_string())
-    stdio::println((map.get(30)).to_string())
-    stdio::println((map.contains(20)).to_string())
-    stdio::println((map.contains(99)).to_string())
+    Stdio::println((map.len()).to_string())
+    Stdio::println((map.get(10)).to_string())
+    Stdio::println((map.get(20)).to_string())
+    Stdio::println((map.get(30)).to_string())
+    Stdio::println((map.contains(20)).to_string())
+    Stdio::println((map.contains(99)).to_string())
     let mut bits = BitSet::new()
     bits.mark(5)
     bits.mark(42)
-    stdio::println((bits.test(5)).to_string())
-    stdio::println((bits.test(6)).to_string())
+    Stdio::println((bits.test(5)).to_string())
+    Stdio::println((bits.test(6)).to_string())
     bits.unmark(5)
-    stdio::println((bits.test(5)).to_string())
+    Stdio::println((bits.test(5)).to_string())
 }

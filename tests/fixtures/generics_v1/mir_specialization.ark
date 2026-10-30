@@ -15,7 +15,7 @@
 //
 // Behavioural witness: both specializations must compute the correct
 // length on their respective vector elem types.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn count_items<T>(v: Vec<T>) -> i32 {
     len(v)
@@ -27,7 +27,7 @@ fn main() {
     let mut nums: Vec<i32> = Vec::new<i32>()
     push(nums, 10)
     push(nums, 20)
-    stdio::println((count_items(nums)).to_string())
+    Stdio::println((count_items(nums)).to_string())
 
     // Instantiation 2: count_items<String>(Vec<String>) — emits a
     // distinct `count_items__Vec_String_` MirFunction with its own
@@ -38,5 +38,5 @@ fn main() {
     push(words, String_from("alpha"))
     push(words, String_from("beta"))
     push(words, String_from("gamma"))
-    stdio::println((count_items(words)).to_string())
+    Stdio::println((count_items(words)).to_string())
 }

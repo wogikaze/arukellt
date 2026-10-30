@@ -1,5 +1,5 @@
 use std::core::hash
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let h1 = 42.hash()
@@ -7,9 +7,9 @@ fn main() {
     let h3 = 0.hash()
     let hs1 = "hello".hash()
     let hs2 = "hello".hash()
-    stdio::println((h1 == h2).to_string())
-    stdio::println((h1 != h3).to_string())
-    stdio::println((hs1 == hs2).to_string())
+    Stdio::println((h1 == h2).to_string())
+    Stdio::println((h1 != h3).to_string())
+    Stdio::println((hs1 == hs2).to_string())
     let combined = h1.combine_hash(hs1)
-    stdio::println((combined != 0).to_string())
+    Stdio::println((combined != 0).to_string())
 }

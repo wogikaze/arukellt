@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn greeting() -> String {
     "hello"
@@ -18,15 +18,15 @@ fn apply0(f: fn() -> String) -> String {
 
 fn main() {
     let f: fn() -> String = greeting
-    stdio::println(f())
+    Stdio::println(f())
     let p = producer()
-    stdio::println(p())
-    stdio::println(apply0(greeting))
+    Stdio::println(p())
+    Stdio::println(apply0(greeting))
     let mut g: fn() -> String = fallback
     g = greeting
-    stdio::println(g())
+    Stdio::println(g())
     let c = || {
         "fromclosure"
     }
-    stdio::println(apply0(c))
+    Stdio::println(apply0(c))
 }

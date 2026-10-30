@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
@@ -7,23 +7,23 @@ fn main() {
         Result::Ok(v) => {
             match v.as_string() {
                 Option::Some(s) => {
-                    stdio::println((len(s)).to_string())
-                    stdio::println(s)
+                    Stdio::println((len(s)).to_string())
+                    Stdio::println(s)
                 },
-                None => stdio::println("not string"),
+                None => Stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
     // Long string with no escapes (tests plain-text batching)
     let long = "\"abcdefghijklmnopqrstuvwxyz0123456789\""
     match json::JsonValue::parse(long) {
         Result::Ok(v) => {
             match v.as_string() {
-                Option::Some(s) => stdio::println((len(s)).to_string()),
-                None => stdio::println("not string"),
+                Option::Some(s) => Stdio::println((len(s)).to_string()),
+                None => Stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
 }

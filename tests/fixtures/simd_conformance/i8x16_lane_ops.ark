@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::simd::i8x16
 use std::simd::i8x16::I8x16
 use std::simd::v128
@@ -11,8 +11,8 @@ fn main() {
     let a = I8x16::splat(3)
     let b = I8x16::replace_lane(a, 2, 5)
     let c = I8x16::shl(b, 1)
-    stdio::println(I8x16::extract_lane(c, 2).to_string())
-    stdio::println(I8x16::bitmask(I8x16::splat(-1)).to_string())
-    stdio::println(I8x16::all_true(c).to_string())
-    stdio::println(V128::any_true(I8x16::splat(0)).to_string())
+    Stdio::println(I8x16::extract_lane(c, 2).to_string())
+    Stdio::println(I8x16::bitmask(I8x16::splat(-1)).to_string())
+    Stdio::println(I8x16::all_true(c).to_string())
+    Stdio::println(V128::any_true(I8x16::splat(0)).to_string())
 }

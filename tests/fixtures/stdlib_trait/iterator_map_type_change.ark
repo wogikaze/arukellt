@@ -4,7 +4,7 @@
 
 use std::core::iter
 use std::test::Test
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn itos(value: i32) -> String {
     "n".concat(value.to_string())
@@ -52,10 +52,10 @@ fn main() {
     Test::assert_eq_i32(len(copied), 2)
     Test::assert_eq_string(get_unchecked(copied, 1), "cdef")
 
-    stdio::println(get_unchecked(strings, 0))
-    stdio::println(get_unchecked(strings, 1))
-    stdio::println(get_unchecked(lengths, 0).to_string())
-    stdio::println(get_unchecked(lengths, 1).to_string())
-    stdio::println(get_unchecked(filtered, 1).to_string())
-    stdio::println(get_unchecked(copied, 1))
+    Stdio::println(get_unchecked(strings, 0))
+    Stdio::println(get_unchecked(strings, 1))
+    Stdio::println(get_unchecked(lengths, 0).to_string())
+    Stdio::println(get_unchecked(lengths, 1).to_string())
+    Stdio::println(get_unchecked(filtered, 1).to_string())
+    Stdio::println(get_unchecked(copied, 1))
 }

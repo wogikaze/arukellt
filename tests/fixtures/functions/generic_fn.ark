@@ -1,10 +1,10 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn identity<T>(x: T) -> T {
     x
 }
 
 fn main() {
-    stdio::println((identity(42)).to_string())
-    stdio::println(identity(String_from("hello")))
+    Stdio::println((identity(42)).to_string())
+    Stdio::println(identity(String_from("hello")))
 }

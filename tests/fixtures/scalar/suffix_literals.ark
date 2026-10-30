@@ -1,34 +1,34 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let a = 42i32
     let b = 100i64
     let c = 3.14f64
-    stdio::println(a)
-    stdio::println(b)
-    stdio::println(c)
+    Stdio::println(a)
+    Stdio::println(b)
+    Stdio::println(c)
 
     // A suffix directly against an operator must leave the operator in
     // the stream; the lexer used to eat the next byte into the suffix.
-    stdio::println(100u8+1u8)
-    stdio::println(50i16*2i16)
-    stdio::println(9u32-4u32)
+    Stdio::println(100u8+1u8)
+    Stdio::println(50i16*2i16)
+    Stdio::println(9u32-4u32)
 
     // A suffix directly against call punctuation must close cleanly.
-    stdio::println(7i8)
-    stdio::println(8u16)
-    stdio::println(11u64)
-    stdio::println((2.5f32).to_f64())
+    Stdio::println(7i8)
+    Stdio::println(8u16)
+    Stdio::println(11u64)
+    Stdio::println((2.5f32).to_f64())
 
     let d = 6i8
     let e = 300u16
     let f = 70000u32
     let g = 5i64
     let h = 1.5f32
-    stdio::println(d)
-    stdio::println(e)
-    stdio::println(f)
-    stdio::println(g)
-    stdio::println((h).to_f64())
+    Stdio::println(d)
+    Stdio::println(e)
+    Stdio::println(f)
+    Stdio::println(g)
+    Stdio::println((h).to_f64())
 }

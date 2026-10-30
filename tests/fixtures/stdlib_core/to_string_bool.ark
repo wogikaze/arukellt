@@ -1,5 +1,5 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println(true.to_string())
-    stdio::println(false.to_string())
+    Stdio::println(true.to_string())
+    Stdio::println(false.to_string())
 }

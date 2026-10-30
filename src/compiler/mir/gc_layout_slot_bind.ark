@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use corehir::kinds
 use corehir::type_id
@@ -175,7 +175,7 @@ fn mir_gc_layout_bind_struct_slot(module: MirModule, slot: i32) {
     let mut table = module_spine::MirModule_type_table(module)
     let tid = gc_layout_plan_type_id_for_struct_slot(table, name)
     if !type_id::type_id_is_valid(tid) {
-        stdio::eprintln(
+        Stdio::eprintln(
             "compiler ICE: GC struct slot has no semantic TypeId: ".concat(name)
         )
         Process::exit(1)
@@ -194,7 +194,7 @@ fn mir_gc_layout_bind_enum_variant_slot(module: MirModule, slot: i32) {
     let mut table = module_spine::MirModule_type_table(module)
     let tid = gc_layout_plan_type_id_for_variant_slot(table, name, sig)
     if !type_id::type_id_is_valid(tid) {
-        stdio::eprintln(
+        Stdio::eprintln(
             "compiler ICE: GC enum variant slot has no semantic TypeId: ".concat(name)
         )
         Process::exit(1)

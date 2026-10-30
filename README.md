@@ -7,7 +7,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 <!-- BEGIN GENERATED:README_STATUS -->
 ## Status
 
-- Updated: 2026-10-29
+- Updated: 2026-10-30
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component/WIT target: `wasm32-gc`
@@ -16,9 +16,9 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - ADR-057 current-only fixture gate: `python3 scripts/manager.py verify fixtures` — 1691 compile/validate passed, 0 failed; 100 runtime executed; 2 runtime contracts delegated to native-cpp.
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
-- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 3618 manifest entries
+- Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588); registry: 3621 manifest entries
 - Historical verification: `python3 scripts/manager.py verify quick` — 166/166 checks pass
-- Stdlib manifest-backed public API: 37 functions
+- Stdlib manifest-backed public API: 32 functions
 <!-- END GENERATED:README_STATUS -->
 
 ## Start here

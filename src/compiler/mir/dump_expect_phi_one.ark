@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::opcodes
 use mir::block_phi_access
@@ -14,7 +14,7 @@ fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expe
         let mut msg = "phi check failed for bb".concat(block_id.to_string())
         msg = msg.concat(": expected phi count=1 actual=")
         msg = msg.concat(actual_count.to_string())
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     let phi = block_phi_access::MirBlock_phi_at(block, 0)
@@ -26,7 +26,7 @@ fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expe
         msg = msg.concat(dump_format_types::mir_value_type_name(expected_vt))
         msg = msg.concat(" actual=")
         msg = msg.concat(dump_format_phi::mir_format_phi(f, phi))
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     phi

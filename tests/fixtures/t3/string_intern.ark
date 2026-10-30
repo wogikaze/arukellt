@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("arukellt")
-    stdio::println("arukellt")
+    Stdio::println("arukellt")
+    Stdio::println("arukellt")
 }

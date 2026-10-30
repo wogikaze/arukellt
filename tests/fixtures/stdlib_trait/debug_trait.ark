@@ -4,7 +4,7 @@
 // std::core::convert) and that the `format!` equivalent `fmt::format_debug`
 // dispatches to the correct impl via trait dispatch. Also exercises the
 // `write!` equivalent `fmt::write_debug_to`.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::convert
 use std::text::fmt
 fn main() {
@@ -41,5 +41,5 @@ fn main() {
     let buf2 = String_from("s=").concat(String_from("hi").fmt_debug())
     assert(buf2.eq(String_from("s=\"hi\"")))
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

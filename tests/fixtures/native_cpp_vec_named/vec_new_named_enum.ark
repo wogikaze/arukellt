@@ -1,5 +1,5 @@
 // Named-enum Vec constructor via CoreOp family binding.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Cell {
     Num(i32),
@@ -13,11 +13,11 @@ fn main() {
     let a = get_unchecked(items, 0)
     let b = get_unchecked(items, 1)
     match a {
-        Cell::Num(n) => { stdio::println(n.to_string()) }
-        Cell::Text(s) => { stdio::println(s) }
+        Cell::Num(n) => { Stdio::println(n.to_string()) }
+        Cell::Text(s) => { Stdio::println(s) }
     }
     match b {
-        Cell::Num(n) => { stdio::println(n.to_string()) }
-        Cell::Text(s) => { stdio::println(s) }
+        Cell::Num(n) => { Stdio::println(n.to_string()) }
+        Cell::Text(s) => { Stdio::println(s) }
     }
 }

@@ -1,8 +1,7 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 use helpers
 
 fn main() {
     let x: i32 = helpers::double(21)
-    stdio::println((x).to_string())
+    Stdio::println((x).to_string())
 }

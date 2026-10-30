@@ -2,12 +2,12 @@
 // scratch buffer, the Ord::cmp dispatch, and quickselect must all keep the
 // i64 GC array layout instead of falling back to the i32 vec (#965).
 use std::collections::vec
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(values: Vec<i64>) {
     let mut index: i32 = 0
     while index < values.len() {
-        stdio::println(values.get_unchecked(index).to_string())
+        Stdio::println(values.get_unchecked(index).to_string())
         index = index + 1
     }
 }
@@ -19,9 +19,9 @@ fn main() {
     values.push(10i64)
     values.push(20i64)
     values.push(10i64)
-    stdio::println(values.is_sorted().to_string())
+    Stdio::println(values.is_sorted().to_string())
     values.sort()
-    stdio::println(values.is_sorted().to_string())
+    Stdio::println(values.is_sorted().to_string())
     show(values)
 
     let mut unstable: Vec<i64> = Vec::new<i64>()
@@ -40,7 +40,7 @@ fn main() {
     selection.push(20i64)
     selection.push(50i64)
     selection.select_nth(2)
-    stdio::println(selection.get_unchecked(2).to_string())
+    Stdio::println(selection.get_unchecked(2).to_string())
     let mut before_ok: bool = true
     let mut before: i32 = 0
     while before < 2 {
@@ -57,16 +57,16 @@ fn main() {
         }
         after = after + 1
     }
-    stdio::println(before_ok.to_string())
-    stdio::println(after_ok.to_string())
+    Stdio::println(before_ok.to_string())
+    Stdio::println(after_ok.to_string())
 
     let mut empty: Vec<i64> = Vec::new<i64>()
     empty.sort()
     empty.select_nth(0)
-    stdio::println(empty.is_sorted().to_string())
+    Stdio::println(empty.is_sorted().to_string())
 
     let mut single: Vec<i64> = Vec::new<i64>()
     single.push(42i64)
     single.sort_unstable()
-    stdio::println(single.get_unchecked(0).to_string())
+    Stdio::println(single.get_unchecked(0).to_string())
 }

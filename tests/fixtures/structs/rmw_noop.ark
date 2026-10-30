@@ -12,7 +12,7 @@
 //
 // The fixture verifies the program still produces the correct output after
 // the optimization fires.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Counter {
     val: i32,
@@ -21,12 +21,12 @@ struct Counter {
 fn main() {
     let mut c = Counter { val: 42 }
     c.val = c.val
-    stdio::println((c.val).to_string())
+    Stdio::println((c.val).to_string())
     let mut p = Point { x: 10, y: 20 }
     p.x = p.x
     p.y = p.y
-    stdio::println((p.x).to_string())
-    stdio::println((p.y).to_string())
+    Stdio::println((p.x).to_string())
+    Stdio::println((p.y).to_string())
 }
 
 struct Point {

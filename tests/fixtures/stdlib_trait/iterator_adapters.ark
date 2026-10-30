@@ -1,5 +1,5 @@
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn double(x: i32) -> i32 { x * 2 }
 fn is_even(x: i32) -> bool { x / 2 * 2 == x }
@@ -114,5 +114,5 @@ fn main() {
     assert(get_unchecked(chained, 5) == 10)
     // range / VecIter<i32> / for-loop remain covered by sibling fixtures;
     // they hit independent GC local-typing bugs outside call_indirect typing.
-    stdio::println("OK")
+    Stdio::println("OK")
 }

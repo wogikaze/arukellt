@@ -43,24 +43,24 @@ pub fn tag_of(it: Item) -> i32 {
     it.tag
 }
 """,
-    "main.ark": """use std::host::stdio
+    "main.ark": """use std::host::stdio::Stdio
 import a
 import b
 
 fn main() {
     let x = a::make(3)
     let y = b::make(7)
-    stdio::println(a::describe(x))
-    stdio::println(b::tag_of(y))
-    stdio::println(x.count)
+    Stdio::println(a::describe(x))
+    Stdio::println(b::tag_of(y))
+    Stdio::println(x.count)
 }
 """,
 }
 
-VALID_SOURCE = """use std::host::stdio
+VALID_SOURCE = """use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("ok")
+    Stdio::println("ok")
 }
 """
 

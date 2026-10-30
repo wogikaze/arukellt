@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 struct Point {
     x: i32,
@@ -12,7 +12,7 @@ fn main() {
     let mut i: i32 = 0
     while i < len(points) {
         let p: Point = get_unchecked(points, i)
-        stdio::println((p.x).to_string().concat(String_from(",")).concat((p.y).to_string()))
+        Stdio::println((p.x).to_string().concat(String_from(",")).concat((p.y).to_string()))
         i = i + 1
     }
 }

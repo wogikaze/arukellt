@@ -1,14 +1,14 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
-    stdio::println("42".pad_left_with(6, "0"))
-    stdio::println("hi".pad_right_with(6, "."))
-    stdio::println("toolong".pad_left_with(3, "x"))
-    stdio::println((42).to_string())
-    stdio::println(true.to_string())
+    Stdio::println("42".pad_left_with(6, "0"))
+    Stdio::println("hi".pad_right_with(6, "."))
+    Stdio::println("toolong".pad_left_with(3, "x"))
+    Stdio::println((42).to_string())
+    Stdio::println(true.to_string())
     let a = "hello world".index_of("world")
-    stdio::println((a).to_string())
+    Stdio::println((a).to_string())
     let b = "hello".index_of("xyz")
-    stdio::println((b).to_string())
+    Stdio::println((b).to_string())
 }

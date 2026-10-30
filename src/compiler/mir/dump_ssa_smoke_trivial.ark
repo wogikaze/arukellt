@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use mir::dominance
 use mir::dump_core
 use mir::dump_expect
@@ -18,5 +18,5 @@ fn run_ssa_trivial_block_rename_smoke() {
     dump_expect::mir_expect_local_ssa(f, t, "t", 1)
     module_functions::MirModule_push_function(m, f)
     dump_core::dump_mir(m)
-    stdio::println("MIR SSA trivial-block rename self-check OK.")
+    Stdio::println("MIR SSA trivial-block rename self-check OK.")
 }

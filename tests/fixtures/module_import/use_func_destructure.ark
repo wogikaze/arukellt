@@ -1,13 +1,13 @@
 // Fixture: use_func_destructure.ark
-// Issue #717: `use std::host::stdio::{println}` imports the function directly
-// into scope, so the bare `println(...)` call resolves through the use-alias
-// mechanism.
+// Issue #717: `use std::collections::linear::{deque_new, deque_push_back}`
+// imports the functions directly into scope, so the bare `deque_new(...)` /
+// `deque_push_back(...)` calls resolve through the use-alias mechanism.
 //
 // Expected output: true
-use std::host::stdio::{println}
+use std::collections::linear::{deque_new, deque_push_back, deque_len}
 
 fn main() {
-    let s: String = "a,b"
-    let equal = s.eq("a,b")
-    println(equal.to_string())
+    let mut d: Vec<i32> = deque_new()
+    deque_push_back(d, 7)
+    __intrinsic_println((deque_len(d) == 1).to_string())
 }

@@ -1,6 +1,6 @@
 use std::random::Rng
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let r = Rng::new(1).next()
-    stdio::println(r.to_string())
+    Stdio::println(r.to_string())
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -9,8 +9,8 @@ fn main() {
     let p = Point { x: 3, y: 4 }
     match p {
         Point { x, y } => {
-            stdio::println((x).to_string())
-            stdio::println((y).to_string())
+            Stdio::println((x).to_string())
+            Stdio::println((y).to_string())
         },
     }
 }

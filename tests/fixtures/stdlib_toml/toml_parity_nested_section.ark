@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -48,7 +48,7 @@ fn main() {
 
     let flat = "host = \"localhost\"\nport = 5432"
     match toml::TomlValue::parse(flat) {
-        Result::Ok(_) => stdio::println("OK"),
+        Result::Ok(_) => Stdio::println("OK"),
         Result::Err(_) => assert(false),
     }
 }

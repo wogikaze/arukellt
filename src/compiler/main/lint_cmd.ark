@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use lint::registry
 use main::args_record
@@ -8,7 +8,7 @@ use lint::config as lint_config
 
 pub fn cmd_lint(mut opts: CliOptions) {
     if args_record::cli_lint_list(opts) {
-        stdio::println(registry::format_lint_rule_list())
+        Stdio::println(registry::format_lint_rule_list())
         return
     }
     let config = lint_config::load_lint_config(".")
@@ -29,14 +29,14 @@ pub fn cmd_lint(mut opts: CliOptions) {
         args_record::cli_set_input_file(opts, path.clone())
         let status = compile_core::cmd_compile_single_status(opts)
         if status == 0 {
-            stdio::eprintln("ok: ".concat(path.clone()))
+            Stdio::eprintln("ok: ".concat(path.clone()))
         } else {
-            stdio::eprintln("lint failed: ".concat(path.clone()))
+            Stdio::eprintln("lint failed: ".concat(path.clone()))
             failed = failed + 1
         }
         i = i + 1
     }
-    stdio::eprintln("lint: checked=".concat(count.to_string().concat(" failed=".concat(failed.to_string()))))
+    Stdio::eprintln("lint: checked=".concat(count.to_string().concat(" failed=".concat(failed.to_string()))))
     if failed > 0 {
         Process::exit(1)
     }

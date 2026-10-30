@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let ok_r: Result<Result<i32, i32>, i32> = Ok(Ok(1))
@@ -17,5 +17,5 @@ fn main() {
         },
         Result::Err(e) => Std::panic("outer err"),
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

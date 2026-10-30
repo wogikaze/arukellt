@@ -1,5 +1,5 @@
 // Test: array comprehension — [expr for x in iter if filter] (map + filter)
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 fn main() {
@@ -14,5 +14,5 @@ fn main() {
     for v in (evens_doubled) {
         sum = sum + v
     }
-    stdio::println(sum.to_string())
+    Stdio::println(sum.to_string())
 }

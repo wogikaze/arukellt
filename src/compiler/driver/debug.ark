@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use component
 use component::wit_parse_text
@@ -12,7 +12,7 @@ use mir
 use lexer::names
 use lexer::token_state
 pub fn dump_ast(decls: Vec<AstNode>) {
-    stdio::eprintln("=== AST ===")
+    Stdio::eprintln("=== AST ===")
     let decl_count = len(decls)
     let mut j = 0
     while j < decl_count {
@@ -37,7 +37,7 @@ fn dump_ast_if_enabled(config: DriverConfig, decls: Vec<AstNode>) {
 fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
     if config_record::config_dump_hir(config) {
         let header = "=== HIR (post-resolve) ==="
-        stdio::eprintln(header)
+        Stdio::eprintln(header)
         dump_resolved_scope(resolve_ctx)
     }
 }
@@ -45,7 +45,7 @@ fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
 fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult) {
     if config_record::config_dump_hir(config) {
         let header = "=== TYPED HIR ==="
-        stdio::eprintln(header)
+        Stdio::eprintln(header)
         dump_checked_hir(check_result)
     }
 }
@@ -60,9 +60,9 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
     if !config_record::config_dump_backend_plan(config) {
         return
     }
-    stdio::eprintln("=== BACKEND PLAN ===")
+    Stdio::eprintln("=== BACKEND PLAN ===")
     let paths = config_record::config_wit_paths(config)
-    stdio::eprintln("wit-imports: ".concat(len(paths).to_string()))
+    Stdio::eprintln("wit-imports: ".concat(len(paths).to_string()))
     for i in 0..len(paths) {
         let path = get_unchecked(paths, i)
         let scan_package = match Fs::read_to_string(path.clone()) {
@@ -95,7 +95,7 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
         summary = summary.concat(len(enums).to_string())
         summary = summary.concat(" variants=")
         summary = summary.concat(len(variants).to_string())
-        stdio::eprintln(summary)
+        Stdio::eprintln(summary)
     }
 }
 
@@ -103,18 +103,18 @@ fn dump_wit_bindings_if_enabled(config: DriverConfig) {
     if !config_record::config_dump_wit_bindings(config) {
         return
     }
-    stdio::eprintln("=== WIT BINDINGS ===")
+    Stdio::eprintln("=== WIT BINDINGS ===")
     let paths = config_record::config_wit_paths(config)
     for i in 0..len(paths) {
         let path = get_unchecked(paths, i)
         let read_result = Fs::read_to_string(path.clone())
         match read_result {
             Result::Ok(source) => {
-                stdio::eprintln("// source: ".concat(path.clone()))
-                stdio::eprintln(component::emit_wit_bindings_text(source))
+                Stdio::eprintln("// source: ".concat(path.clone()))
+                Stdio::eprintln(component::emit_wit_bindings_text(source))
             },
             Result::Err(error) => {
-                stdio::eprintln("// unable to read WIT binding source: ".concat(error))
+                Stdio::eprintln("// unable to read WIT binding source: ".concat(error))
             },
         }
     }
@@ -129,12 +129,12 @@ fn dump_checked_hir(result: TypeCheckResult) {
 }
 
 pub fn dump_tokens(tokens: Vec<Token>) {
-    stdio::eprintln("=== TOKENS ===")
+    Stdio::eprintln("=== TOKENS ===")
     let token_count = len(tokens)
     let mut i = 0
     while i < token_count {
         let tok = get_unchecked(tokens, i)
-        stdio::eprintln(names::token_kind_name(token_state::Token_kind(tok)).concat(" ".concat(token_state::Token_text(tok))))
+        Stdio::eprintln(names::token_kind_name(token_state::Token_kind(tok)).concat(" ".concat(token_state::Token_text(tok))))
         i = i + 1
     }
 }
@@ -158,13 +158,13 @@ pub fn emit_phase_timing(
     t_mir_verify: i64,
     t_emit: i64
 ) {
-    stdio::eprintln("[arukellt] lex: ".concat(phase_timing_ms(t0, t_lex).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] parse: ".concat(phase_timing_ms(t_lex, t_parse).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] resolve: ".concat(phase_timing_ms(t_parse, t_resolve).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] typecheck: ".concat(phase_timing_ms(t_resolve, t_typecheck).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] lower: ".concat(phase_timing_ms(t_typecheck, t_lower).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] mir_opt: ".concat(phase_timing_ms(t_lower, t_mir_opt).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] mir_verify: ".concat(phase_timing_ms(t_mir_opt, t_mir_verify).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] emit: ".concat(phase_timing_ms(t_mir_verify, t_emit).to_string().concat("ms")))
-    stdio::eprintln("[arukellt] total: ".concat(phase_timing_ms(t0, t_emit).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] lex: ".concat(phase_timing_ms(t0, t_lex).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] parse: ".concat(phase_timing_ms(t_lex, t_parse).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] resolve: ".concat(phase_timing_ms(t_parse, t_resolve).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] typecheck: ".concat(phase_timing_ms(t_resolve, t_typecheck).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] lower: ".concat(phase_timing_ms(t_typecheck, t_lower).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] mir_opt: ".concat(phase_timing_ms(t_lower, t_mir_opt).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] mir_verify: ".concat(phase_timing_ms(t_mir_opt, t_mir_verify).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] emit: ".concat(phase_timing_ms(t_mir_verify, t_emit).to_string().concat("ms")))
+    Stdio::eprintln("[arukellt] total: ".concat(phase_timing_ms(t0, t_emit).to_string().concat("ms")))
 }

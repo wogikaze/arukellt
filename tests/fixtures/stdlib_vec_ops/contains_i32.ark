@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 fn main() {
@@ -7,7 +7,7 @@ fn main() {
     push(v, 20)
     push(v, 30)
     let a: bool = v.iter().contains(20)
-    stdio::println(a)
+    Stdio::println(a)
     let b: bool = v.iter().contains(99)
-    stdio::println(b)
+    Stdio::println(b)
 }

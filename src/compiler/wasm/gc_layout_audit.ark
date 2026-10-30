@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::host::process::Process
 use wasm::ctx_record
 use wasm::gc_layout_table
@@ -14,9 +14,9 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
         return
     }
     let line = "gc-layout-audit: summary typed=".concat((typed_count).to_string().concat(" name=0 fallback=0 conflict=".concat((conflict_count).to_string())))
-    stdio::eprintln(line)
+    Stdio::eprintln(line)
     if conflict_count > 0 {
-        stdio::eprintln(String_from("compiler ICE: conflicting explicit backend GC layout plan"))
+        Stdio::eprintln(String_from("compiler ICE: conflicting explicit backend GC layout plan"))
         Process::exit(1)
     }
 }

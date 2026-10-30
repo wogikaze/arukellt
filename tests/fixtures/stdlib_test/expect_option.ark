@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let some_val: Option<i32> = Some(99)
@@ -6,5 +6,5 @@ fn main() {
     Test::assert_eq_i32(v, 99)
     let none_val: Option<i32> = None
     Test::expect_none_i32(none_val)
-    stdio::println("expect_option ok")
+    Stdio::println("expect_option ok")
 }

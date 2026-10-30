@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     Test::assert_msg(true, String_from("should pass"))
     Test::assert_msg(1 == 1, String_from("eq check"))
-    stdio::println("ok")
+    Stdio::println("ok")
 }

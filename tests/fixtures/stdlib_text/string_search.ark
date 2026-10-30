@@ -1,25 +1,25 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let mut s = "hello world"
-    stdio::println((s.contains("world")).to_string())
-    stdio::println((s.contains("xyz")).to_string())
-    stdio::println((s.contains("")).to_string())
-    stdio::println(("".contains("")).to_string())
-    stdio::println(("".contains("a")).to_string())
-    stdio::println((s.index_of("hello")).to_string())
-    stdio::println((s.index_of("world")).to_string())
-    stdio::println((s.index_of(" ")).to_string())
-    stdio::println((s.index_of("xyz")).to_string())
-    stdio::println((s.index_of("")).to_string())
-    stdio::println((s.starts_with("hello")).to_string())
-    stdio::println((s.starts_with("world")).to_string())
-    stdio::println((s.starts_with("")).to_string())
-    stdio::println((s.ends_with("world")).to_string())
-    stdio::println((s.ends_with("hello")).to_string())
-    stdio::println((s.ends_with("")).to_string())
-    stdio::println(("a".index_of("a")).to_string())
-    stdio::println(("a".index_of("b")).to_string())
+    Stdio::println((s.contains("world")).to_string())
+    Stdio::println((s.contains("xyz")).to_string())
+    Stdio::println((s.contains("")).to_string())
+    Stdio::println(("".contains("")).to_string())
+    Stdio::println(("".contains("a")).to_string())
+    Stdio::println((s.index_of("hello")).to_string())
+    Stdio::println((s.index_of("world")).to_string())
+    Stdio::println((s.index_of(" ")).to_string())
+    Stdio::println((s.index_of("xyz")).to_string())
+    Stdio::println((s.index_of("")).to_string())
+    Stdio::println((s.starts_with("hello")).to_string())
+    Stdio::println((s.starts_with("world")).to_string())
+    Stdio::println((s.starts_with("")).to_string())
+    Stdio::println((s.ends_with("world")).to_string())
+    Stdio::println((s.ends_with("hello")).to_string())
+    Stdio::println((s.ends_with("")).to_string())
+    Stdio::println(("a".index_of("a")).to_string())
+    Stdio::println(("a".index_of("b")).to_string())
 }
 // String search operations: contains, index_of, starts_with, ends_with
 // contains

@@ -1,6 +1,6 @@
 // HashMap::entries()/values() is defined for the six supported pairs only.
 // A Vec value payload is outside the adapter set and must diagnose (#888).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m = HashMap::new<i32, Vec<i32>>()
@@ -8,5 +8,5 @@ fn main() {
     v.push(7)
     m.insert(1, v)
     let es = m.entries()
-    stdio::println(es.len().to_string())
+    Stdio::println(es.len().to_string())
 }

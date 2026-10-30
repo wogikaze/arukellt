@@ -1,13 +1,13 @@
 use std::collections::ordered::IndexSet
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut s = IndexSet::new()
-    stdio::println((s.insert(30)).to_string())
-    stdio::println((s.insert(10)).to_string())
-    stdio::println((s.insert(20)).to_string())
-    stdio::println((s.insert(10)).to_string())
-    stdio::println((s.len()).to_string())
-    stdio::println((s.contains(10)).to_string())
-    stdio::println((s.contains(99)).to_string())
+    Stdio::println((s.insert(30)).to_string())
+    Stdio::println((s.insert(10)).to_string())
+    Stdio::println((s.insert(20)).to_string())
+    Stdio::println((s.insert(10)).to_string())
+    Stdio::println((s.len()).to_string())
+    Stdio::println((s.contains(10)).to_string())
+    Stdio::println((s.contains(99)).to_string())
 }

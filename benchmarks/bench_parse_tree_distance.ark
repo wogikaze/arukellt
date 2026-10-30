@@ -1,5 +1,5 @@
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 use std::collections::vec
 use std::core
@@ -147,11 +147,11 @@ fn main() {
                 k = k + 1
             }
             if ok {
-                stdio::println("Yes")
+                Stdio::println("Yes")
             } else {
-                stdio::println("No")
+                Stdio::println("No")
             }
         },
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => Stdio::println(e),
     }
 }

@@ -1,6 +1,6 @@
 // A declared one-uppercase enum parameter of a generic impl method stays
 // the open-enum type through monomorphization (ADR-089).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum E {
     Value(i32),
@@ -22,5 +22,5 @@ impl<T> Wrap<T> {
 
 fn main() {
     let w: Wrap<i32> = Wrap { v: 1 }
-    stdio::println(w.use_enum(E::Value(5)).to_string())
+    Stdio::println(w.use_enum(E::Value(5)).to_string())
 }

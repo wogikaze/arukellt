@@ -3,7 +3,7 @@
 // HashMap context.  Exercises HashMap<String,String> operations, string
 // manipulation (index_of, substring, concat), recursive resolution of
 // nested variable references, and iteration over multiple templates.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn expand(s: String, ctx: HashMap<String, String>) -> String {
     let start: i32 = s.index_of("{")
@@ -46,9 +46,9 @@ fn main() {
     let t4: String = String_from("plain text")
     let t5: String = String_from("{final} and {greeting}!")
 
-    stdio::println(expand(t1, ctx))
-    stdio::println(expand(t2, ctx))
-    stdio::println(expand(t3, ctx))
-    stdio::println(expand(t4, ctx))
-    stdio::println(expand(t5, ctx))
+    Stdio::println(expand(t1, ctx))
+    Stdio::println(expand(t2, ctx))
+    Stdio::println(expand(t3, ctx))
+    Stdio::println(expand(t4, ctx))
+    Stdio::println(expand(t5, ctx))
 }

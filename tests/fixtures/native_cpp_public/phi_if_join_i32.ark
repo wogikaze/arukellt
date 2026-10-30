@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let flag = 1
@@ -7,5 +7,5 @@ fn main() {
     } else {
         20
     }
-    stdio::println(String_from("value=").concat(value.to_string()))
+    Stdio::println(String_from("value=").concat(value.to_string()))
 }

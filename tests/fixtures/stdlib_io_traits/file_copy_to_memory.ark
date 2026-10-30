@@ -2,23 +2,23 @@
 // Writer through the Read / Write traits, so the generic algorithm sees a
 // host-backed source rather than the memory Reader.
 use std::host::fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{Io, Seek, SeekFrom, Writer}
 
 fn print_byte_values(bytes: Vec<i32>) {
-    stdio::println((len(bytes)).to_string())
+    Stdio::println((len(bytes)).to_string())
     let mut i: i32 = 0
     while i < len(bytes) {
-        stdio::println((get_unchecked(bytes, i)).to_string())
+        Stdio::println((get_unchecked(bytes, i)).to_string())
         i = i + 1
     }
 }
 
 fn print_copy_count<T: io::Read, U: io::Write>(mut from: T, mut to: U) {
     match Io::copy(from, to) {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 
@@ -26,7 +26,7 @@ fn print_seek<T: io::Seek>(mut source: T, from: SeekFrom) {
     match source.seek(from) {
         Result::Ok(_) => {
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 
@@ -40,7 +40,7 @@ fn main() {
             print_copy_count(file, writer)
             print_byte_values(writer.into_bytes())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
@@ -51,7 +51,7 @@ fn main() {
             print_copy_count(file, writer)
             print_byte_values(writer.into_bytes())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
@@ -61,11 +61,11 @@ fn main() {
             let mut writer: Writer = Writer::new()
             print_copy_count(file, writer)
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/missing_image.bin") {
-        Result::Ok(_) => stdio::println("unexpected open"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected open"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }

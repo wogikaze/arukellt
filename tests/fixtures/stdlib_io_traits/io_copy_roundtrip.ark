@@ -2,7 +2,7 @@
 //
 // copy stops at EOF and returns the transferred byte count; a rejecting sink
 // must surface its error instead of reporting a partial copy as success.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{Io, Reader, Writer}
 
@@ -55,8 +55,8 @@ fn read_some<T: io::Read>(mut source: T, max_bytes: i32) -> Result<Vec<i32>, io:
 
 fn print_copy_count(mut from: Reader, mut to: Writer) {
     match Io::copy(from, to) {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 
@@ -64,74 +64,74 @@ fn main() {
     let mut writer: Writer = Writer::new()
     print_copy_count(Reader::from_bytes(payload()), writer)
     let image: Vec<i32> = writer.into_bytes()
-    stdio::println((len(image)).to_string())
-    stdio::println((get_unchecked(image, 0)).to_string())
-    stdio::println((get_unchecked(image, 4)).to_string())
+    Stdio::println((len(image)).to_string())
+    Stdio::println((get_unchecked(image, 0)).to_string())
+    Stdio::println((get_unchecked(image, 4)).to_string())
 
     print_copy_count(Reader::new(), Writer::new())
 
     let mut partial: Reader = Reader::from_bytes(payload())
     match read_some(partial, 2) {
-        Result::Ok(head) => stdio::println((len(head)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(head) => Stdio::println((len(head)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     let mut rest_writer: Writer = Writer::new()
     print_copy_count(partial, rest_writer)
     let rest: Vec<i32> = rest_writer.into_bytes()
-    stdio::println((get_unchecked(rest, 0)).to_string())
-    stdio::println((get_unchecked(rest, 2)).to_string())
+    Stdio::println((get_unchecked(rest, 0)).to_string())
+    Stdio::println((get_unchecked(rest, 2)).to_string())
 
     match Io::read_to_end(Reader::from_bytes(payload())) {
-        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut small: Vec<i32> = Vec::new<i32>()
     push(small, 65)
     push(small, 66)
     match Io::read_exact(Reader::from_bytes(small), 3) {
-        Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match Io::read_exact(Reader::from_bytes(small), 4) {
-        Result::Ok(_) => stdio::println("unexpected exact read"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected exact read"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     match Io::read_exact(Reader::from_bytes(small), 0 - 1) {
-        Result::Ok(_) => stdio::println("unexpected negative read"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected negative read"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match Io::read_to_string(Reader::from_bytes(payload())) {
-        Result::Ok(text) => stdio::println(text),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(text) => Stdio::println(text),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     let mut invalid: Vec<i32> = Vec::new<i32>()
     push(invalid, 255)
     match Io::read_to_string(Reader::from_bytes(invalid)) {
-        Result::Ok(_) => stdio::println("unexpected utf8 success"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected utf8 success"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut all_writer: Writer = Writer::new()
     match Io::write_all(all_writer, payload()) {
         Result::Ok(_) => {
             let all: Vec<i32> = all_writer.into_bytes()
-            stdio::println((len(all)).to_string())
-            stdio::println((get_unchecked(all, 0)).to_string())
+            Stdio::println((len(all)).to_string())
+            Stdio::println((get_unchecked(all, 0)).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut rejected: RejectingWriter = RejectingWriter { calls: 0 }
     match Io::copy(Reader::from_bytes(payload()), rejected) {
-        Result::Ok(_) => stdio::println("unexpected copy success"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected copy success"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut partial_sink: OneByteWriter = OneByteWriter { bytes: Vec::new<i32>() }
     match Io::copy(Reader::from_bytes(payload()), partial_sink) {
-        Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(count) => Stdio::println((count).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }

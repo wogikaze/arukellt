@@ -1,7 +1,7 @@
 // A monomorphized generic impl method keeps a one-uppercase struct as a
 // concrete parameter and return type instead of substituting its name as a
 // type-variable key (ADR-089).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct S {
     x: i32,
@@ -25,5 +25,5 @@ fn main() {
     let w: Wrap<i32> = Wrap { v: 1 }
     let passed = w.take(S { x: 1 })
     let made = w.make()
-    stdio::println((passed.x + made.x + w.v).to_string())
+    Stdio::println((passed.x + made.x + w.v).to_string())
 }

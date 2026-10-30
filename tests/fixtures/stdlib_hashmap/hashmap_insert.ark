@@ -1,8 +1,8 @@
-use std::host::stdio
-use std::test::Test
+use std::host::stdio::Stdio
+use std::prelude::{assert_eq}
 fn expect_some(v: Option<i32>, expected: i32) {
     match v {
-        Option::Some(x) => Test::assert_eq_i32(x, expected),
+        Option::Some(x) => assert_eq(x, expected),
         None => assert(false),
     }
 }
@@ -17,14 +17,14 @@ fn expect_none(v: Option<i32>) {
 fn main() {
     let mut m = HashMap::new<i32, i32>()
     assert(m.is_empty())
-    Test::assert_eq_i32(m.len(), 0)
+    assert_eq(m.len(), 0)
 
     // Insert new keys returns None (no previous value).
     expect_none(m.insert(1, 100))
     expect_none(m.insert(2, 200))
     expect_none(m.insert(3, 300))
     assert(!m.is_empty())
-    Test::assert_eq_i32(m.len(), 3)
+    assert_eq(m.len(), 3)
 
     // contains / get
     assert(m.contains_key(1))
@@ -39,7 +39,7 @@ fn main() {
     // Update existing key returns previous value.
     expect_some(m.insert(1, 111), 100)
     expect_some(m.get(1), 111)
-    Test::assert_eq_i32(m.len(), 3)
+    assert_eq(m.len(), 3)
 
     // Zero-value lookup must distinguish missing from stored zero.
     expect_none(m.insert(5, 0))
@@ -47,8 +47,8 @@ fn main() {
     expect_some(m.get(5), 0)
 
     // keys / values snapshots
-    Test::assert_eq_i32(len(m.keys()), 4)
-    Test::assert_eq_i32(len(m.values()), 4)
+    assert_eq(len(m.keys()), 4)
+    assert_eq(len(m.values()), 4)
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

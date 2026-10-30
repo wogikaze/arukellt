@@ -246,7 +246,7 @@
       "ark.stdio"
     ],
     "body": [
-      "use std::host::stdio"
+      "use std::host::stdio::Stdio"
     ],
     "description": "import stdio host module"
   },
@@ -993,7 +993,7 @@
       "ark.println"
     ],
     "body": [
-      "stdio::println(${1:\"text\"})"
+      "Stdio::println(${1:\"text\"})"
     ],
     "description": "print line with stdio"
   },
@@ -1004,7 +1004,7 @@
       "ark.printi32"
     ],
     "body": [
-      "stdio::println(i32_to_string(${1:value}))"
+      "Stdio::println(i32_to_string(${1:value}))"
     ],
     "description": "print i32 value"
   },
@@ -1015,7 +1015,7 @@
       "ark.printi64"
     ],
     "body": [
-      "stdio::println(i64_to_string(${1:value}))"
+      "Stdio::println(i64_to_string(${1:value}))"
     ],
     "description": "print i64 value"
   },
@@ -1026,7 +1026,7 @@
       "ark.printf64"
     ],
     "body": [
-      "stdio::println(f64_to_string(${1:value}))"
+      "Stdio::println(f64_to_string(${1:value}))"
     ],
     "description": "print f64 value"
   },
@@ -1719,11 +1719,11 @@
       "ark.testmain"
     ],
     "body": [
-      "use std::host::stdio",
+      "use std::host::stdio::Stdio",
       "",
       "fn main() {",
       "    ${1:// assertions}",
-      "    stdio::println(${2:\"all tests passed\"})",
+      "    Stdio::println(${2:\"all tests passed\"})",
       "}"
     ],
     "description": "simple test fixture main"
@@ -1735,10 +1735,10 @@
       "ark.hello"
     ],
     "body": [
-      "use std::host::stdio",
+      "use std::host::stdio::Stdio",
       "",
       "fn main() {",
-      "    stdio::println(${1:\"Hello, Arukellt!\"})",
+      "    Stdio::println(${1:\"Hello, Arukellt!\"})",
       "}"
     ],
     "description": "hello world program"
@@ -1801,13 +1801,13 @@
     ],
     "body": [
       "use std::host::fs",
-      "use std::host::stdio",
+      "use std::host::stdio::Stdio",
       "",
       "fn main() {",
       "    let ${1:result} = fs::read_to_string(${2:String_from(\"input.txt\")})",
       "    match ${1:result} {",
-      "        Ok(${3:text}) => stdio::println(${3:text}),",
-      "        Err(${4:e}) => stdio::println(${4:e}),",
+      "        Ok(${3:text}) => Stdio::println(${3:text}),",
+      "        Err(${4:e}) => Stdio::println(${4:e}),",
       "    }",
       "}"
     ],
@@ -1821,8 +1821,8 @@
     ],
     "body": [
       "match ${1:opt} {",
-      "    Some(${2:value}) => stdio::println(to_string(${2:value})),",
-      "    None => stdio::println(${3:String_from(\"none\")}),",
+      "    Some(${2:value}) => Stdio::println(to_string(${2:value})),",
+      "    None => Stdio::println(${3:String_from(\"none\")}),",
       "}"
     ],
     "description": "print Option contents"
@@ -1835,8 +1835,8 @@
     ],
     "body": [
       "match ${1:res} {",
-      "    Ok(${2:value}) => stdio::println(to_string(${2:value})),",
-      "    Err(${3:e}) => stdio::println(${3:e}),",
+      "    Ok(${2:value}) => Stdio::println(to_string(${2:value})),",
+      "    Err(${3:e}) => Stdio::println(${3:e}),",
       "}"
     ],
     "description": "print Result contents"
@@ -1849,11 +1849,11 @@
     ],
     "body": [
       "use std::path",
-      "use std::host::stdio",
+      "use std::host::stdio::Stdio",
       "",
       "fn main() {",
       "    assert_eq_string(path::join(${1:\"a\"}, ${2:\"b\"}), ${3:\"a/b\"})",
-      "    stdio::println(${4:\"all path tests passed\"})",
+      "    Stdio::println(${4:\"all path tests passed\"})",
       "}"
     ],
     "description": "test fixture for std::path"

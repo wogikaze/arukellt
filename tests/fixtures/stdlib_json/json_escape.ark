@@ -1,23 +1,23 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::json
 use std::text
 fn main() {
     let tab_str = json::JsonValue::encode_string("a\tb")
-    stdio::println(tab_str)
+    Stdio::println(tab_str)
     let newline_str = json::JsonValue::encode_string("line1\nline2")
-    stdio::println(newline_str)
+    Stdio::println(newline_str)
     let quote_str = json::JsonValue::encode_string("say \"hi\"")
-    stdio::println(quote_str)
+    Stdio::println(quote_str)
     let backslash_str = json::JsonValue::encode_string("a\\b")
-    stdio::println(backslash_str)
+    Stdio::println(backslash_str)
     match json::JsonValue::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
             match v.as_string() {
-                Option::Some(s) => stdio::println((len(s)).to_string()),
-                None => stdio::println("not string"),
+                Option::Some(s) => Stdio::println((len(s)).to_string()),
+                None => Stdio::println("not string"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e.message())),
+        Result::Err(e) => Stdio::println("error:".concat(e.message())),
     }
 }
 // json_encode_string handles special characters

@@ -1,7 +1,7 @@
 // result_heavy.ark — Result/Option heavy benchmark (ADR-002 fixture).
 // Exercises Result construction, matching, propagation, and error paths
 // to stress the enum representation and error-handling codegen.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn process(value: i32) -> Result<i32, String> {
     if value % 3 == 0 {
@@ -31,7 +31,7 @@ fn main() {
         }
         iter = iter + 1
     }
-    stdio::println((ok_count).to_string())
-    stdio::println((err_count).to_string())
-    stdio::println((sum).to_string())
+    Stdio::println((ok_count).to_string())
+    Stdio::println((err_count).to_string())
+    Stdio::println((sum).to_string())
 }

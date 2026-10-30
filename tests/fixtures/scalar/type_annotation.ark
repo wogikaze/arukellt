@@ -1,12 +1,12 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let a: u8 = 42
     let b: u16 = 1000
     let c: u32 = 100000
     let d: i16 = 500
-    stdio::println(a)
-    stdio::println(b)
-    stdio::println(c)
-    stdio::println(d)
+    Stdio::println(a)
+    Stdio::println(b)
+    Stdio::println(c)
+    Stdio::println(d)
 }

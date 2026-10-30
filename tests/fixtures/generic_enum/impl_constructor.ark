@@ -2,7 +2,7 @@
 // reference as its wasm result, not the monomorphized type argument. The
 // declared `Wrap<T>` return must stay distinguishable from a generic method
 // returning its own type parameter (`Wrap__new__i32` vs `Wrap__echo__i32`).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Wrap<T> {
     Some(T),
@@ -20,15 +20,15 @@ fn main() {
     let word = Wrap::new(String_from("hi"))
     let turbofish: Wrap<String> = Wrap::new<String>(String_from("yo"))
     match number {
-        Wrap::Some(value) => stdio::println((value + 1).to_string()),
-        Wrap::None => stdio::println("none"),
+        Wrap::Some(value) => Stdio::println((value + 1).to_string()),
+        Wrap::None => Stdio::println("none"),
     }
     match word {
-        Wrap::Some(value) => stdio::println(value),
-        Wrap::None => stdio::println("none"),
+        Wrap::Some(value) => Stdio::println(value),
+        Wrap::None => Stdio::println("none"),
     }
     match turbofish {
-        Wrap::Some(value) => stdio::println(value),
-        Wrap::None => stdio::println("none"),
+        Wrap::Some(value) => Stdio::println(value),
+        Wrap::None => Stdio::println("none"),
     }
 }

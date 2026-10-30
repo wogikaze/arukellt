@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 struct Point { x: i32, y: i32 }
 fn magnitude_label(p: Point) -> String | m == 0 = "origin"
 fn magnitude_label(p: Point) -> String | m < 10 = "near"
@@ -6,7 +6,7 @@ fn magnitude_label(_) -> String = "far"
 where
 m = p.x * p.x + p.y * p.y
 fn main() {
-    stdio::println(magnitude_label(Point { x: 0, y: 0 }))
-    stdio::println(magnitude_label(Point { x: 3, y: 0 }))
-    stdio::println(magnitude_label(Point { x: 4, y: 4 }))
+    Stdio::println(magnitude_label(Point { x: 0, y: 0 }))
+    Stdio::println(magnitude_label(Point { x: 3, y: 0 }))
+    Stdio::println(magnitude_label(Point { x: 4, y: 4 }))
 }

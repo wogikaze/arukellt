@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // Option ? propagation: None early-returns from an enclosing Option<_>.
 // Desugars to
@@ -44,5 +44,5 @@ fn main() {
         None => {},
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

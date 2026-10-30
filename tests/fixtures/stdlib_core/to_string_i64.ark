@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println(9001i64.to_string())
-    stdio::println(0i64.to_string())
-    stdio::println((-1i64).to_string())
+    Stdio::println(9001i64.to_string())
+    Stdio::println(0i64.to_string())
+    Stdio::println((-1i64).to_string())
 }

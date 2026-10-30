@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // A nested closure resolves names through an intermediate frame that
 // does not itself capture them: the transport slot rides the middle
@@ -11,7 +11,7 @@ fn main() {
         }
         inner()
     }
-    stdio::println(read_two().to_string())
+    Stdio::println(read_two().to_string())
     let write_two = || {
         let inner = || {
             count = count + 6
@@ -19,7 +19,7 @@ fn main() {
         inner()
     }
     write_two()
-    stdio::println((count + 0).to_string())
+    Stdio::println((count + 0).to_string())
     let three = || {
         let two = || {
             let one = || {
@@ -29,5 +29,5 @@ fn main() {
         }
         two()
     }
-    stdio::println(three().to_string())
+    Stdio::println(three().to_string())
 }

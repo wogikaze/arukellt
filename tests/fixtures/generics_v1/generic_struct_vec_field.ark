@@ -1,5 +1,5 @@
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct GenVecIter<T> {
     vec: Vec<T>,
@@ -37,7 +37,7 @@ fn main() -> i32 {
             Option::None => { break },
         }
     }
-    stdio::println(total.to_string())
+    Stdio::println(total.to_string())
     let mut s: Vec<String> = Vec::new<String>()
     s.push("ab")
     s.push("cd")
@@ -49,6 +49,6 @@ fn main() -> i32 {
             Option::None => { break },
         }
     }
-    stdio::println(chars.to_string())
+    Stdio::println(chars.to_string())
     0
 }

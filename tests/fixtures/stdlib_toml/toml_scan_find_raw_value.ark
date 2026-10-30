@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::test::Test
 
@@ -10,6 +10,6 @@ fn main() {
     Test::assert_eq_i32(len(items), 2)
     Test::assert_eq_string(get_unchecked(items, 0), "W0006")
     Test::assert_eq_string(get_unchecked(items, 1), "unused-import")
-    stdio::println("OK")
+    Stdio::println("OK")
 }
 // toml_find_raw_value + toml_parse_string_array handle lint allow arrays

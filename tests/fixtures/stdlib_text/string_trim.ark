@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn main() {
     let s = "  hello world  "
-    stdio::println(s.trim())
-    stdio::println(s.trim_start())
-    stdio::println(s.trim_end())
-    stdio::println("".trim())
-    stdio::println("   ".trim())
+    Stdio::println(s.trim())
+    Stdio::println(s.trim_start())
+    Stdio::println(s.trim_end())
+    Stdio::println("".trim())
+    Stdio::println("   ".trim())
 }

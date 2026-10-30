@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -6,5 +6,5 @@ fn main() {
     let b: Option<i32> = None
     Test::assert_true(a.is_some() != a.is_none())
     Test::assert_true(b.is_some() != b.is_none())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

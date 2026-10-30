@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // ADR-088 §1: a call borrows a live argument, but a binding moved into another
 // binding earlier is a use of a moved value (E0212) even in argument position.
@@ -7,7 +7,7 @@ struct Point {
 }
 
 fn show(p: Point) {
-    stdio::println(p.s)
+    Stdio::println(p.s)
 }
 
 fn main() {

@@ -4,35 +4,35 @@
 // primitive is proven to be byte-oriented rather than UTF-8 decoded.
 use std::host::fs
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{Read, Seek, SeekFrom}
 
 fn print_read<T: io::Read>(mut source: T, max_bytes: i32) {
     match source.read(max_bytes) {
         Result::Ok(bytes) => {
-            stdio::println((len(bytes)).to_string())
+            Stdio::println((len(bytes)).to_string())
             let mut i: i32 = 0
             while i < len(bytes) {
-                stdio::println((get_unchecked(bytes, i)).to_string())
+                Stdio::println((get_unchecked(bytes, i)).to_string())
                 i = i + 1
             }
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 
 fn print_position<T: io::Seek>(source: T) {
     match source.position() {
-        Result::Ok(position) => stdio::println((position).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(position) => Stdio::println((position).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 
 fn print_seek<T: io::Seek>(mut source: T, from: SeekFrom) {
     match source.seek(from) {
-        Result::Ok(position) => stdio::println((position).to_string()),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(position) => Stdio::println((position).to_string()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }
 
@@ -49,13 +49,13 @@ fn main() {
             // array.get temp with the size-class struct layout placeholder
             // (the 0x1813 validation mismatch).
             let image: Vec<i32> = image
-            stdio::println((len(image)).to_string())
-            stdio::println((get_unchecked(image, 0)).to_string())
-            stdio::println((get_unchecked(image, 3)).to_string())
-            stdio::println((get_unchecked(image, 6)).to_string())
-            stdio::println((get_unchecked(image, 7)).to_string())
+            Stdio::println((len(image)).to_string())
+            Stdio::println((get_unchecked(image, 0)).to_string())
+            Stdio::println((get_unchecked(image, 3)).to_string())
+            Stdio::println((get_unchecked(image, 6)).to_string())
+            Stdio::println((get_unchecked(image, 7)).to_string())
         },
-        Result::Err(err) => stdio::println(err),
+        Result::Err(err) => Stdio::println(err),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
@@ -81,26 +81,26 @@ fn main() {
             print_seek(file, SeekFrom::Start(0i64 - 1i64))
             print_seek(file, SeekFrom::Start(2147483648i64))
             match file.close() {
-                Result::Ok(_) => stdio::println("closed"),
-                Result::Err(err) => stdio::println(err.message()),
+                Result::Ok(_) => Stdio::println("closed"),
+                Result::Err(err) => Stdio::println(err.message()),
             }
             print_read(file, 1)
             print_position(file)
             match file.close() {
-                Result::Ok(_) => stdio::println("closed"),
-                Result::Err(err) => stdio::println(err.message()),
+                Result::Ok(_) => Stdio::println("closed"),
+                Result::Err(err) => Stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/missing_image.bin") {
-        Result::Ok(_) => stdio::println("unexpected open"),
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Ok(_) => Stdio::println("unexpected open"),
+        Result::Err(err) => Stdio::println(err.message()),
     }
     let missing_result: Result<Vec<i32>, String> = Fs::read_bytes("tests/fixtures/stdlib_io_traits/missing_image.bin")
     match missing_result {
-        Result::Ok(_) => stdio::println("unexpected read"),
-        Result::Err(err) => stdio::println(err),
+        Result::Ok(_) => Stdio::println("unexpected read"),
+        Result::Err(err) => Stdio::println(err),
     }
 }

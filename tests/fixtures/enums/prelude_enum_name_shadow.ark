@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Box {
     s: String,
@@ -13,6 +13,6 @@ fn make_prelude_box() -> Box<i32> {
 
 fn main() {
     let b = Box { s: "shadow" }
-    stdio::println(b.s)
-    stdio::println((make_prelude_box().take() + 1).to_string())
+    Stdio::println(b.s)
+    Stdio::println((make_prelude_box().take() + 1).to_string())
 }

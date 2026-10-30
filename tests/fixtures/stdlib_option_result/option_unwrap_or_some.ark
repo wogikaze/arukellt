@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
     let a: Option<i32> = Some(42)
     Test::assert_eq_i32(a.unwrap_or(0), 42)
-    stdio::println("ok")
+    Stdio::println("ok")
 }

@@ -4,7 +4,7 @@
 // TY_UNKNOWN; otherwise the checker accepts operations that lowering then
 // emits with a mismatched value type (#933 follow-up).
 
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i64,
@@ -41,18 +41,18 @@ fn point_x(value: Option<Point>) -> i64 {
 
 fn main() {
     let small: Option<i32> = Option::Some(41)
-    stdio::println((unwrap_i32(small, 0) + 1).to_string())
+    Stdio::println((unwrap_i32(small, 0) + 1).to_string())
 
     let wide: Option<i64> = Option::Some(9000000000i64)
-    stdio::println(unwrap_i64(wide, 0i64).to_string())
+    Stdio::println(unwrap_i64(wide, 0i64).to_string())
 
     let text: Option<String> = Option::Some(String_from("payload"))
-    stdio::println(describe(text))
+    Stdio::println(describe(text))
 
     let point: Option<Point> = Option::Some(Point { x: 7i64, y: 9i64 })
-    stdio::println(point_x(point).to_string())
+    Stdio::println(point_x(point).to_string())
 
     let empty_text: Option<String> = Option::None
-    stdio::println(describe(empty_text))
-    stdio::println(unwrap_i32(Option::None, 5).to_string())
+    Stdio::println(describe(empty_text))
+    Stdio::println(unwrap_i32(Option::None, 5).to_string())
 }

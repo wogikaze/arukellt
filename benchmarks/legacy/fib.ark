@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn fib(n: i32) -> i32 {
     if n <= 1 {
@@ -18,5 +18,5 @@ fn fib(n: i32) -> i32 {
 
 fn main() {
     let result: i32 = fib(35)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

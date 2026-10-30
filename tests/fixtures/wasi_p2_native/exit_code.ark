@@ -1,7 +1,7 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println("exit-marker")
+    Stdio::println("exit-marker")
     Process::exit(42)
 }

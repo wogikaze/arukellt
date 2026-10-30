@@ -1,14 +1,14 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::random::Rng
-use std::test::Test
+use std::prelude::{assert_eq}
 fn main() {
     let a = Rng::new(12345).next()
     let b = Rng::new(12345).next()
-    Test::assert_eq_i32(a, -958040966)
-    Test::assert_eq_i32(a, b)
+    assert_eq(a, -958040966)
+    assert_eq(a, b)
 
     let c = Rng::new(99999).next()
-    Test::assert_eq_i32(c, 714973238)
+    assert_eq(c, 714973238)
     assert(a != c)
 
     let s1 = Rng::new(42).next()
@@ -17,11 +17,11 @@ fn main() {
     let r1 = Rng::new(42).next()
     let r2 = Rng::new(r1).next()
     let r3 = Rng::new(r2).next()
-    Test::assert_eq_i32(s1, 11355432)
-    Test::assert_eq_i32(s1, r1)
-    Test::assert_eq_i32(s2, r2)
-    Test::assert_eq_i32(s3, r3)
-    stdio::println("random_seed ok")
+    assert_eq(s1, 11355432)
+    assert_eq(s1, r1)
+    assert_eq(s2, r2)
+    assert_eq(s3, r3)
+    Stdio::println("random_seed ok")
 }
 // Test seeded_random determinism.
 // Exact outputs pin the xorshift32 implementation.

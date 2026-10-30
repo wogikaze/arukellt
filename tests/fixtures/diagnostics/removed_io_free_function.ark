@@ -1,5 +1,5 @@
 use std::io
 
 fn main() {
-    let _ = io::reader_read(io::stdin(), 1)
+    let _ = io::reader_read(io::Reader::new(), 1)
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::container
 
 fn double(x: i32) -> i32 {
@@ -11,11 +11,11 @@ fn main() {
     let mapped_a: Option<i32> = a.map(double)
     let mapped_b: Option<i32> = b.map(double)
     match mapped_a {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("none"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("none"),
     }
     match mapped_b {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("none"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("none"),
     }
 }

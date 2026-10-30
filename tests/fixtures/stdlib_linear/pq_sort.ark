@@ -1,5 +1,5 @@
 use std::collections::pq::PriorityQueue
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn pop_i32(mut queue: PriorityQueue<i32>) -> i32 {
     match queue.pop() {
@@ -25,21 +25,21 @@ fn main() {
     queue.push(40)
     queue.push(60)
 
-    stdio::println(queue.len().to_string())  // 9
+    Stdio::println(queue.len().to_string())  // 9
 
     // Pop all: should come out sorted ascending (min-heap)
-    stdio::println(pop_i32(queue).to_string())  // 10
-    stdio::println(pop_i32(queue).to_string())  // 20
-    stdio::println(pop_i32(queue).to_string())  // 30
-    stdio::println(pop_i32(queue).to_string())  // 40
-    stdio::println(pop_i32(queue).to_string())  // 50
-    stdio::println(pop_i32(queue).to_string())  // 60
-    stdio::println(pop_i32(queue).to_string())  // 70
-    stdio::println(pop_i32(queue).to_string())  // 80
-    stdio::println(pop_i32(queue).to_string())  // 90
+    Stdio::println(pop_i32(queue).to_string())  // 10
+    Stdio::println(pop_i32(queue).to_string())  // 20
+    Stdio::println(pop_i32(queue).to_string())  // 30
+    Stdio::println(pop_i32(queue).to_string())  // 40
+    Stdio::println(pop_i32(queue).to_string())  // 50
+    Stdio::println(pop_i32(queue).to_string())  // 60
+    Stdio::println(pop_i32(queue).to_string())  // 70
+    Stdio::println(pop_i32(queue).to_string())  // 80
+    Stdio::println(pop_i32(queue).to_string())  // 90
 
-    stdio::println(queue.is_empty().to_string())  // true
-    stdio::println(queue.len().to_string())  // 0
+    Stdio::println(queue.is_empty().to_string())  // true
+    Stdio::println(queue.len().to_string())  // 0
 }
 // pq_len after 9 pushes
 // pq_pop returns sorted ascending (min-heap property)

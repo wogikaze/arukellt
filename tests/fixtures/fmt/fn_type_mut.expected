@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -15,5 +15,5 @@ fn apply(f: fn(mut Point) -> i32, mut p: Point) -> i32 {
 fn main() {
     let read_fn: fn(mut Point) -> i32 = read
     let mut point = Point { x: 1 }
-    stdio::println(apply(read_fn, point).to_string())
+    Stdio::println(apply(read_fn, point).to_string())
 }

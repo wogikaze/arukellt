@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: stdio::println; use `Stdio::println(s)` from `use std::host::stdio::Stdio` instead

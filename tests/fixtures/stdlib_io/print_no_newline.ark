@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::print("no newline")
-    stdio::println(" after")
+    Stdio::print("no newline")
+    Stdio::println(" after")
 }

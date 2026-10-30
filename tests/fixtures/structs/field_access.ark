@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Person {
     name: String,
@@ -7,6 +7,6 @@ struct Person {
 
 fn main() {
     let p: Person = Person { name: String_from("Alice"), age: 30 }
-    stdio::println(p.name)
-    stdio::println((p.age).to_string())
+    Stdio::println(p.name)
+    Stdio::println((p.age).to_string())
 }

@@ -2,7 +2,7 @@
 // Tests that enum variant patterns with guards work on clause heads
 // Note: The MIR lowerer has a known issue with enum+guard+non-matching-tag
 // (see enum_match_guard_bug.ark), so this only tests the matching case.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 enum Level { Low, Medium, High }
 
@@ -10,5 +10,5 @@ fn describe(Level::Low: Level) -> String | true = "low"
 fn describe(_) -> String = "other"
 
 fn main() {
-    stdio::println(describe(Level::Low))
+    Stdio::println(describe(Level::Low))
 }

@@ -1,26 +1,26 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wit::types
 
 fn main() {
     let bool_ty = types::WitType::Bool
     let u32_ty = types::WitType::U32
     let string_ty = types::WitType::String
-    stdio::println((bool_ty.id()).to_string())
-    stdio::println((u32_ty.id()).to_string())
-    stdio::println((string_ty.id()).to_string())
+    Stdio::println((bool_ty.id()).to_string())
+    Stdio::println((u32_ty.id()).to_string())
+    Stdio::println((string_ty.id()).to_string())
 
     let from_1 = types::WitType::from_id(1)
     let from_4 = types::WitType::from_id(4)
     let from_13 = types::WitType::from_id(13)
     let from_99 = types::WitType::from_id(99)
-    stdio::println(from_1.name())
-    stdio::println(from_4.name())
-    stdio::println(from_13.name())
-    stdio::println(from_99.name())
+    Stdio::println(from_1.name())
+    Stdio::println(from_4.name())
+    Stdio::println(from_13.name())
+    Stdio::println(from_99.name())
 
     let from_7 = types::WitType::from_id(7)
-    stdio::println((from_7.id()).to_string())
-    stdio::println((from_99.id()).to_string())
+    Stdio::println((from_7.id()).to_string())
+    Stdio::println((from_99.id()).to_string())
 }
 // WIT type constants and name lookup through WitType methods
 // Round-trip: canonical id -> WitType -> id locks the from_id / id boundary

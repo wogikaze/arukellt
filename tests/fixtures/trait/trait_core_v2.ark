@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 trait Factory<T> {
     type Item
@@ -39,5 +39,5 @@ fn main() {
     let boxed = Boxed::make(7)
     let item = get_item(boxed)
     let typed = get_typed(Boxed::make(9))
-    stdio::println((item).to_string().concat((typed).to_string()))
+    Stdio::println((item).to_string().concat((typed).to_string()))
 }

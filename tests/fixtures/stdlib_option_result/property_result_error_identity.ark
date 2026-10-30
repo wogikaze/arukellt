@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     for i in 0..20 {
@@ -8,5 +8,5 @@ fn main() {
             Result::Err(e) => Test::assert_eq_i32(e, i),
         }
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

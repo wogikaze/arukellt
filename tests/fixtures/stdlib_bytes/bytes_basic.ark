@@ -1,29 +1,29 @@
 use std::bytes
 use std::bytes::Bytes
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut b: Vec<i32> = Vec::new<i32>()
     b.push_byte(72)
     b.push_byte(101)
     b.push_byte(108)
-    stdio::println((b.len()).to_string())
-    stdio::println((b.get_unchecked(0)).to_string())
+    Stdio::println((b.len()).to_string())
+    Stdio::println((b.get_unchecked(0)).to_string())
     let h: String = b.to_hex()
-    stdio::println(h)
+    Stdio::println(h)
     let decoded: Vec<i32> = Bytes::from_hex("48656c")
-    stdio::println((decoded.len()).to_string())
-    stdio::println((decoded.get_unchecked(0)).to_string())
+    Stdio::println((decoded.len()).to_string())
+    Stdio::println((decoded.get_unchecked(0)).to_string())
     let leb: Vec<i32> = Bytes::from_leb128_u32(624485)
-    stdio::println((leb.len()).to_string())
-    stdio::println((leb.get_unchecked(0)).to_string())
-    stdio::println((leb.get_unchecked(1)).to_string())
-    stdio::println((leb.get_unchecked(2)).to_string())
+    Stdio::println((leb.len()).to_string())
+    Stdio::println((leb.get_unchecked(0)).to_string())
+    Stdio::println((leb.get_unchecked(1)).to_string())
+    Stdio::println((leb.get_unchecked(2)).to_string())
     let le: Vec<i32> = Bytes::from_u32_le(305419896)
-    stdio::println((le.get_unchecked(0)).to_string())
-    stdio::println((le.get_unchecked(1)).to_string())
+    Stdio::println((le.get_unchecked(0)).to_string())
+    Stdio::println((le.get_unchecked(1)).to_string())
     let rt: i32 = le.to_u32_le()
-    stdio::println((rt).to_string())
+    Stdio::println((rt).to_string())
 }
 // bytes_new and push
 // hex encode

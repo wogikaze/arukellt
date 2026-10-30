@@ -1,18 +1,18 @@
 use std::collections::ordered::BTreeMap
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut m = BTreeMap::new()
     m.insert(30, 300)
     m.insert(10, 100)
     m.insert(20, 200)
-    stdio::println((m.len()).to_string())
-    stdio::println((m.get(10)).to_string())
-    stdio::println((m.get(20)).to_string())
-    stdio::println((m.get(30)).to_string())
-    stdio::println((m.contains_key(20)).to_string())
-    stdio::println((m.contains_key(99)).to_string())
+    Stdio::println((m.len()).to_string())
+    Stdio::println((m.get(10)).to_string())
+    Stdio::println((m.get(20)).to_string())
+    Stdio::println((m.get(30)).to_string())
+    Stdio::println((m.contains_key(20)).to_string())
+    Stdio::println((m.contains_key(99)).to_string())
     m.remove(20)
-    stdio::println((m.len()).to_string())
-    stdio::println((m.contains_key(20)).to_string())
+    Stdio::println((m.len()).to_string())
+    Stdio::println((m.contains_key(20)).to_string())
 }

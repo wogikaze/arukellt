@@ -1,17 +1,17 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 pub fn print_doc_usage() {
-    stdio::eprintln("usage: arukellt doc [OPTIONS] <SYMBOL>")
-    stdio::eprintln("")
-    stdio::eprintln("Look up standard library documentation from std/manifest.toml.")
-    stdio::eprintln("")
-    stdio::eprintln("Options:")
-    stdio::eprintln("      --json              Output as JSON")
-    stdio::eprintln("      --target <TARGET>   Filter availability (wasm32, wasm32-gc)")
-    stdio::eprintln("")
-    stdio::eprintln("Examples:")
-    stdio::eprintln("  arukellt doc println")
-    stdio::eprintln("  arukellt doc std::host::fs::Fs::read_to_string")
-    stdio::eprintln("  arukellt doc --json println")
-    stdio::eprintln("  arukellt doc --target wasm32 std::host::stdio::println")
+    Stdio::eprintln("usage: arukellt doc [OPTIONS] <SYMBOL>")
+    Stdio::eprintln("")
+    Stdio::eprintln("Look up standard library documentation from std/manifest.toml.")
+    Stdio::eprintln("")
+    Stdio::eprintln("Options:")
+    Stdio::eprintln("      --json              Output as JSON")
+    Stdio::eprintln("      --target <TARGET>   Filter availability (wasm32, wasm32-gc)")
+    Stdio::eprintln("")
+    Stdio::eprintln("Examples:")
+    Stdio::eprintln("  arukellt doc Stdio::println")
+    Stdio::eprintln("  arukellt doc std::host::fs::Fs::read_to_string")
+    Stdio::eprintln("  arukellt doc --json Stdio::println")
+    Stdio::eprintln("  arukellt doc --target wasm32 std::host::stdio::Stdio::println")
 }

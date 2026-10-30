@@ -1,18 +1,19 @@
 // Path receiver surface (ADR-046); linear wasm32 lane.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::path::Path
-use std::test::Test
+use std::prelude::{assert_eq_i64, assert_eq_str}
+
 fn main() {
-    Test::assert_eq_string(Path::new("/usr").join("bin"), "/usr/bin")
-    Test::assert_eq_string(Path::new("/usr/").join("bin"), "/usr/bin")
-    Test::assert_eq_string(Path::new("/usr/bin/ls").parent(), "/usr/bin")
-    Test::assert_eq_string(Path::new("/usr/bin/ls").file_name(), "ls")
-    Test::assert_eq_string(Path::new("main.ark").extension(), "ark")
-    Test::assert_eq_string(Path::new("main.rs").with_extension("ark"), "main.ark")
-    Test::assert_eq_string(Path::new("a/../b").normalize(), "b")
+    assert_eq_str(Path::new("/usr").join("bin"), "/usr/bin")
+    assert_eq_str(Path::new("/usr/").join("bin"), "/usr/bin")
+    assert_eq_str(Path::new("/usr/bin/ls").parent(), "/usr/bin")
+    assert_eq_str(Path::new("/usr/bin/ls").file_name(), "ls")
+    assert_eq_str(Path::new("main.ark").extension(), "ark")
+    assert_eq_str(Path::new("main.rs").with_extension("ark"), "main.ark")
+    assert_eq_str(Path::new("a/../b").normalize(), "b")
     assert(Path::new("/usr").is_absolute())
     let parts: Vec<String> = Path::new("/usr/local/bin").components()
-    Test::assert_eq_i64(parts.len(), 3i64)
-    Test::assert_eq_string(Path::new("/usr").into_string(), "/usr")
-    stdio::println("path methods ok")
+    assert_eq_i64(parts.len(), 3i64)
+    assert_eq_str(Path::new("/usr").into_string(), "/usr")
+    Stdio::println("path methods ok")
 }

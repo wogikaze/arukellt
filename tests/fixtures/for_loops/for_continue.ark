@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::core::iter
 
 fn main() {
@@ -9,7 +9,7 @@ fn main() {
         }
         sum = sum + i
     }
-    stdio::println((sum).to_string())
+    Stdio::println((sum).to_string())
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
@@ -22,5 +22,5 @@ fn main() {
         }
         odds = odds + x
     }
-    stdio::println((odds).to_string())
+    Stdio::println((odds).to_string())
 }

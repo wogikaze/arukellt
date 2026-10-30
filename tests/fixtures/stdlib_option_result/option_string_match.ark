@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 fn main() {
     let a: Option<String> = Some(String_from("hello"))
@@ -6,5 +6,5 @@ fn main() {
         Option::Some(v) => Test::assert_eq_string(v, String_from("hello")),
         None => Std::panic("none"),
     }
-    stdio::println("ok")
+    Stdio::println("ok")
 }

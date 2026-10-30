@@ -1,7 +1,7 @@
 use std::test::Test
 use std::collections::vec
 use std::core::cmp
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn descending(a: i32, b: i32) -> Ordering {
     match a.cmp(b) {
@@ -20,5 +20,5 @@ fn main() {
     assert(v.get_unchecked(0) == 3)
     assert(v.get_unchecked(1) == 2)
     assert(v.get_unchecked(2) == 1)
-    stdio::println("OK")
+    Stdio::println("OK")
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use std::json
 use main::manifest_doc_lookup
@@ -44,35 +44,35 @@ fn doc_format_signature(e: manifest_doc_record::DocFnEntry) -> String {
 pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: String) {
     let warn = doc_target_warning(e, filter_target.clone())
     if len(warn) > 0 {
-        stdio::println(String_from("warning: ").concat(warn))
+        Stdio::println(String_from("warning: ").concat(warn))
     }
-    stdio::println(doc_format_signature(e))
-    stdio::println(String_from("  Module: ").concat(manifest_doc_record::DocFnEntry_module(e)))
+    Stdio::println(doc_format_signature(e))
+    Stdio::println(String_from("  Module: ").concat(manifest_doc_record::DocFnEntry_module(e)))
     let stab = manifest_doc_record::DocFnEntry_stability(e)
     if len(stab) > 0 {
-        stdio::println(String_from("  Stability: ").concat(stab))
+        Stdio::println(String_from("  Stability: ").concat(stab))
     }
     let tgt = manifest_doc_record::DocFnEntry_target(e)
     if len(tgt) > 0 {
-        stdio::println(String_from("  Supported on: ").concat(tgt))
+        Stdio::println(String_from("  Supported on: ").concat(tgt))
     } else {
         if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 && manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
-            stdio::println(String_from("  Supported on: wasm32, wasm32-gc"))
+            Stdio::println(String_from("  Supported on: wasm32, wasm32-gc"))
         } else {
             if manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
-                stdio::println(String_from("  Supported on: wasm32-gc"))
+                Stdio::println(String_from("  Supported on: wasm32-gc"))
             }
         }
     }
     let doc = manifest_doc_record::DocFnEntry_doc(e)
     if len(doc) > 0 {
-        stdio::println(String_from(""))
-        stdio::println(String_from("  ").concat(doc))
+        Stdio::println(String_from(""))
+        Stdio::println(String_from("  ").concat(doc))
     }
     let err = manifest_doc_record::DocFnEntry_errors(e)
     if len(err) > 0 {
-        stdio::println(String_from(""))
-        stdio::println(String_from("  Errors: ").concat(err))
+        Stdio::println(String_from(""))
+        Stdio::println(String_from("  Errors: ").concat(err))
     }
 }
 
@@ -113,30 +113,30 @@ pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target:
         out = doc_json_string_field(out, String_from("target_warning"), warn, true)
     }
     out = out.concat(String_from("}"))
-    stdio::println(out)
+    Stdio::println(out)
 }
 
 pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: String, filter_target: String) {
     let mid = manifest_doc_lookup::doc_find_module(table, module.clone())
-    stdio::println(String_from("module ").concat(module.clone()))
+    Stdio::println(String_from("module ").concat(module.clone()))
     if mid >= 0 {
         let m = manifest_doc_record::DocManifestTable_module_at(table, mid)
         let stab = manifest_doc_record::DocModuleEntry_stability(m)
         if len(stab) > 0 {
-            stdio::println(String_from("  Stability: ").concat(stab))
+            Stdio::println(String_from("  Stability: ").concat(stab))
         }
         let tgt = manifest_doc_record::DocModuleEntry_target(m)
         if len(tgt) > 0 {
-            stdio::println(String_from("  Supported on: ").concat(tgt))
+            Stdio::println(String_from("  Supported on: ").concat(tgt))
         }
         let doc = manifest_doc_record::DocModuleEntry_doc(m)
         if len(doc) > 0 {
-            stdio::println(String_from(""))
-            stdio::println(String_from("  ").concat(doc))
+            Stdio::println(String_from(""))
+            Stdio::println(String_from("  ").concat(doc))
         }
     }
-    stdio::println(String_from(""))
-    stdio::println(String_from("  Functions:"))
+    Stdio::println(String_from(""))
+    Stdio::println(String_from("  Functions:"))
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut i = 0
     while i < n {
@@ -147,7 +147,7 @@ pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: St
             if len(warn) > 0 {
                 line = line.concat((String_from("  [")).concat(warn.concat(String_from("]"))))
             }
-            stdio::println(line)
+            Stdio::println(line)
         }
         i = i + 1
     }

@@ -1,6 +1,6 @@
 use std::host::fs::Fs
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use compiler::session_parse
 use driver::config_record
@@ -24,7 +24,7 @@ fn print_run_compile_errors(input_file: String, result: CompileResult) {
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln(output::format_error(input_file.clone(), msg.clone()))
+        Stdio::eprintln(output::format_error(input_file.clone(), msg.clone()))
         i = i + 1
     }
 }
@@ -53,11 +53,11 @@ fn write_run_output(input_file: String, out_path: String, bytes: Vec<i32>) {
     let write_result: Result<(), String> = Fs::write_bytes(out_path.clone(), bytes)
     match write_result {
         Result::Ok(_) => {
-            stdio::eprintln("compiled ".concat(input_file.clone().concat(" -> ".concat(out_path.clone()))))
-            stdio::eprintln("run: execute with `wasmtime <output.wasm>`")
+            Stdio::eprintln("compiled ".concat(input_file.clone().concat(" -> ".concat(out_path.clone()))))
+            Stdio::eprintln("run: execute with `wasmtime <output.wasm>`")
         },
         Result::Err(e) => {
-            stdio::eprintln("error writing output: ".concat(e))
+            Stdio::eprintln("error writing output: ".concat(e))
             Process::exit(1)
         },
     }
@@ -97,8 +97,8 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
 }
 
 fn exit_missing_test_input() {
-    stdio::eprintln("test: specify .ark file(s) to test")
-    stdio::eprintln("  usage: arukellt-s1 test <file.ark>")
+    Stdio::eprintln("test: specify .ark file(s) to test")
+    Stdio::eprintln("  usage: arukellt-s1 test <file.ark>")
     Process::exit(2)
 }
 
@@ -107,16 +107,16 @@ fn exit_test_failure() {
 }
 
 fn print_test_start(input_file: String) {
-    stdio::eprintln("testing ".concat(input_file))
+    Stdio::eprintln("testing ".concat(input_file))
 }
 
 fn print_test_fail(input_file: String, result: CompileResult) {
-    stdio::println("  FAIL  ".concat(input_file.clone()))
+    Stdio::println("  FAIL  ".concat(input_file.clone()))
     let err_count = result_record::compile_result_error_count(result)
     let mut i = 0
     while i < err_count {
         let msg = result_record::compile_result_error_message_at(result, i)
-        stdio::eprintln("    ".concat(msg.clone()))
+        Stdio::eprintln("    ".concat(msg.clone()))
         i = i + 1
     }
 }
@@ -136,7 +136,7 @@ pub fn cmd_test(opts: CliOptions) {
         return
     }
     if test_count == 0 {
-        stdio::eprintln("test: no test declarations found")
+        Stdio::eprintln("test: no test declarations found")
         Process::exit(2)
     }
     let out_path = run_output_path(opts, input_file.clone())
@@ -203,10 +203,10 @@ fn make_test_prefix(prefix: String, name: String) -> String {
 
 fn print_test_entry(prefix: String, name: String) {
     if len(prefix.clone()) == 0 {
-        stdio::eprintln("  test  ".concat(name))
+        Stdio::eprintln("  test  ".concat(name))
         return
     }
-    stdio::eprintln("  test  ".concat(prefix.concat("::".concat(name))))
+    Stdio::eprintln("  test  ".concat(prefix.concat("::".concat(name))))
 }
 
 // ADR-041 Phase 1: in-file test adoption should not fail on pre-existing stdlib lint.

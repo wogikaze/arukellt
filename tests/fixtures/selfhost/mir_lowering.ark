@@ -2,7 +2,7 @@
 // Exercises: int literals, binary ops, variable access, function calls,
 //            let bindings, return, while loops, if expressions,
 //            break, continue, nested control flow
-use std::host::stdio
+use std::host::stdio::Stdio
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }
@@ -72,19 +72,19 @@ fn nested_loops() -> i32 {
 
 fn main() {
     let sum = add(3, 4)
-    stdio::println(sum.to_string())
+    Stdio::println(sum.to_string())
     let result = mul_sub(5, 6, 10)
-    stdio::println(result.to_string())
+    Stdio::println(result.to_string())
     let f = fib(10)
-    stdio::println(f.to_string())
+    Stdio::println(f.to_string())
     let m = max_val(42, 17)
-    stdio::println(m.to_string())
+    Stdio::println(m.to_string())
     let found = find_first_ge(7)
-    stdio::println(found.to_string())
+    Stdio::println(found.to_string())
     let s = sum_skip_five(10)
-    stdio::println(s.to_string())
+    Stdio::println(s.to_string())
     let n = nested_loops()
-    stdio::println(n.to_string())
+    Stdio::println(n.to_string())
 }
 // Basic arithmetic
 // Compound expression

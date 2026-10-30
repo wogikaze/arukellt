@@ -3,35 +3,35 @@
 //   - is_readable_file (probe) vs is_file / is_dir boundary
 //   - whole-file reads return String errors
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     // ── is_readable_file (probe, same as old exists) ──
     // present.txt exists in the fixture dir
     let probe_present = Fs::is_readable_file("tests/fixtures/stdlib_fs/present.txt")
-    stdio::println(probe_present.to_string())
+    Stdio::println(probe_present.to_string())
 
     // missing.txt does not exist
     let probe_missing = Fs::is_readable_file("tests/fixtures/stdlib_fs/missing.txt")
-    stdio::println(probe_missing.to_string())
+    Stdio::println(probe_missing.to_string())
 
     // ── is_file / is_dir (probe based) ──
     // is_file is equivalent to is_readable_file on current targets
     let f = Fs::is_file("tests/fixtures/stdlib_fs/present.txt")
-    stdio::println(f.to_string())
+    Stdio::println(f.to_string())
     // is_dir always false on current targets
     let d = Fs::is_dir("tests/fixtures/stdlib_fs")
-    stdio::println(d.to_string())
+    Stdio::println(d.to_string())
 
     // ── whole-file read returns the fixture contents ──
     match Fs::read_to_string("tests/fixtures/stdlib_fs/present.txt") {
-        Result::Ok(contents) => stdio::println(contents.trim()),
-        Result::Err(_) => stdio::println("read-unexpected-error"),
+        Result::Ok(contents) => Stdio::println(contents.trim()),
+        Result::Err(_) => Stdio::println("read-unexpected-error"),
     }
 
     // ── missing-file errors remain String-shaped ──
     match Fs::read_to_string("tests/fixtures/stdlib_fs/missing.txt") {
-        Result::Ok(_) => stdio::println("missing-unexpected-ok"),
-        Result::Err(_) => stdio::println("missing"),
+        Result::Ok(_) => Stdio::println("missing-unexpected-ok"),
+        Result::Err(_) => Stdio::println("missing"),
     }
 }

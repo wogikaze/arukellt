@@ -594,8 +594,8 @@ the v2 prelude with a shipped replacement.
 | `std::wasm::memory_fill` | non-public `__intrinsic_memory_fill` bridge; no user-facing replacement | `experimental`, ADR-014 D4 |
 | bare `concat(a, b)` | `a.concat(b)` | deprecated wrapper; E0100 hint retained |
 | bare `char_at(s, i)` | `byte_at(s, i)` | deprecated wrapper; E0100 hint retained |
-| bare `print(s)` | `std::host::stdio::print(s)` | deprecated binding; E0100 hint retained |
-| bare `println(s)` | `std::host::stdio::println(s)` | deprecated binding; E0100 hint retained |
+| bare `print(s)` | `std::host::Stdio::print(s)` | deprecated binding; E0100 hint retained |
+| bare `println(s)` | `std::host::Stdio::println(s)` | deprecated binding; E0100 hint retained |
 
 The `concat`, `char_at`, `print`, and `println` hints in
 `src/compiler/resolver/removed_names.ark` remain active, so old sources still
@@ -1374,6 +1374,62 @@ Evidence for the wave:
   on both `wasm32-gc` and `wasm32`.
 - `use std::io` no longer emits the retired "moved to `std::host::stdio`"
   W0009 warning (ADR-085 D1); `std::io` is the canonical abstraction module.
+
+## std::host::stdio / std::io compatibility wave (ADR-094, 2026-10-30)
+
+The nine remaining `std::io and host stdio frees` stable entries were retired
+by wave/io-stdio (#693, ADR-094). `Stdio` is the namespace replacement for the
+string-shaped standard-stream helpers; the typed handles replace the tagged
+`Vec<i32>` sinks. `stdin` / `read_stdin_line` never lowered a real stdin
+surface and retire without a replacement.
+
+| Before | After |
+|--------|-------|
+| `stdio::read_stdin()` | `Stdio::read_stdin()` |
+| `stdio::print(s)` | `Stdio::print(s)` |
+| `stdio::println(s)` | `Stdio::println(s)` |
+| `stdio::eprintln(s)` | `Stdio::eprintln(s)` |
+| `io::stdout()` | `io::Stdout::new()` |
+| `io::stderr()` | `io::Stderr::new()` |
+| `io::print_bytes(data)` | `io::Stdout::new().write(data)` |
+| `io::stdin()` | no replacement; read all of stdin with `Stdio::read_stdin()` |
+| `io::read_stdin_line()` | no replacement; read all of stdin with `Stdio::read_stdin()` |
+
+**Before / after:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
+```ark
+// before
+use std::host::stdio
+use std::io
+
+stdio::println("hello")
+let out: Vec<i32> = io::stdout()
+io::print_bytes(io::stdin())
+```
+
+**After:**
+
+<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
+```ark
+use std::host::stdio::Stdio
+use std::io
+
+Stdio::println("hello")
+let out: io::Stdout = io::Stdout::new()
+out.write_string("text")?
+```
+
+Evidence for the wave:
+
+- `tests/fixtures/stdlib_host/stdio_namespace_surface.ark` and
+  `tests/fixtures/stdlib_host/stdio_namespace_surface_wasm32.ark` exercise
+  `print` / `println` / `eprintln` / `read_stdin` on `wasm32-gc` and `wasm32`.
+- `tests/fixtures/diagnostics/removed_stdio_free_function.ark`,
+  `removed_io_stdout_free.ark`, and `removed_io_stdin_free.ark` pin the E0100
+  replacement hints, including the no-replacement `stdin` case.
+- `tests/fixtures/stdlib_io/read_stdin_empty.ark` keeps the empty-stdin
+  contract on the `Stdio::read_stdin()` spelling.
 
 ## std::wasm builder namespace wave (ADR-046, 2026-10-27)
 

@@ -39,7 +39,7 @@ def load_deprecated_apis() -> set[tuple]:
     """Return deprecated APIs as (name, module) pairs from std/manifest.toml.
 
     A None module marks a deprecated bare prelude binding: bare occurrences
-    are flagged while module-qualified canonical paths (stdio::println) are
+    are flagged while module-qualified canonical paths (Stdio::println) are
     not. A module-scoped entry (e.g. std::seq map_i32_i32) is deprecated only
     on the qualified path; a bare call resolves to the stable prelude decl
     of the same name and must not be flagged.
@@ -98,7 +98,7 @@ def scan_file(path: Path, deprecated_apis: set[str]) -> list[dict]:
         for api in deprecated_apis:
             name, module = api
             # Word-boundary match to avoid partial matches. A ::-qualified
-            # occurrence (e.g. stdio::println) is the canonical replacement
+            # occurrence (e.g. Stdio::println) is the canonical replacement
             # path, not the deprecated bare prelude binding, so it is skipped.
             if module:
                 pattern = r"(?<=::)" + re.escape(name) + r"\b"

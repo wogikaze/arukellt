@@ -3,7 +3,7 @@ use std::collections::linked_list::LinkedList
 use std::collections::linked_list::LinkedListIterMut
 use std::core::clone
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut letters: LinkedList<String> = LinkedList::new<String>()
@@ -13,26 +13,26 @@ fn main() {
     letters.push_back("gamma")
     assert(copy.len() == 2)
     assert(letters.len() == 3)
-    stdio::println(copy.fmt_debug())
-    stdio::println(letters.fmt_debug())
+    Stdio::println(copy.fmt_debug())
+    Stdio::println(letters.fmt_debug())
 
     let empty: LinkedList<i32> = LinkedList::new<i32>()
-    stdio::println(empty.fmt_debug())
+    Stdio::println(empty.fmt_debug())
 
     let mut cursor: LinkedListIterMut<String> = copy.iter_mut()
     match cursor.next() {
         Option::Some(value) => {
-            stdio::println(value)
+            Stdio::println(value)
             match cursor.set_current(String_from("changed")) {
-                Option::Some(old) => stdio::println(old),
-                Option::None => stdio::println(String_from("none")),
+                Option::Some(old) => Stdio::println(old),
+                Option::None => Stdio::println(String_from("none")),
             }
         },
-        Option::None => stdio::println(String_from("empty")),
+        Option::None => Stdio::println(String_from("empty")),
     }
-    stdio::println(copy.fmt_debug())
+    Stdio::println(copy.fmt_debug())
 
     copy.clear()
     assert(copy.is_empty())
-    stdio::println(copy.fmt_debug())
+    Stdio::println(copy.fmt_debug())
 }

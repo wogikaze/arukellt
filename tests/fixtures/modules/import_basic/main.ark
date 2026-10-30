@@ -1,8 +1,7 @@
-use std::host::stdio
-
+use std::host::stdio::Stdio
 import math
 
 fn main() {
     let result: i32 = math::add(3, 4)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

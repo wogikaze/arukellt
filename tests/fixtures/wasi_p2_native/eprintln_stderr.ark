@@ -1,5 +1,5 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::eprintln("hello stderr")
+    Stdio::eprintln("hello stderr")
 }

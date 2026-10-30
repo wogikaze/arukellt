@@ -95,12 +95,12 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
     push(v, 42)
     let x: i32 = get_unchecked(v, 0)
-    stdio::println(to_string(x))
+    Stdio::println(to_string(x))
 }
 ```
 
@@ -184,7 +184,7 @@ fn main() {
 ```ark
 use std::collections::vec
 use std::core::iter
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
@@ -192,10 +192,10 @@ fn main() {
     push(v, 30)
     push(v, 40)
 
-    stdio::println((v.iter().sum()).to_string())  // 100
+    Stdio::println((v.iter().sum()).to_string())  // 100
 
     v.drain(1, 2)                              // removes element at index 1
-    stdio::println(len(v).to_string())      // 3
+    Stdio::println(len(v).to_string())      // 3
 }
 ```
 
@@ -362,14 +362,14 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println(42.to_string())                    // 42
-    stdio::println(9001i64.to_string())               // 9001
-    stdio::println(3.5.to_string())                   // 3.5
-    stdio::println(true.to_string())                  // true
-    stdio::println(('Z').to_string())                 // Z
-    stdio::println(String_from("plain text").to_string()) // plain text
+    Stdio::println(42.to_string())                    // 42
+    Stdio::println(9001i64.to_string())               // 9001
+    Stdio::println(3.5.to_string())                   // 3.5
+    Stdio::println(true.to_string())                  // true
+    Stdio::println(('Z').to_string())                 // Z
+    Stdio::println(String_from("plain text").to_string()) // plain text
 }
 ```
 
@@ -380,12 +380,12 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let r: Result<i32, String> = parse_i32(String_from("42"))
     match r {
-        Ok(val) => stdio::println(val.to_string()),
-        Err(e) => stdio::println(e),
+        Ok(val) => Stdio::println(val.to_string()),
+        Err(e) => Stdio::println(e),
     }
 }
 ```
@@ -400,12 +400,12 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let x: f64 = sqrt(9.0)
-    stdio::println(x.to_string())   // 3
+    Stdio::println(x.to_string())   // 3
     let y: f64 = sqrt(16.0)
-    stdio::println(y.to_string())   // 4
+    Stdio::println(y.to_string())   // 4
 }
 ```
 
@@ -415,13 +415,13 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((-5).abs())       // 5
-    stdio::println((3).abs())        // 3
-    stdio::println((3).min(7))       // 3
-    stdio::println((3).max(7))       // 7
+    Stdio::println((-5).abs())       // 5
+    Stdio::println((3).abs())        // 3
+    Stdio::println((3).min(7))       // 3
+    Stdio::println((3).max(7))       // 7
 }
 ```
 
@@ -431,14 +431,14 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println((5).clamp(0, 10).to_string())    // 5  (in range)
-    stdio::println((-3).clamp(0, 10).to_string())   // 0  (clamped to min)
-    stdio::println((15).clamp(0, 10).to_string())   // 10 (clamped to max)
-    stdio::println((0).clamp(0, 10).to_string())    // 0  (in range)
-    stdio::println((10).clamp(0, 10).to_string())   // 10 (in range)
+    Stdio::println((5).clamp(0, 10).to_string())    // 5  (in range)
+    Stdio::println((-3).clamp(0, 10).to_string())   // 0  (clamped to min)
+    Stdio::println((15).clamp(0, 10).to_string())   // 10 (clamped to max)
+    Stdio::println((0).clamp(0, 10).to_string())    // 0  (in range)
+    Stdio::println((10).clamp(0, 10).to_string())   // 10 (in range)
 }
 ```
 
@@ -453,7 +453,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn describe(opt: Option<i32>) -> String {
     match opt {
@@ -463,8 +463,8 @@ fn describe(opt: Option<i32>) -> String {
 }
 
 fn main() {
-    stdio::println(describe(Some(42)))  // got 42
-    stdio::println(describe(None))      // nothing
+    Stdio::println(describe(Some(42)))  // got 42
+    Stdio::println(describe(None))      // nothing
 }
 ```
 
@@ -472,14 +472,14 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let x: Option<i32> = Some(21)
     if is_some(x) {
-        stdio::println(to_string(unwrap(x)))
+        Stdio::println(to_string(unwrap(x)))
     }
     let y: Option<i32> = None
-    stdio::println(is_none(y).to_string())  // true
+    Stdio::println(is_none(y).to_string())  // true
 }
 ```
 
@@ -489,13 +489,13 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let x: Option<i32> = None
-    stdio::println(unwrap_or(x, 99).to_string())  // 99
+    Stdio::println(unwrap_or(x, 99).to_string())  // 99
 
     let y: i32 = unwrap_or(get(v, 100), 0)   // bounds-safe default
-    stdio::println(to_string(y))
+    Stdio::println(to_string(y))
 }
 ```
 
@@ -506,7 +506,7 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::core::container
-use std::host::stdio
+use std::host::stdio::Stdio
 fn double(x: i32) -> i32 { x * 2 }
 
 fn main() {
@@ -515,12 +515,12 @@ fn main() {
     let mapped_a: Option<i32> = a.map(double)
     let mapped_b: Option<i32> = b.map(double)
     match mapped_a {
-        Some(val) => stdio::println(val.to_string()),  // 42
-        None => stdio::println("none"),
+        Some(val) => Stdio::println(val.to_string()),  // 42
+        None => Stdio::println("none"),
     }
     match mapped_b {
-        Some(val) => stdio::println(val.to_string()),
-        None => stdio::println("none"),                    // none
+        Some(val) => Stdio::println(val.to_string()),
+        None => Stdio::println("none"),                    // none
     }
 }
 ```
@@ -536,13 +536,13 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
-        Ok(val) => stdio::println(val.to_string()),
-        Err(e) => stdio::println(String_from("error: ").concat(e)),
+        Ok(val) => Stdio::println(val.to_string()),
+        Err(e) => Stdio::println(String_from("error: ").concat(e)),
     }
 }
 ```
@@ -553,7 +553,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn parse_and_double(s: String) -> Result<i32, String> {
     let val: i32 = parse_i32(s)?
     Ok(val * 2)
@@ -561,12 +561,12 @@ fn parse_and_double(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_and_double(String_from("21")) {
-        Ok(val) => stdio::println(val.to_string()),  // 42
-        Err(e) => stdio::println(e),
+        Ok(val) => Stdio::println(val.to_string()),  // 42
+        Err(e) => Stdio::println(e),
     }
     match parse_and_double(String_from("abc")) {
-        Ok(val) => stdio::println(val.to_string()),
-        Err(e) => stdio::println(e),                     // parse error
+        Ok(val) => Stdio::println(val.to_string()),
+        Err(e) => Stdio::println(e),                     // parse error
     }
 }
 ```
@@ -577,7 +577,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude::{eq, is_err, is_ok, unwrap, unwrap_or}
 use std::text
 fn try_parse(s: String) -> Result<i32, String> {
@@ -590,13 +590,13 @@ fn try_parse(s: String) -> Result<i32, String> {
 
 fn main() {
     let r1 = try_parse("42")
-    stdio::println((is_ok(r1)).to_string())     // true
-    stdio::println((is_err(r1)).to_string())    // false
-    stdio::println((unwrap(r1)).to_string())    // 42
+    Stdio::println((is_ok(r1)).to_string())     // true
+    Stdio::println((is_err(r1)).to_string())    // false
+    Stdio::println((unwrap(r1)).to_string())    // 42
 
     let r2 = try_parse("bad")
-    stdio::println((is_ok(r2)).to_string())     // false
-    stdio::println((unwrap_or(r2, 99)).to_string())  // 99
+    Stdio::println((is_ok(r2)).to_string())     // false
+    Stdio::println((unwrap_or(r2, 99)).to_string())  // 99
 
     // match でエラーメッセージを取り出す
     let r3 = try_parse("xyz")
@@ -604,7 +604,7 @@ fn main() {
         Result::Ok(v) => "got: ".concat((v).to_string()),
         Result::Err(e) => "fail: ".concat(e),
     }
-    stdio::println(msg)  // fail: parse error: xyz
+    Stdio::println(msg)  // fail: parse error: xyz
 }
 ```
 
@@ -622,10 +622,10 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println("normal output")
-    stdio::eprintln("error message")   // stderr に出力
+    Stdio::println("normal output")
+    Stdio::eprintln("error message")   // stderr に出力
 }
 ```
 
@@ -642,17 +642,17 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let w = Fs::write_string("test_output.txt", "hello from arukellt")
     match w {
-        Result::Ok(_) => stdio::println(String_from("write ok")),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(_) => Stdio::println(String_from("write ok")),
+        Result::Err(e) => Stdio::println(e),
     }
     let r = Fs::read_to_string("test_output.txt")
     match r {
-        Result::Ok(content) => stdio::println(content),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(content) => Stdio::println(content),
+        Result::Err(e) => Stdio::println(e),
     }
 }
 ```
@@ -664,12 +664,12 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let r: Result<String, String> = Fs::read_to_string("nonexistent_file.txt")
     match r {
-        Ok(content) => stdio::println(content),
-        Err(e) => stdio::println(e),         // エラーメッセージが出力される
+        Ok(content) => Stdio::println(content),
+        Err(e) => Stdio::println(e),         // エラーメッセージが出力される
     }
 }
 ```
@@ -687,11 +687,11 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let values = Env::args()
-    stdio::println((len(values)).to_string())
-    stdio::println((Env::arg_count()).to_string())
+    Stdio::println((len(values)).to_string())
+    Stdio::println((Env::arg_count()).to_string())
 }
 ```
 
@@ -702,13 +702,13 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::env::Env
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let values = Env::args()
-    stdio::println((len(values)).to_string())
+    Stdio::println((len(values)).to_string())
     match Env::var("HOME") {
-        Option::Some(value) => stdio::println(value),
-        Option::None => stdio::println("HOME not set"),
+        Option::Some(value) => Stdio::println(value),
+        Option::None => Stdio::println("HOME not set"),
     }
 }
 ```
@@ -720,9 +720,9 @@ fn main() {
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
-    stdio::println("before exit")
+    Stdio::println("before exit")
     Process::exit(0)
     // この行以降は実行されない
 }
@@ -737,15 +737,15 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::host::clock::Clock
 use std::host::random::Random
 fn main() {
     let t = Clock::monotonic_now()
-    stdio::println(t.to_string())
+    Stdio::println(t.to_string())
 
     let r = Random::random_i32()
-    stdio::println(r.to_string())
+    Stdio::println(r.to_string())
 }
 ```
 
@@ -761,7 +761,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn count_words(s: String) -> i32 {
     if is_empty(s) {
         return 0
@@ -780,9 +780,9 @@ fn count_words(s: String) -> i32 {
 }
 
 fn main() {
-    stdio::println(count_words(String_from("hello world")).to_string())           // 2
-    stdio::println(count_words(String_from("the quick brown fox")).to_string())   // 4
-    stdio::println(count_words(String_from("")).to_string())                       // 0
+    Stdio::println(count_words(String_from("hello world")).to_string())           // 2
+    Stdio::println(count_words(String_from("the quick brown fox")).to_string())   // 4
+    Stdio::println(count_words(String_from("")).to_string())                       // 0
 }
 ```
 
@@ -795,7 +795,7 @@ fn main() {
 use std::collections::vec
 use std::core
 use std::core::cmp
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn ascending(a: i32, b: i32) -> Ordering {
     a.cmp(b)
@@ -815,7 +815,7 @@ fn main() {
         push(parts, get_unchecked(v, i).to_string())
         i = i + 1
     }
-    stdio::println(join(parts, String_from(" ")))  // 1 3 5 8
+    Stdio::println(join(parts, String_from(" ")))  // 1 3 5 8
 }
 ```
 
@@ -825,7 +825,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 enum Expr {
     Num(i32),
     Add(i32, i32),
@@ -843,9 +843,9 @@ fn eval(e: Expr) -> i32 {
 }
 
 fn main() {
-    stdio::println(eval(Expr::Num(42)).to_string())       // 42
-    stdio::println(eval(Expr::Add(10, 20)).to_string())   // 30
-    stdio::println(eval(Expr::Mul(6, 7)).to_string())     // 42
+    Stdio::println(eval(Expr::Num(42)).to_string())       // 42
+    Stdio::println(eval(Expr::Add(10, 20)).to_string())   // 30
+    Stdio::println(eval(Expr::Mul(6, 7)).to_string())     // 42
 }
 ```
 
@@ -855,7 +855,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 fn fib(n: i32) -> i32 {
     if n <= 1 {
         return n
@@ -875,7 +875,7 @@ fn fib(n: i32) -> i32 {
 fn main() {
     let mut i: i32 = 0
     while i <= 10 {
-        stdio::println(fib(i).to_string())
+        Stdio::println(fib(i).to_string())
         i = i + 1
     }
 }
@@ -887,7 +887,7 @@ fn main() {
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 enum List {
     Nil,
     Cons(i32, List),
@@ -909,7 +909,7 @@ fn main() {
     let list: List = prepend(list, 3)
     let list: List = prepend(list, 2)
     let list: List = prepend(list, 1)
-    stdio::println(list_sum(list).to_string())  // 6
+    Stdio::println(list_sum(list).to_string())  // 6
 }
 ```
 

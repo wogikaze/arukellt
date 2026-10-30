@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::test::Test
 
 fn main() {
@@ -10,5 +10,5 @@ fn main() {
     Test::assert_true(v2.is_some())
     Test::assert_true(v3.is_some())
     Test::assert_true(v4.is_some())
-    stdio::println("ok")
+    Stdio::println("ok")
 }

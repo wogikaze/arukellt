@@ -1,11 +1,11 @@
 // LinkedList<T> built from a Vec cursor, and logical Eq.
 use std::collections::linked_list::LinkedList
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn show(value: Option<i32>) {
     match value {
-        Option::Some(item) => stdio::println(item.to_string()),
-        Option::None => stdio::println(String_from("none")),
+        Option::Some(item) => Stdio::println(item.to_string()),
+        Option::None => Stdio::println(String_from("none")),
     }
 }
 
@@ -17,7 +17,7 @@ fn main() {
 
     let mut list: LinkedList<i32> = LinkedList::from_iter(source.iter())
     assert(list.len() == 3)
-    stdio::println(list.fmt_debug())
+    Stdio::println(list.fmt_debug())
     show(list.front())
     show(list.back())
 
@@ -29,30 +29,30 @@ fn main() {
     mirrored.push_front(1)
     assert(list.eq(mirrored))
     assert(mirrored.eq(list))
-    stdio::println(String_from("mirrored equal"))
+    Stdio::println(String_from("mirrored equal"))
 
     let mut different: LinkedList<i32> = LinkedList::new<i32>()
     different.push_back(1)
     different.push_back(2)
     assert(!list.eq(different))
-    stdio::println(String_from("unequal detected"))
+    Stdio::println(String_from("unequal detected"))
 
     let empty_source: Vec<i32> = Vec::new<i32>()
     let empty: LinkedList<i32> = LinkedList::from_iter(empty_source.iter())
     assert(empty.is_empty())
     assert(empty.eq(LinkedList::new<i32>()))
-    stdio::println(empty.fmt_debug())
+    Stdio::println(empty.fmt_debug())
 
     let mut words: Vec<String> = Vec::new<String>()
     push(words, "alpha")
     push(words, "beta")
     let letters: LinkedList<String> = LinkedList::from_iter(words.iter())
-    stdio::println(letters.fmt_debug())
+    Stdio::println(letters.fmt_debug())
     let letters_again: LinkedList<String> = LinkedList::from_iter(words.iter())
     assert(letters.eq(letters_again))
 
     // Construction leaves pop order front to back.
     show(list.pop_front())
     show(list.pop_back())
-    stdio::println(list.fmt_debug())
+    Stdio::println(list.fmt_debug())
 }

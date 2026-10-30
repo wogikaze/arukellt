@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Point {
     x: i32,
@@ -12,6 +12,6 @@ fn clone_point(p: Point) -> Point {
 fn main() {
     let p1: Point = Point { x: 10, y: 20 }
     let p2: Point = clone_point(p1)
-    stdio::println((p2.x).to_string())
-    stdio::println((p2.y).to_string())
+    Stdio::println((p2.x).to_string())
+    Stdio::println((p2.y).to_string())
 }

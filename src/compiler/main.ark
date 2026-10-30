@@ -4,7 +4,7 @@
 // Exit code: 0 = success, 1 = failure.
 use std::host::env::Env
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use main::args_record
 use main::args_parse
@@ -22,7 +22,7 @@ fn main() {
         return
     }
     if args_record::cli_has_error(opts) {
-        stdio::eprintln("error: ".concat(args_record::cli_error_msg(opts)))
+        Stdio::eprintln("error: ".concat(args_record::cli_error_msg(opts)))
         Process::exit(2)
         return
     }

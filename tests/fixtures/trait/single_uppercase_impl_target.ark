@@ -2,7 +2,7 @@
 // struct can therefore be the target of both an inherent impl and a trait
 // impl; the trailing `impl Copy for S` also proves the trait impl registered
 // S itself (the copy permits reusing the first binding).
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct S {
     x: i32,
@@ -19,5 +19,5 @@ impl Copy for S {}
 fn main() {
     let first = S { x: 7 }
     let second = first
-    stdio::println((first.read_x() + second.read_x()).to_string())
+    Stdio::println((first.read_x() + second.read_x()).to_string())
 }

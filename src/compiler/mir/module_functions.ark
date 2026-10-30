@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::function_core_record
 use mir::module_record
@@ -162,7 +162,7 @@ fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
     if enabled == 0 {
         return
     }
-    stdio::eprintln(
+    Stdio::eprintln(
         "[arukellt] mir.counts: functions=".concat(
             MirModule_function_count(m).to_string().concat(" locals=".concat(MirModule_local_count(m).to_string().concat(" insts=".concat(MirModule_inst_count(m).to_string()))))
         )

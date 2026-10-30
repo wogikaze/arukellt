@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 // Inherent `AppError::from` must not be selected by `?` (ADR-039 D2).
 // The source and target error types are identical, so ? must propagate the
@@ -42,5 +42,5 @@ fn main() {
         Result::Err(_) => {},
     }
 
-    stdio::println(String_from("OK"))
+    Stdio::println(String_from("OK"))
 }

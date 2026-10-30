@@ -2,7 +2,7 @@
 // Exercises the std::time Duration receiver and std::host::clock Clock namespace
 // for the measurement start/stop/elapsed pattern.
 use std::host::clock::Clock
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::time::Duration
 
 fn bench_duration_creation() -> i64 {
@@ -47,5 +47,5 @@ pub fn main() {
         bench_measurement_pattern()
         iter = iter + 1
     }
-    stdio::println((checksum).to_string())
+    Stdio::println((checksum).to_string())
 }

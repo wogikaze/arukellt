@@ -4,7 +4,7 @@
 // (ScanBox<T>), a String instantiation, a two-parameter struct where the
 // literal only mentions one parameter per field (Pair<A, B>), and a
 // method that delegates to a sibling method on the same impl.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct ScanBox<T> {
     state: T,
@@ -33,11 +33,11 @@ impl<A, B> Pair<A, B> {
 
 fn main() {
     let it = ScanBox { state: 7 }
-    stdio::println(it.get().to_string())
+    Stdio::println(it.get().to_string())
     let s = ScanBox { state: "hi" }
-    stdio::println(s.get())
+    Stdio::println(s.get())
     let p = Pair { first: 1, second: "two" }
-    stdio::println(p.get_second())
+    Stdio::println(p.get_second())
     let t = ScanBox { state: 9 }
-    stdio::println(t.get_twice().to_string())
+    Stdio::println(t.get_twice().to_string())
 }

@@ -3,7 +3,7 @@
 // `clone` is a compiler-polymorphic intrinsic, not trait dispatch. On an
 // unbound `T` the method form must preserve the receiver's concrete type
 // instead of resolving to the String-shaped prelude signature.
-use std::host::stdio
+use std::host::stdio::Stdio
 struct Pair {
     a: i32,
     b: i32,
@@ -29,5 +29,5 @@ fn main() {
     assert(q.a == 5)
     let m = dup_free(42)
     assert(m == 42)
-    stdio::println("OK")
+    Stdio::println("OK")
 }

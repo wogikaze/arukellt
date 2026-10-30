@@ -1,10 +1,10 @@
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r = Fs::read_to_string("nonexistent_file.txt")
     match r {
-        Result::Ok(content) => stdio::println(content),
-        Result::Err(e) => stdio::println("file open error"),
+        Result::Ok(content) => Stdio::println(content),
+        Result::Err(e) => Stdio::println("file open error"),
     }
 }

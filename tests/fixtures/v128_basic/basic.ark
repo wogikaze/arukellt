@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::simd::v128
 use std::simd::v128::V128
 
@@ -8,5 +8,5 @@ fn make_v128() -> v128 {
 
 fn main() {
     let v: v128 = make_v128()
-    stdio::println("v128 created")
+    Stdio::println("v128 created")
 }

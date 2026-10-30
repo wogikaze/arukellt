@@ -4,7 +4,7 @@
 // When instantiated with two distinct concrete types (Point and Vec2),
 // the call must resolve to the correct impl method for each type via
 // monomorphization-based static dispatch.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 trait Greet {
     fn greet(self: Greet) -> String
@@ -37,7 +37,7 @@ impl Greet for Vec2 {
 // impl method after monomorphization.
 fn print_greeting<T: Greet>(item: T) {
     let s: String = item.greet()
-    stdio::println(s)
+    Stdio::println(s)
 }
 
 fn main() {

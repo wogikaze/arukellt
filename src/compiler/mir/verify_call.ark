@@ -117,6 +117,11 @@ fn verify_call_w003_excluded(callee: String) -> bool {
     if callee.clone().eq("print") || callee.clone().eq("println") {
         return true
     }
+    if callee.clone().eq("Stdio::print") || callee.clone().eq("Stdio::println") ||
+    callee.clone().eq("Stdio::eprintln") || callee.clone().eq("stdio::Stdio::print") ||
+    callee.clone().eq("stdio::Stdio::println") || callee.clone().eq("stdio::Stdio::eprintln") {
+        return true
+    }
     false
 }
 

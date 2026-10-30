@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn first<T>(v: Vec<T>) -> Option<T> {
     if len(v) > 0 {
@@ -12,7 +12,7 @@ fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 99)
     match first(v) {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("empty"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("empty"),
     }
 }

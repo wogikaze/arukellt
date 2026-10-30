@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn strs() -> Vec<String> {
     let mut v = Vec::new<i32>()
@@ -10,5 +10,5 @@ fn main() {
     // The body returns Vec<i32>; the declared Vec<String> differs only in
     // its type argument, which the return check must compare (#938).
     let v = strs()
-    stdio::println(get_unchecked(v, 0))
+    Stdio::println(get_unchecked(v, 0))
 }

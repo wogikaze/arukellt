@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 pub struct FnLast {
     index: i32,
@@ -26,17 +26,17 @@ fn sum2(a: i32, b: i32) -> Option<i32> {
 fn main() {
     let a = FnLast { index: 0, length: 3, state: 0, f: sum2 }
     match (a.f)(2, 5) {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println("none"),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println("none"),
     }
     let b = FnFirst { f: sum2, index: 0, state: 1 }
     match (b.f)(1, 2) {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println("none"),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println("none"),
     }
     let c = FnMid { index: 0, f: sum2, state: 7 }
     match (c.f)(10, 20) {
-        Some(x) => stdio::println(x.to_string()),
-        None => stdio::println("none"),
+        Some(x) => Stdio::println(x.to_string()),
+        None => Stdio::println("none"),
     }
 }

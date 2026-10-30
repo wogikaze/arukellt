@@ -1,7 +1,7 @@
 // ADR-085 Phase A: Read / Write / BufRead / Seek dispatch through generic
 // bounds (method syntax). Each helper owns one handle, so the fixture also
 // checks the non-Copy ownership boundary.
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 use std::io::{Reader, Writer}
 
@@ -201,54 +201,54 @@ fn write_report<T: io::Write>(mut sink: T, data: Vec<i32>) -> Result<WriteReport
 fn main() {
     match read_report(Reader::from_bytes(sample_data())) {
         Result::Ok(report) => {
-            stdio::println((report.first_len).to_string())
-            stdio::println((report.first_byte).to_string())
-            stdio::println((report.rest_len).to_string())
-            stdio::println((report.rest_byte).to_string())
-            stdio::println((report.eof_len).to_string())
+            Stdio::println((report.first_len).to_string())
+            Stdio::println((report.first_byte).to_string())
+            Stdio::println((report.rest_len).to_string())
+            Stdio::println((report.rest_byte).to_string())
+            Stdio::println((report.eof_len).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match bufread_report(io::Reader::from_bytes(sample_data())) {
         Result::Ok(report) => {
-            stdio::println((report.pending_len).to_string())
-            stdio::println((report.after_consume_len).to_string())
-            stdio::println(report.line)
-            stdio::println((report.line_eof).to_string())
-            stdio::println(report.consume_err)
+            Stdio::println((report.pending_len).to_string())
+            Stdio::println((report.after_consume_len).to_string())
+            Stdio::println(report.line)
+            Stdio::println((report.line_eof).to_string())
+            Stdio::println(report.consume_err)
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     let mut newline: Vec<i32> = Vec::new<i32>()
     push(newline, 10)
     match line_report(io::Reader::from_bytes(newline)) {
         Result::Ok(report) => {
-            stdio::println((report.first_has_line).to_string())
-            stdio::println((report.second_has_line).to_string())
+            Stdio::println((report.first_has_line).to_string())
+            Stdio::println((report.second_has_line).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match seek_report(Reader::from_bytes(sample_data())) {
         Result::Ok(report) => {
-            stdio::println((report.initial).to_string())
-            stdio::println((report.from_start).to_string())
-            stdio::println((report.from_current).to_string())
-            stdio::println((report.from_end).to_string())
-            stdio::println((report.past_end).to_string())
-            stdio::println(report.negative_err)
-            stdio::println(report.overflow_err)
+            Stdio::println((report.initial).to_string())
+            Stdio::println((report.from_start).to_string())
+            Stdio::println((report.from_current).to_string())
+            Stdio::println((report.from_end).to_string())
+            Stdio::println((report.past_end).to_string())
+            Stdio::println(report.negative_err)
+            Stdio::println(report.overflow_err)
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 
     match write_report(Writer::new(), sample_data()) {
         Result::Ok(report) => {
-            stdio::println((report.written).to_string())
-            stdio::println((report.empty_written).to_string())
+            Stdio::println((report.written).to_string())
+            Stdio::println((report.empty_written).to_string())
         },
-        Result::Err(err) => stdio::println(err.message()),
+        Result::Err(err) => Stdio::println(err.message()),
     }
 }

@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 fn main() {
     let count: i64 = 1i64
     let ratio: f64 = 1.0f64
     let total: i64 = 1i64 + 2i64
-    stdio::println((count).to_string())
-    stdio::println((ratio).to_string())
-    stdio::println((total).to_string())
+    Stdio::println((count).to_string())
+    Stdio::println((ratio).to_string())
+    Stdio::println((total).to_string())
 }

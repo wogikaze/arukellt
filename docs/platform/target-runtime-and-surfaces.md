@@ -374,9 +374,9 @@ compose する。
 
 | Function | `wasm32` | `wasm32-gc` |
 |----------|----------|-------------|
-| `stdio::print` | ✓ | ✓ |
-| `stdio::println` | ✓ | ✓ |
-| `stdio::eprintln` | ✓ | ✓ |
+| `Stdio::print` | ✓ | ✓ |
+| `Stdio::println` | ✓ | ✓ |
+| `Stdio::eprintln` | ✓ | ✓ |
 | `Clock::monotonic_now` | ✓ | ✓ |
 | `Clock::now_ms` | ✓ | ✓ |
 | `Random::random_i32` | ✓ | ✓ |

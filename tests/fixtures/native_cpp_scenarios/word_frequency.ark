@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 fn main() {
     let mut m = HashMap::new<String, i32>()
@@ -7,12 +7,12 @@ fn main() {
     let _ = m.insert("sat", 1)
     let _ = m.insert("the", 2)
     match m.get("the") {
-        Option::Some(n) => stdio::println(String_from("the=").concat(n.to_string())),
-        None => stdio::println(String_from("the=0")),
+        Option::Some(n) => Stdio::println(String_from("the=").concat(n.to_string())),
+        None => Stdio::println(String_from("the=0")),
     }
     match m.get("cat") {
-        Option::Some(n) => stdio::println(String_from("cat=").concat(n.to_string())),
-        None => stdio::println(String_from("cat=0")),
+        Option::Some(n) => Stdio::println(String_from("cat=").concat(n.to_string())),
+        None => Stdio::println(String_from("cat=0")),
     }
-    stdio::println(String_from("size=").concat(m.len().to_string()))
+    Stdio::println(String_from("size=").concat(m.len().to_string()))
 }

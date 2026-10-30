@@ -1,10 +1,10 @@
 use std::host::fs::Fs
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let r = Fs::read_to_string("test.txt")
     match r {
-        Result::Ok(content) => stdio::println(content),
-        Result::Err(e) => stdio::println("fs denied"),
+        Result::Ok(content) => Stdio::println(content),
+        Result::Err(e) => Stdio::println("fs denied"),
     }
 }

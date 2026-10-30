@@ -1,5 +1,5 @@
 // Phase1 B: one push into field, store into new Holder, then get.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Holder {
     name: String,
@@ -9,6 +9,6 @@ struct Holder {
 fn main() {
     let mut h = Holder { name: String_from("test"), items: Vec::new<String>() }
     h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
-    stdio::println(h.name)
-    stdio::println(get_unchecked(h.items, 0))
+    Stdio::println(h.name)
+    Stdio::println(get_unchecked(h.items, 0))
 }

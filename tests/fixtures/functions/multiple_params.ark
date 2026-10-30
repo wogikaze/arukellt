@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -9,6 +9,6 @@ fn mul(a: i32, b: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println((add(3, 4)).to_string())
-    stdio::println((mul(3, 4)).to_string())
+    Stdio::println((add(3, 4)).to_string())
+    Stdio::println((mul(3, 4)).to_string())
 }

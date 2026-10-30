@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 
 fn try_parse(s: String) -> Result<i32, String> {
@@ -15,38 +15,38 @@ fn try_parse(s: String) -> Result<i32, String> {
 
 fn main() {
     let r1 = try_parse("42")
-    stdio::println((r1.is_ok()).to_string())
-    stdio::println((r1.is_err()).to_string())
-    stdio::println((r1.unwrap()).to_string())
+    Stdio::println((r1.is_ok()).to_string())
+    Stdio::println((r1.is_err()).to_string())
+    Stdio::println((r1.unwrap()).to_string())
     let r2 = try_parse("bad")
-    stdio::println((r2.is_ok()).to_string())
-    stdio::println((r2.is_err()).to_string())
+    Stdio::println((r2.is_ok()).to_string())
+    Stdio::println((r2.is_err()).to_string())
     match r2 {
-        Result::Ok(v) => stdio::println((v).to_string()),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(v) => Stdio::println((v).to_string()),
+        Result::Err(e) => Stdio::println(e),
     }
     let r3 = try_parse("bad")
-    stdio::println((r3.unwrap_or(99)).to_string())
+    Stdio::println((r3.unwrap_or(99)).to_string())
     let r4 = try_parse("0")
-    stdio::println((r4.unwrap_or(99)).to_string())
+    Stdio::println((r4.unwrap_or(99)).to_string())
     let s1: Option<i32> = Some(10)
-    stdio::println((s1.is_some()).to_string())
-    stdio::println((s1.unwrap()).to_string())
+    Stdio::println((s1.is_some()).to_string())
+    Stdio::println((s1.unwrap()).to_string())
     let n1: Option<i32> = None
-    stdio::println((n1.is_none()).to_string())
-    stdio::println((n1.unwrap_or(77)).to_string())
+    Stdio::println((n1.is_none()).to_string())
+    Stdio::println((n1.unwrap_or(77)).to_string())
     let r5 = try_parse("42")
     let msg = match r5 {
         Result::Ok(v) => "got: ".concat((v).to_string()),
         Result::Err(e) => "fail: ".concat(e),
     }
-    stdio::println(msg)
+    Stdio::println(msg)
     let r6 = try_parse("xyz")
     let msg2 = match r6 {
         Result::Ok(v) => "got: ".concat((v).to_string()),
         Result::Err(e) => "fail: ".concat(e),
     }
-    stdio::println(msg2)
+    Stdio::println(msg2)
 }
 // Tests error/Result conventions: is_ok, is_err, unwrap, unwrap_or, match
 // Ok path: is_ok, is_err, unwrap

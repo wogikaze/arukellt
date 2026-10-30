@@ -1,24 +1,24 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::wasm
 
 fn main() {
     let b0: Vec<i32> = wasm::Leb128::encode_u32(0)
-    stdio::println((len(b0)).to_string())
-    stdio::println((get_unchecked(b0, 0)).to_string())
+    Stdio::println((len(b0)).to_string())
+    Stdio::println((get_unchecked(b0, 0)).to_string())
     let b1: Vec<i32> = wasm::Leb128::encode_u32(1)
-    stdio::println((get_unchecked(b1, 0)).to_string())
+    Stdio::println((get_unchecked(b1, 0)).to_string())
     let b127: Vec<i32> = wasm::Leb128::encode_u32(127)
-    stdio::println((len(b127)).to_string())
-    stdio::println((get_unchecked(b127, 0)).to_string())
+    Stdio::println((len(b127)).to_string())
+    Stdio::println((get_unchecked(b127, 0)).to_string())
     let b128: Vec<i32> = wasm::Leb128::encode_u32(128)
-    stdio::println((len(b128)).to_string())
-    stdio::println((get_unchecked(b128, 0)).to_string())
-    stdio::println((get_unchecked(b128, 1)).to_string())
-    stdio::println((wasm::Leb128::size_u32(0)).to_string())
-    stdio::println((wasm::Leb128::size_u32(127)).to_string())
-    stdio::println((wasm::Leb128::size_u32(128)).to_string())
-    stdio::println((wasm::Leb128::size_u32(16383)).to_string())
-    stdio::println((wasm::Leb128::size_u32(16384)).to_string())
+    Stdio::println((len(b128)).to_string())
+    Stdio::println((get_unchecked(b128, 0)).to_string())
+    Stdio::println((get_unchecked(b128, 1)).to_string())
+    Stdio::println((wasm::Leb128::size_u32(0)).to_string())
+    Stdio::println((wasm::Leb128::size_u32(127)).to_string())
+    Stdio::println((wasm::Leb128::size_u32(128)).to_string())
+    Stdio::println((wasm::Leb128::size_u32(16383)).to_string())
+    Stdio::println((wasm::Leb128::size_u32(16384)).to_string())
 }
 // LEB128 encode small values (single byte)
 // LEB128 encode 128 (two bytes: 0x80 0x01)

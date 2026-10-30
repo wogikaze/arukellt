@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::simd::v128
 use std::simd::v128::V128
 
@@ -7,5 +7,5 @@ fn main() {
     let b = V128::zero()
     let c = V128::or(a, b)
     let result = V128::any_true(c)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

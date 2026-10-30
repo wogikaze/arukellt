@@ -1,5 +1,5 @@
 // Phase1 A: Struct init + field read, no push / no reconstruction.
-use std::host::stdio
+use std::host::stdio::Stdio
 
 struct Holder {
     name: String,
@@ -8,6 +8,6 @@ struct Holder {
 
 fn main() {
     let h = Holder { name: String_from("test"), items: Vec::new<String>() }
-    stdio::println(h.name)
-    stdio::println((len(h.items)).to_string())
+    Stdio::println(h.name)
+    Stdio::println((len(h.items)).to_string())
 }

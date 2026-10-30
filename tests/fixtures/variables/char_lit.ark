@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let c: char = 'A'
-    stdio::println(char_to_string(c))
+    Stdio::println(char_to_string(c))
 }

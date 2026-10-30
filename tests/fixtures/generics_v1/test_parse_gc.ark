@@ -1,8 +1,8 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::prelude
 
 fn main() {
     let r = i32::try_from(String_from("42"))
-    stdio::println(String_from("done"))
+    Stdio::println(String_from("done"))
 }

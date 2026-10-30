@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 /// A simple function to be passed as a typed function reference.
 fn triple(x: i32) -> i32 {
@@ -17,5 +17,5 @@ fn apply_fn_ref(x: i32) -> i32 {
 
 fn main() {
     let result = apply_fn_ref(14)
-    stdio::println((result).to_string())
+    Stdio::println((result).to_string())
 }

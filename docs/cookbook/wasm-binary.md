@@ -121,7 +121,7 @@ Use `std::wit` to map WIT primitive types.
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use std::wit::types
 
@@ -129,7 +129,7 @@ use std::wit::types
 let mut i = 1
 while i <= 13 {
     let wit_ty = types::WitType::from_id(i)
-    stdio::println((wit_ty.id()).to_string().concat(": ".concat(wit_ty.name())))
+    Stdio::println((wit_ty.id()).to_string().concat(": ".concat(wit_ty.name())))
     i = i + 1
 }
 // 1: bool, 2: u8, ..., 13: string

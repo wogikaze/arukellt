@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 
@@ -14,11 +14,11 @@ fn main() {
         Result::Ok(table) => {
             let back = table.to_text()
             if back.eq(doc) {
-                stdio::println("roundtrip ok")
+                Stdio::println("roundtrip ok")
             } else {
-                stdio::println("roundtrip mismatch")
+                Stdio::println("roundtrip mismatch")
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e)),
+        Result::Err(e) => Stdio::println("error:".concat(e)),
     }
 }

@@ -1,10 +1,10 @@
 use std::collections::hash_set::HashSet
-use std::host::stdio
-use std::test::Test
+use std::host::stdio::Stdio
+use std::prelude::{assert_eq}
 fn main() {
     let mut s = HashSet::new<i32>()
     assert(s.is_empty())
-    Test::assert_eq_i32(s.len(), 0)
+    assert_eq(s.len(), 0)
     assert(s.capacity() >= 1)
 
     // insert / contains / len
@@ -12,7 +12,7 @@ fn main() {
     assert(s.insert(2))
     assert(s.insert(3))
     assert(!s.insert(2)) // duplicate returns false
-    Test::assert_eq_i32(s.len(), 3)
+    assert_eq(s.len(), 3)
     assert(s.contains(1))
     assert(s.contains(2))
     assert(s.contains(3))
@@ -23,7 +23,7 @@ fn main() {
     s.reserve(20)
     assert(s.capacity() > cap_before)
     // entries preserved after reserve
-    Test::assert_eq_i32(s.len(), 3)
+    assert_eq(s.len(), 3)
     assert(s.contains(2))
 
     // extend adds elements from another set
@@ -32,7 +32,7 @@ fn main() {
     assert(other.insert(4))
     assert(other.insert(5))
     s.extend(other)
-    Test::assert_eq_i32(s.len(), 5)
+    assert_eq(s.len(), 5)
     assert(s.contains(4))
     assert(s.contains(5))
 
@@ -40,19 +40,19 @@ fn main() {
     let big_cap = s.capacity()
     s.shrink_to_fit()
     assert(s.capacity() <= big_cap)
-    Test::assert_eq_i32(s.len(), 5)
+    assert_eq(s.len(), 5)
 
     // remove
     assert(s.remove(3))
     assert(!s.contains(3))
     assert(!s.remove(3)) // removing absent returns false
-    Test::assert_eq_i32(s.len(), 4)
+    assert_eq(s.len(), 4)
 
     // clear resets the set
     s.clear()
     assert(s.is_empty())
-    Test::assert_eq_i32(s.len(), 0)
+    assert_eq(s.len(), 0)
     assert(!s.contains(1))
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

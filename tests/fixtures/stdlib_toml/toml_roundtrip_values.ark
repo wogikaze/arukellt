@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::toml
 use std::text
 
@@ -19,22 +19,22 @@ fn main() {
     match toml::TomlValue::parse(doc) {
         Result::Ok(table) => {
             match table.get_field("title") {
-                Option::Some(v) => stdio::println(v.to_text()),
-                None => stdio::println("missing title"),
+                Option::Some(v) => Stdio::println(v.to_text()),
+                None => Stdio::println("missing title"),
             }
             match table.get_field("port") {
-                Option::Some(v) => stdio::println(v.to_text()),
-                None => stdio::println("missing port"),
+                Option::Some(v) => Stdio::println(v.to_text()),
+                None => Stdio::println("missing port"),
             }
             match table.get_field("flag") {
-                Option::Some(v) => stdio::println(v.to_text()),
-                None => stdio::println("missing flag"),
+                Option::Some(v) => Stdio::println(v.to_text()),
+                None => Stdio::println("missing flag"),
             }
             match table.get_field("ratio") {
-                Option::Some(v) => stdio::println(v.to_text()),
-                None => stdio::println("missing ratio"),
+                Option::Some(v) => Stdio::println(v.to_text()),
+                None => Stdio::println("missing ratio"),
             }
         },
-        Result::Err(e) => stdio::println("error:".concat(e)),
+        Result::Err(e) => Stdio::println("error:".concat(e)),
     }
 }

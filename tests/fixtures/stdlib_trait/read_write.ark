@@ -2,7 +2,7 @@
 //
 // - Write bytes into a Writer via Write dispatch
 // - Read them back through Writer::into_reader + Read dispatch
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::io
 
 fn main() {
@@ -43,5 +43,5 @@ fn main() {
         Result::Err(_e) => assert(false),
     }
 
-    stdio::println("OK")
+    Stdio::println("OK")
 }

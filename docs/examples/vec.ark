@@ -1,21 +1,21 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let mut v = Vec::new<i32>()
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    stdio::println((len(v)).to_string())
+    Stdio::println((len(v)).to_string())
     match get(v, 0) {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("out of bounds"),
     }
     match get(v, 1) {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("out of bounds"),
     }
     match get(v, 2) {
-        Option::Some(val) => stdio::println((val).to_string()),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => Stdio::println((val).to_string()),
+        None => Stdio::println("out of bounds"),
     }
 }

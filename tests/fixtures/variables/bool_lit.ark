@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let t: bool = true
     let f: bool = false
-    stdio::println((t).to_string())
-    stdio::println((f).to_string())
+    Stdio::println((t).to_string())
+    Stdio::println((f).to_string())
 }

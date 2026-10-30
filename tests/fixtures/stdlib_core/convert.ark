@@ -1,13 +1,13 @@
 use std::core::convert
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
-    stdio::println(42.to_string())
-    stdio::println(3.14.to_string())
-    stdio::println(true.to_string())
+    Stdio::println(42.to_string())
+    Stdio::println(3.14.to_string())
+    Stdio::println(true.to_string())
     let parsed: Result<i32, String> = i32::try_from("123")
     match parsed {
-        Ok(v) => stdio::println(v.to_string()),
-        Err(_) => stdio::println("parse failed"),
+        Ok(v) => Stdio::println(v.to_string()),
+        Err(_) => Stdio::println("parse failed"),
     }
 }

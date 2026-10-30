@@ -1,6 +1,6 @@
-use std::host::stdio
+use std::host::stdio::Stdio
 
 fn main() {
     let v: Vec<Vec<i32>> = Vec::new<i32>()
-    stdio::println((len(v)).to_string())
+    Stdio::println((len(v)).to_string())
 }

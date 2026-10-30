@@ -1,5 +1,5 @@
 use std::host::process::Process
-use std::host::stdio
+use std::host::stdio::Stdio
 use std::text
 use mir::block_pred_access
 use mir::dump_format_edges
@@ -18,7 +18,7 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
                 )
             )
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     if expected_count > 0 && block_pred_access::MirBlock_pred_at(block, 0) != expected0 {
@@ -31,7 +31,7 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
                 )
             )
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     if expected_count > 1 && block_pred_access::MirBlock_pred_at(block, 1) != expected1 {
@@ -44,7 +44,7 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
                 )
             )
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
 }
@@ -56,7 +56,7 @@ fn mir_expect_idom(f: MirFunction, block_id: i32, expected_idom: i32) {
         let msg = "idom check failed for bb".concat(
             block_id.to_string().concat(": expected=".concat(dump_format_edges::mir_format_edge(expected_idom).concat(" actual=".concat(dump_format_edges::mir_format_edge(actual_idom)))))
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
 }
@@ -74,7 +74,7 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
                 )
             )
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     if expected_count > 0 && block_dominance_access::MirBlock_dom_frontier_at(block, 0) != expected0 {
@@ -89,7 +89,7 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
                 )
             )
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
     if expected_count > 1 && block_dominance_access::MirBlock_dom_frontier_at(block, 1) != expected1 {
@@ -104,7 +104,7 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
                 )
             )
         )
-        stdio::eprintln(msg)
+        Stdio::eprintln(msg)
         Process::exit(1)
     }
 }
