@@ -1,0 +1,5 @@
+// E0100: the retired numeric conversion free functions are not callable.
+// The receiver methods in `std::core::convert` are the canonical surface.
+fn main() {
+    let _: i32 = u8_to_i32(255u8)
+}

@@ -1,6 +1,7 @@
 use std::prelude::{eq}
 use std::text
 use resolver::scope_error
+use resolver::removed_names
 use resolver::scope_lookup
 use resolver::ast_decl_predicates
 use resolver::ast_access
@@ -57,6 +58,10 @@ fn retired_prelude_import_hint(name: String) -> String {
     }
     if eq(name.clone(), "clone") {
         return String_from("use `x.clone()` on the value instead")
+    }
+    let numeric = removed_names::removed_numeric_conversion_hint(name.clone())
+    if len(numeric.clone()) > 0 {
+        return numeric
     }
     String_new()
 }

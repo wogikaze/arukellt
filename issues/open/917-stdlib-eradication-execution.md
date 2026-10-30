@@ -1903,3 +1903,59 @@ classified there, in dependency-safe waves.
   `VecIter<(K, V)>` tuple cursor and the std-method multi-parameter String
   callback ABI remain compiler residuals (the owned-pair predicate avoids the
   latter).
+
+### Landed slice (wave/numeric-conv, 2026-10-30)
+
+- **Feasibility**: yes. The 17 numeric conversion frees were the last
+  `prelude_wrapper` family; every replacement method already existed in
+  `std::core::convert`. The methods delegated to the frees, and the
+  compiler's CoreOp binding table keyed the conversion operations on the bare
+  free names, so the retirement required moving the lowering ownership into
+  the methods and re-keying the aliases, not new runtime primitives.
+- **Landed**: `std/prelude.ark` no longer declares `u8_to_i32`, `u16_to_i32`,
+  `i8_to_i32`, `i16_to_i32`, `i32_to_u8`, `i32_to_u16`, `i32_to_i8`,
+  `i32_to_i16`, `i32_to_u32`, `u32_to_u64`, `u64_to_u32`, `i32_to_i64`,
+  `i64_to_i32`, `f32_to_f64`, `f64_to_f32`, `f64_bits_lo`, or
+  `f64_bits_hi`, and their 17 manifest entries are deleted. The receiver
+  methods (`u8::to_i32`, `i32::to_u8_wrapping`, `f64::to_bits_lo`, ...) now
+  lower through the `__intrinsic_*` conversion bridge directly.
+- **Compiler**: `data/core-ops.toml` drops the bare-name aliases and binds
+  the intrinsic names to the same CoreOps (including
+  `__intrinsic_scalar_f64_bits_lo/hi` for the bits methods);
+  `core_op_binding_generated.ark` is regenerated. The scalar-conversion
+  concrete-signature table in `typechecker/builtins.ark`, the W0009 numeric
+  table, and the gated-prelude entries are deleted. `ctx_fn_return_vt` types
+  the f32→f64/f64→f32 intrinsic results, and `register_use` rejects explicit
+  imports of the retired names with the method hint.
+- **E0100**: `resolver::removed_names` maps all 17 names to their receiver
+  method; `tests/fixtures/diagnostics/removed_numeric_conversion*` replace
+  the W0009 goldens. `prelude_concrete_arg_type` now pins the remaining
+  `String_from` concrete-signature check, and the two conversion-specific
+  argument-type diagnostics are deleted because the table they exercised is
+  gone.
+- **Bootstrap**: the committed pin's baked binding table still keys the bare
+  names, and its `ctx_fn_return_vt` does not type the float intrinsics.
+  `scripts/selfhost/checks.py` therefore re-adds the 17 declarations to the
+  overlay prelude and rewrites `std/core/convert.ark` method bodies (and
+  `raw.ark`'s f32 promotion) to the free-call spelling for the pin only.
+  Delete that bridge with the next pin refresh.
+- **Fixtures**: migrated `scalar/conversion`, `scalar/sign_extend`,
+  `scalar/suffix_literals`, `scalar/const_i32`,
+  `scalar/numeric_conversion_methods`, `scalar/numeric_explicit_conversions`,
+  `simd_conformance/float_lane_ops*`, `component/export_*f32*`,
+  `operators/arithmetic_edges`, `stdlib_bytes/*`, `stdlib_simd/*`, and
+  `stdlib_inline/abs_probe` to the method surface.
+- **Scorecard**: 69 → **52** public free symbols (`must delete` 53 → **36**),
+  manifest public entries 69 → **52**, `pub fn` declarations 69 → **52**,
+  `prelude_wrapper` entries 26 → **9**, monomorphic helpers 19 → **4**,
+  deprecated entries 52 → **35**.
+- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
+  (112 runtime, 43/43 `test:` PASS, 0 FAIL); `verify lane` PASS; `docs check`
+  **6/6**; `selfhost diag-parity` PASS; ADR-029 fixpoint PASS, s2 == s3
+  sha256 `947dd5a7635f3316901ea5f6eee128cf8b40a126678351716e983169cdacfb0a`
+  (pinned base `56ff0808…`). The changed scalar/bytes/simd/component fixtures
+  were compiled and run on both `wasm32-gc` and `wasm32`.
+- **Residuals**: the pinned-overlay numeric-conversion bridge remains until
+  the pin refresh. `raw.f64_bits_*` stays a `planned` native-c capability;
+  `f64::to_bits_*` lowers through the scalar handler. No numeric conversion
+  free remains user-reachable.

@@ -1,7 +1,7 @@
 // Export with s32 parameter and f32 result maps to WIT s32 -> float32.
-use std::prelude::{f64_to_f32}
+use std::core::convert
 export fn half_count(n: i32) -> f32 {
-    f64_to_f32(0.5)
+    (0.5).to_f32()
 }
 
 fn main() {

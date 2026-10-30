@@ -1,5 +1,0 @@
-use std::prelude::{u8_to_i32}
-
-fn main() {
-    let _: i32 = u8_to_i32(255u8)
-}

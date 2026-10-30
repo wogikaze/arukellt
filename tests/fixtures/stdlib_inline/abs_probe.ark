@@ -1,5 +1,4 @@
 use std::core::convert
-use std::prelude::{f64_bits_hi, f64_bits_lo}
 use std::collections::vec
 use std::core::{Range}
 use std::core::cmp
@@ -260,14 +259,14 @@ pub fn probe_range_new_ops() -> bool {
 
 pub fn probe_sqrt_ops() -> bool {
     let root = (4.0).sqrt()
-    let lo = f64_bits_lo(root)
-    let hi = f64_bits_hi(root)
-    lo == f64_bits_lo(2.0) && hi == f64_bits_hi(2.0)
+    let lo = (root).to_bits_lo()
+    let hi = (root).to_bits_hi()
+    lo == (2.0).to_bits_lo() && hi == (2.0).to_bits_hi()
 }
 
 pub fn probe_f64_bits_ops() -> bool {
     // 1.0 = 0x3FF0000000000000 → lo=0, hi=0x3FF00000
-    f64_bits_lo(1.0) == 0 && f64_bits_hi(1.0) == 1072693248
+    (1.0).to_bits_lo() == 0 && (1.0).to_bits_hi() == 1072693248
 }
 
 pub fn probe_format_f64_ops() -> bool {

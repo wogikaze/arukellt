@@ -2,6 +2,7 @@
 // I8x16 / I16x8 / I32x4 / I64x2 / V128 that lower correctly on both targets.
 // Construction, lane access, arithmetic, comparisons, shifts, masks,
 // narrowing / extension, float conversion, and raw v128 bitwise ops (#917).
+use std::core::convert
 use std::simd::f32x4::F32x4
 use std::simd::f64x2::F64x2
 use std::simd::i8x16::I8x16
@@ -10,30 +11,29 @@ use std::simd::i32x4::I32x4
 use std::simd::i64x2::I64x2
 use std::simd::v128::V128
 use std::test::Test
-use std::prelude::{f32_to_f64}
 
 fn f32x4_cases() {
     let f = F32x4::new(1.5f32, 2.5f32, 3.5f32, 4.5f32)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(f, 2)), 3.5)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::replace_lane(f, 0, 9.0f32), 0)), 9.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::zero(), 3)), 0.0)
+    Test::assert_eq_f64((F32x4::extract_lane(f, 2)).to_f64(), 3.5)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::replace_lane(f, 0, 9.0f32), 0)).to_f64(), 9.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::zero(), 3)).to_f64(), 0.0)
     let sum = F32x4::add(F32x4::splat(1.5f32), F32x4::splat(2.5f32))
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(sum, 1)), 4.0)
+    Test::assert_eq_f64((F32x4::extract_lane(sum, 1)).to_f64(), 4.0)
     let product = F32x4::mul(F32x4::splat(3.0f32), F32x4::splat(2.0f32))
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(product, 0)), 6.0)
+    Test::assert_eq_f64((F32x4::extract_lane(product, 0)).to_f64(), 6.0)
     let quotient = F32x4::div(F32x4::splat(8.0f32), F32x4::splat(2.0f32))
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(quotient, 0)), 4.0)
+    Test::assert_eq_f64((F32x4::extract_lane(quotient, 0)).to_f64(), 4.0)
     let difference = F32x4::sub(F32x4::splat(5.0f32), F32x4::splat(2.0f32))
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(difference, 0)), 3.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::sqrt(F32x4::splat(9.0f32)), 0)), 3.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::abs(F32x4::splat(-3.0f32)), 0)), 3.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::min(F32x4::splat(2.0f32), F32x4::splat(5.0f32)), 0)), 2.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::max(F32x4::splat(2.0f32), F32x4::splat(5.0f32)), 0)), 5.0)
+    Test::assert_eq_f64((F32x4::extract_lane(difference, 0)).to_f64(), 3.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::sqrt(F32x4::splat(9.0f32)), 0)).to_f64(), 3.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::abs(F32x4::splat(-3.0f32)), 0)).to_f64(), 3.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::min(F32x4::splat(2.0f32), F32x4::splat(5.0f32)), 0)).to_f64(), 2.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::max(F32x4::splat(2.0f32), F32x4::splat(5.0f32)), 0)).to_f64(), 5.0)
     let rounded = F32x4::new(1.2f32, 1.8f32, -1.2f32, -1.8f32)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::ceil(rounded), 0)), 2.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::floor(rounded), 1)), 1.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::trunc(rounded), 2)), -1.0)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::nearest(F32x4::splat(2.5f32)), 0)), 2.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::ceil(rounded), 0)).to_f64(), 2.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::floor(rounded), 1)).to_f64(), 1.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::trunc(rounded), 2)).to_f64(), -1.0)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::nearest(F32x4::splat(2.5f32)), 0)).to_f64(), 2.0)
     let f_eq = F32x4::eq(F32x4::splat(4.0f32), F32x4::splat(4.0f32))
     Test::assert_eq_i32(I32x4::extract_lane(f_eq, 0), -1)
     let f_lt = F32x4::lt(F32x4::splat(1.0f32), F32x4::splat(2.0f32))

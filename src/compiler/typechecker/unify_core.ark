@@ -121,16 +121,16 @@ fn is_numeric_tag(tag: i32) -> bool {
 // an unavailable function (tracked by the ADR-067 conversion matrix).
 fn numeric_conversion_hint(a_tag: i32, b_tag: i32) -> String {
     if a_tag == commands::TY_I32() && b_tag == commands::TY_I64() {
-        return "; try `i32_to_i64(x)`"
+        return "; try `(x).into()`"
     }
     if a_tag == commands::TY_I64() && b_tag == commands::TY_I32() {
-        return "; try `i64_to_i32(x)` or a `to_i32_*` method"
+        return "; try `(x).to_i32_wrapping()` / `to_i32_checked()`"
     }
     if a_tag == commands::TY_F32() && b_tag == commands::TY_F64() {
-        return "; try `f32_to_f64(x)`"
+        return "; try `(x).to_f64()`"
     }
     if a_tag == commands::TY_F64() && b_tag == commands::TY_F32() {
-        return "; try `f64_to_f32(x)`"
+        return "; try `(x).to_f32()`"
     }
     "; no canonical conversion exists for this pair yet; use an explicit arithmetic step"
 }

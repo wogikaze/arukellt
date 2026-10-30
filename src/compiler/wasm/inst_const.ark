@@ -2,7 +2,6 @@
 // Extracted from emitter.ark for module-level organization and indentation control.
 // Handles MIR_CONST_I32/I64/F64/STRING opcode emission.
 
-use std::prelude::{f64_bits_hi, f64_bits_lo}
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use wasm::constants
@@ -34,8 +33,8 @@ fn emit_const_i64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
 fn emit_const_f64(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_F64_CONST())
-    let lo: i32 = f64_bits_lo(inst_accessors_literals::MirInst_float_val(inst))
-    let hi: i32 = f64_bits_hi(inst_accessors_literals::MirInst_float_val(inst))
+    let lo: i32 = __intrinsic_f64_bits_lo(inst_accessors_literals::MirInst_float_val(inst))
+    let hi: i32 = __intrinsic_f64_bits_hi(inst_accessors_literals::MirInst_float_val(inst))
     writer_core::emit_u32_le(w, lo)
     writer_core::emit_u32_le(w, hi)
 }

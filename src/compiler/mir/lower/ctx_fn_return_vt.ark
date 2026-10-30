@@ -136,6 +136,16 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
     if bare_name.clone().eq("i32_to_i64") || bare_name.clone().eq("u32_to_u64") {
         return value_types::VT_I64()
     }
+    // The receiver methods call the f32/f64 conversion intrinsics directly.
+    // Their flat name has no fn_index entry, so without this the MIR temp is
+    // typed i32 and the f64 result fails wasm validation (expected i32, found
+    // f64).
+    if bare_name.clone().eq("f32_to_f64") || bare_name.clone().eq("f32_promote_f64") {
+        return value_types::VT_F64()
+    }
+    if bare_name.clone().eq("f64_to_f32") {
+        return value_types::VT_F32()
+    }
     if bare_name.clone().eq("clock_now") ||
     bare_name.clone().eq("clock_now_ms") ||
     bare_name.clone().eq("monotonic_now") ||

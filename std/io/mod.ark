@@ -50,7 +50,7 @@
 //! `stdin()` is empty and `read_stdin_line()` returns `Ok("")`.
 
 // ─── Error type ───────────────────────────────────────────────────────────────
-use std::prelude::{i32_to_i64, i64_to_i32}
+use std::core::convert
 use std::text
 
 const NEWLINE_BYTE: i32 = 10
@@ -285,21 +285,21 @@ impl Seek for Reader {
     fn seek(mut self: Reader, from: SeekFrom) -> Result<i64, IoError> {
         let target: i64 = match from {
             SeekFrom::Start(offset) => offset,
-            SeekFrom::Current(offset) => i32_to_i64(self.cursor) + offset,
-            SeekFrom::End(offset) => i32_to_i64(len(self.bytes)) + offset,
+            SeekFrom::Current(offset) => (self.cursor).into() + offset,
+            SeekFrom::End(offset) => (len(self.bytes)).into() + offset,
         }
         if target < 0i64 {
             return Err(IoError::Other("seek: negative position"))
         }
-        if target > i32_to_i64(MAX_CURSOR_POSITION) {
+        if target > (MAX_CURSOR_POSITION).into() {
             return Err(IoError::Other("seek: position exceeds i32 range"))
         }
-        self.cursor = i64_to_i32(target)
+        self.cursor = (target).to_i32_wrapping()
         Ok(target)
     }
 
     fn position(self: Reader) -> Result<i64, IoError> {
-        Ok(i32_to_i64(self.cursor))
+        Ok((self.cursor).into())
     }
 }
 
@@ -448,7 +448,7 @@ impl Io {
             } else {
                 let write_result: Result<(), IoError> = Io::write_all(to, chunk)
                 match write_result {
-                    Result::Ok(_) => total = total + i32_to_i64(len(chunk)),
+                    Result::Ok(_) => total = total + (len(chunk)).into(),
                     Result::Err(err) => return Err(err),
                 }
             }
@@ -723,7 +723,7 @@ impl<R: Seek> Seek for BufReader<R> {
             SeekFrom::Current(offset) => {
                 let position_result: Result<i64, IoError> = self.inner.position()
                 match position_result {
-                    Result::Ok(pos) => self.inner.seek(SeekFrom::Start(pos - i32_to_i64(unread) + offset)),
+                    Result::Ok(pos) => self.inner.seek(SeekFrom::Start(pos - (unread).into() + offset)),
                     Result::Err(err) => Err(err),
                 }
             },
@@ -742,7 +742,7 @@ impl<R: Seek> Seek for BufReader<R> {
         let unread: i32 = self.end - self.start
         let position_result: Result<i64, IoError> = self.inner.position()
         match position_result {
-            Result::Ok(pos) => Ok(pos - i32_to_i64(unread)),
+            Result::Ok(pos) => Ok(pos - (unread).into()),
             Result::Err(err) => Err(err),
         }
     }

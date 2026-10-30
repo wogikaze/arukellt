@@ -16,6 +16,61 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — 数値変換 free function 17 個の退役 (ADR-046, ADR-067, ADR-087, #917, wave/numeric-conv)
+
+- **Removed**: prelude の数値変換 free function 17 個
+  （`u8_to_i32`、`u16_to_i32`、`i8_to_i32`、`i16_to_i32`、`i32_to_u8`、
+  `i32_to_u16`、`i32_to_i8`、`i32_to_i16`、`i32_to_u32`、`u32_to_u64`、
+  `u64_to_u32`、`i32_to_i64`、`i64_to_i32`、`f32_to_f64`、`f64_to_f32`、
+  `f64_bits_lo`、`f64_bits_hi`）。ADR-087 Wave 1 で deprecated だったものの
+  Wave 2 削除。manifest entry と `std/prelude.ark` 宣言を削除し、bare call は
+  W0009 ではなく **E0100** と receiver method hint を返す。明示的な
+  `use std::prelude::{name}` も同じ hint で拒否する。
+- **Replacement**: `std::core::convert` の receiver method
+  （`u8::to_i32`、`i8::to_i32`、`u16::to_i32`、`i16::to_i32`、
+  `i32::to_u8_wrapping` / `to_u16_wrapping` / `to_i8_wrapping` /
+  `to_i16_wrapping` / `to_u32_bits`、`u32::to_u64`、
+  `u64::to_u32_wrapping`、`i32::into`、`i64::to_i32_checked` /
+  `to_i32_wrapping` / `to_i32_saturating`、`f32::to_f64`、`f64::to_f32`、
+  `f64::to_bits_lo` / `to_bits_hi`）。method 本体は `__intrinsic_*`
+  conversion bridge を直接 lower し、free への委譲を廃止した。
+- **Compiler**: `data/core-ops.toml` の legacy alias を bare free 名から
+  `__intrinsic_*` 名へ移し、`core_op_binding_generated.ark` を再生成した。
+  `typechecker/builtins.ark` の scalar-conversion concrete-signature 表と
+  `lint/deprecated_table.ark` の W0009 数値変換表を削除。MIR の
+  `ctx_fn_return_vt` は f32→f64 / f64→f32 の intrinsic 結果型を返す。
+  bootstrap pin の baked binding table のため、overlay
+  （`scripts/selfhost/checks.py`）だけが退役 free 宣言と free 呼び出しを
+  再導入する。pin 更新時に削除する。
+- **Migration**: `docs/stdlib/migration-guidance.md` の 17 行を removed
+  section に移し、`docs/language/guide.md` の parse 例を `TryFrom` と
+  `.into()` に更新した。`std/bytes`、`std/io`、`std/host/fs`、
+  `std/toml/parser`、`std/core/hash`、compiler 自身の呼び出しを
+  receiver method / intrinsic へ移行した。
+- **Fixtures**: `scalar/conversion`、`scalar/sign_extend`、
+  `scalar/suffix_literals`、`scalar/const_i32`、
+  `scalar/numeric_conversion_methods`、`scalar/numeric_explicit_conversions`、
+  `simd_conformance/float_lane_ops*`、`component/export_*f32*`、
+  `operators/arithmetic_edges`、`stdlib_bytes/*`、`stdlib_simd/*`、
+  `stdlib_inline/abs_probe` を method surface へ移行した。
+  `diagnostics/deprecated_numeric_conversion*` は
+  `removed_numeric_conversion*` の E0100 golden に置換し、数値変換専用の
+  引数型 diag 2 個を削除、`prelude_concrete_arg_type` は残存する
+  `String_from` の concrete signature 検査へ置き換えた。
+- **Scorecard**: `docs/stdlib/eradication.md` の生成値で public free
+  symbols 69 → **52**（`must delete` 53 → **36**）、manifest public
+  entries 69 → **52**、`pub fn` declarations 69 → **52**、
+  `prelude_wrapper` 26 → **9**、monomorphic helpers 19 → **4**、
+  deprecated entries 52 → **35**。
+- **Verification**: `verify fixtures` 1949/1949 compile+validate PASS
+  （112 runtime、43/43 test、0 FAIL）、`verify lane` PASS、`docs check`
+  6/6、`selfhost diag-parity` PASS、ADR-029 fixpoint PASS（s2 == s3 sha256
+  `947dd5a7…`、pinned base `56ff0808…`）。
+- **Residual**: pinned bootstrap overlay の numeric-conversion bridge は
+  pin refresh まで残る。native-c の `raw.f64_bits_*` capability は
+  `planned` のままで、`f64::to_bits_*` は method 経由で scalar handler を
+  使う。
+
 ## 2026-10-30 — Hash collection の `entry` / `iter` / `retain` / `FromIterator` (ADR-093, wave/borrowed-iter)
 
 - **Added**: `HashMap<K, V>::iter()`、`HashMap<K, V>::entry(key)`、

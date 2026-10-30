@@ -1,7 +1,6 @@
 use std::host::clock::Clock
 use std::host::process::Process
 use std::host::stdio
-use std::prelude::{i64_to_i32}
 use std::text
 use mir::block_inst_access
 use mir::emit_artifacts
@@ -50,7 +49,7 @@ fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bo
         return false
     }
     let diff = Clock::monotonic_now() - t_start
-    let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
+    let ms = if diff < 0i64 { 0 } else { __intrinsic_i64_to_i32(diff / 1000000i64) }
     if ms < 200 {
         return false
     }

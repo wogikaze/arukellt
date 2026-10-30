@@ -1,4 +1,3 @@
-use std::prelude::{i32_to_i64}
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
@@ -89,7 +88,7 @@ fn emit_heap_global_entry(mut global_sec: WasmWriter, heap_start: i32, memory64:
         writer_core::emit_byte(global_sec, constants::WASM_I64())
         writer_core::emit_byte(global_sec, 1)
         writer_core::emit_byte(global_sec, opcodes::OP_I64_CONST())
-        writer_core::emit_leb128_s_i64(global_sec, i32_to_i64(heap_start))
+        writer_core::emit_leb128_s_i64(global_sec, __intrinsic_i32_to_i64(heap_start))
         writer_core::emit_byte(global_sec, opcodes::OP_END())
         return
     }

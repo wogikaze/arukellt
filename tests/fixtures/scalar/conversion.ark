@@ -1,26 +1,26 @@
+use std::core::convert
 use std::host::stdio
-use std::prelude::{i32_to_i64, i32_to_u32, i32_to_u8, i8_to_i32, i64_to_i32, u16_to_i32, u32_to_u64, u8_to_i32}
 fn main() {
     let a: u8 = 255u8
-    let a_i32: i32 = u8_to_i32(a)
+    let a_i32: i32 = (a).to_i32()
     stdio::println(a_i32)
     let b: i32 = 300
-    let b_u8: u8 = i32_to_u8(b)
+    let b_u8: u8 = (b).to_u8_wrapping()
     stdio::println(b_u8)
     let c: u16 = 1000u16
-    let c_i32: i32 = u16_to_i32(c)
+    let c_i32: i32 = (c).to_i32()
     stdio::println(c_i32)
     let d: i8 = 42i8
-    let d_i32: i32 = i8_to_i32(d)
+    let d_i32: i32 = (d).to_i32()
     stdio::println(d_i32)
     let e: u32 = 1000000u32
-    let e_u64: u64 = u32_to_u64(e)
+    let e_u64: u64 = (e).to_u64()
     stdio::println(e_u64)
-    let f: i64 = i32_to_i64(1)
+    let f: i64 = (1).into()
     stdio::println(f)
-    let g: i32 = i64_to_i32(f)
+    let g: i32 = (f).to_i32_wrapping()
     stdio::println(g)
-    let h: u32 = i32_to_u32(7)
+    let h: u32 = (7).to_u32_bits()
     stdio::println(h)
 }
 // u8 → i32 (widening, no-op in Wasm: u8 is stored as i32)

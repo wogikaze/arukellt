@@ -252,9 +252,14 @@ E0100 hints retained). Those removals were made under ADR-014 D4 / the 0.x
 exception before ADR-087; their migration rows remain in
 [`wasm.md`](modules/wasm.md) and the prelude documentation.
 
-### Numeric conversions (17 deprecated)
+### Numeric conversions (17 removed 2026-10-30, #917)
 
-| Deprecated API | Replacement |
+The 17 deprecated numeric conversion frees completed their ADR-087 Wave 2
+deletion on 2026-10-30. Bare calls and explicit `use std::prelude::{name}`
+imports now fail with **E0100**; the receiver methods below own the lowering
+through the `__intrinsic_*` conversion bridges (ADR-067).
+
+| Removed API | Replacement |
 |----------------|-------------|
 | `u8_to_i32(x)` | `(x).to_i32()` |
 | `u16_to_i32(x)` | `(x).to_i32()` |

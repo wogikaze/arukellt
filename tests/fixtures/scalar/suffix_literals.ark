@@ -1,5 +1,5 @@
+use std::core::convert
 use std::host::stdio
-use std::prelude::{f32_to_f64}
 
 fn main() {
     let a = 42i32
@@ -19,7 +19,7 @@ fn main() {
     stdio::println(7i8)
     stdio::println(8u16)
     stdio::println(11u64)
-    stdio::println(f32_to_f64(2.5f32))
+    stdio::println((2.5f32).to_f64())
 
     let d = 6i8
     let e = 300u16
@@ -30,5 +30,5 @@ fn main() {
     stdio::println(e)
     stdio::println(f)
     stdio::println(g)
-    stdio::println(f32_to_f64(h))
+    stdio::println((h).to_f64())
 }

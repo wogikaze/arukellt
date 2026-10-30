@@ -35,7 +35,6 @@
 
 // ─── TomlValue type ──────────────────────────────────────────────────────────
 use std::core::convert
-use std::prelude::{i64_to_i32}
 use std::text
 
 pub enum TomlValue {
@@ -66,7 +65,7 @@ impl TomlValue {
 
     fn as_int(self: TomlValue) -> Option<i32> {
         match self {
-            TomlValue::Integer(i) => Some(i64_to_i32(i)),
+            TomlValue::Integer(i) => Some((i).to_i32_wrapping()),
             TomlValue::String(_) => None,
             TomlValue::Float(_) => None,
             TomlValue::Boolean(_) => None,
@@ -530,11 +529,11 @@ fn toml_parse_int_radix(digits: String, radix: i32, neg: bool) -> i64 {
     let n = len(digits)
     let mut result: i64 = 0i64
     let mut i = 0
-    let rad = i32_to_i64(radix)
+    let rad: i64 = (radix).into()
     while i < n {
         let d = toml_hex_value(digits.byte_at(i))
         if d >= 0 {
-            result = result * rad + i32_to_i64(d)
+            result = result * rad + (d).into()
         }
         i = i + 1
     }
@@ -575,7 +574,7 @@ fn toml_parse_float_token(token: String) -> Result<f64, String> {
             match i64::try_from(exp_raw) {
                 Result::Ok(exp_i) => {
                     let mut result = mant
-                    let mut exp = i64_to_i32(exp_i)
+                    let mut exp = (exp_i).to_i32_wrapping()
                     while exp > 0 {
                         result = result * 10.0
                         exp = exp - 1

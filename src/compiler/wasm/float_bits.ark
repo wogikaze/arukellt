@@ -3,10 +3,9 @@
 //! MirInst stores float literals as `f64`. Emitting `f32.const` demotes with
 //! round-ties-to-even so typed `f32` locals match Wasm.
 
-use std::prelude::{f64_bits_hi, f64_bits_lo, i32_to_i64, i64_to_i32}
 fn f64_to_f32_bits(value: f64) -> i32 {
-    let hi = f64_bits_hi(value)
-    let lo = f64_bits_lo(value)
+    let hi = __intrinsic_f64_bits_hi(value)
+    let lo = __intrinsic_f64_bits_lo(value)
     let sign_bit = i32_sign_bit(hi)
     let hi_abs = hi & 2147483647
     let exp64 = hi_abs / 1048576
@@ -71,13 +70,13 @@ fn u32_shr(value: i32, amount: i32) -> i32 {
         shifted = shifted / 2i64
         i = i + 1
     }
-    i64_to_i32(shifted)
+    __intrinsic_i64_to_i32(shifted)
 }
 
 fn i32_to_u32_i64(value: i32) -> i64 {
     if value < 0 {
-        i32_to_i64(value) + i32_to_i64(2147483647) + i32_to_i64(2147483647) + 2i64
+        __intrinsic_i32_to_i64(value) + __intrinsic_i32_to_i64(2147483647) + __intrinsic_i32_to_i64(2147483647) + 2i64
     } else {
-        i32_to_i64(value)
+        __intrinsic_i32_to_i64(value)
     }
 }

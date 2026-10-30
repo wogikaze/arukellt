@@ -1,13 +1,13 @@
 // f32x4 neg and the f64x2 arithmetic/min/max surface: the neg opcode and the
 // f64x2 binary opcodes previously aliased abs/min/max and returned the input.
+use std::core::convert
 use std::simd::f32x4::F32x4
 use std::simd::f64x2::F64x2
 use std::test::Test
-use std::prelude::{f32_to_f64}
 
 fn f32_cases() {
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::neg(F32x4::splat(1.5f32)), 0)), -1.5)
-    Test::assert_eq_f64(f32_to_f64(F32x4::extract_lane(F32x4::neg(F32x4::splat(-2.5f32)), 0)), 2.5)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::neg(F32x4::splat(1.5f32)), 0)).to_f64(), -1.5)
+    Test::assert_eq_f64((F32x4::extract_lane(F32x4::neg(F32x4::splat(-2.5f32)), 0)).to_f64(), 2.5)
 }
 
 fn f64_cases() {

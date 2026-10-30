@@ -6,7 +6,6 @@ use wasm::opcodes
 // is the static type of the value on top of the operand stack immediately
 // after the last `local.get` / `ref.cast`; it is only meaningful while
 // `ref_top_end == len(bytes)`, i.e. nothing was emitted since.
-use std::prelude::{i64_to_i32}
 pub struct WasmWriter {
     bytes: Vec<i32>,
     memory64: bool,
@@ -307,7 +306,7 @@ fn emit_leb128_s_i64(mut w: WasmWriter, v: i64) {
     let mut val = v
     let mut more = true
     while more {
-        let raw_mod = i64_to_i32(val % 128i64)
+        let raw_mod = __intrinsic_i64_to_i32(val % 128i64)
         let mut b = raw_mod
         if b < 0 {
             b = b + 128

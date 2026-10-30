@@ -1,5 +1,6 @@
-use std::prelude::{f64_bits_lo}
-
+// The concrete prelude signature table checks argument types for retained
+// prelude frees; `String_from` keeps that contract after the numeric
+// conversion frees retired.
 fn main() {
-    let _bits = f64_bits_lo("x")
+    let _s: String = String_from(1)
 }

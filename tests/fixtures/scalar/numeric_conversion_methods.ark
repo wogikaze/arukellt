@@ -1,13 +1,11 @@
-// Receiver-method replacements for the deprecated numeric conversion frees
-// (#917 / ADR-087). Every call below uses the canonical ADR-067 method form.
+// Canonical numeric conversion methods (#917 / ADR-067). Every call below uses
+// the receiver form that replaced the retired `*_to_*` prelude frees.
 // Results are stored before comparison: chained conversion calls / method
 // results used directly in a condition currently hit a GC MIR temp gap.
 // Narrow-integer receivers are explicitly annotated: an unannotated narrow
-// literal binding carries no local type name yet. The trailing free-wrapper
-// calls pin the prelude shims that now lower through the same CoreOps.
+// literal binding carries no local type name yet.
 use std::core::convert
 use std::host::process::Process
-use std::prelude::{i32_to_i16, i32_to_u16, u64_to_u32}
 
 fn main() {
     let a: u8 = 255u8
@@ -123,16 +121,16 @@ fn main() {
         Process::exit(1)
     }
 
-    let free_u16: u16 = i32_to_u16(-1)
-    let free_i16: i16 = i32_to_i16(40000)
-    let free_u32: u32 = u64_to_u32(4294967301u64)
-    if free_u16 != 65535u16 {
+    let edge_u16: u16 = (-1).to_u16_wrapping()
+    let edge_i16: i16 = (40000).to_i16_wrapping()
+    let edge_u32: u32 = (4294967301u64).to_u32_wrapping()
+    if edge_u16 != 65535u16 {
         Process::exit(1)
     }
-    if free_i16 != -25536i16 {
+    if edge_i16 != -25536i16 {
         Process::exit(1)
     }
-    if free_u32 != 5u32 {
+    if edge_u32 != 5u32 {
         Process::exit(1)
     }
 }

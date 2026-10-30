@@ -1,6 +1,6 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{get_unchecked, i64_to_i32, len, push, set}
+use std::prelude::{get_unchecked, len, push, set}
 use std::text
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     // Env override is disabled; --time / report_flag remains the supported
@@ -21,7 +21,7 @@ fn mir_lower_phase_ms(t_start: i64, t_end: i64) -> i32 {
     if diff < 0i64 {
         return 0
     }
-    i64_to_i32(diff / 1000000i64)
+    __intrinsic_i64_to_i32(diff / 1000000i64)
 }
 
 fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {

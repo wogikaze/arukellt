@@ -10,32 +10,6 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-// Scalar conversion wrappers in `std/prelude.ark` declare concrete signatures
-// but keep `panic` bodies; the emitter lowers them by name. Unlike the
-// polymorphic prelude operations (`len`, `clone`, ...), their parameters carry
-// the whole contract, so the checker must not treat the name alone as a
-// licence to skip argument checking. `panic` itself is no longer a prelude
-// function; it is the associated `Std::panic`, checked through its impl
-// signature.
-fn is_scalar_conversion_builtin(name: String) -> bool {
-    if name.clone().eq("u8_to_i32") || name.clone().eq("u16_to_i32") ||
-    name.clone().eq("i8_to_i32") || name.clone().eq("i16_to_i32") {
-        return true
-    }
-    if name.clone().eq("i32_to_u8") || name.clone().eq("i32_to_u16") ||
-    name.clone().eq("i32_to_i8") || name.clone().eq("i32_to_i16") {
-        return true
-    }
-    if name.clone().eq("i32_to_u32") || name.clone().eq("u32_to_u64") ||
-    name.clone().eq("u64_to_u32") {
-        return true
-    }
-    if name.clone().eq("i32_to_i64") || name.clone().eq("i64_to_i32") {
-        return true
-    }
-    name.clone().eq("f32_to_f64") || name.clone().eq("f64_to_f32")
-}
-
 // Concrete prelude frees whose declared parameter types are the whole call
 // contract. The emitter lowers them by name (intrinsic aliases / CoreOp
 // fallbacks), so checking only arity lets a wrong argument reach the backend
@@ -53,13 +27,7 @@ fn is_scalar_conversion_builtin(name: String) -> bool {
 //   emitter boundary and existing stdlib code passes i32 codepoints
 //   (`char_to_string(48 + n)`, `push_char(text, 65)`).
 fn is_concrete_prelude_builtin(name: String) -> bool {
-    if is_scalar_conversion_builtin(name.clone()) {
-        return true
-    }
     if is_text_prelude_builtin(name.clone()) {
-        return true
-    }
-    if is_scalar_prelude_builtin(name.clone()) {
         return true
     }
     is_runtime_prelude_builtin(name.clone())
@@ -76,15 +44,6 @@ fn is_text_prelude_builtin(name: String) -> bool {
         return true
     }
     name.clone().eq("index_of") || name.clone().eq("byte_at")
-}
-
-fn is_scalar_prelude_builtin(name: String) -> bool {
-    if name.clone().eq("parse_i32") || name.clone().eq("parse_i64") ||
-    name.clone().eq("parse_f64") {
-        return true
-    }
-    name.clone().eq("f64_bits_lo") || name.clone().eq("f64_bits_hi") ||
-    name.clone().eq("f32_to_string")
 }
 
 fn is_runtime_prelude_builtin(name: String) -> bool {

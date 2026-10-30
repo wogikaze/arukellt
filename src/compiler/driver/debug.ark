@@ -1,6 +1,5 @@
 use std::host::fs::Fs
 use std::host::stdio
-use std::prelude::{i64_to_i32}
 use std::text
 use component
 use component::wit_parse_text
@@ -145,7 +144,7 @@ fn phase_timing_ms(start: i64, end: i64) -> i32 {
     if diff < 0i64 {
         return 0
     }
-    i64_to_i32(diff / 1000000i64)
+    __intrinsic_i64_to_i32(diff / 1000000i64)
 }
 
 pub fn emit_phase_timing(

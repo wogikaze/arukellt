@@ -118,79 +118,11 @@ pub fn char_to_string(c: char) -> String {
     __core_char_to_string_impl(c)
 }
 
-// Conversion: from string. The canonical surface is the `TryFrom<String>`
-// associated function (`i32::try_from(s)` / `i64::try_from(s)` /
-// `f64::try_from(s)`) from `use std::core::convert`; the prelude frees were
-// retired under ADR-091.
-pub fn f64_bits_lo(x: f64) -> i32 {
-    __core_scalar_f64_bits_lo_impl(x)
-}
-
-pub fn f64_bits_hi(x: f64) -> i32 {
-    __core_scalar_f64_bits_hi_impl(x)
-}
-
-// --- Scalar type conversion functions (issue #040) ---
-// Widening narrow integer types → i32 (no-op in Wasm; all stored as i32)
-pub fn u8_to_i32(x: u8) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn u16_to_i32(x: u16) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn i8_to_i32(x: i8) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn i16_to_i32(x: i16) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
-// Narrowing i32 → narrow types (masking for unsigned, sign-extension for signed)
-pub fn i32_to_u8(x: i32) -> u8 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn i32_to_u16(x: i32) -> u16 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn i32_to_i8(x: i32) -> i8 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn i32_to_i16(x: i32) -> i16 {
-    Std::panic(String_new()); return 0
-}
-
-// i32/u32 ↔ i64/u64 widening and truncation
-pub fn u32_to_u64(x: u32) -> u64 {
-    Std::panic(String_new()); return 0_u64
-}
-
-pub fn u64_to_u32(x: u64) -> u32 {
-    Std::panic(String_new()); return 0
-}
-
-pub fn i32_to_i64(x: i32) -> i64 {
-    Std::panic(String_new()); return 0_i64
-}
-
-pub fn i64_to_i32(x: i64) -> i32 {
-    Std::panic(String_new()); return 0
-}
-
-// f32 ↔ f64 conversion
-pub fn f32_to_f64(x: f32) -> f64 {
-    Std::panic(String_new()); return 0.0
-}
-
-pub fn f64_to_f32(x: f64) -> f32 {
-    Std::panic(String_new()); return f64_to_f32(0.0)
-}
-
+// Numeric conversion frees (`u8_to_i32`, `f64_bits_lo`, ...) were retired
+// under ADR-046 / ADR-067. The receiver methods in `std::core::convert`
+// (`u8::to_i32`, `i32::to_u8_wrapping`, `f64::to_bits_lo`, ...) are the
+// canonical surface and lower through the `__intrinsic_*` bridges directly.
+// Parsing uses `TryFrom<String>` (`i32::try_from(s)`) from that module.
 fn __core_math_abs_impl(x: i32) -> i32 {
     if x < 0 {
         0 - x
@@ -688,10 +620,6 @@ fn __core_math_pow_i32_impl(base: i32, exponent: i32) -> i32 {
 }
 
 // `byte_at(s, i)` was retired under ADR-091; use `s.byte_at(i)`.
-// Conversions extended
-pub fn i32_to_u32(n: i32) -> u32 {
-    Std::panic(String_new()); return 0
-}
 
 impl f32 {
     /// Shortest round-trip decimal formatting for an `f32`.

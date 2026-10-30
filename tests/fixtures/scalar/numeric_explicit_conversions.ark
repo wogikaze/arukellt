@@ -2,7 +2,6 @@
 // backends. Literal suffixes select the source type before conversion.
 use std::core::convert
 use std::host::process::Process
-use std::prelude::{f32_to_f64, f64_to_f32}
 fn expect_some(value: Option<i32>, expected: i32) {
     match value {
         Some(actual) => {
@@ -45,12 +44,12 @@ fn main() {
         Process::exit(1)
     }
 
-    let widened_float: f64 = f32_to_f64(1.5f32)
+    let widened_float: f64 = (1.5f32).to_f64()
     if widened_float != 1.5f64 {
         Process::exit(1)
     }
-    let narrowed_float: f32 = f64_to_f32(1.5f64)
-    if f32_to_f64(narrowed_float) != 1.5f64 {
+    let narrowed_float: f32 = (1.5f64).to_f32()
+    if (narrowed_float).to_f64() != 1.5f64 {
         Process::exit(1)
     }
 }

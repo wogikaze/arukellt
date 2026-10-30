@@ -140,13 +140,12 @@ replacement = "Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect()
 # describes the target shape plus the reachable loop / v.sort() fallback
 # recorded in docs/stdlib/migration-guidance.md.
 
-[[rules]]
-label = "monomorphic numeric conversions"
-module_less = true
-prefix = ["u8_to_i32", "u16_to_i32", "i8_to_i32", "i16_to_i32", "i32_to_u8", "i32_to_u16", "i32_to_i8", "i32_to_i16", "u32_to_u64", "u64_to_u32", "i32_to_i64", "i64_to_i32", "f32_to_f64", "f64_to_f32", "i32_to_u32", "f64_bits_lo", "f64_bits_hi"]
-class = "must delete"
-owner = "917"
-replacement = "canonical scalar conversion methods (ADR-067): u8/i8/u16/i16::to_i32, u32::to_u64, u64::to_u32_wrapping, i32::to_u8_wrapping/to_u16_wrapping/to_i8_wrapping/to_i16_wrapping/to_u32_bits, i32::into, i64::to_i32_checked, f32::to_f64, f64::to_f32, f64::to_bits_lo/to_bits_hi"
+# The 17 monomorphic numeric conversion frees (`u8_to_i32` … `f64_to_f32`,
+# `i32_to_u32`, `f64_bits_lo/hi`) completed their ADR-087 Wave 2 deletion on
+# 2026-10-30 (wave/numeric-conv). The receiver methods in `std::core::convert`
+# own the lowering through the `__intrinsic_*` conversion bridges; bare and
+# explicitly imported calls now fail resolution with E0100 hints. The rule is
+# gone because no symbol matches it any more.
 
 # The 20 monomorphic HashMap_* builtins (new/insert/get/contains_key/len for
 # the four i32/String pairs) were retired by #917 on 2026-10-27. They were the

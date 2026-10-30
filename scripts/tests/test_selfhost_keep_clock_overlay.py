@@ -32,10 +32,10 @@ def test_keep_clock_default_uses_i32_ms_clock_and_wraps_getters() -> None:
 """
     result = _patch_bootstrap_driver_timing(source, keep_clock=True)
     assert (
-        "let t0: i64 = i32_to_i64(pipeline_frontend::frontend_result_t0(frontend))"
+        "let t0: i64 = __intrinsic_i32_to_i64(pipeline_frontend::frontend_result_t0(frontend))"
         in result
     )
-    assert "let now = i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
+    assert "let now = __intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
 
 
 def test_keep_clock_default_rewrites_record_fields_to_i32() -> None:
@@ -62,7 +62,7 @@ fn compile_source() {
 """
         result = _patch_bootstrap_driver_timing(source, keep_clock=True)
         assert "    t0: i64," in result
-        assert "i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
+        assert "__intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
     finally:
         os.environ.pop("ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS", None)
 
@@ -83,18 +83,18 @@ def test_final_emit_clock_widens_i32_ms_to_i64() -> None:
 }
 """
     result = _patch_bootstrap_driver_timing(source, keep_clock=True)
-    assert "i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))" in result
+    assert "__intrinsic_i32_to_i64(__intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64))" in result
 
 
 def test_keep_clock_phase_timing_ms_skips_second_divide() -> None:
     source = """fn phase_timing_ms(start: i64, end: i64) -> i32 {
     let diff = end - start
-    i64_to_i32(diff / 1000000i64)
+    __intrinsic_i64_to_i32(diff / 1000000i64)
 }
 """
     result = _patch_bootstrap_driver_timing(source, keep_clock=True)
-    assert "i64_to_i32(diff)" in result
-    assert "i64_to_i32(diff / 1000000i64)" not in result
+    assert "__intrinsic_i64_to_i32(diff)" in result
+    assert "__intrinsic_i64_to_i32(diff / 1000000i64)" not in result
 
 
 def test_keep_clock_narrows_i64_zero_timestamps_for_i32_slots() -> None:
@@ -134,13 +134,13 @@ def test_keep_clock_mir_lower_phase_keeps_ns_and_ms_divide() -> None:
 
 fn mir_lower_phase_ms(t_start: i64, t_end: i64) -> i32 {
     let diff = t_end - t_start
-    i64_to_i32(diff / 1000000i64)
+    __intrinsic_i64_to_i32(diff / 1000000i64)
 }
 """
     result = _patch_bootstrap_mir_lower_phase_timing(source, keep_clock=True)
     assert "clock::monotonic_now()" in result
     assert "clock::monotonic_now() / 1000000i64" not in result
-    assert "i64_to_i32(diff / 1000000i64)" in result
+    assert "__intrinsic_i64_to_i32(diff / 1000000i64)" in result
 
 
 def test_stub_overlay_widens_backend_phase_timestamps() -> None:
@@ -160,11 +160,11 @@ def test_stub_overlay_widens_backend_phase_timestamps() -> None:
     from selfhost.checks import _patch_bootstrap_driver_timing_backend
 
     result = _patch_bootstrap_driver_timing_backend(source)
-    assert '"driver.resolve", t_parse, i32_to_i64(t_resolve)' in result
-    assert '"driver.typecheck", i32_to_i64(t_resolve), i32_to_i64(t_typecheck)' in result
-    assert '"driver.lower", i32_to_i64(t_typecheck), i32_to_i64(t_lower)' in result
-    assert '"driver.mir_opt", i32_to_i64(t_lower), i32_to_i64(t_mir_opt)' in result
-    assert '"driver.mir_verify", i32_to_i64(t_mir_opt), i32_to_i64(t_mir_verify)' in result
+    assert '"driver.resolve", t_parse, __intrinsic_i32_to_i64(t_resolve)' in result
+    assert '"driver.typecheck", __intrinsic_i32_to_i64(t_resolve), __intrinsic_i32_to_i64(t_typecheck)' in result
+    assert '"driver.lower", __intrinsic_i32_to_i64(t_typecheck), __intrinsic_i32_to_i64(t_lower)' in result
+    assert '"driver.mir_opt", __intrinsic_i32_to_i64(t_lower), __intrinsic_i32_to_i64(t_mir_opt)' in result
+    assert '"driver.mir_verify", __intrinsic_i32_to_i64(t_mir_opt), __intrinsic_i32_to_i64(t_mir_verify)' in result
 
 
 def test_stub_overlay_widens_current_emit_output_timestamps() -> None:
@@ -187,9 +187,9 @@ def test_stub_overlay_widens_current_emit_output_timestamps() -> None:
     from selfhost.checks import _patch_bootstrap_driver_timing_backend
 
     result = _patch_bootstrap_driver_timing_backend(source)
-    assert "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved))" in result
-    assert "i32_to_i64(t_typecheck)" in result
-    assert "i32_to_i64(t_mir_verify)" in result
+    assert "__intrinsic_i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved))" in result
+    assert "__intrinsic_i32_to_i64(t_typecheck)" in result
+    assert "__intrinsic_i32_to_i64(t_mir_verify)" in result
 
 
 def test_stub_overlay_widens_frontend_phase_timestamps() -> None:
@@ -203,8 +203,8 @@ def test_stub_overlay_widens_frontend_phase_timestamps() -> None:
     from selfhost.checks import _patch_bootstrap_driver_timing_clock
 
     result = _patch_bootstrap_driver_timing_clock(source, keep_clock=False)
-    assert '"driver.lex", i32_to_i64(t0), i32_to_i64(t_lex)' in result
-    assert '"driver.parse", i32_to_i64(t_lex), i32_to_i64(t_parse)' in result
+    assert '"driver.lex", __intrinsic_i32_to_i64(t0), __intrinsic_i32_to_i64(t_lex)' in result
+    assert '"driver.parse", __intrinsic_i32_to_i64(t_lex), __intrinsic_i32_to_i64(t_parse)' in result
 
 
 def test_stub_overlay_widens_emit_phase_timestamps() -> None:
@@ -218,15 +218,15 @@ def test_stub_overlay_widens_emit_phase_timestamps() -> None:
     from selfhost.checks import _patch_bootstrap_driver_timing_emit
 
     result = _patch_bootstrap_driver_timing_emit(source, keep_clock=False)
-    assert '"driver.emit.enter", t_mir_verify, i32_to_i64(t_emit_enter)' in result
-    assert '"driver.emit.wit_bind", i32_to_i64(t_emit_enter), i32_to_i64(t_bind)' in result
+    assert '"driver.emit.enter", t_mir_verify, __intrinsic_i32_to_i64(t_emit_enter)' in result
+    assert '"driver.emit.wit_bind", __intrinsic_i32_to_i64(t_emit_enter), __intrinsic_i32_to_i64(t_bind)' in result
 
 
 # The #917 clock namespace moved the compiler's call sites to
 # ``Clock::monotonic_now()``. The driver timing slots stay i32, so the stub
 # must match the namespace spelling too: a read that escapes it leaves an i64
 # value in an i32 slot and the emit call sites widen with
-# ``i32_to_i64(<i64>)``, which is invalid core Wasm (expected i32, found i64).
+# ``__intrinsic_i32_to_i64(<i64>)``, which is invalid core Wasm (expected i32, found i64).
 
 
 def test_stub_stubs_namespace_clock_read() -> None:
@@ -247,7 +247,7 @@ def test_keep_clock_rewrites_namespace_clock_read_to_i32_ms() -> None:
 }
 """
     result = _patch_bootstrap_driver_timing(source, keep_clock=True)
-    assert "let t_lower = i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
+    assert "let t_lower = __intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64)" in result
     assert "Clock::monotonic_now()" not in result
 
 
@@ -257,7 +257,7 @@ def test_stub_stubs_namespace_clock_in_mir_lower_phase() -> None:
 }
 """
     result = _patch_bootstrap_mir_lower_phase_timing(source, keep_clock=False)
-    assert "i32_to_i64(0)" in result
+    assert "__intrinsic_i32_to_i64(0)" in result
     assert "Clock::monotonic_now()" not in result
 
 
@@ -295,7 +295,7 @@ def test_overlay_clock_guard_accepts_stub_and_keep_clock_forms(tmp_path: Path) -
     compiler_dir = tmp_path / "src" / "compiler"
     compiler_dir.mkdir(parents=True)
     (compiler_dir / "driver_pipeline_backend.ark").write_text(
-        "fn run() -> i32 { i64_to_i32(clock::monotonic_now() / 1000000i64) }\n",
+        "fn run() -> i32 { __intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64) }\n",
         encoding="utf-8",
     )
     (compiler_dir / "driver_emit.ark").write_text(
