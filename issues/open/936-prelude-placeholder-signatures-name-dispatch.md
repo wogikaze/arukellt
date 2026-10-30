@@ -79,6 +79,9 @@ CoreOp (ADR-042), not through the call-site spelling.
 - [ ] No prelude function declares a placeholder signature; the remaining
       `panic` placeholder bodies are replaced by real bodies or by sealed
       CoreOp bindings.
+      (2026-10-30: moved for the Vec frees `len` / `push` / `get` / `pop` /
+      `set`; the 14 scalar conversion wrappers and `clone` still declare
+      `Std::panic` bodies — see the `wave/sealed-bodies` update.)
 - [ ] The typechecker has no name-keyed return-type or argument exemptions
       for these operations (`builtins.ark`, `call_method.ark`,
       `vec_core_mono.ark`, `hashmap_methods.ark` name lists removed or made
@@ -372,6 +375,63 @@ are unchanged. Remaining name-keyed tables and their blockers:
 - `len` / `push` / `get` / `pop` still declare signature-only bodies (item 1);
   the `len` declaration keeps the String spelling until the committed pin is
   refreshed. #928 is unchanged.
+
+## Update (2026-10-30, `wave/sealed-bodies`) — sealed raw fallback bodies for the Vec prelude frees
+
+The `Std::panic` placeholder bodies are gone from the Vec prelude frees.
+`len`, `push`, `get`, `pop` and the adjacent `set` now carry the operation's
+Ark fallback on the sealed raw API (ADR-042 D2):
+
+- `len(s: String)` → `raw_string_len_bytes(s)`, the sealed call
+  `String::len` reaches through `__core_string_len_impl`.
+- `push<T>` → `raw_array_len` + `raw_array_grow` +
+  `raw_array_set_unchecked`, the generic analogue of
+  `__core_vec_push_i32_impl`.
+- `get<T>` → bounds check + `raw_array_get_unchecked`, mirroring
+  `__core_vec_get_impl`.
+- `pop<T>` → `raw_array_len` + `raw_array_get_unchecked` + the logical
+  `raw_array_grow` shrink, mirroring `__core_vec_pop_impl`.
+- `set<T>` → `raw_array_set_unchecked`, mirroring `__core_vec_set_impl`.
+
+The bodies still defer under RFC-005 D3, so MIR emits the owner-qualified
+CoreOp at every call site (`String::len` / `Vec::len` / `Vec::push` /
+`Vec::get` / `Vec::pop` / `Vec::set`) and never this declaration. The
+pin-built s2 is byte-identical before and after the change, so no emitted
+code or runtime behavior moved. The difference is that the declaration is no
+longer a fake stub: the generic `raw_array_*` calls are checker-verified (a
+wrong arity in `push` is E0203), while the old `Std::panic` bodies were
+unchecked placeholders.
+
+Evidence:
+
+- `selfhost build-compiler` from pin `56ff0808…`: PASS (125.3 s, overlay
+  cache miss); s2
+  `8dd7385cf27fdcd66260b0f49d88732204464c895392471f826e1b8d9df7bfd7`,
+  unchanged from the base artifact.
+- Both targets compile and run the owner-dispatch fixtures:
+  `stdlib_vec/prelude_call_owner_untracked_receiver` (len/push/get/pop) and
+  `stdlib_vec/prelude_len_owner_dispatch` (len/push) print their expected
+  lines on `wasm32-gc` and `wasm32`; `stdlib_vec/prelude_generic_signatures`
+  (len/get/pop/push) and `stdlib_vec/prelude_push_get_owner_untracked_receiver`
+  exit 0 on both.
+- `core-op-shadow`: `mismatched=0 unresolved=0` on both targets.
+
+Acceptance movement: item 1 moves for the Vec frees. Remaining item-1 work is
+outside the Vec-operation scope: the 14 scalar conversion wrappers
+(`u8_to_i32` … `f64_to_f32`, `i32_to_u32`) and `clone` still keep
+`Std::panic` bodies. The conversions belong to item 2's checker-table
+retirement (#935); `clone` is item 4 / #928. Item 2's name-keyed tables and
+item 3's element-typed `vec_*` spellings are unchanged.
+
+Residuals:
+
+- The declarations remain signature-only: the bodies are deferred until
+  #821/#822 give them a lowering path, and the `Vec::*` migration aliases
+  stay until #818.
+- `set`'s Ark fallback mirrors the registered `__core_vec_set_impl` (raw
+  write, no explicit bounds check); the OOB trap lives in the emitter's
+  `vec_set` path, and that fallback/emitter divergence belongs to the #818
+  migration cleanup.
 
 ## Notes
 

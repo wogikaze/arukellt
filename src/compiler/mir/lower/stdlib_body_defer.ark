@@ -84,8 +84,8 @@ fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
     if decl_name.clone().eq(String_from("pop")) { return true }
     if decl_name.clone().eq(String_from("set")) { return true }
     // `len` is a signature-only prelude free with two receiver owners. Its call
-    // sites bind `String::len` / `Vec::len`, so the declaration body must stay
-    // deferred instead of lowering the placeholder panic (#936).
+    // sites bind `String::len` / `Vec::len`, so the declaration keeps its
+    // sealed fallback body deferred instead of lowering it (#936).
     if decl_name.clone().eq(String_from("len")) { return true }
     if decl_name.clone().eq(String_from("values")) { return true }
     if decl_name.clone().eq(String_from("exit")) { return true }
