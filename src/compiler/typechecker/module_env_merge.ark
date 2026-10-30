@@ -92,11 +92,11 @@ fn merge_type_env(mut dst: TypeEnv, src: TypeEnv) {
     merge_mono_template_sites(dst, src)
     merge_mono_instances(dst, src)
     vec_extend::Vec_extend_MonoCallSite(dst.mono_call_sites, src.mono_call_sites)
-    let owner_count = src.resolved_call_owners.len()
-    let mut oi = 0
-    while oi < owner_count {
-        dst.resolved_call_owners.push(src.resolved_call_owners.get_unchecked(oi))
-        oi = oi + 1
+    let call_count = src.resolved_calls.len()
+    let mut ci = 0
+    while ci < call_count {
+        dst.resolved_calls.push(src.resolved_calls.get_unchecked(ci))
+        ci = ci + 1
     }
 }
 
@@ -108,6 +108,8 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
     child.trait_methods = parent.trait_methods
     child.struct_defs = parent.struct_defs
     child.fn_sig_index = parent.fn_sig_index
+    child.bare_fn_sig_index = parent.bare_fn_sig_index
+    child.entry_decl_start = parent.entry_decl_start
     child.const_names = parent.const_names
     child.const_types = parent.const_types
     child.current_fn_name = parent.current_fn_name

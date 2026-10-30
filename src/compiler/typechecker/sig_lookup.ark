@@ -14,3 +14,36 @@ fn lookup_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     }
     contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
 }
+
+// A resolver-processed body: the entry module. Its bare calls carry a
+// declaration identity (the unit's own decl or the prelude). Loaded-module
+// bodies are not resolver-processed and still resolve bare names through the
+// flat signature index, which is the remaining #934 gap.
+fn is_entry_body(env: TypeEnv) -> bool {
+    env.entry_decl_start >= 0 && env.current_decl_index >= env.entry_decl_start
+}
+
+// The declaration a bare name is allowed to name in an entry body: one of the
+// entry module's own top-level decls, or a prelude decl in implicit scope.
+// The index is built with the entry decl first, so a local declaration
+// shadows a same-named prelude one; declaration order in the flat signature
+// index never decides (#934).
+fn lookup_bare_identity(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    let index = name_index::name_index_get(env.bare_fn_sig_index, name)
+    if index >= 0 && index < fn_sigs.len() {
+        return fn_sigs.get_unchecked(index)
+    }
+    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+}
+
+// Identity-aware signature lookup for a call or callee name. Qualified names
+// are already an identity (module-qualified or impl-mangled) and go through
+// the exact index. A bare name in a resolver-processed entry body goes through
+// the bare-identity index instead of the declaration-order-dependent flat
+// index; a loaded-module body keeps the flat lookup.
+fn lookup_declared_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    if is_entry_body(env) && !name.clone().contains(String_from("::")) {
+        return lookup_bare_identity(env, fn_sigs, name)
+    }
+    lookup_fn_sig(env, fn_sigs, name)
+}

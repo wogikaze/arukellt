@@ -24,6 +24,7 @@ use typechecker::names
 use typechecker::ownership
 use typechecker::param_mode
 use typechecker::scope
+use typechecker::sig_lookup
 use typechecker::sigs
 use typechecker::unify
 use typechecker::unify_compat
@@ -116,7 +117,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         }
     }
     let mut mono_fn_name = callee_name.clone()
-    let mut sig = sigs::lookup_fn_sig(env, fn_sigs, callee_name.clone())
+    let mut sig = sig_lookup::lookup_declared_fn_sig(env, fn_sigs, callee_name.clone())
     if !contract_fn_sig::FnSig_has_name(sig) {
         // Loaded-module bodies are not resolver-processed, so a
         // `module::Type::method` call keeps the module prefix. The signature
@@ -126,7 +127,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         let mut vi = 0
         while vi < variants.len() {
             let variant = variants.get_unchecked(vi).clone()
-            let variant_sig = sigs::lookup_fn_sig(env, fn_sigs, variant.clone())
+            let variant_sig = sig_lookup::lookup_declared_fn_sig(env, fn_sigs, variant.clone())
             if contract_fn_sig::FnSig_has_name(variant_sig) {
                 sig = variant_sig
                 mono_fn_name = variant
@@ -136,16 +137,17 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
             }
         }
     }
-    if !contract_fn_sig::FnSig_has_name(sig) {
+    if !contract_fn_sig::FnSig_has_name(sig) && !sig_lookup::is_entry_body(env) {
+        // Loaded-module bodies are not resolver-processed, so a qualified call
+        // can keep a source spelling the index does not key. Stripping to the
+        // last segment is the remaining flat fallback; a resolver-processed
+        // entry body must not use it (its accepted identity is the whole
+        // name), because the last segment is exactly the overload-blind key
+        // this issue removes (#934).
         let stripped = tc_strip_module_prefix(callee_name.clone())
         if !stripped.clone().eq(callee_name.clone()) &&
         !expr_path::is_builtin_type_name(paths::path_module_part(callee_name.clone())) {
             let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, stripped.clone())
-            // Imported declarations are flattened into the typecheck signature
-            // index, while the source path keeps its module alias. Use the bare
-            // signature for both generic and concrete calls after the direct
-            // qualified lookup misses; monomorphization still needs the bare
-            // declaration name for generic calls.
             if contract_fn_sig::FnSig_has_name(bare_sig) {
                 sig = bare_sig
                 mono_fn_name = stripped
@@ -289,11 +291,17 @@ fn record_len_owner(mut env: TypeEnv, span_start: i32, callee_name: String, tag:
     } else {
         String_from("Vec")
     }
-    contract_env_resolved_record::type_env_record_resolved_call_owner(
+    // `len` has no single declaration identity shared by both receivers: the
+    // owner-qualified spelling (`String::len` / `Vec::len`) is the FunctionId
+    // the CoreOp registry binds (#936). Record it once the receiver owner is
+    // decided so lowering does not recompose it from a type spelling.
+    contract_env_resolved_record::type_env_record_resolved_call(
         env,
         span_start,
         callee_name,
-        owner
+        owner.clone(),
+        owner.concat(String_from("::len")),
+        String_new()
     )
 }
 
@@ -445,6 +453,14 @@ fn infer_concrete_call_expr(
         TypeInfo_simple(commands::TY_UNKNOWN())
     )
     check_concrete_call_args(env, scope, fn_sigs, node, selected_sig, arg_types)
+    contract_env_resolved_record::type_env_record_resolved_call(
+        env,
+        ast_access::node_span_start(node),
+        ast_access::node_text(ast_access::node_child_at(node, 0)),
+        String_new(),
+        contract_fn_sig::FnSig_name(selected_sig.clone()),
+        String_new()
+    )
     contract_fn_sig::FnSig_return_type(selected_sig)
 }
 

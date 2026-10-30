@@ -6,17 +6,21 @@ struct CoreHirModuleInfo {
 }
 
 // A call resolution produced by the typechecker, not a syntactic scan.
-// `owner_name` is the nominal receiver owner (`String` / `Vec`); MIR
-// lowers the call to the owner-qualified FunctionId and binds that symbol
-// to its CoreOp through the registry (#933). The body identity (decl index
-// plus impl-method ordinal) keeps spans from different loaded modules
-// distinct.
+// `owner_name` is the nominal receiver owner (`String` / `Vec`); `function_id`
+// is the declaration identity the checker selected (impl-mangled name or an
+// owner-qualified receiver callable) and `mono_instance_id` is the minted
+// `MonoInstance` name for a generic call, empty otherwise. MIR binds the
+// FunctionId to its CoreOp through the registry instead of re-resolving the
+// callee spelling (#933 / #934 / #936). The body identity (decl index plus
+// impl-method ordinal) keeps spans from different loaded modules distinct.
 struct CoreHirResolvedCall {
     decl_index: i32,
     body_child_index: i32,
     span_start: i32,
     callee_name: String,
     owner_name: String,
+    function_id: String,
+    mono_instance_id: String,
 }
 
 struct CoreHirTypedLocal {
@@ -45,7 +49,9 @@ fn CoreHirResolvedCall_new(
     body_child_index: i32,
     span_start: i32,
     callee_name: String,
-    owner_name: String
+    owner_name: String,
+    function_id: String,
+    mono_instance_id: String
 ) -> CoreHirResolvedCall {
     CoreHirResolvedCall {
         decl_index: decl_index,
@@ -53,6 +59,8 @@ fn CoreHirResolvedCall_new(
         span_start: span_start,
         callee_name: callee_name,
         owner_name: owner_name,
+        function_id: function_id,
+        mono_instance_id: mono_instance_id,
     }
 }
 
@@ -74,6 +82,14 @@ fn CoreHirResolvedCall_callee_name(call: CoreHirResolvedCall) -> String {
 
 fn CoreHirResolvedCall_owner_name(call: CoreHirResolvedCall) -> String {
     call.owner_name.clone()
+}
+
+fn CoreHirResolvedCall_function_id(call: CoreHirResolvedCall) -> String {
+    call.function_id.clone()
+}
+
+fn CoreHirResolvedCall_mono_instance_id(call: CoreHirResolvedCall) -> String {
+    call.mono_instance_id.clone()
 }
 
 fn CoreHirTypedLocal_new(name: String, type_info: TypeInfo) -> CoreHirTypedLocal {

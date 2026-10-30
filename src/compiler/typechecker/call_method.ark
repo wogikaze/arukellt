@@ -5,6 +5,7 @@ use typechecker::associated_types
 use typechecker::closure_capture
 use typechecker::call_method_args
 use typechecker::call_generic
+use typechecker::contract_env_resolved_record
 use typechecker::contract_fn_sig
 use typechecker::contract_trait_method_record
 use typechecker::contract_type_access
@@ -15,6 +16,7 @@ use typechecker::contract_types_record
 use typechecker::mono_instances
 use typechecker::names
 use typechecker::param_mode
+use typechecker::sig_lookup
 use typechecker::sigs
 use typechecker::trait_bounds
 use typechecker::trait_method_registry
@@ -133,8 +135,11 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
     if contract_type_access::TypeInfo_tag(builtin_vec_return) != commands::TY_UNKNOWN() {
         return builtin_vec_return
     }
-    // Fall back to bare-name lookup (free functions / prelude builtins).
-    let sig = sigs::lookup_fn_sig(env, fn_sigs, method_name)
+    // A receiver the owner spellings did not resolve may still name a bare
+    // prelude/entry declaration (the compiler's polymorphic `clone` shim and
+    // the prelude frees). A resolver-processed entry body accepts only those
+    // declaration identities, never a loaded module's flat bare name (#934).
+    let sig = sig_lookup::lookup_declared_fn_sig(env, fn_sigs, method_name.clone())
     if !contract_fn_sig::FnSig_has_name(sig) {
         // Fallback: receiver might be a type variable bounded by a trait.
         // Try to resolve the method via trait bounds.
@@ -432,7 +437,7 @@ fn vec_get_unchecked_method_sig(recv_ty: TypeInfo) -> FnSig {
 // the element type. Fall back to the CoreOp implementation-symbol spelling for
 // operations without a free Vec form (`len`, `is_empty`).
 fn vec_method_declaration(env: TypeEnv, fn_sigs: Vec<FnSig>, method_name: String) -> FnSig {
-    let free_sig = sigs::lookup_fn_sig(env, fn_sigs, method_name.clone())
+    let free_sig = sig_lookup::lookup_bare_identity(env, fn_sigs, method_name.clone())
     if is_vec_receiver_signature(free_sig.clone()) {
         return free_sig
     }
@@ -476,6 +481,14 @@ fn infer_resolved_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: 
     param_mode::check_call_parameter_modes(env, scope, sig, node, 0, recv_ty)
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
         call_method_args::constrain_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
+        contract_env_resolved_record::type_env_record_resolved_call(
+            env,
+            ast_access::node_span_start(node),
+            ast_access::node_text(node),
+            String_new(),
+            contract_fn_sig::FnSig_name(sig.clone()),
+            String_new()
+        )
         return contract_fn_sig::FnSig_return_type(sig)
     }
     call_generic::infer_generic_method_call_expr(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
@@ -735,6 +748,14 @@ fn infer_trait_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
         recv_ty.clone()
     )
     let ret_ty = contract_fn_sig::FnSig_return_type(sig)
+    contract_env_resolved_record::type_env_record_resolved_call(
+        env,
+        ast_access::node_span_start(node),
+        ast_access::node_text(node),
+        String_new(),
+        contract_fn_sig::FnSig_name(sig.clone()),
+        String_new()
+    )
     // Self substitution: if the trait method's return type is a TY_TYPE_VAR
     // named "Self", substitute the receiver's concrete type (#707).
     if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_TYPE_VAR() {

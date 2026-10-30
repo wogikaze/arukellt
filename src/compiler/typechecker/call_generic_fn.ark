@@ -37,11 +37,13 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     // the owner from the receiver's local type spelling (#933 / #936).
     let receiver_owner = generic_call_receiver_owner(sig.clone(), var_names.clone(), var_types.clone())
     if receiver_owner.len() > 0 {
-        contract_env_resolved_record::type_env_record_resolved_call_owner(
+        contract_env_resolved_record::type_env_record_resolved_call(
             env,
             ast_access::node_span_start(node),
+            ast_access::node_text(ast_access::node_child_at(node, 0)),
+            receiver_owner,
             contract_fn_sig::FnSig_name(sig.clone()),
-            receiver_owner
+            String_new()
         )
     }
     // infer_env is scratch, so speculation diagnostics vanish with it:
@@ -92,7 +94,18 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     }
     let mangled_name = mono::record_mono_instance(env, fn_name.clone(), resolved_type_args)
     mono::record_mono_return_type(env, mangled_name.clone(), ret_ty)
-    mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name)
+    mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name.clone())
+    // Complete the call record with the declaration identity and the mono
+    // instance the checker selected (#933 / #934). The owner record above may
+    // already exist for this site; completion fills its remaining fields.
+    contract_env_resolved_record::type_env_record_resolved_call(
+        env,
+        ast_access::node_span_start(node),
+        ast_access::node_text(ast_access::node_child_at(node, 0)),
+        String_new(),
+        contract_fn_sig::FnSig_name(sig),
+        mangled_name
+    )
     ret_ty
 }
 

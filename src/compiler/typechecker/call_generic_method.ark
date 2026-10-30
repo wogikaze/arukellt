@@ -5,6 +5,7 @@ use typechecker::call_generic_common
 use typechecker::call_generic_method_args
 use typechecker::call_generic_resolve
 use typechecker::associated_types
+use typechecker::contract_env_resolved_record
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::infer_env_scope
@@ -80,7 +81,15 @@ fn infer_generic_method_call_expr(
     }
     let mangled_name = mono::record_mono_instance(env, mono_fn_name.clone(), resolved_type_args)
     mono::record_mono_return_type(env, mangled_name.clone(), ret_ty)
-    mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name)
+    mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name.clone())
+    contract_env_resolved_record::type_env_record_resolved_call(
+        env,
+        ast_access::node_span_start(node),
+        method_name,
+        String_new(),
+        contract_fn_sig::FnSig_name(sig),
+        mangled_name
+    )
     ret_ty
 }
 

@@ -1,17 +1,26 @@
-// Per-call receiver-owner resolution produced by the typechecker and
-// consumed by MIR lowering (#933). A call site is identified by the body
-// that owns it (top-level decl index plus impl-method ordinal) and its span
-// start, so identical spans in two loaded modules never alias.
+// Per-call resolution produced by the typechecker and consumed by MIR
+// lowering (#933 / #934). A call site is identified by the body that owns it
+// (top-level decl index plus impl-method ordinal) and its span start, so
+// identical spans in two loaded modules never alias.
 //
-// `owner_name` is the nominal owner of the callable (`String` / `Vec`).
-// MIR composes the owner-qualified symbol and lets the CoreOp registry bind
-// it to the registry operation; the checker never names emitter symbols.
-struct ResolvedCallOwner {
+// `function_id` is the declaration identity the checker selected: the mangled
+// signature name (`HashMap::insert`, `Vec_String::from_iter__VecIter_String`)
+// or the owner-qualified FunctionId for a receiver-resolved prelude callable
+// (`String::len` / `Vec::pop`). `mono_instance_id` is the `MonoInstance`
+// mangled name when the call is generic, and empty otherwise. Lowering reads
+// these instead of re-resolving a callee spelling (#936).
+//
+// `owner_name` is the nominal receiver owner of the callable (`String` / `Vec`).
+// MIR lowers through the FunctionId where the checker supplies one and keeps
+// the owner for the element-typed intrinsic rewrites.
+struct ResolvedCall {
     decl_index: i32,
     body_child_index: i32,
     span_start: i32,
     callee_name: String,
     owner_name: String,
+    function_id: String,
+    mono_instance_id: String,
 }
 
 // A `len` receiver that was still a type variable at its call. The body may
@@ -23,40 +32,75 @@ struct DeferredLenReceiver {
     callee_name: String,
 }
 
-fn ResolvedCallOwner_new(
+fn ResolvedCall_new(
     decl_index: i32,
     body_child_index: i32,
     span_start: i32,
     callee_name: String,
-    owner_name: String
-) -> ResolvedCallOwner {
-    ResolvedCallOwner {
+    owner_name: String,
+    function_id: String,
+    mono_instance_id: String
+) -> ResolvedCall {
+    ResolvedCall {
         decl_index: decl_index,
         body_child_index: body_child_index,
         span_start: span_start,
         callee_name: callee_name,
         owner_name: owner_name,
+        function_id: function_id,
+        mono_instance_id: mono_instance_id,
     }
 }
 
-fn ResolvedCallOwner_decl_index(owner: ResolvedCallOwner) -> i32 {
-    owner.decl_index
+fn ResolvedCall_decl_index(call: ResolvedCall) -> i32 {
+    call.decl_index
 }
 
-fn ResolvedCallOwner_body_child_index(owner: ResolvedCallOwner) -> i32 {
-    owner.body_child_index
+fn ResolvedCall_body_child_index(call: ResolvedCall) -> i32 {
+    call.body_child_index
 }
 
-fn ResolvedCallOwner_span_start(owner: ResolvedCallOwner) -> i32 {
-    owner.span_start
+fn ResolvedCall_span_start(call: ResolvedCall) -> i32 {
+    call.span_start
 }
 
-fn ResolvedCallOwner_callee_name(owner: ResolvedCallOwner) -> String {
-    owner.callee_name.clone()
+fn ResolvedCall_callee_name(call: ResolvedCall) -> String {
+    call.callee_name.clone()
 }
 
-fn ResolvedCallOwner_owner_name(owner: ResolvedCallOwner) -> String {
-    owner.owner_name.clone()
+fn ResolvedCall_owner_name(call: ResolvedCall) -> String {
+    call.owner_name.clone()
+}
+
+fn ResolvedCall_function_id(call: ResolvedCall) -> String {
+    call.function_id.clone()
+}
+
+fn ResolvedCall_mono_instance_id(call: ResolvedCall) -> String {
+    call.mono_instance_id.clone()
+}
+
+// Complete an existing site record with a later resolution pass. The owner is
+// recorded before a generic call has minted its mono instance, and the
+// return-contract pass re-infers the same call after the body ran, so fields
+// merge first-writer-wins instead of overwriting a decided identity.
+fn ResolvedCall_completed(
+    call: ResolvedCall,
+    owner_name: String,
+    function_id: String,
+    mono_instance_id: String
+) -> ResolvedCall {
+    let mut merged = call.clone()
+    if merged.owner_name.len() == 0 {
+        merged.owner_name = owner_name
+    }
+    if merged.function_id.len() == 0 {
+        merged.function_id = function_id
+    }
+    if merged.mono_instance_id.len() == 0 {
+        merged.mono_instance_id = mono_instance_id
+    }
+    merged
 }
 
 fn DeferredLenReceiver_new(receiver_type: TypeInfo, span_start: i32, callee_name: String) -> DeferredLenReceiver {

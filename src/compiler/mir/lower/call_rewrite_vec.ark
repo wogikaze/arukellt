@@ -256,9 +256,15 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, span_start: i32, callee_name: String) -> S
     if !is_dispatchable_len_name(callee_name) {
         return callee_name
     }
-    let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("len"))
-    if owner.clone().len() == 0 {
+    // The checker records the owner-qualified FunctionId for this site; use it
+    // directly. The owner remains a fallback for records written before the
+    // FunctionId field existed (#933 / #936).
+    let function_id = ctx_resolved_calls::ctx_resolved_call_function_id(ctx, span_start, String_from("len"))
+    if function_id.clone().eq(String_from("String::len")) ||
+    function_id.clone().eq(String_from("Vec::len")) {
+        return function_id
     }
+    let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("len"))
     if owner.eq(String_from("String")) {
         return String_from("String::len")
     }
@@ -293,6 +299,10 @@ fn mir_rewrite_vec_pop(ctx: LowerCtx, span_start: i32, callee_name: String) -> S
     }
     if span_start == 0 {
         return String_from("Vec::pop")
+    }
+    let function_id = ctx_resolved_calls::ctx_resolved_call_function_id(ctx, span_start, String_from("pop"))
+    if function_id.eq(String_from("Vec::pop")) {
+        return function_id
     }
     let owner = ctx_resolved_calls::ctx_resolved_call_owner(ctx, span_start, String_from("pop"))
     if owner.eq(String_from("Vec")) {

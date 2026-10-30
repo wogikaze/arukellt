@@ -150,6 +150,61 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     index
 }
 
+// The combined decl list is loaded modules first, then the entry module, so
+// the loaded decl count is exactly the entry module's first decl index.
+fn entry_decl_start(decl_count: i32, modules: Vec<ModuleDecls>) -> i32 {
+    let mut loaded = 0
+    let module_count = modules.len()
+    let mut mi = 0
+    while mi < module_count {
+        loaded = loaded + modules::module_decl_count(modules.get_unchecked(mi))
+        mi = mi + 1
+    }
+    if loaded > decl_count {
+        return decl_count
+    }
+    loaded
+}
+
+// Bare-name identity for resolver-processed entry bodies. A bare call in the
+// entry module names either one of its own top-level declarations (the unit it
+// owns) or a prelude declaration (implicit scope); a loaded module's
+// declaration is only reachable through the module-qualified identity the
+// resolver accepted. The two passes make the entry decl shadow a same-named
+// prelude decl, matching lexical scope; the flat signature index is
+// declaration-order dependent and must not decide this (#934).
+fn build_bare_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameIndex {
+    let count = fn_sigs.len()
+    let mut index = name_index::NameIndex_new(count)
+    // Pass 0: the entry module's own top-level decls (empty qualified key).
+    let mut i = 0
+    while i < count {
+        if i < qualified_keys.len() && qualified_keys.get_unchecked(i).len() == 0 {
+            index = insert_bare_fn_sig(index, fn_sigs.get_unchecked(i), i)
+        }
+        i = i + 1
+    }
+    // Pass 1: prelude decls, which stay in scope for every body.
+    i = 0
+    while i < count {
+        if i < qualified_keys.len() &&
+        qualified_keys.get_unchecked(i).clone().starts_with(String_from("prelude::")) {
+            index = insert_bare_fn_sig(index, fn_sigs.get_unchecked(i), i)
+        }
+        i = i + 1
+    }
+    index
+}
+
+fn insert_bare_fn_sig(mut index: NameIndex, sig: FnSig, position: i32) -> NameIndex {
+    let name = contract_fn_sig::FnSig_name(sig)
+    if name.clone().contains(String_from("::")) {
+        return index
+    }
+    name_index::name_index_insert_first(index, name, position)
+    index
+}
+
 fn typecheck_module_with_options(
     decls: Vec<AstNode>,
     resolve_ctx: ResolveCtx,
@@ -167,7 +222,11 @@ fn typecheck_module_with_options(
     module::register_trait_impl_decls(env, decls)
     module::register_struct_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls, env), module_wit::collect_wit_fn_sigs(wit_paths, decls))
-    env.fn_sig_index = build_fn_sig_index(fn_sigs, sig_qualified_keys(decls, ctx_record::resolve_ctx_modules(resolve_ctx)))
+    let modules = ctx_record::resolve_ctx_modules(resolve_ctx)
+    let qualified_keys = sig_qualified_keys(decls, modules)
+    env.entry_decl_start = entry_decl_start(decl_count, modules)
+    env.bare_fn_sig_index = build_bare_fn_sig_index(fn_sigs, qualified_keys)
+    env.fn_sig_index = build_fn_sig_index(fn_sigs, qualified_keys)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {
@@ -192,13 +251,18 @@ fn typecheck_module_with_options(
             check_impl_methods(env, fn_sigs, enum_defs, node, i)
         }
         if ast_decl_predicates::node_is_test_decl(node) || ast_decl_predicates::node_is_test_mod(node) {
+            // Test bodies share the module environment, but their call
+            // records still need the declaring body's identity so a span in a
+            // test cannot alias a same-offset call in another body (#933).
+            env.current_decl_index = i
+            env.current_body_child_index = 0 - 1
             body::check_test_body(env, fn_sigs, enum_defs, node)
         }
         i = i + 1
     }
     module::append_env_errors(result, env)
     contract_result_state::typecheck_result_set_mono_instances(result, context::TypeEnv_mono_instances(env))
-    contract_result_state::typecheck_result_set_resolved_call_owners(result, env.resolved_call_owners)
+    contract_result_state::typecheck_result_set_resolved_calls(result, env.resolved_calls)
     result
 }
 
