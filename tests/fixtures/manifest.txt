@@ -307,6 +307,7 @@ diag:diagnostics/removed_wasm_v128_memory_free_wasm32.ark
 diag:diagnostics/removed_iter_constructor.ark
 diag:diagnostics/removed_text_free.ark
 diag:diagnostics/removed_text_free_wasm32.ark
+diag:diagnostics/removed_string_eq_free.ark
 diag:diagnostics/removed_iter_constructor_wasm32.ark
 diag:diagnostics/removed_wit_ast_free.ark
 diag:diagnostics/removed_wit_ast_free_wasm32.ark

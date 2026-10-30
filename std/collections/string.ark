@@ -1,9 +1,17 @@
-//! std::collections::string — String manipulation functions
+//! std::collections::string — String receiver surface and core-op fallbacks
 //!
-//! Representation-sensitive helpers go through `std::core::raw` (RFC-006).
+//! Importing this module registers the `impl String` and `impl Vec<String>`
+//! blocks; it exposes no free functions (ADR-046). The private `__core_*_impl`
+//! bodies back compiler CoreOp fallbacks. Representation-sensitive helpers go
+//! through `std::core::raw` (RFC-006).
 use std::core::raw::{RawArray, RawString}
 
-pub fn eq(a: String, b: String) -> bool {
+// Resolution-stability shim: the resolver currently needs the module's `eq`
+// symbol in the symbol table even though it is not a public API. Removing the
+// declaration makes `i32.eq` calls inside generic `Deque` code resolve to
+// `Deque::eq` and emit invalid Wasm. Delete this shim once generic method
+// candidate selection no longer depends on the symbol set.
+fn eq(a: String, b: String) -> bool {
     __core_string_eq_impl(a, b)
 }
 

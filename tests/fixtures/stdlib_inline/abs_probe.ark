@@ -143,7 +143,7 @@ pub fn probe_string_storage_ops() -> bool {
     let chars = copied.chars()
     String_new().is_empty() &&
     copied.len_bytes() == 2 &&
-    string::eq(text, copied) &&
+    text.eq(copied) &&
     len(chars) == 2 &&
     get_unchecked(chars, 0).char_at(0) == 79 &&
     get_unchecked(chars, 1).char_at(0) == 75

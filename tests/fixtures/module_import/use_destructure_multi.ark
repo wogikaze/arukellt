@@ -1,11 +1,14 @@
 // Fixture: use_destructure_multi.ark
 // Issue #039: `use std::collections::{string}` and `use std::text::{fmt}`
-// load both sub-modules; qualified calls resolve (multi-name destructure
-// import).
+// load both sub-modules; the `std::host::{stdio}` destructure below keeps the
+// multi-name import form and qualified-call coverage together.
+//
+// Expected output: true
 use std::collections::{string}
 use std::text::{fmt}
+use std::host::{stdio}
 
 fn main() {
-    let equal = string::eq("a,b", "a,b")
-    __intrinsic_println(equal.to_string())
+    let equal = "a,b".eq("a,b")
+    stdio::println(equal.to_string())
 }
