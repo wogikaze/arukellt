@@ -1,0 +1,7 @@
+// The prelude Vec method signature is the call contract: the former
+// name-keyed fallback inferred the argument and accepted this call without
+// unifying the element type (#936).
+fn main() {
+    let mut values: Vec<i32> = Vec::new<i32>()
+    values.push(String_from("oops"))
+}

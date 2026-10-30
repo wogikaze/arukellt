@@ -2,7 +2,6 @@ use std::text
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::associated_types
-use typechecker::call_args
 use typechecker::closure_capture
 use typechecker::call_method_args
 use typechecker::call_generic
@@ -135,7 +134,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, unique_sig, recv_ty, child_count)
         }
     }
-    let builtin_vec_return = infer_builtin_vec_method(
+    let builtin_vec_return = infer_vec_method_from_signature(
         env,
         scope,
         fn_sigs,
@@ -380,7 +379,17 @@ fn string_vec_type() -> TypeInfo {
     contract_types_record::TypeInfo_new(commands::TY_VEC(), String_from("Vec"), type_args)
 }
 
-fn infer_builtin_vec_method(
+// A Vec receiver whose method has no `Vec::<method>` shell signature still has
+// a declaration to check against: the prelude's free generic forms carry the
+// `Vec<T>` first parameter (`push` / `pop` / `get` / `set` / `get_unchecked`),
+// and the CoreOp fallback declarations carry the remaining core operations
+// (`__core_vec_len_impl` / `__core_vec_is_empty_impl`). Resolving the call
+// through that signature binds the receiver's element type, instantiates the
+// return type (Option<T>, T, i32, bool), and checks the arguments, instead of
+// keeping a name-keyed return-type and arity table (#936). The trimmed
+// bootstrap overlay copies `std/prelude.ark`, so the declarations the lookup
+// depends on are present there too.
+fn infer_vec_method_from_signature(
     mut env: TypeEnv,
     mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
@@ -393,63 +402,52 @@ fn infer_builtin_vec_method(
     if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_VEC() {
         return simple_type(commands::TY_UNKNOWN())
     }
+    let sig = vec_method_declaration(env, fn_sigs, method_name)
+    if !is_vec_receiver_signature(sig.clone()) {
+        return simple_type(commands::TY_UNKNOWN())
+    }
     let explicit_args = child_count - 1
-    if !is_vec_method_with_arity(method_name.clone(), explicit_args) {
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    // Arity mismatches keep the historical fall-through so the bare-name
+    // lookup and its existing diagnostics own the error.
+    if param_count < 1 || explicit_args + 1 != param_count {
         return simple_type(commands::TY_UNKNOWN())
     }
-    call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, explicit_args)
-    if method_name.clone().eq(String_from("len")) {
-        return simple_type(commands::TY_I32())
-    }
-    if method_name.clone().eq(String_from("is_empty")) {
-        return simple_type(commands::TY_BOOL())
-    }
-    if method_name.clone().eq(String_from("pop")) {
-        // pop returns Option<T> like get; without this the bare Vec<T>
-        // receiver falls through to the concrete Vec<i32> prelude fn and
-        // rejects every non-i32 element type (#874).
-        if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
-            let elem = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
-            let mut opt = simple_type(commands::TY_OPTION())
-            contract_type_mutation::TypeInfo_push_type_arg(opt, elem)
-            return opt
-        }
-        return simple_type(commands::TY_OPTION())
-    }
-    if method_name.clone().eq(String_from("get_unchecked")) {
-        if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
-            return contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
-        }
-        return simple_type(commands::TY_UNKNOWN())
-    }
-    if method_name.clone().eq(String_from("get")) {
-        // Bounds-checked get returns Option<T> (spec / docs/quickstart).
-        if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
-            let elem = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
-            let mut opt = simple_type(commands::TY_OPTION())
-            contract_type_mutation::TypeInfo_push_type_arg(opt, elem)
-            return opt
-        }
-        return simple_type(commands::TY_OPTION())
-    }
-    simple_type(commands::TY_UNIT())
+    infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
 }
 
-fn is_vec_method_with_arity(method_name: String, explicit_args: i32) -> bool {
-    if explicit_args == 0 {
-        return method_name.clone().eq(String_from("len")) ||
-        method_name.clone().eq(String_from("pop")) ||
-        method_name.clone().eq(String_from("is_empty"))
+// Prefer the free declaration with a `Vec<T>` receiver, because the Vec impl
+// shell keeps `self` untyped (the MIR adapter path) and therefore cannot bind
+// the element type. Fall back to the CoreOp implementation-symbol spelling for
+// operations without a free Vec form (`len`, `is_empty`).
+fn vec_method_declaration(env: TypeEnv, fn_sigs: Vec<FnSig>, method_name: String) -> FnSig {
+    let free_sig = sigs::lookup_fn_sig(env, fn_sigs, method_name.clone())
+    if is_vec_receiver_signature(free_sig.clone()) {
+        return free_sig
     }
-    if explicit_args == 1 {
-        return method_name.clone().eq(String_from("push")) ||
-        method_name.clone().eq(String_from("get")) ||
-        method_name.clone().eq(String_from("get_unchecked"))
+    let core_sig = sigs::lookup_fn_sig(
+        env,
+        fn_sigs,
+        String_from("__core_vec_").concat(
+            method_name.concat(String_from("_impl"))
+        )
+    )
+    if is_vec_receiver_signature(core_sig.clone()) {
+        return core_sig
     }
-    if explicit_args == 2 {
-        return method_name.clone().eq(String_from("set"))
+    core_sig
+}
+
+fn is_vec_receiver_signature(sig: FnSig) -> bool {
+    if !contract_fn_sig::FnSig_has_name(sig.clone()) {
+        return false
     }
-    false
+    if contract_fn_sig::FnSig_param_count(sig.clone()) < 1 {
+        return false
+    }
+    contract_type_access::TypeInfo_tag(
+        contract_fn_sig::FnSig_param_at(sig, 0)
+    ) == commands::TY_VEC()
 }
 
 fn infer_resolved_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, child_count: i32) -> TypeInfo {
