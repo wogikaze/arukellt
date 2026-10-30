@@ -25,11 +25,11 @@ impl WordBox {
 }
 
 fn short_enough(s: String, limit: i32) -> bool {
-    len(s) <= limit
+    s.len() <= limit
 }
 
 fn longer_than(s: String, limit: i32) -> bool {
-    len(s) > limit
+    s.len() > limit
 }
 
 fn main() {

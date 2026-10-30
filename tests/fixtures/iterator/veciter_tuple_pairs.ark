@@ -18,7 +18,7 @@ fn main() {
             None => { break },
         }
     }
-    Test::assert_eq_i32(len(sums), 2)
+    Test::assert_eq_i32(sums.len(), 2)
     Test::assert_eq_i32(get_unchecked(sums, 0), 709)
     Test::assert_eq_i32(get_unchecked(sums, 1), 1113)
 
