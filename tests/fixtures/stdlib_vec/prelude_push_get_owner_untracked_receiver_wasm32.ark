@@ -1,0 +1,28 @@
+// The if-expression result below is a Vec<i32> the checker resolves, but its
+// MIR local keeps no element type on the linear target. `push` and `get` must
+// bind the owner-qualified CoreOps from the checker's per-call resolution,
+// not from the receiver's local type spelling (#933 / #936).
+use std::host::stdio
+use std::prelude::{get, len, push}
+use std::test::Test
+
+fn main() {
+    let mut first: Vec<i32> = Vec::new<i32>()
+    push(first, 1)
+    let mut second: Vec<i32> = Vec::new<i32>()
+    push(second, 2)
+    push(second, 3)
+    let mut values = if len(first) > 0 { second } else { first }
+    Test::assert_eq_i32(len(values), 2)
+    push(values, 9)
+    Test::assert_eq_i32(len(values), 3)
+    match get(values, 0) {
+        Option::Some(value) => Test::assert_eq_i32(value, 2),
+        None => Std::panic("expected Some, got None"),
+    }
+    match get(values, 2) {
+        Option::Some(value) => Test::assert_eq_i32(value, 9),
+        None => Std::panic("expected Some, got None"),
+    }
+    stdio::println("prelude push/get owner untracked receiver ok")
+}

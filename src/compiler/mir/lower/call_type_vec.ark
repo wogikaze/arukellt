@@ -163,7 +163,8 @@ fn mark_vec_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, 
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
         set_ref_vt_for_elem_type(ctx, dest, String_from("f64"))
     }
-    if callee_name.clone().eq("vec_get") {
+    if callee_name.clone().eq("vec_get") ||
+    callee_name.clone().eq("Vec::get") {
         mark_vec_option_elem_result_type(ctx, dest, first_arg_idx)
     }
     // is_vec_pop_callee covers pop / Vec::pop* spellings; post-rewrite callees
