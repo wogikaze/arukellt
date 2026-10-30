@@ -3724,6 +3724,7 @@ diag:diagnostics/removed_prelude_text_free.ark
 diag:diagnostics/removed_prelude_text_free_wasm32.ark
 diag:diagnostics/return_type_arg_mismatch.ark
 # Vec clone is deep without `use std::core::clone` (ADR-091 addendum).
+run:clone_no_import/clone_call_arg_in_block.ark
 run:clone_no_import/vec_clone_deep.ark
 test:clone_no_import/vec_clone_deep_wasm32.ark
 # The runnable Gloss parser sample lives outside tests/fixtures (like the
