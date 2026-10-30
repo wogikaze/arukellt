@@ -9,18 +9,6 @@ Usage:
 - Wraps statement-only snippets in a synthetic `fn main()` before checking:
   `arukellt check` treats a file as a script and does not visit top-level
   statements, so an unwrapped snippet would pass without being typechecked
-<<<<<<< HEAD
-  (issue #683). Leading `use` / `import` declarations stay at file scope;
-  complete modules (a block that declares `fn`, `struct`, ...) are checked
-  unchanged.
-- Blocks whose body deliberately shows non-compilable notation keep the
-  same contract without an HTML marker: `// reject:` (ADR-067 rejection
-  lines) and `// before` / `// after` (migration guidance alternatives) are
-  reported as notation skips rather than wrapped.
-- Runs `arukellt check <snippet> --target wasm32` on each block.
-||||||| 8a8142bd0
-- Runs `arukellt check <snippet> --target wasm32` on each block.
-=======
   (issue #683). Wrapped snippets are also compiled, because the synthetic
   main makes them complete programs. Leading `use` / `import` declarations
   stay at file scope; complete modules (a block that declares `fn`,
@@ -31,7 +19,6 @@ Usage:
   reported as notation skips rather than wrapped.
 - Runs `arukellt check <snippet> --target wasm32` on each block, then
   `arukellt compile --target wasm32` for wrapped statement-only snippets.
->>>>>>> wave/doc-example-gate
 - Reports failures as "FAIL: <file> block <N>: <error>".
 - Exits 0 if all non-skipped blocks pass and every marker is valid.
 
@@ -467,11 +454,6 @@ def main() -> int:
                 code = wrapped
                 wrapped_count += 1
 
-<<<<<<< HEAD
-            passed, error_output = check_block(arukellt, code, md, idx, args.target)
-||||||| 8a8142bd0
-            passed, error_output = check_block(arukellt, code, md, idx, args.target)
-=======
             passed, error_output = check_block(
                 arukellt,
                 code,
@@ -480,7 +462,6 @@ def main() -> int:
                 args.target,
                 compile_check=wrapped is not None,
             )
->>>>>>> wave/doc-example-gate
             if passed:
                 pass_count += 1
             else:
@@ -500,13 +481,7 @@ def main() -> int:
     print(
         f"\nDoc example check: {pass_count} pass, {fail_count} fail, "
         f"{skip_count} skip ({notation_skip_count} notation), "
-<<<<<<< HEAD
-        f"{wrapped_count} wrapped, {len(marker_failures)} marker-fail, "
-||||||| 8a8142bd0
-        f"{skip_count} skip, {len(marker_failures)} marker-fail, "
-=======
         f"{wrapped_count} wrapped+compiled, {len(marker_failures)} marker-fail, "
->>>>>>> wave/doc-example-gate
         f"{len(marker_warnings)} marker-warn"
     )
     return 0 if fail_count == 0 and not marker_failures else 1
