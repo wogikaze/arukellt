@@ -80,10 +80,12 @@ fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> Fn
 // TY_UNKNOWN and a generic receiver can never instantiate the impl head's
 // type variables (G<i32> against G<T>) — mono sites are then never recorded
 // and calls lower to the unsubstituted generic body.  Bind the first param
-// to the resolved impl head type for inherent impls on user generic types;
-// Vec and HashMap keep their untyped self because their method surface is
-// dispatched to specialized adapters, and impl HashMap<K, V> methods are
-// self-recursive shims that must stay off the mono path (#874).
+// to the resolved impl head type for inherent impls on generic types.
+// `Vec` keeps its untyped self because its method surface is dispatched to
+// the element-typed adapters; binding it would move the calls onto the
+// generic shell. `HashMap<K, V>` binds it: the pair is the declaration
+// identity a map method resolves against, and without it `insert` / `get`
+// lost the owner and the element types of their arguments (#934).
 fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, impl_type_params: Vec<String>) -> FnSig {
     if contract_fn_sig::FnSig_param_count(sig) < 1 {
         return sig
@@ -105,7 +107,7 @@ fn impl_self_param_sig(impl_decl: AstNode, method_decl: AstNode, sig: FnSig, imp
         return sig
     }
     let head_name = ast_access::node_text(head_type)
-    if head_name.clone().eq(String_from("Vec")) || head_name.clone().eq(String_from("HashMap")) {
+    if head_name.clone().eq(String_from("Vec")) {
         return sig
     }
     let self_ty = types::resolve_type_ann_node_generic(head_type, impl_type_params)
