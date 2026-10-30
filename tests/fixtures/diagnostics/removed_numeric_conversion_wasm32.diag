@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined name: u8_to_i32; use `(x).to_i32()` on the narrow integer value instead

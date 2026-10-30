@@ -10,7 +10,7 @@
 //! stdlib-visible entry points. GC/LM representation differences are absorbed
 //! by the CoreOp / target intrinsic handlers behind those helpers (RFC-006 D5).
 
-use std::prelude::{Std, f32_to_f64}
+use std::prelude::{Std}
 
 fn raw_array_new<T>(cap: i32) -> Vec<T> {
     Std::panic(String_new()); return raw_array_new(cap)
@@ -91,10 +91,12 @@ fn raw_f64_to_string(value: f64) -> String {
     __intrinsic_f64_to_string(value)
 }
 
-// `f32_to_f64` instead of `__intrinsic_f32_promote_f64`: the emitted f64 temp for
-// the intrinsic defaults to i64 when the shell body is exported.
+// The f64 result type is carried by `ctx_fn_return_vt`; importing
+// `std::core::convert` here would load its `From` trait through the prelude
+// closure (`prelude -> scalar_format -> raw`) and change `impl From` name
+// resolution for every program.
 fn raw_f32_promote_f64(value: f32) -> f64 {
-    f32_to_f64(value)
+    __intrinsic_f32_to_f64(value)
 }
 
 /// Namespace for sealed raw `Vec<T>` representation operations.

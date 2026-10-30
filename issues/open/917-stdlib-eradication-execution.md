@@ -1904,45 +1904,58 @@ classified there, in dependency-safe waves.
   callback ABI remain compiler residuals (the owned-pair predicate avoids the
   latter).
 
-### Landed slice (wave/linked-list, 2026-10-30)
+### Landed slice (wave/numeric-conv, 2026-10-30)
 
-- **Group**: `std::collections::linked_list` — the last 11 `must delete`
-  legacy `linked_list_*` free functions, which the eradication-remain residual
-  list marked as needing a method surface.
-- **Method surface**: no new method was missing. Every free mapped onto an
-  existing `LinkedList<T>` inherent method: `new` / `push_front` /
-  `push_back` / `pop_front` / `pop_back` / `front` / `back` / `len` /
-  `is_empty` / `clear` / `iter`. `linked_list_to_vec` composes
-  `l.iter().collect()`. The old fallback argument is replaced by
-  `Option<T>` (`None` when empty); the manifest type surface already listed
-  all members.
-- **Removed**: the 11 declarations and their monomorphic `Vec<i32>` node-pool
-  layout / header / slot / alloc helpers in `std/collections/linked_list.ark`.
-  The in-file `test mod "linked_list"` moved to the method surface (12 tests)
-  and covers both-end order, pops, empty `Option::None`, len, clear, collect,
-  and free-list reuse.
-- **E0100**: `resolver::removed_names` gained
-  `removed_linked_list_member_hint` for all 11 names, wired into both the bare
-  and qualified (`linked_list` / `collections::linked_list` /
-  `std::collections::linked_list`) dispatch. Dual-target goldens:
-  `diagnostics/removed_linked_list_free*` (the qualified constructor hint).
-  Unit assertions cover the other ten names.
-- **Fixture**: registry 3617 -> **3619** (`verify fixtures` outcome count is
-  unchanged because `diag:` fixtures are checked by diag-parity).
-- **Scorecard**: eradication scope 69 -> **58**; `must delete` 53 -> **42**;
-  `associated-or-method` 16 and `intrinsic-only` 1 unchanged; manifest public
-  entries 69 -> **58**; `pub fn` declarations 69 -> **58**. The
-  `legacy linked_list frees` rule is removed because it matches no entry, and
-  the `std::collections::linked_list` function row disappears from the
-  scoreboard (the `LinkedList` type stays registered).
+- **Feasibility**: yes. The 17 numeric conversion frees were the last
+  `prelude_wrapper` family; every replacement method already existed in
+  `std::core::convert`. The methods delegated to the frees, and the
+  compiler's CoreOp binding table keyed the conversion operations on the bare
+  free names, so the retirement required moving the lowering ownership into
+  the methods and re-keying the aliases, not new runtime primitives.
+- **Landed**: `std/prelude.ark` no longer declares `u8_to_i32`, `u16_to_i32`,
+  `i8_to_i32`, `i16_to_i32`, `i32_to_u8`, `i32_to_u16`, `i32_to_i8`,
+  `i32_to_i16`, `i32_to_u32`, `u32_to_u64`, `u64_to_u32`, `i32_to_i64`,
+  `i64_to_i32`, `f32_to_f64`, `f64_to_f32`, `f64_bits_lo`, or
+  `f64_bits_hi`, and their 17 manifest entries are deleted. The receiver
+  methods (`u8::to_i32`, `i32::to_u8_wrapping`, `f64::to_bits_lo`, ...) now
+  lower through the `__intrinsic_*` conversion bridge directly.
+- **Compiler**: `data/core-ops.toml` drops the bare-name aliases and binds
+  the intrinsic names to the same CoreOps (including
+  `__intrinsic_scalar_f64_bits_lo/hi` for the bits methods);
+  `core_op_binding_generated.ark` is regenerated. The scalar-conversion
+  concrete-signature table in `typechecker/builtins.ark`, the W0009 numeric
+  table, and the gated-prelude entries are deleted. `ctx_fn_return_vt` types
+  the f32→f64/f64→f32 intrinsic results, and `register_use` rejects explicit
+  imports of the retired names with the method hint.
+- **E0100**: `resolver::removed_names` maps all 17 names to their receiver
+  method; `tests/fixtures/diagnostics/removed_numeric_conversion*` replace
+  the W0009 goldens. `prelude_concrete_arg_type` now pins the remaining
+  `String_from` concrete-signature check, and the two conversion-specific
+  argument-type diagnostics are deleted because the table they exercised is
+  gone.
+- **Bootstrap**: the committed pin's baked binding table still keys the bare
+  names, and its `ctx_fn_return_vt` does not type the float intrinsics.
+  `scripts/selfhost/checks.py` therefore re-adds the 17 declarations to the
+  overlay prelude and rewrites `std/core/convert.ark` method bodies (and
+  `raw.ark`'s f32 promotion) to the free-call spelling for the pin only.
+  Delete that bridge with the next pin refresh.
+- **Fixtures**: migrated `scalar/conversion`, `scalar/sign_extend`,
+  `scalar/suffix_literals`, `scalar/const_i32`,
+  `scalar/numeric_conversion_methods`, `scalar/numeric_explicit_conversions`,
+  `simd_conformance/float_lane_ops*`, `component/export_*f32*`,
+  `operators/arithmetic_edges`, `stdlib_bytes/*`, `stdlib_simd/*`, and
+  `stdlib_inline/abs_probe` to the method surface.
+- **Scorecard**: 69 → **52** public free symbols (`must delete` 53 → **36**),
+  manifest public entries 69 → **52**, `pub fn` declarations 69 → **52**,
+  `prelude_wrapper` entries 26 → **9**, monomorphic helpers 19 → **4**,
+  deprecated entries 52 → **35**.
 - **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
-  (112 runtime executed, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
-  `verify lane` PASS; `docs check` 6/6; `selfhost diag-parity` **268/268**
-  PASS; ADR-029 fixpoint PASS, s2 == s3 sha256
-  `601c36700cb72f01a744a98d0bfdfad7b3f36ee5123c6629c6f14d2b33bd44f1`
-  (pinned base `56ff0808…`). `selfhost build-compiler` ran twice (58.5 s,
-  53.1 s) because a formatting-only resolver edit landed after the first s2.
-- **Residuals**: the 11 `deque_*` frees remain under their #710 ADR-014
-  window; the `LinkedList<T>` cursor borrow / lifetime contract is unchanged
-  (ADR-086 §5). No lowering gap blocked this slice — both targets ran the
-  method surface.
+  (112 runtime, 43/43 `test:` PASS, 0 FAIL); `verify lane` PASS; `docs check`
+  **6/6**; `selfhost diag-parity` PASS; ADR-029 fixpoint PASS, s2 == s3
+  sha256 `947dd5a7635f3316901ea5f6eee128cf8b40a126678351716e983169cdacfb0a`
+  (pinned base `56ff0808…`). The changed scalar/bytes/simd/component fixtures
+  were compiled and run on both `wasm32-gc` and `wasm32`.
+- **Residuals**: the pinned-overlay numeric-conversion bridge remains until
+  the pin refresh. `raw.f64_bits_*` stays a `planned` native-c capability;
+  `f64::to_bits_*` lowers through the scalar handler. No numeric conversion
+  free remains user-reachable.

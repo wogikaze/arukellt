@@ -725,11 +725,13 @@ let msg = String_from("count: ").concat(n.to_string())
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::prelude::{parse_f64, parse_i32}
+use std::core::convert
 
-let s = (42).to_string()     // i32 → String
-let n = parse_i32(s)?        // String → Result<i32, String>
-let f = parse_f64(s)?        // String → Result<f64, String>
+let s = (42).to_string()        // i32 → String
+let n = i32::try_from(s)?       // String → Result<i32, String>
+let f = f64::try_from(s)?       // String → Result<f64, String>
+let wide: i64 = (42).into()     // i32 → i64
+let narrow = wide.to_i32_checked().unwrap_or(0)
 ```
 
 ### Math

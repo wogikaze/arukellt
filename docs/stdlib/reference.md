@@ -11,7 +11,7 @@
 | `stable` | 13 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 41 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 24 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -287,12 +287,6 @@ push(v, 2)
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | Encode a Unicode scalar as canonical UTF-8. |
 
-## Convert
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`i32_to_u32`~~ ⚠️ Deprecated → `i32::to_u32_bits` | `(i32) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
-
 ## Host Fs
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -355,32 +349,6 @@ let input = stdio::read_stdin()
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 
-## Numeric
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`f64_bits_hi`~~ ⚠️ Deprecated → `f64::to_bits_hi` | `(f64) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
-| ~~`f64_bits_lo`~~ ⚠️ Deprecated → `f64::to_bits_lo` | `(f64) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
-
-## Scalar Conversion
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`f32_to_f64`~~ ⚠️ Deprecated → `f32::to_f64` | `(f32) -> f64` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_f64` | - |
-| ~~`f64_to_f32`~~ ⚠️ Deprecated → `f64::to_f32` | `(f64) -> f32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_to_f32` | - |
-| ~~`i16_to_i32`~~ ⚠️ Deprecated → `i16::to_i32` | `(i16) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i16_to_i32` | - |
-| ~~`i32_to_i16`~~ ⚠️ Deprecated → `i32::to_i16_wrapping` | `(i32) -> i16` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i16` | - |
-| ~~`i32_to_i64`~~ ⚠️ Deprecated → `i32::into` | `(i32) -> i64` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i64` | - |
-| ~~`i32_to_i8`~~ ⚠️ Deprecated → `i32::to_i8_wrapping` | `(i32) -> i8` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i8` | - |
-| ~~`i32_to_u16`~~ ⚠️ Deprecated → `i32::to_u16_wrapping` | `(i32) -> u16` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u16` | - |
-| ~~`i32_to_u8`~~ ⚠️ Deprecated → `i32::to_u8_wrapping` | `(i32) -> u8` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u8` | - |
-| ~~`i64_to_i32`~~ ⚠️ Deprecated → `i64::to_i32_checked` | `(i64) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i64_to_i32` | - |
-| ~~`i8_to_i32`~~ ⚠️ Deprecated → `i8::to_i32` | `(i8) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
-| ~~`u16_to_i32`~~ ⚠️ Deprecated → `u16::to_i32` | `(u16) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u16_to_i32` | - |
-| ~~`u32_to_u64`~~ ⚠️ Deprecated → `u32::to_u64` | `(u32) -> u64` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u32_to_u64` | - |
-| ~~`u64_to_u32`~~ ⚠️ Deprecated → `u64::to_u32_wrapping` | `(u64) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
-| ~~`u8_to_i32`~~ ⚠️ Deprecated → `u8::to_i32` | `(u8) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u8_to_i32` | - |
-
 ## String
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -390,7 +358,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **41 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **24 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -410,28 +378,11 @@ let input = stdio::read_stdin()
 | ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`f32_to_f64`~~ | `f32::to_f64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
-| ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
-| ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_i16`~~ | `i32::to_i16_wrapping` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_i64`~~ | `i32::into` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_i8`~~ | `i32::to_i8_wrapping` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_u16`~~ | `i32::to_u16_wrapping` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_u32`~~ | `i32::to_u32_bits` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_u8`~~ | `i32::to_u8_wrapping` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i8_to_i32`~~ | `i8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
-| ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |

@@ -1,4 +1,3 @@
-use std::prelude::{i32_to_i64}
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
@@ -54,7 +53,7 @@ fn mir_int_literal_needs_i64(node: AstNode) -> bool {
     }
     if !is_hex_or_bin && !has_small_suffix {
         let as_i64 = decimal::parse_decimal_as_i64(ast_node::node_text(node))
-        let as_i32_ext: i64 = i32_to_i64(ast_node::node_int_val(node))
+        let as_i32_ext: i64 = __intrinsic_i32_to_i64(ast_node::node_int_val(node))
         return as_i64 != as_i32_ext
     }
     false

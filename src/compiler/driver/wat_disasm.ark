@@ -13,7 +13,7 @@
 //
 // 失敗時も trap せず、WAT コメント `;; GAP:` を差し込んで未対応箇所を残す。
 
-use std::prelude::{push, len, get_unchecked, String_from, i32_to_i64, i64_to_i32}
+use std::prelude::{push, len, get_unchecked, String_from}
 
 // ---------------------------------------------------------------------------
 // 定数
@@ -114,7 +114,7 @@ fn opcode_text(op: i32) -> String {
 // 符号なし 32bit として表示する（インデックス・件数・オフセット用）。
 fn text_u32(v: i32) -> String {
     if v < 0 {
-        return (i32_to_i64(v) & 4294967295i64).to_string()
+        return (__intrinsic_i32_to_i64(v) & 4294967295i64).to_string()
     }
     return v.to_string()
 }
@@ -174,7 +174,7 @@ fn read_u64(mut r: Rd) -> i64 {
     let mut i: i32 = 0
     while i < 10 {
         let b: i32 = read_byte(r)
-        result = result | (i32_to_i64(b & 0x7f) << shift)
+        result = result | (__intrinsic_i32_to_i64(b & 0x7f) << shift)
         shift = shift + 7i64
         if (b & 0x80) == 0 {
             break
@@ -213,7 +213,7 @@ fn read_s64(mut r: Rd) -> i64 {
     while i < 10 && more {
         let b: i32 = read_byte(r)
         last = b
-        result = result | (i32_to_i64(b & 0x7f) << shift)
+        result = result | (__intrinsic_i32_to_i64(b & 0x7f) << shift)
         shift = shift + 7i64
         more = (b & 0x80) != 0
         i = i + 1
@@ -241,8 +241,8 @@ fn read_u64_le(mut r: Rd) -> i64 {
     let b5: i32 = read_byte(r)
     let b6: i32 = read_byte(r)
     let b7: i32 = read_byte(r)
-    let lo: i64 = i32_to_i64(b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) & 4294967295i64
-    let hi: i64 = i32_to_i64(b4 | (b5 << 8) | (b6 << 16) | (b7 << 24)) & 4294967295i64
+    let lo: i64 = __intrinsic_i32_to_i64(b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) & 4294967295i64
+    let hi: i64 = __intrinsic_i32_to_i64(b4 | (b5 << 8) | (b6 << 16) | (b7 << 24)) & 4294967295i64
     return lo | (hi << 32i64)
 }
 
@@ -295,7 +295,7 @@ fn f64_text(bits: i64) -> String {
     if bits < 0i64 {
         sign = String_from("-")
     }
-    let e: i32 = i64_to_i32((bits >> 52i64) & 2047i64)
+    let e: i32 = __intrinsic_i64_to_i32((bits >> 52i64) & 2047i64)
     let frac: i64 = bits & 4503599627370495i64
     if e == 0x7ff {
         if frac == 0i64 {
@@ -321,12 +321,12 @@ fn f64_text(bits: i64) -> String {
 
 // f32 のビット列を WAT の 16 進浮動小数へ。6 桁 = 24bit 仮数で厳密に表せる。
 fn f32_text(raw: i32) -> String {
-    let bits: i64 = i32_to_i64(raw) & 4294967295i64
+    let bits: i64 = __intrinsic_i32_to_i64(raw) & 4294967295i64
     let mut sign: String = String_from("")
     if ((bits >> 31i64) & 1i64) != 0i64 {
         sign = String_from("-")
     }
-    let e: i32 = i64_to_i32((bits >> 23i64) & 255i64)
+    let e: i32 = __intrinsic_i64_to_i32((bits >> 23i64) & 255i64)
     let frac: i64 = bits & 8388607i64
     if e == 0xff {
         if frac == 0i64 {
@@ -357,7 +357,7 @@ fn u64_hex(v: i64) -> String {
     let mut digits: Vec<String> = Vec::new<String>()
     let mut x: i64 = v
     while x > 0i64 {
-        push(digits, hex_digit(i64_to_i32(x & 15i64)))
+        push(digits, hex_digit(__intrinsic_i64_to_i32(x & 15i64)))
         x = x >> 4i64
     }
     let mut reversed: Vec<String> = Vec::new<String>()
@@ -373,7 +373,7 @@ fn u64_hex_pad(v: i64, digits: i32) -> String {
     let mut out: Vec<String> = Vec::new<String>()
     let mut i: i32 = digits - 1
     while i >= 0 {
-        push(out, hex_digit(i64_to_i32((v >> i32_to_i64(i * 4)) & 15i64)))
+        push(out, hex_digit(__intrinsic_i64_to_i32((v >> __intrinsic_i32_to_i64(i * 4)) & 15i64)))
         i = i - 1
     }
     return out.join(String_from(""))
@@ -566,7 +566,7 @@ fn read_limits_text(mut r: Rd) -> String {
     if has_pagesize {
         // custom-page-sizes: limits の後ろに log2(page_size) が続く。
         let log2: i32 = read_u32(r)
-        s = s.concat(" (pagesize 0x").concat(u64_hex(1i64 << i32_to_i64(log2))).concat(")")
+        s = s.concat(" (pagesize 0x").concat(u64_hex(1i64 << __intrinsic_i32_to_i64(log2))).concat(")")
     }
     return s
 }

@@ -23,10 +23,6 @@ pub fn deprecated_use_message(path: String) -> String {
 // ── Deprecated bare prelude calls ──────────────────────────────────────
 
 pub fn deprecated_call_message(name: String) -> String {
-    let numeric = deprecated_numeric_call_message(name.clone())
-    if len(numeric) > 0 {
-        return numeric
-    }
     let vec = deprecated_vec_call_message(name.clone())
     if len(vec) > 0 {
         return vec
@@ -34,66 +30,6 @@ pub fn deprecated_call_message(name: String) -> String {
     let assertion = deprecated_assert_call_message(name.clone())
     if len(assertion) > 0 {
         return assertion
-    }
-    String_new()
-}
-
-// The stable must-delete wave converted 60 entries to `deprecated` under
-// ADR-087. Their bare names warn here while they remain resolvable; physical
-// deletion is Wave 2. `clear`, `map_option_String_String`, and
-// `map_result_i32_i32` were stale non-callable entries and were retired
-// directly. `i8_to_i32` joined the numeric set once `i8::to_i32` landed.
-fn deprecated_numeric_call_message(name: String) -> String {
-    if name.clone().eq("u8_to_i32") {
-        return "use `(x).to_i32()` on the `u8` value instead"
-    }
-    if name.clone().eq("i8_to_i32") {
-        return "use `(x).to_i32()` on the `i8` value instead"
-    }
-    if name.clone().eq("u16_to_i32") {
-        return "use `(x).to_i32()` on the `u16` value instead"
-    }
-    if name.clone().eq("i16_to_i32") {
-        return "use `(x).to_i32()` on the `i16` value instead"
-    }
-    if name.clone().eq("i32_to_u8") {
-        return "use `(x).to_u8_wrapping()` instead"
-    }
-    if name.clone().eq("i32_to_u16") {
-        return "use `(x).to_u16_wrapping()` instead"
-    }
-    if name.clone().eq("i32_to_i8") {
-        return "use `(x).to_i8_wrapping()` instead"
-    }
-    if name.clone().eq("i32_to_i16") {
-        return "use `(x).to_i16_wrapping()` instead"
-    }
-    if name.clone().eq("u32_to_u64") {
-        return "use `(x).to_u64()` instead"
-    }
-    if name.clone().eq("u64_to_u32") {
-        return "use `(x).to_u32_wrapping()` instead"
-    }
-    if name.clone().eq("i32_to_i64") {
-        return "use `(x).into()` instead"
-    }
-    if name.clone().eq("i64_to_i32") {
-        return "use `(x).to_i32_checked()` (or wrapping/saturating) instead"
-    }
-    if name.clone().eq("f32_to_f64") {
-        return "use `(x).to_f64()` instead"
-    }
-    if name.clone().eq("f64_to_f32") {
-        return "use `(x).to_f32()` instead"
-    }
-    if name.clone().eq("i32_to_u32") {
-        return "use `(x).to_u32_bits()` instead"
-    }
-    if name.clone().eq("f64_bits_lo") {
-        return "use `(x).to_bits_lo()` instead"
-    }
-    if name.clone().eq("f64_bits_hi") {
-        return "use `(x).to_bits_hi()` instead"
     }
     String_new()
 }
@@ -198,6 +134,8 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("println")) == 0)
         assert(len(deprecated_call_message("concat")) == 0)
         assert(len(deprecated_call_message("char_at")) == 0)
+        assert(len(deprecated_call_message("u8_to_i32")) == 0)
+        assert(len(deprecated_call_message("i32_to_i64")) == 0)
     }
     test "math_helpers_removed" { assert(len(deprecated_qualified_call_message("math::popcount")) == 0) }
     test "core_frees_removed" {
@@ -216,25 +154,6 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("seq::max_by")) == 0)
         assert(len(deprecated_qualified_call_message("seq::min_by_key")) == 0)
         assert(len(deprecated_qualified_call_message("seq::max_by_key")) == 0)
-    }
-    test "numeric_frees_warn_w0009" {
-        assert(len(deprecated_call_message("u8_to_i32")) > 0)
-        assert(len(deprecated_call_message("i8_to_i32")) > 0)
-        assert(len(deprecated_call_message("u16_to_i32")) > 0)
-        assert(len(deprecated_call_message("i16_to_i32")) > 0)
-        assert(len(deprecated_call_message("i32_to_u8")) > 0)
-        assert(len(deprecated_call_message("i32_to_u16")) > 0)
-        assert(len(deprecated_call_message("i32_to_i8")) > 0)
-        assert(len(deprecated_call_message("i32_to_i16")) > 0)
-        assert(len(deprecated_call_message("u32_to_u64")) > 0)
-        assert(len(deprecated_call_message("u64_to_u32")) > 0)
-        assert(len(deprecated_call_message("i32_to_i64")) > 0)
-        assert(len(deprecated_call_message("i64_to_i32")) > 0)
-        assert(len(deprecated_call_message("f32_to_f64")) > 0)
-        assert(len(deprecated_call_message("f64_to_f32")) > 0)
-        assert(len(deprecated_call_message("i32_to_u32")) > 0)
-        assert(len(deprecated_call_message("f64_bits_lo")) > 0)
-        assert(len(deprecated_call_message("f64_bits_hi")) > 0)
     }
     test "vec_frees_warn_w0009" {
         assert(len(deprecated_call_message("push")) > 0)

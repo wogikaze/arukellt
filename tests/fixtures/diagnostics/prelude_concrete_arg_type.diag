@@ -1,1 +1,1 @@
-error[E0200|typecheck]: type mismatch in call to `f64_bits_lo`: argument 1 has type String, expected f64
+error[E0200|typecheck]: type mismatch in call to `String_from`: argument 1 has type i32, expected String

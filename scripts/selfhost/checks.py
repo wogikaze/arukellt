@@ -274,6 +274,59 @@ def _rewrite_bootstrap_wit_type_paths_text(text: str) -> str:
     return re.sub(rf"\b(?:ast|types|world)::({names})\b", r"\1", text)
 
 
+def _patch_bootstrap_numeric_conversion_bridge(overlay_root: Path) -> None:
+    """Adapt the retired numeric conversion frees for the pinned bootstrap.
+
+    The pin's baked CoreOp binding table keys the conversion operations on the
+    retired bare names, and its ``ctx_fn_return_vt`` does not type the f32/f64
+    intrinsic results. Re-add the prelude declarations and rewrite the
+    ``std/core/convert.ark`` method bodies to the free-call spelling so the pin
+    emits the same operations. Overlay-only: checked-in std keeps the
+    ``__intrinsic_*`` lowering keys. Delete with the pin refresh.
+    """
+    prelude_path = overlay_root / "std" / "prelude.ark"
+    if not prelude_path.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing std/prelude.ark for the numeric conversion bridge"
+        )
+    prelude = prelude_path.read_text(encoding="utf-8")
+    if "pub fn u8_to_i32" not in prelude:
+        prelude_path.write_text(prelude + BOOTSTRAP_NUMERIC_FREE_DECLS, encoding="utf-8")
+
+    convert_path = overlay_root / "std" / "core" / "convert.ark"
+    if not convert_path.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing std/core/convert.ark for the numeric conversion bridge"
+        )
+    text = convert_path.read_text(encoding="utf-8")
+    text = _replace_required(
+        text,
+        "use std::text\n",
+        "use std::text\n" + BOOTSTRAP_NUMERIC_CONVERT_IMPORT + "\n",
+        "numeric conversion bridge: restore prelude import in convert.ark",
+    )
+    for intrinsic, free in BOOTSTRAP_NUMERIC_CONVERT_INTRINSICS:
+        text = text.replace(f"{intrinsic}(", f"{free}(")
+    if "__intrinsic_f32_to_f64(" in text or "__intrinsic_scalar_f64_bits_lo(" in text:
+        raise BootstrapOverlayError(
+            "numeric conversion bridge left a method body on an intrinsic the pin cannot lower"
+        )
+    convert_path.write_text(text, encoding="utf-8")
+
+    # `std/core/raw.ark` is in the prelude closure, so it cannot import
+    # `std::core::convert` without exposing that module's `From` trait to every
+    # program. It uses the f32 intrinsic directly; rewrite it for the pin, whose
+    # return-vt table does not type the intrinsic result.
+    raw_path = overlay_root / "std" / "core" / "raw.ark"
+    if not raw_path.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap overlay missing std/core/raw.ark for the numeric conversion bridge"
+        )
+    raw_text = raw_path.read_text(encoding="utf-8")
+    raw_text = raw_text.replace("__intrinsic_f32_to_f64(", "f32_to_f64(")
+    raw_path.write_text(raw_text, encoding="utf-8")
+
+
 def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
     """Route the bootstrap compiler's ``Env::*`` calls through the free builtins.
 
@@ -325,9 +378,9 @@ def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
     """Reject an overlay that leaves a host clock read in an i32 timing slot.
 
     The overlay narrows the driver timing slots to i32 and re-widens them with
-    ``i32_to_i64(<slot>)`` at the emit call sites. A clock read that escapes
+    ``__intrinsic_i32_to_i64(<slot>)`` at the emit call sites. A clock read that escapes
     the stub keeps its i64 result, so the widening becomes
-    ``i32_to_i64(<i64>)`` and the generated compiler is invalid core Wasm
+    ``__intrinsic_i32_to_i64(<i64>)`` and the generated compiler is invalid core Wasm
     (``type mismatch: expected i32, found i64``) after a 25+ minute build.
     ``std/host/clock.ark`` ships in the overlay, so the checked-in ``Clock::*``
     spelling is valid source; only an unstubbed read in a driver timing file is
@@ -350,9 +403,9 @@ def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
         if not path.name.startswith("driver_"):
             continue
         text = path.read_text(encoding="utf-8")
-        # keep_clock mode wraps the read as i64_to_i32(... / 1000000i64); that
+        # keep_clock mode wraps the read as __intrinsic_i64_to_i32(... / 1000000i64); that
         # form yields the i32 the timing slots expect.
-        if re.search(r"(?<!i64_to_i32\()(?:Clock|clock)::monotonic_now\(", text):
+        if re.search(r"(?<!__intrinsic_i64_to_i32\()(?:Clock|clock)::monotonic_now\(", text):
             offenders.append(
                 f"{path.relative_to(workspace_root)}: unstubbed "
                 "monotonic_now() in an i32 driver timing slot"
@@ -361,7 +414,7 @@ def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
         raise BootstrapOverlayError(
             "bootstrap overlay clock stubbing is incomplete; the driver timing "
             "slots are i32 and would receive i64 clock reads (invalid "
-            "i32_to_i64, expected i32 found i64): " + "; ".join(offenders[:5])
+            "__intrinsic_i32_to_i64, expected i32 found i64): " + "; ".join(offenders[:5])
         )
 
 
@@ -662,6 +715,64 @@ pub fn bootstrap_emit_wit_from_decls_with_world(decls: Vec<AstNode>, world: Stri
 pub fn bootstrap_collect_wit_export_roots(decls: Vec<AstNode>) -> Vec<String> {
     component_wit_text__collect_export_roots(decls)
 }
+"""
+
+# Numeric conversion bridge for the pinned bootstrap.
+#
+# The checked-in tree retired the 17 `*_to_*` / `*_bits_*` prelude frees and
+# moved the lowering keys onto the `__intrinsic_*` names (ADR-046 / ADR-067).
+# The committed pin's baked CoreOp binding table still keys those operations on
+# the bare free names, so the overlay supplies the retired declarations and
+# rewrites the method bodies for the pin only. Delete this bridge when the pin
+# is refreshed to a compiler whose table contains the intrinsic aliases.
+BOOTSTRAP_NUMERIC_CONVERT_INTRINSICS = (
+    ("__intrinsic_i32_to_i64", "i32_to_i64"),
+    ("__intrinsic_i64_to_i32", "i64_to_i32"),
+    ("__intrinsic_u8_to_i32", "u8_to_i32"),
+    ("__intrinsic_u16_to_i32", "u16_to_i32"),
+    ("__intrinsic_i8_to_i32", "i8_to_i32"),
+    ("__intrinsic_i16_to_i32", "i16_to_i32"),
+    ("__intrinsic_i32_to_u8", "i32_to_u8"),
+    ("__intrinsic_i32_to_i8", "i32_to_i8"),
+    ("__intrinsic_i32_to_u16", "i32_to_u16"),
+    ("__intrinsic_i32_to_i16", "i32_to_i16"),
+    ("__intrinsic_i32_to_u32", "i32_to_u32"),
+    ("__intrinsic_u32_to_u64", "u32_to_u64"),
+    ("__intrinsic_u64_to_u32", "u64_to_u32"),
+    ("__intrinsic_f32_to_f64", "f32_to_f64"),
+    ("__intrinsic_f64_to_f32", "f64_to_f32"),
+    ("__intrinsic_scalar_f64_bits_lo", "f64_bits_lo"),
+    ("__intrinsic_scalar_f64_bits_hi", "f64_bits_hi"),
+)
+
+BOOTSTRAP_NUMERIC_CONVERT_IMPORT = (
+    "use std::prelude::{i32_to_i64, i64_to_i32, u8_to_i32, u16_to_i32, "
+    "i8_to_i32, i16_to_i32, i32_to_u8, i32_to_i8, i32_to_u16, i32_to_i16, "
+    "i32_to_u32, u32_to_u64, u64_to_u32, f32_to_f64, f64_to_f32, "
+    "f64_bits_lo, f64_bits_hi}"
+)
+
+BOOTSTRAP_NUMERIC_FREE_DECLS = """
+// Bootstrap overlay bridge: the pin's CoreOp binding table keys these
+// conversions on the pre-retirement free names. Overlay-only; never shipped
+// as checked-in std source.
+pub fn u8_to_i32(x: u8) -> i32 { Std::panic(String_new()); return 0 }
+pub fn u16_to_i32(x: u16) -> i32 { Std::panic(String_new()); return 0 }
+pub fn i8_to_i32(x: i8) -> i32 { Std::panic(String_new()); return 0 }
+pub fn i16_to_i32(x: i16) -> i32 { Std::panic(String_new()); return 0 }
+pub fn i32_to_u8(x: i32) -> u8 { Std::panic(String_new()); return 0 }
+pub fn i32_to_u16(x: i32) -> u16 { Std::panic(String_new()); return 0 }
+pub fn i32_to_i8(x: i32) -> i8 { Std::panic(String_new()); return 0 }
+pub fn i32_to_i16(x: i32) -> i16 { Std::panic(String_new()); return 0 }
+pub fn u32_to_u64(x: u32) -> u64 { Std::panic(String_new()); return 0_u64 }
+pub fn u64_to_u32(x: u64) -> u32 { Std::panic(String_new()); return 0 }
+pub fn i32_to_i64(x: i32) -> i64 { Std::panic(String_new()); return 0_i64 }
+pub fn i64_to_i32(x: i64) -> i32 { Std::panic(String_new()); return 0 }
+pub fn f32_to_f64(x: f32) -> f64 { Std::panic(String_new()); return 0.0 }
+pub fn f64_to_f32(x: f64) -> f32 { Std::panic(String_new()); return 0.0f32 }
+pub fn i32_to_u32(n: i32) -> u32 { Std::panic(String_new()); return 0 }
+pub fn f64_bits_lo(x: f64) -> i32 { __core_scalar_f64_bits_lo_impl(x) }
+pub fn f64_bits_hi(x: f64) -> i32 { __core_scalar_f64_bits_hi_impl(x) }
 """
 
 LOCAL_COMPILER_NAMESPACES = {
@@ -2070,14 +2181,14 @@ def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
             text = _replace_optional(
                 text,
                 spelling,
-                "i64_to_i32(clock::monotonic_now() / 1000000i64)",
+                "__intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64)",
                 f"driver_timing: keep_clock {spelling} → i32 ms",
             )
         # Stored values are already ms; do not divide again in phase_timing_ms.
         text = _replace_optional(
             text,
-            "i64_to_i32(diff / 1000000i64)",
-            "i64_to_i32(diff)",
+            "__intrinsic_i64_to_i32(diff / 1000000i64)",
+            "__intrinsic_i64_to_i32(diff)",
             "driver_timing: keep_clock phase_timing_ms already ms",
         )
     else:
@@ -2088,12 +2199,12 @@ def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
     phase_calls = (
         (
             'debug::note_phase_if_enabled(config, "driver.lex", t0, t_lex)',
-            'debug::note_phase_if_enabled(config, "driver.lex", i32_to_i64(t0), i32_to_i64(t_lex))',
+            'debug::note_phase_if_enabled(config, "driver.lex", __intrinsic_i32_to_i64(t0), __intrinsic_i32_to_i64(t_lex))',
             "driver_timing: lex phase timestamps i32_to_i64 wrapping",
         ),
         (
             'debug::note_phase_if_enabled(config, "driver.parse", t_lex, t_parse)',
-            'debug::note_phase_if_enabled(config, "driver.parse", i32_to_i64(t_lex), i32_to_i64(t_parse))',
+            'debug::note_phase_if_enabled(config, "driver.parse", __intrinsic_i32_to_i64(t_lex), __intrinsic_i32_to_i64(t_parse))',
             "driver_timing: parse phase timestamps i32_to_i64 wrapping",
         ),
     )
@@ -2161,7 +2272,7 @@ def _patch_bootstrap_driver_timing_fields(text: str) -> str:
         )
     # The field rewrite above also matches multi-line function parameters. Emit
     # timing APIs must stay i64 so call sites that pass run_backend timestamps
-    # and i32_to_i64(...) wrappers remain type-correct (#823).
+    # and __intrinsic_i32_to_i64(...) wrappers remain type-correct (#823).
     for field in ("t0", "t_lex", "t_parse", "t_resolve", "t_typecheck"):
         text = _sub_optional(
             text,
@@ -2267,27 +2378,27 @@ def _patch_bootstrap_driver_timing_backend(text: str) -> str:
     phase_calls = (
         (
             'debug::note_phase_if_enabled(config, "driver.resolve", t_parse, t_resolve)',
-            'debug::note_phase_if_enabled(config, "driver.resolve", t_parse, i32_to_i64(t_resolve))',
+            'debug::note_phase_if_enabled(config, "driver.resolve", t_parse, __intrinsic_i32_to_i64(t_resolve))',
             "driver_timing: resolve phase end i32_to_i64 wrapping",
         ),
         (
             'debug::note_phase_if_enabled(config, "driver.typecheck", t_resolve, t_typecheck)',
-            'debug::note_phase_if_enabled(config, "driver.typecheck", i32_to_i64(t_resolve), i32_to_i64(t_typecheck))',
+            'debug::note_phase_if_enabled(config, "driver.typecheck", __intrinsic_i32_to_i64(t_resolve), __intrinsic_i32_to_i64(t_typecheck))',
             "driver_timing: typecheck phase timestamps i32_to_i64 wrapping",
         ),
         (
             'debug::note_phase_if_enabled(config, "driver.lower", t_typecheck, t_lower)',
-            'debug::note_phase_if_enabled(config, "driver.lower", i32_to_i64(t_typecheck), i32_to_i64(t_lower))',
+            'debug::note_phase_if_enabled(config, "driver.lower", __intrinsic_i32_to_i64(t_typecheck), __intrinsic_i32_to_i64(t_lower))',
             "driver_timing: lower phase timestamps i32_to_i64 wrapping",
         ),
         (
             'debug::note_phase_if_enabled(config, "driver.mir_opt", t_lower, t_mir_opt)',
-            'debug::note_phase_if_enabled(config, "driver.mir_opt", i32_to_i64(t_lower), i32_to_i64(t_mir_opt))',
+            'debug::note_phase_if_enabled(config, "driver.mir_opt", __intrinsic_i32_to_i64(t_lower), __intrinsic_i32_to_i64(t_mir_opt))',
             "driver_timing: mir_opt phase timestamps i32_to_i64 wrapping",
         ),
         (
             'debug::note_phase_if_enabled(config, "driver.mir_verify", t_mir_opt, t_mir_verify)',
-            'debug::note_phase_if_enabled(config, "driver.mir_verify", i32_to_i64(t_mir_opt), i32_to_i64(t_mir_verify))',
+            'debug::note_phase_if_enabled(config, "driver.mir_verify", __intrinsic_i32_to_i64(t_mir_opt), __intrinsic_i32_to_i64(t_mir_verify))',
             "driver_timing: mir_verify phase timestamps i32_to_i64 wrapping",
         ),
     )
@@ -2296,7 +2407,7 @@ def _patch_bootstrap_driver_timing_backend(text: str) -> str:
     text = _replace_optional(
         text,
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))",
-        "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), i32_to_i64(pipeline_frontend::frontend_result_t0(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_lex(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_parse(frontend)))",
+        "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), __intrinsic_i32_to_i64(pipeline_frontend::frontend_result_t0(frontend)), __intrinsic_i32_to_i64(pipeline_frontend::frontend_result_t_lex(frontend)), __intrinsic_i32_to_i64(pipeline_frontend::frontend_result_t_parse(frontend)))",
         "driver_timing: run_backend i32_to_i64 wrapping",
     )
     timestamp_getters = (
@@ -2308,13 +2419,13 @@ def _patch_bootstrap_driver_timing_backend(text: str) -> str:
         text = _replace_optional(
             text,
             f"let {field}: i64 = pipeline_frontend::{getter}(frontend)",
-            f"let {field}: i64 = i32_to_i64(pipeline_frontend::{getter}(frontend))",
+            f"let {field}: i64 = __intrinsic_i32_to_i64(pipeline_frontend::{getter}(frontend))",
             f"driver_timing: pipeline_backend {field} getter i32_to_i64 wrapping",
         )
     text = _replace_optional(
         text,
         "backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked)",
-        "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)), i32_to_i64(backend_typecheck::typecheck_result_t_typecheck(checked))",
+        "__intrinsic_i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)), __intrinsic_i32_to_i64(backend_typecheck::typecheck_result_t_typecheck(checked))",
         "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
     text = _replace_optional(
@@ -2338,11 +2449,11 @@ def _patch_bootstrap_driver_timing_backend(text: str) -> str:
         t0,
         t_lex,
         t_parse,
-        i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),
-        i32_to_i64(t_typecheck),
-        i32_to_i64(t_lower),
-        i32_to_i64(t_mir_opt),
-        i32_to_i64(t_mir_verify),
+        __intrinsic_i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),
+        __intrinsic_i32_to_i64(t_typecheck),
+        __intrinsic_i32_to_i64(t_lower),
+        __intrinsic_i32_to_i64(t_mir_opt),
+        __intrinsic_i32_to_i64(t_mir_verify),
         wit_decls
     )""",
         "driver_timing: current emit_output timestamps i32_to_i64 wrapping",
@@ -2355,12 +2466,12 @@ def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
     phase_calls = (
         (
             'debug::note_phase_if_enabled(config, "driver.emit.enter", t_mir_verify, t_emit_enter)',
-            'debug::note_phase_if_enabled(config, "driver.emit.enter", t_mir_verify, i32_to_i64(t_emit_enter))',
+            'debug::note_phase_if_enabled(config, "driver.emit.enter", t_mir_verify, __intrinsic_i32_to_i64(t_emit_enter))',
             "driver_timing: emit-enter phase end i32_to_i64 wrapping",
         ),
         (
             'debug::note_phase_if_enabled(config, "driver.emit.wit_bind", t_emit_enter, t_bind)',
-            'debug::note_phase_if_enabled(config, "driver.emit.wit_bind", i32_to_i64(t_emit_enter), i32_to_i64(t_bind))',
+            'debug::note_phase_if_enabled(config, "driver.emit.wit_bind", __intrinsic_i32_to_i64(t_emit_enter), __intrinsic_i32_to_i64(t_bind))',
             "driver_timing: wit-bind phase timestamps i32_to_i64 wrapping",
         ),
     )
@@ -2370,34 +2481,34 @@ def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
     text = _replace_optional(
         text,
         "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
-        "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        i32_to_i64(t_lower),\n        i32_to_i64(t_mir_opt),\n        i32_to_i64(t_mir_verify)\n    )",
+        "__intrinsic_i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        __intrinsic_i32_to_i64(t_typecheck),\n        __intrinsic_i32_to_i64(t_lower),\n        __intrinsic_i32_to_i64(t_mir_opt),\n        __intrinsic_i32_to_i64(t_mir_verify)\n    )",
         "driver_timing: emit_output backend timestamps i32_to_i64 wrapping",
     )
     text = _replace_optional(
         text,
         "typecheck_result_t_typecheck(checked)), t_lower)",
-        "typecheck_result_t_typecheck(checked)), i32_to_i64(t_lower))",
+        "typecheck_result_t_typecheck(checked)), __intrinsic_i32_to_i64(t_lower))",
         "driver_timing: t_lower i32_to_i64 wrapping",
     )
     text = _replace_optional(
         text,
         "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
-        "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
-        "driver_timing: driver_debug::emit_phase_timing i32_to_i64(0)",
+        "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, __intrinsic_i32_to_i64(0))",
+        "driver_timing: driver_debug::emit_phase_timing __intrinsic_i32_to_i64(0)",
     )
     text = _replace_optional(
         text,
         "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
-        "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
-        "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
+        "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, __intrinsic_i32_to_i64(0))",
+        "driver_timing: debug::emit_phase_timing __intrinsic_i32_to_i64(0)",
     )
     if keep_clock:
         # Clock group rewrites now()→i32 ms globally; emit_phase_timing's final
         # param is i64, so widen the trailing clock read back to i64 ms.
         text = _sub_optional(
             text,
-            r"(debug::emit_phase_timing\([\s\S]*?t_mir_verify,\n)(\s*)i64_to_i32\(clock::monotonic_now\(\) / 1000000i64\)(\n\s*\))",
-            r"\1\2i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))\3",
+            r"(debug::emit_phase_timing\([\s\S]*?t_mir_verify,\n)(\s*)__intrinsic_i64_to_i32\(clock::monotonic_now\(\) / 1000000i64\)(\n\s*\))",
+            r"\1\2__intrinsic_i32_to_i64(__intrinsic_i64_to_i32(clock::monotonic_now() / 1000000i64))\3",
             "driver_timing: emit_phase_timing widen trailing i32 ms → i64",
             flags=re.M,
             count=1,
@@ -2406,8 +2517,8 @@ def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
     text = _replace_optional(
         text,
         "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            0\n        )",
-        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
-        "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
+        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            __intrinsic_i32_to_i64(0)\n        )",
+        "driver_timing: emit_phase_timing trailing __intrinsic_i32_to_i64(0)",
     )
     return text
 
@@ -2466,7 +2577,7 @@ def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = Fal
         text = _replace_optional(
             text,
             spelling,
-            "i32_to_i64(0)",
+            "__intrinsic_i32_to_i64(0)",
             f"mir_lower_timing: stub {spelling}",
         )
     return text
@@ -4763,6 +4874,7 @@ def _prepare_flattened_selfhost_source_locked(
                 "bootstrap overlay missing canonical core source: std/core/" + core_rel
             )
         shutil.copyfile(core_src, core_dst / core_rel)
+    _patch_bootstrap_numeric_conversion_bridge(overlay_root)
     _strip_bootstrap_param_modes(overlay_root)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.

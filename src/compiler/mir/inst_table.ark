@@ -2,7 +2,6 @@ use corehir::mir_value_type
 use corehir::type_id
 // Column store for MirInst. Handles are (table, hid). Floats are kept as
 // IEEE-754 bits so compiler-source records do not carry nested f64 fields.
-use std::prelude::{f64_bits_hi, f64_bits_lo}
 
 pub struct MirFloatBits {
     lo: i32,
@@ -11,8 +10,8 @@ pub struct MirFloatBits {
 
 fn MirFloatBits_new(value: f64) -> MirFloatBits {
     MirFloatBits {
-        lo: f64_bits_lo(value),
-        hi: f64_bits_hi(value),
+        lo: __intrinsic_f64_bits_lo(value),
+        hi: __intrinsic_f64_bits_hi(value),
     }
 }
 

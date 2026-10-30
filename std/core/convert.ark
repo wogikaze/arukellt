@@ -3,7 +3,7 @@
 // Unified namespace for type conversions (wraps existing intrinsics).
 
 use std::text
-use std::prelude::{f32_to_f64, f64_bits_hi, f64_bits_lo, f64_to_f32, i32_to_i16, i32_to_i8, i32_to_u16, i32_to_u32, i32_to_u8, i8_to_i32, i16_to_i32, u16_to_i32, u32_to_u64, u64_to_u32, u8_to_i32}
+
 /// Trait for types that can be converted to a human-readable string
 /// representation.
 ///
@@ -410,27 +410,27 @@ impl i32 {
 
     /// Converts to `u8` by masking with `0xFF` (wrapping at the target width).
     fn to_u8_wrapping(self: i32) -> u8 {
-        i32_to_u8(self)
+        __intrinsic_i32_to_u8(self)
     }
 
     /// Converts to `u16` by masking with `0xFFFF` (wrapping at the target width).
     fn to_u16_wrapping(self: i32) -> u16 {
-        i32_to_u16(self)
+        __intrinsic_i32_to_u16(self)
     }
 
     /// Converts to `i8` by truncating to the low 8 bits.
     fn to_i8_wrapping(self: i32) -> i8 {
-        i32_to_i8(self)
+        __intrinsic_i32_to_i8(self)
     }
 
     /// Converts to `i16` by truncating to the low 16 bits.
     fn to_i16_wrapping(self: i32) -> i16 {
-        i32_to_i16(self)
+        __intrinsic_i32_to_i16(self)
     }
 
     /// Reinterprets the i32 bit pattern as `u32` (no numeric conversion).
     fn to_u32_bits(self: i32) -> u32 {
-        i32_to_u32(self)
+        __intrinsic_i32_to_u32(self)
     }
 }
 
@@ -545,17 +545,17 @@ impl f64 {
 
     /// Rounds to `f32` with the WebAssembly / IEEE binary32 rounding mode.
     fn to_f32(self: f64) -> f32 {
-        f64_to_f32(self)
+        __intrinsic_f64_to_f32(self)
     }
 
     /// Returns the low 32 bits of the IEEE 754 binary64 bit pattern.
     fn to_bits_lo(self: f64) -> i32 {
-        f64_bits_lo(self)
+        __intrinsic_scalar_f64_bits_lo(self)
     }
 
     /// Returns the high 32 bits of the IEEE 754 binary64 bit pattern.
     fn to_bits_hi(self: f64) -> i32 {
-        f64_bits_hi(self)
+        __intrinsic_scalar_f64_bits_hi(self)
     }
 }
 
@@ -682,7 +682,7 @@ impl TryFrom<i64> for i32 {
 impl u8 {
     /// Zero-extends the low 8 bits to `i32`.
     fn to_i32(self: u8) -> i32 {
-        u8_to_i32(self)
+        __intrinsic_u8_to_i32(self)
     }
 }
 
@@ -690,7 +690,7 @@ impl u8 {
 impl i8 {
     /// Sign-extends the low 8 bits to `i32`.
     fn to_i32(self: i8) -> i32 {
-        i8_to_i32(self)
+        __intrinsic_i8_to_i32(self)
     }
 }
 
@@ -698,7 +698,7 @@ impl i8 {
 impl u16 {
     /// Zero-extends the low 16 bits to `i32`.
     fn to_i32(self: u16) -> i32 {
-        u16_to_i32(self)
+        __intrinsic_u16_to_i32(self)
     }
 }
 
@@ -706,7 +706,7 @@ impl u16 {
 impl i16 {
     /// Sign-extends the low 16 bits to `i32`.
     fn to_i32(self: i16) -> i32 {
-        i16_to_i32(self)
+        __intrinsic_i16_to_i32(self)
     }
 }
 
@@ -714,7 +714,7 @@ impl i16 {
 impl u32 {
     /// Zero-extends to `u64`.
     fn to_u64(self: u32) -> u64 {
-        u32_to_u64(self)
+        __intrinsic_u32_to_u64(self)
     }
 }
 
@@ -722,7 +722,7 @@ impl u32 {
 impl u64 {
     /// Truncates to the low 32 bits (wrapping at the target width).
     fn to_u32_wrapping(self: u64) -> u32 {
-        u64_to_u32(self)
+        __intrinsic_u64_to_u32(self)
     }
 }
 
@@ -730,6 +730,6 @@ impl u64 {
 impl f32 {
     /// Widens to `f64` exactly (all `f32` values are representable).
     fn to_f64(self: f32) -> f64 {
-        f32_to_f64(self)
+        __intrinsic_f32_to_f64(self)
     }
 }

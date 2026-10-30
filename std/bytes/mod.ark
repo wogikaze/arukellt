@@ -26,7 +26,7 @@
 
 use std::collections::string
 use std::text
-use std::prelude::{i32_to_i64, i64_to_i32}
+use std::core::convert
 
 /// Namespace for byte-vector constructors and decoders.
 ///
@@ -181,9 +181,9 @@ impl Bytes {
         let mut val: i64 = x
         let mut done: bool = false
         while done == false {
-            let byte: i32 = i64_to_i32(val & i32_to_i64(127))
-            val = val >> i32_to_i64(7)
-            if val != i32_to_i64(0) {
+            let byte: i32 = (val & 127i64).to_i32_wrapping()
+            val = val >> 7i64
+            if val != 0i64 {
                 push(result, byte | 128)
             } else {
                 push(result, byte)
@@ -346,15 +346,15 @@ impl Vec<i32> {
 
     /// Appends `x` as eight little-endian bytes.
     fn push_u64_le(mut self: Vec<i32>, x: i64) {
-        let mask: i64 = i32_to_i64(255)
-        push(self, i64_to_i32(x & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(8) & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(16) & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(24) & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(32) & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(40) & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(48) & mask))
-        push(self, i64_to_i32(x >> i32_to_i64(56) & mask))
+        let mask: i64 = 255i64
+        push(self, (x & mask).to_i32_wrapping())
+        push(self, (x >> 8i64 & mask).to_i32_wrapping())
+        push(self, (x >> 16i64 & mask).to_i32_wrapping())
+        push(self, (x >> 24i64 & mask).to_i32_wrapping())
+        push(self, (x >> 32i64 & mask).to_i32_wrapping())
+        push(self, (x >> 40i64 & mask).to_i32_wrapping())
+        push(self, (x >> 48i64 & mask).to_i32_wrapping())
+        push(self, (x >> 56i64 & mask).to_i32_wrapping())
     }
 
     /// Appends every byte of `other`.
@@ -435,19 +435,19 @@ impl Vec<i32> {
     /// Reads eight little-endian bytes as i64; returns -1 at EOF.
     fn read_u64_le(mut self: Vec<i32>) -> i64 {
         if self.cursor_remaining() < 8 {
-            i32_to_i64(0) - i32_to_i64(1)
+            0i64 - 1i64
         } else {
-            let b0 = i32_to_i64(self.read_u8() & 255)
-            let b1 = i32_to_i64(self.read_u8() & 255)
-            let b2 = i32_to_i64(self.read_u8() & 255)
-            let b3 = i32_to_i64(self.read_u8() & 255)
-            let b4 = i32_to_i64(self.read_u8() & 255)
-            let b5 = i32_to_i64(self.read_u8() & 255)
-            let b6 = i32_to_i64(self.read_u8() & 255)
-            let b7 = i32_to_i64(self.read_u8() & 255)
-            let k256: i64 = i32_to_i64(256)
-            let k65536: i64 = i32_to_i64(65536)
-            let k16m: i64 = i32_to_i64(16777216)
+            let b0: i64 = (self.read_u8() & 255).into()
+            let b1: i64 = (self.read_u8() & 255).into()
+            let b2: i64 = (self.read_u8() & 255).into()
+            let b3: i64 = (self.read_u8() & 255).into()
+            let b4: i64 = (self.read_u8() & 255).into()
+            let b5: i64 = (self.read_u8() & 255).into()
+            let b6: i64 = (self.read_u8() & 255).into()
+            let b7: i64 = (self.read_u8() & 255).into()
+            let k256: i64 = 256i64
+            let k65536: i64 = 65536i64
+            let k16m: i64 = 16777216i64
             let k32: i64 = k65536 * k65536
             let k40: i64 = k32 * k256
             let k48: i64 = k32 * k65536
@@ -603,21 +603,21 @@ impl Vec<i32> {
 
     /// Decodes an unsigned LEB128 u64 from the cursor as i64.
     fn read_leb128_u64(mut self: Vec<i32>) -> i64 {
-        let mut result: i64 = i32_to_i64(0)
-        let mut shift: i64 = i32_to_i64(0)
+        let mut result: i64 = 0i64
+        let mut shift: i64 = 0i64
         let mut done: bool = false
         while done == false {
             if self.cursor_remaining() < 1 {
                 done = true
             } else {
                 let byte = self.read_u8()
-                let chunk = i32_to_i64(byte & 127) << shift
+                let chunk: i64 = (byte & 127).into() << shift
                 result = result | chunk
-                shift = shift + i32_to_i64(7)
+                shift = shift + 7i64
                 if (byte & 128) == 0 {
                     done = true
                 }
-                if shift >= i32_to_i64(70) {
+                if shift >= 70i64 {
                     done = true
                 }
             }
@@ -1153,9 +1153,9 @@ test mod "bytes_endian" {
         assert(c.read_leb128_i32() == 0 - 64)
     }
     test "leb128_u64_roundtrip" {
-        let e: Vec<i32> = Bytes::from_leb128_u64(i32_to_i64(300))
+        let e: Vec<i32> = Bytes::from_leb128_u64(300i64)
         let mut c: Vec<i32> = e.byte_cursor()
-        assert(c.read_leb128_u64() == i32_to_i64(300))
+        assert(c.read_leb128_u64() == 300i64)
     }
 }
 
@@ -1179,7 +1179,7 @@ test mod "bytes_buf_cursor" {
     }
     test "buf_push_u64_le_eight_bytes" {
         let mut b: Vec<i32> = Vec::new<i32>()
-        b.push_u64_le(i32_to_i64(1))
+        b.push_u64_le(1i64)
         assert(b.len() == 8)
     }
     test "buf_extend_appends" {

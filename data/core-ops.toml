@@ -195,6 +195,66 @@ alias = "__intrinsic_f64_to_f32"
 core_op_id = "runtime.f32_to_f64"
 
 [[legacy_bindings]]
+alias = "__intrinsic_i32_to_i64"
+core_op_id = "runtime.i32_to_i64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i64_to_i32"
+core_op_id = "runtime.i64_to_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_u8_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_u16_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i8_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i16_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i32_to_u8"
+core_op_id = "runtime.i32_to_i8"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i32_to_i8"
+core_op_id = "runtime.i32_to_i8"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i32_to_u16"
+core_op_id = "runtime.i32_to_u16"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i32_to_i16"
+core_op_id = "runtime.i32_to_i16"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i32_to_u32"
+core_op_id = "runtime.i32_to_u32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_u32_to_u64"
+core_op_id = "runtime.u32_to_u64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_u64_to_u32"
+core_op_id = "runtime.u64_to_u32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_scalar_f64_bits_lo"
+core_op_id = "scalar.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "__intrinsic_scalar_f64_bits_hi"
+core_op_id = "scalar.f64_bits_hi"
+
+[[legacy_bindings]]
 alias = "__intrinsic_f64_to_string"
 core_op_id = "raw.f64_to_string"
 
@@ -1663,28 +1723,12 @@ alias = "exists"
 core_op_id = "runtime.exists"
 
 [[legacy_bindings]]
-alias = "f32_to_f64"
-core_op_id = "runtime.f32_to_f64"
-
-[[legacy_bindings]]
 alias = "f32_to_string"
 core_op_id = "text.f32_to_string"
 
 [[legacy_bindings]]
 alias = "format_bool"
 core_op_id = "text.format_bool"
-
-[[legacy_bindings]]
-alias = "f64_bits_hi"
-core_op_id = "scalar.f64_bits_hi"
-
-[[legacy_bindings]]
-alias = "f64_bits_lo"
-core_op_id = "scalar.f64_bits_lo"
-
-[[legacy_bindings]]
-alias = "f64_to_f32"
-core_op_id = "runtime.f32_to_f64"
 
 [[legacy_bindings]]
 alias = "f64_to_string"
@@ -1739,48 +1783,12 @@ alias = "host::process::exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]
-alias = "i16_to_i32"
-core_op_id = "runtime.i8_to_i32"
-
-[[legacy_bindings]]
-alias = "i32_to_i16"
-core_op_id = "runtime.i32_to_i16"
-
-[[legacy_bindings]]
-alias = "i32_to_i64"
-core_op_id = "runtime.i32_to_i64"
-
-[[legacy_bindings]]
-alias = "i32_to_i8"
-core_op_id = "runtime.i32_to_i8"
-
-[[legacy_bindings]]
 alias = "i32_to_string"
 core_op_id = "text.to_string"
 
 [[legacy_bindings]]
-alias = "i32_to_u16"
-core_op_id = "runtime.i32_to_u16"
-
-[[legacy_bindings]]
-alias = "i32_to_u32"
-core_op_id = "runtime.i32_to_u32"
-
-[[legacy_bindings]]
-alias = "i32_to_u8"
-core_op_id = "runtime.i32_to_i8"
-
-[[legacy_bindings]]
-alias = "i64_to_i32"
-core_op_id = "runtime.i64_to_i32"
-
-[[legacy_bindings]]
 alias = "i64_to_string"
 core_op_id = "text.format_i64"
-
-[[legacy_bindings]]
-alias = "i8_to_i32"
-core_op_id = "runtime.i8_to_i32"
 
 [[legacy_bindings]]
 alias = "index_of"
@@ -2279,22 +2287,6 @@ core_op_id = "string.trim_end"
 [[legacy_bindings]]
 alias = "trim_start"
 core_op_id = "string.trim_start"
-
-[[legacy_bindings]]
-alias = "u16_to_i32"
-core_op_id = "runtime.i8_to_i32"
-
-[[legacy_bindings]]
-alias = "u32_to_u64"
-core_op_id = "runtime.u32_to_u64"
-
-[[legacy_bindings]]
-alias = "u64_to_u32"
-core_op_id = "runtime.u64_to_u32"
-
-[[legacy_bindings]]
-alias = "u8_to_i32"
-core_op_id = "runtime.i8_to_i32"
 
 [[legacy_bindings]]
 alias = "unwrap"
@@ -4930,7 +4922,7 @@ id = "runtime.f32_to_f64"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f32_to_f64 (aliases: 4; f32_to_f64, f64_to_f32, __intrinsic_f32_to_f64, __intrinsic_f64_to_f32)"
+description = "f32↔f64 conversion for the receiver methods (aliases: 2; __intrinsic_f32_to_f64, __intrinsic_f64_to_f32)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5115,7 +5107,7 @@ id = "runtime.i32_to_i64"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → i32_to_i64 (aliases: 1; i32_to_i64)"
+description = "i32→i64 widening for `i32::into` (alias: __intrinsic_i32_to_i64)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5152,7 +5144,7 @@ id = "runtime.i32_to_i8"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → i32_to_u8 (aliases: 2; i32_to_u8, i32_to_i8)"
+description = "i32→i8/u8 low-bit truncation (aliases: __intrinsic_i32_to_i8, __intrinsic_i32_to_u8)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5226,7 +5218,7 @@ id = "runtime.i32_to_u32"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → i32_to_u32 (aliases: 1; i32_to_u32)"
+description = "i32→u32 bit reinterpretation (alias: __intrinsic_i32_to_u32)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5263,7 +5255,7 @@ id = "runtime.i64_to_i32"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → i64_to_i32 (aliases: 1; i64_to_i32)"
+description = "i64→i32 wrapping truncation (alias: __intrinsic_i64_to_i32)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5300,7 +5292,7 @@ id = "runtime.i8_to_i32"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → i8_to_i32 (aliases: 4; i8_to_i32, u8_to_i32, i16_to_i32, u16_to_i32)"
+description = "narrow→i32 extension (aliases: __intrinsic_i8_to_i32, __intrinsic_u8_to_i32, __intrinsic_i16_to_i32, __intrinsic_u16_to_i32)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5633,7 +5625,7 @@ id = "runtime.u32_to_u64"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → u32_to_u64 (aliases: 1; u32_to_u64)"
+description = "u32→u64 zero extension (alias: __intrinsic_u32_to_u64)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]

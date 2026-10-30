@@ -11,7 +11,8 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-use std::prelude::{f64_bits_hi, f64_bits_lo}
+use std::core::convert
+
 /// Trait for types that can be hashed to an `i32` hash value.
 ///
 /// The hash value must be non-negative and deterministic: the same value must
@@ -147,9 +148,9 @@ impl Hash for char {
 impl Hash for f64 {
     fn hash(self: f64) -> i32 {
         let mut h = 216613626
-        let lo = f64_bits_lo(self)
+        let lo = (self).to_bits_lo()
         h = h * 16777619 ^ lo
-        let hi = f64_bits_hi(self)
+        let hi = (self).to_bits_hi()
         h = h * 16777619 ^ hi
         if h < 0 {
             h = 0 - h

@@ -241,13 +241,11 @@ diag:diagnostics/capability_stub.ark
 diag:diagnostics/deprecated_prelude_println.ark
 diag:diagnostics/removed_seq_map_i32_i32.ark
 diag:diagnostics/removed_seq_sum_i32_wasm32.ark
-diag:diagnostics/deprecated_numeric_conversion.ark
-diag:diagnostics/deprecated_numeric_conversion_wasm32.ark
-diag:diagnostics/prelude_scalar_conversion_arg_type.ark
+diag:diagnostics/removed_numeric_conversion.ark
+diag:diagnostics/removed_numeric_conversion_wasm32.ark
 diag:diagnostics/prelude_concrete_arg_type.ark
 diag:diagnostics/option_payload_type_mismatch.ark
 diag:diagnostics/option_payload_type_mismatch_wasm32.ark
-diag:diagnostics/prelude_conversion_string_arg_type.ark
 diag:diagnostics/prelude_len_arg_type.ark
 diag:diagnostics/prelude_len_arg_type_wasm32.ark
 diag:diagnostics/prelude_len_unconstrained_receiver.ark

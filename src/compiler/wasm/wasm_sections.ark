@@ -1,6 +1,5 @@
 use std::host::clock::Clock
 use std::host::stdio
-use std::prelude::{i64_to_i32}
 use std::text
 use wasm::code
 use wasm::ctx_gc_type
@@ -35,7 +34,7 @@ fn emit_section_note(enabled: i32, label: String, t_start: i64) -> i64 {
         return t_end
     }
     let diff = t_end - t_start
-    let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
+    let ms = if diff < 0i64 { 0 } else { __intrinsic_i64_to_i32(diff / 1000000i64) }
     stdio::eprintln(
         "[arukellt] emit.".concat(label.clone().concat(": ".concat(ms.to_string().concat("ms"))))
     )

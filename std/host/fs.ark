@@ -17,7 +17,7 @@
 //! the honest unsupported `read_dir` / `metadata` rejections. The module
 //! exports no free path function; the whole-path API is `Fs` plus `File`.
 use std::io::{IoError, Read, Reader, Seek, SeekFrom, Write}
-use std::prelude::{i32_to_i64, i64_to_i32}
+use std::core::convert
 use std::text
 
 const BYTE_MASK: i32 = 255
@@ -237,16 +237,16 @@ impl Seek for File {
         }
         let target: i64 = match from {
             SeekFrom::Start(offset) => offset,
-            SeekFrom::Current(offset) => i32_to_i64(self.cursor) + offset,
-            SeekFrom::End(offset) => i32_to_i64(len(self.image)) + offset,
+            SeekFrom::Current(offset) => (self.cursor).into() + offset,
+            SeekFrom::End(offset) => (len(self.image)).into() + offset,
         }
         if target < 0i64 {
             return Err(IoError::Other("seek: negative position"))
         }
-        if target > i32_to_i64(MAX_CURSOR_POSITION) {
+        if target > (MAX_CURSOR_POSITION).into() {
             return Err(IoError::Other("seek: position exceeds i32 range"))
         }
-        self.cursor = i64_to_i32(target)
+        self.cursor = (target).to_i32_wrapping()
         Ok(target)
     }
 
@@ -257,7 +257,7 @@ impl Seek for File {
         if !self.writable {
             return self.reader.position()
         }
-        Ok(i32_to_i64(self.cursor))
+        Ok((self.cursor).into())
     }
 }
 

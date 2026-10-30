@@ -1561,6 +1561,60 @@ fn removed_prelude_free_hint(name: String) -> String {
     if name.clone().eq("ends_with") { return String_from("use `s.ends_with(suffix)` on `String` instead") }
     if name.clone().eq("contains") { return String_from("use `s.contains(sub)` on `String` instead") }
     if name.clone().eq("index_of") { return String_from("use `s.index_of(sub)` on `String` instead") }
+    let numeric = removed_numeric_conversion_hint(name.clone())
+    if len(numeric.clone()) > 0 {
+        return numeric
+    }
+    String_new()
+}
+
+// The 17 monomorphic prelude conversion frees were retired by #917 after
+// ADR-067 moved the canonical surface onto the receiver types. Each hint
+// names the method that now owns the lowering.
+fn removed_numeric_conversion_hint(name: String) -> String {
+    if name.clone().eq("u8_to_i32") || name.clone().eq("i8_to_i32") ||
+    name.clone().eq("u16_to_i32") || name.clone().eq("i16_to_i32") {
+        return String_from("use `(x).to_i32()` on the narrow integer value instead")
+    }
+    if name.clone().eq("i32_to_u8") {
+        return String_from("use `(x).to_u8_wrapping()` instead")
+    }
+    if name.clone().eq("i32_to_u16") {
+        return String_from("use `(x).to_u16_wrapping()` instead")
+    }
+    if name.clone().eq("i32_to_i8") {
+        return String_from("use `(x).to_i8_wrapping()` instead")
+    }
+    if name.clone().eq("i32_to_i16") {
+        return String_from("use `(x).to_i16_wrapping()` instead")
+    }
+    if name.clone().eq("u32_to_u64") {
+        return String_from("use `(x).to_u64()` instead")
+    }
+    if name.clone().eq("u64_to_u32") {
+        return String_from("use `(x).to_u32_wrapping()` instead")
+    }
+    if name.clone().eq("i32_to_i64") {
+        return String_from("use `(x).into()` instead")
+    }
+    if name.clone().eq("i64_to_i32") {
+        return String_from("use `(x).to_i32_checked()` (or `to_i32_wrapping()` / `to_i32_saturating()`) instead")
+    }
+    if name.clone().eq("f32_to_f64") {
+        return String_from("use `(x).to_f64()` instead")
+    }
+    if name.clone().eq("f64_to_f32") {
+        return String_from("use `(x).to_f32()` instead")
+    }
+    if name.clone().eq("i32_to_u32") {
+        return String_from("use `(x).to_u32_bits()` instead")
+    }
+    if name.clone().eq("f64_bits_lo") {
+        return String_from("use `(x).to_bits_lo()` instead")
+    }
+    if name.clone().eq("f64_bits_hi") {
+        return String_from("use `(x).to_bits_hi()` instead")
+    }
     String_new()
 }
 
@@ -1574,25 +1628,7 @@ fn is_gated_prelude_name(name: String) -> bool {
     if name.clone().eq("assert_eq_str") || name.clone().eq("assert_ne") {
         return true
     }
-    if name.clone().eq("f64_bits_hi") || name.clone().eq("f64_bits_lo") || name.clone().eq("f64_to_f32") {
-        return true
-    }
-    if name.clone().eq("f32_to_f64") {
-        return true
-    }
-    if name.clone().eq("i16_to_i32") || name.clone().eq("i32_to_i16") || name.clone().eq("i32_to_i64") {
-        return true
-    }
-    if name.clone().eq("i32_to_i8") || name.clone().eq("i32_to_u16") || name.clone().eq("i32_to_u32") {
-        return true
-    }
-    if name.clone().eq("i32_to_u8") || name.clone().eq("i64_to_i32") || name.clone().eq("i8_to_i32") {
-        return true
-    }
-    if name.clone().eq("slice_get") || name.clone().eq("slice_len") || name.clone().eq("u16_to_i32") {
-        return true
-    }
-    if name.clone().eq("u32_to_u64") || name.clone().eq("u64_to_u32") || name.clone().eq("u8_to_i32") {
+    if name.clone().eq("slice_get") || name.clone().eq("slice_len") {
         return true
     }
     false
@@ -1706,7 +1742,7 @@ fn removed_raw_member_hint(name: String) -> String {
         return "the sealed raw bridge was retired; use `x.to_string()` instead"
     }
     if name.clone().eq("raw_f32_promote_f64") {
-        return "the sealed raw bridge was retired; use `f32_to_f64(x)` or `x.to_f64()` instead"
+        return "the sealed raw bridge was retired; use `x.to_f64()` via `use std::core::convert`"
     }
     String_new()
 }
@@ -1875,6 +1911,25 @@ test mod "removed_names" {
         assert(len(removed_name_hint("eq")) > 0)
         assert(len(removed_name_hint("substring")) > 0)
         assert(len(removed_name_hint("push_char")) > 0)
+    }
+    test "retired numeric conversion frees have method hints" {
+        assert(len(removed_name_hint("u8_to_i32")) > 0)
+        assert(len(removed_name_hint("u16_to_i32")) > 0)
+        assert(len(removed_name_hint("i8_to_i32")) > 0)
+        assert(len(removed_name_hint("i16_to_i32")) > 0)
+        assert(len(removed_name_hint("i32_to_u8")) > 0)
+        assert(len(removed_name_hint("i32_to_u16")) > 0)
+        assert(len(removed_name_hint("i32_to_i8")) > 0)
+        assert(len(removed_name_hint("i32_to_i16")) > 0)
+        assert(len(removed_name_hint("u32_to_u64")) > 0)
+        assert(len(removed_name_hint("u64_to_u32")) > 0)
+        assert(len(removed_name_hint("i32_to_i64")) > 0)
+        assert(len(removed_name_hint("i64_to_i32")) > 0)
+        assert(len(removed_name_hint("f32_to_f64")) > 0)
+        assert(len(removed_name_hint("f64_to_f32")) > 0)
+        assert(len(removed_name_hint("i32_to_u32")) > 0)
+        assert(len(removed_name_hint("f64_bits_lo")) > 0)
+        assert(len(removed_name_hint("f64_bits_hi")) > 0)
     }
     test "retired clone free has receiver and module hints" {
         assert(len(removed_name_hint("clone")) > 0)

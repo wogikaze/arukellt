@@ -1,9 +1,9 @@
+use std::core::convert
 use std::bytes
 use std::bytes::Bytes
 use std::test::Test
-use std::prelude::{i32_to_i64}
 fn main() {
-    let leb: Vec<i32> = Bytes::from_leb128_u64(i32_to_i64(300))
+    let leb: Vec<i32> = Bytes::from_leb128_u64((300).into())
     Test::assert_eq_i32(leb.len(), 2)
     Test::assert_eq_i32(leb.get_unchecked(0), 172)
     Test::assert_eq_i32(leb.get_unchecked(1), 2)
