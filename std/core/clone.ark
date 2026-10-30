@@ -92,10 +92,14 @@ impl Clone for String {
 /// so only its storage independence is guaranteed.
 impl<T> Clone for Vec<T> {
     fn clone(self: Vec<T>) -> Vec<T> {
+        let source_count: i32 = raw_array_len(self)
         let mut copy: Vec<T> = Vec::new<T>()
         let mut i: i32 = 0
-        while i < self.len() {
-            copy.push(self.get_unchecked(i).clone())
+        while i < source_count {
+            let count: i32 = raw_array_len(copy)
+            let mut grown: Vec<T> = raw_array_grow(copy, count + 1)
+            raw_array_set_unchecked(grown, count, raw_array_get_unchecked(self, i).clone())
+            copy = grown
             i = i + 1
         }
         copy
