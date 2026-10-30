@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 8
-- **Historical/deprecated names:** 19
-- **Total entries:** 27
+- **Historical/deprecated names:** 8
+- **Total entries:** 16
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -39,17 +39,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_is_empty`~~ | `Deque::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_len`~~ | `Deque::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_new`~~ | `Deque::new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_pop_back`~~ | `Deque::pop_back` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_pop_front`~~ | `Deque::pop_front` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_push_back`~~ | `Deque::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_push_front`~~ | `Deque::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_to_vec`~~ | `Deque::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -69,17 +58,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`as_slice`~~ | ⚠️ deprecated | `prelude` | → `Vec::as_slice` · [migration guide](migration-guidance.md) |
 | `assert` | ✅ `stable` | `prelude` | Assert |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
-| ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
-| ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
-| ~~`deque_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::front` · [migration guide](migration-guidance.md) |
-| ~~`deque_is_empty`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::is_empty` · [migration guide](migration-guidance.md) |
-| ~~`deque_len`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::len` · [migration guide](migration-guidance.md) |
-| ~~`deque_new`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::new` · [migration guide](migration-guidance.md) |
-| ~~`deque_pop_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::pop_back` · [migration guide](migration-guidance.md) |
-| ~~`deque_pop_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::pop_front` · [migration guide](migration-guidance.md) |
-| ~~`deque_push_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_back` · [migration guide](migration-guidance.md) |
-| ~~`deque_push_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::push_front` · [migration guide](migration-guidance.md) |
-| ~~`deque_to_vec`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::iter` · [migration guide](migration-guidance.md) |
 | `fd_fdstat_errno` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |

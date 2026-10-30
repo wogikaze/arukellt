@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 27 `pub fn` declarations under
-`std/**/*.ark`; 27 map to a manifest entry and
-0 are unregistered. Eradication scope = 27 manifest
-public entries + 0 unregistered declarations = **27 symbols**.
+**Real surface denominator:** 16 `pub fn` declarations under
+`std/**/*.ark`; 16 map to a manifest entry and
+0 are unregistered. Eradication scope = 16 manifest
+public entries + 0 unregistered declarations = **16 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 27 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 27 | — |
+| Eradication-scope symbols (real std surface) | 16 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 16 | — |
 | Unregistered std declarations (no manifest entry) | 0 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 27 | 0 |
+| Manifest public entries (registered scope) | 16 | 0 |
 | `prelude_wrapper` entries | 5 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 2 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -37,7 +37,7 @@ public entries + 0 unregistered declarations = **27 symbols**.
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 20 |
+| `must delete` | Replacement already exists or functionality retires | 9 |
 | `associated-or-method` | Replacement must land as method/associated first | 7 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
@@ -52,7 +52,6 @@ registered entries and unregistered `pub fn` declarations.
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
 | vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 8 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `clear` was a stale non-callable entry and was retired directly. |
 | monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 1 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
-| legacy linear deque frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | method / associated equivalent on the receiver or namespace type |
 | experimental host fd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 0 | No public replacement: the fd_* helpers are experimental, `wasm32` / WASI P1 only, and have no wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that does not lower on the primary target. The non-public `__intrinsic_fd_*` bridges remain (ADR-046 D2). Recorded as the retained exception in docs/stdlib/migration-guidance.md. |
 
@@ -71,17 +70,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `set` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `slice_get` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `slice_len` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `deque_back` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_clear` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_front` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_is_empty` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_len` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_new` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_pop_back` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_pop_front` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_push_back` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_push_front` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
-| `deque_to_vec` | `std::collections::linear` | `must delete` | legacy linear deque frees | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) |
 | `String_from` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `String_new` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `assert` | `(prelude)` | `associated-or-method` | prelude frees (default) | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

@@ -92,7 +92,7 @@ fn main() {
     }
     tail.push_back(4)
     let collected: Vec<i32> = tail.iter().collect()
-    assert(len(collected) == 5)
+    assert(collected.len() == 5)
     assert(get_unchecked(collected, 0) == 0)
     assert(get_unchecked(collected, 4) == 4)
     tail.clear()

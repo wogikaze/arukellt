@@ -1,1 +1,2 @@
 error[E0100|resolve]: undefined module member: linear::deque_new; removed free constructor; use `Deque::new<i32>()` or `Deque::with_capacity<i32>(n)` from `use std::collections::deque::Deque` instead
+  --> tests/fixtures/diagnostics/removed_deque_free.ark

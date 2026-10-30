@@ -11,7 +11,7 @@
 | `stable` | 4 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 19 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 8 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -236,17 +236,6 @@
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | ~~`as_slice`~~ ⚠️ Deprecated → `Vec::as_slice` | `(Vec<T>, i32, i32) -> Slice<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
-| ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
-| ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
-| ~~`deque_is_empty`~~ ⚠️ Deprecated → `Deque::is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return true if the deque contains no elements. |
-| ~~`deque_len`~~ ⚠️ Deprecated → `Deque::len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Return the number of elements in the deque. |
-| ~~`deque_new`~~ ⚠️ Deprecated → `Deque::new` | `() -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
-| ~~`deque_pop_back`~~ ⚠️ Deprecated → `Deque::pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
-| ~~`deque_pop_front`~~ ⚠️ Deprecated → `Deque::pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
-| ~~`deque_push_back`~~ ⚠️ Deprecated → `Deque::push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Append a value to the back of the deque. |
-| ~~`deque_push_front`~~ ⚠️ Deprecated → `Deque::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Prepend a value to the front of the deque. |
-| ~~`deque_to_vec`~~ ⚠️ Deprecated → `Deque::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `deprecated` | `functional` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
 | ~~`get`~~ ⚠️ Deprecated → `Vec::get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`get_unchecked`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
@@ -289,22 +278,11 @@ push(v, 2)
 
 ## Deprecated APIs
 
-> ⚠️ **19 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **8 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_is_empty`~~ | `Deque::is_empty` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_len`~~ | `Deque::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_new`~~ | `Deque::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_pop_back`~~ | `Deque::pop_back` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_pop_front`~~ | `Deque::pop_front` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_push_back`~~ | `Deque::push_back` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_push_front`~~ | `Deque::push_front` | [migration-guidance.md](migration-guidance.md) |
-| ~~`deque_to_vec`~~ | `Deque::iter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
