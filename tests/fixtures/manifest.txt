@@ -769,6 +769,7 @@ run:operators/mixed_types.ark
 run:operators/overflow.ark
 run:operators/precedence.ark
 run:operators/short_circuit.ark
+run:operators/string_add.ark
 run:operators/string_eq.ark
 run:operators/unary.ark
 run:opt/tail_call_deep.ark
@@ -2627,6 +2628,7 @@ t3-compile:operators/mixed_types.ark
 t3-compile:operators/overflow.ark
 t3-compile:operators/precedence.ark
 t3-compile:operators/short_circuit.ark
+t3-compile:operators/string_add.ark
 t3-compile:operators/string_eq.ark
 t3-compile:operators/unary.ark
 t3-compile:question_mark/basic_propagate.ark
@@ -3169,6 +3171,7 @@ t3-run:operators/mixed_types.ark
 t3-run:operators/overflow.ark
 t3-run:operators/precedence.ark
 t3-run:operators/short_circuit.ark
+t3-run:operators/string_add.ark
 t3-run:operators/string_eq.ark
 t3-run:operators/unary.ark
 t3-run:question_mark/basic_propagate.ark
@@ -3697,6 +3700,7 @@ run:operators/string_order_wasm32.ark
 t3-compile:operators/string_order.ark
 t3-run:operators/string_order.ark
 run:operators/string_eq_wasm32.ark
+run:operators/string_add_wasm32.ark
 run:stdlib_string/prelude_method_replacements.ark
 run:stdlib_string/prelude_method_replacements_wasm32.ark
 diag:diagnostics/removed_prelude_free.ark

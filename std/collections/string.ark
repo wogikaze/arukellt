@@ -1,9 +1,10 @@
 //! std::collections::string — String receiver surface and core-op fallbacks
 //!
-//! Importing this module registers the `impl String` and `impl Vec<String>`
-//! blocks; it exposes no free functions (ADR-046). The private `__core_*_impl`
+//! Importing this module registers the `impl Add for String`, `impl String`,
+//! and `impl Vec<String>` blocks; it exposes no free functions (ADR-046). The private `__core_*_impl`
 //! bodies back compiler CoreOp fallbacks. Representation-sensitive helpers go
 //! through `std::core::raw` (RFC-006).
+use std::core::ops
 use std::core::raw::{RawArray, RawString}
 
 // Resolution-stability shim: the resolver currently needs the module's `eq`
@@ -604,6 +605,17 @@ fn __core_string_index_of_impl(s: String, needle: String) -> i32 {
 
 fn __core_string_contains_impl(s: String, needle: String) -> bool {
     __core_string_index_of_impl(s, needle) >= 0
+}
+
+// ---------------------------------------------------------------------------
+// Operator protocol impls.
+// ---------------------------------------------------------------------------
+
+/// `Add` impl for `String` — `a + b` concatenates UTF-8 contents.
+impl Add for String {
+    fn add(self: String, rhs: String) -> String {
+        self.concat(rhs)
+    }
 }
 
 // ---------------------------------------------------------------------------

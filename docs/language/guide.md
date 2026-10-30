@@ -660,7 +660,7 @@ all other prelude decls require an explicit `use std::prelude::{name}`:
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let s = String_from("hello")
-let t = s.concat(String_from(" world"))
+let t = s + String_from(" world")
 let upper = s.to_upper()
 let lower = s.to_lower()
 let n = s.len()
@@ -668,6 +668,9 @@ let b = s.eq(String_from("hello"))   // true
 let sub = s.slice(0, 3)              // "hel"
 let trimmed = String_from("  hi  ").trim()
 ```
+
+`String` は `Add` を実装しているため、`+` は `String` 同士を連結して
+`String` を返します。`.concat` はメソッド名を明示したい場合に引き続き使えます。
 
 String values are valid UTF-8. The byte APIs and Unicode scalar APIs use different
 index domains:
