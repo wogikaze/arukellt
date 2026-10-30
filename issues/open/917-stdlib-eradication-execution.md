@@ -2011,3 +2011,47 @@ classified there, in dependency-safe waves.
 - **Residuals**: the WASI stdin byte-handle / line-read surface still does
   not exist, so `stdin` / `read_stdin_line` stay retired rather than
   replaced. The pin-only stdio overlay bridge remains until the pin refresh.
+
+### Landed slice (wave/deque-frees, 2026-10-30)
+
+- **Feasibility**: yes for the 11 `legacy linear deque frees`. The
+  `Deque<T>` receiver surface already covered every replacement, and #968's
+  two reported failures no longer reproduce: `is_empty` / `len` resolve the
+  `Deque` methods (not the `Vec` ones), and the 0-1 BFS shape no longer traps
+  on `wasm32-gc`.
+- **Landed**: the 11 `deque_*` manifest entries and `pub fn` declarations are
+  deleted; `std/collections/linear.ark` is removed. `Deque<T>`'s
+  new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/
+  is_empty/clear plus `iter().collect()` are the only spelling. The
+  `deprecated_since = "0.1.0"` / `remove_in = "1.0.0"` window is complete.
+- **E0100**: `resolver::removed_names` gains
+  `removed_deque_member_hint` for bare and `linear` / `collections::linear` /
+  `std::collections::linear` qualified names. `diagnostics/removed_deque_free`
+  and `removed_deque_free_wasm32` pin the constructor hint on both targets.
+  No W0009 entry existed for this family, so no deprecated-table row is
+  removed.
+- **Fixtures**: `stdlib_deque/deque_bfs` is a 450x450 (202,500 node, ~810k
+  directed edge) 0-1 BFS over `Deque<i32>` registered as run + t3-run; it also
+  covers `pop_back` / `front` / `back` / `iter` / `clear`. The legacy
+  ring-buffer fixtures `stdlib_linear/deque_ops`, `deque_wrap`, and
+  `linear_basic` are deleted. `module_import/use_func_destructure` now
+  destructures `Deque` / `Queue` types, and `diagnostics/prefer_use_import`
+  moved to `i32::MAX` because its old `linear::deque_new` path is gone.
+- **Scorecard**: eradication scope 28 -> **17**, `must delete` 21 -> **10**,
+  manifest public entries 28 -> **17**, deprecated 20 -> **9**; the
+  `legacy linear deque frees` rule is removed. fixture registry 3622 ->
+  **3623**.
+- **Verification**: `verify fixtures` **1948/1948** compile+validate PASS
+  (112 runtime executed, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL),
+  `verify lane` PASS, `docs check` **6/6**, `selfhost diag-parity`
+  **272/272** PASS, ADR-029 fixpoint PASS (s2 == s3 sha256
+  `6ea06884d1bac90fd44556a1b54fb613ec53473ddc32e0fa4807f30385657e69`,
+  pinned base `56ff0808…`). Cross-target evidence: an assert-only copy of the
+  202,500-node BFS passes on both `wasm32` (core wasm) and `wasm32-gc` (P2
+  component) with the current s2.
+- **Residuals**: current s2 emits invalid `wasm32` Wasm for
+  `i32.to_string()` inside a match / function call (`expected i32 but nothing
+  on stack`); the pinned compiler predates the regression. This is unrelated
+  to `Deque` (a two-line `Stdio::println(x.to_string())` reproduces it), so
+  the wasm32 runtime fixture stays assert-only and the printable BFS fixture
+  runs on `wasm32-gc`. `Deque<T>` remains provisional per ADR-086 §9.

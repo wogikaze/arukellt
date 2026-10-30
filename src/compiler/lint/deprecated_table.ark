@@ -258,8 +258,9 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("ordered::Bitset")) == 0)
     }
     test "removed_pq_frees_have_no_w0009_entry" {
-        // The 7 pq frees were deleted in the 2026-10-29 Wave 2. The deque_*
-        // frees keep their own ADR-014 window and never had a W0009 entry.
+        // The 7 pq frees were deleted in the 2026-10-29 Wave 2; the 11 deque
+        // frees completed their ADR-014 window on 2026-10-30. Neither family
+        // had a W0009 entry, so the names now resolve to E0100 hints instead.
         assert(len(deprecated_qualified_call_message("linear::pq_new")) == 0)
         assert(len(deprecated_qualified_call_message("linear::pq_push")) == 0)
         assert(len(deprecated_qualified_call_message("linear::pq_pop")) == 0)

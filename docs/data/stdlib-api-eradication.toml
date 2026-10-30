@@ -154,15 +154,12 @@ replacement = "Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect()
 # adapters; `impl HashMap<K,V>` methods are the only spelling now, and the
 # retired names fail resolution with an E0100 removed-name hint.
 
-# -- Deprecated non-prelude symbols --
-
-[[rules]]
-label = "legacy linear deque frees"
-module = "std::collections::linear"
-prefix = "deque_"
-class = "must delete"
-owner = "710"
-replacement = "Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window"
+# The 11 legacy `deque_*` frees were retired by #917 on 2026-10-30
+# (wave/deque-frees). `std/collections/linear.ark` is deleted; the replacement
+# is the `Deque<T>` receiver surface (new/with_capacity/push_front/push_back/
+# pop_front/pop_back/front/back/len/is_empty/clear + iter().collect()), and old
+# calls fail with E0100 hints. #968 verified the method surface on both targets
+# (is_empty/len receiver dispatch and the 0-1 BFS shape).
 
 # The 11 legacy `linked_list_*` frees were retired by #917 on 2026-10-30
 # (wave/linked-list). The `LinkedList<T>` receiver surface already covered every

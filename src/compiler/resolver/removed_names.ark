@@ -8,6 +8,13 @@
 use std::text
 
 fn removed_name_hint(name: String) -> String {
+    // Checked here rather than inside removed_name_specific_hint: that
+    // function is already at the size where adding a local can lower to a
+    // trapping stub in the selfhost build.
+    let deque_hint = removed_deque_member_hint(name.clone())
+    if len(deque_hint.clone()) > 0 {
+        return deque_hint
+    }
     let specific = removed_name_specific_hint(name.clone())
     if len(specific.clone()) > 0 {
         return specific
@@ -676,6 +683,46 @@ fn removed_pq_member_hint(name: String) -> String {
     String_new()
 }
 
+/// Replacement hints for the `std::collections::linear` legacy deque free
+/// functions retired by #917. Empty pops and peeks now return `Option`; the
+/// old `deque_new` capacity of 16 is not guaranteed by `Deque::new`.
+fn removed_deque_member_hint(name: String) -> String {
+    if name.clone().eq("deque_new") {
+        return "removed free constructor; use `Deque::new<i32>()` or `Deque::with_capacity<i32>(n)` from `use std::collections::deque::Deque` instead"
+    }
+    if name.clone().eq("deque_push_front") {
+        return "removed free function; use `deque.push_front(value)` on `Deque<i32>` instead"
+    }
+    if name.clone().eq("deque_push_back") {
+        return "removed free function; use `deque.push_back(value)` on `Deque<i32>` instead"
+    }
+    if name.clone().eq("deque_pop_front") {
+        return "removed free function; use `deque.pop_front()` on `Deque<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("deque_pop_back") {
+        return "removed free function; use `deque.pop_back()` on `Deque<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("deque_front") {
+        return "removed free function; use `deque.front()` on `Deque<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("deque_back") {
+        return "removed free function; use `deque.back()` on `Deque<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("deque_len") {
+        return "removed free function; use `deque.len()` on `Deque<i32>` instead"
+    }
+    if name.clone().eq("deque_is_empty") {
+        return "removed free function; use `deque.is_empty()` on `Deque<i32>` instead"
+    }
+    if name.clone().eq("deque_clear") {
+        return "removed free function; use `deque.clear()` on `Deque<i32>` instead"
+    }
+    if name.clone().eq("deque_to_vec") {
+        return "removed free function; use `deque.iter().collect()` on `Deque<i32>` instead"
+    }
+    String_new()
+}
+
 /// Replacement hints for the `std::collections::linked_list` free functions
 /// retired by #917. Empty pops and peeks now return `Option`, so callers that
 /// passed the old fallback argument need a `match` / `unwrap_or` instead.
@@ -931,6 +978,10 @@ fn removed_module_member_hint(module: String, name: String) -> String {
         return removed_ordered_member_hint(name)
     }
     if module.clone().eq("linear") || module.clone().eq("collections::linear") || module.clone().eq("std::collections::linear") {
+        let deque_hint = removed_deque_member_hint(name.clone())
+        if len(deque_hint.clone()) > 0 {
+            return deque_hint
+        }
         return removed_pq_member_hint(name)
     }
     if (module.clone().eq("linked_list") || module.clone().eq("collections::linked_list") ||
@@ -1920,9 +1971,23 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint("std::collections::linear", "pq_pop")) > 0)
         assert(len(removed_name_hint("pq_new")) > 0)
         assert(len(removed_name_hint("pq_clear")) > 0)
-        // The deque_* frees are still callable through their own ADR-014
-        // window, so they must not gain a removal hint.
-        assert(len(removed_module_member_hint("linear", "deque_new")) == 0)
+        assert(len(removed_module_member_hint("linear", "unrelated")) == 0)
+    }
+    test "removed linear deque frees" {
+        assert(len(removed_name_hint("deque_new")) > 0)
+        assert(len(removed_name_hint("deque_push_front")) > 0)
+        assert(len(removed_name_hint("deque_push_back")) > 0)
+        assert(len(removed_name_hint("deque_pop_front")) > 0)
+        assert(len(removed_name_hint("deque_pop_back")) > 0)
+        assert(len(removed_name_hint("deque_front")) > 0)
+        assert(len(removed_name_hint("deque_back")) > 0)
+        assert(len(removed_name_hint("deque_len")) > 0)
+        assert(len(removed_name_hint("deque_is_empty")) > 0)
+        assert(len(removed_name_hint("deque_clear")) > 0)
+        assert(len(removed_name_hint("deque_to_vec")) > 0)
+        assert(len(removed_module_member_hint("linear", "deque_new")) > 0)
+        assert(len(removed_module_member_hint("collections::linear", "deque_to_vec")) > 0)
+        assert(len(removed_module_member_hint("std::collections::linear", "deque_pop_front")) > 0)
         assert(len(removed_module_member_hint("linear", "unrelated")) == 0)
     }
     test "removed linked list frees" {

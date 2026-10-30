@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-28
-Updated: 2026-10-28
+Updated: 2026-10-30
 ID: 968
 Track: stdlib-api
 Depends on: none
@@ -47,6 +47,31 @@ fn main() {
 `deque::Deque::new<i32>()`, `push_front` / `push_back` / `pop_front`. All three
 samples pass on `wasm32`; `wasm32-gc` traps at `main` with
 `out of bounds array access`.
+
+## Re-verification (2026-10-30, wave/deque-frees)
+
+The two reported failures no longer reproduce on the current compiler (s2
+built from `494727819` + this wave, wasm32-gc pin `56ff0808…`):
+
+- **Repro A** (`Deque::new`, push_back/push_front, `pop_front`,
+  `is_empty`, `len`): prints `0 / false / 1 / 2` on `wasm32-gc`; the same
+  operations run on `wasm32` with the pinned compiler. The receiver methods
+  now resolve from the mangled `Deque` owner, so `Vec::len` / `Vec::is_empty`
+  are not selected.
+- **Repro B** (0-1 BFS): the ABC481-D shape was scaled to a 450x450 grid
+  (202,500 nodes, ~810k directed edges, 0-1 weights). An assert-only copy
+  passes on both targets with the current s2: `wasm32` core Wasm exit 0 and
+  `wasm32-gc` P2 component exit 0 (`visits = 202500`, `total = 45410625`,
+  `max_dist = 449`). The printable P2 component also passes.
+- **Regression check**: `tests/fixtures/stdlib_deque/deque_bfs.ark` (run +
+  t3-run) pins the same BFS shape, and the existing `stdlib_deque/*` fixtures
+  cover the remaining method surface.
+
+One unrelated limitation blocks printable `wasm32` runs: current s2 emits
+invalid Wasm for `Stdio::println(x.to_string())` on `wasm32`
+(`type mismatch: expected i32 but nothing on stack`, func validation). The
+pinned compiler predates it and the same program compiles on `wasm32-gc`, so
+the BFS acceptance evidence uses assert-only code on `wasm32`.
 
 ## Workaround
 

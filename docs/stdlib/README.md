@@ -96,12 +96,12 @@ All 17 module pages carry curated overviews.
 
 ## Current Snapshot
 
-- Manifest-backed public functions: **28**
+- Manifest-backed public functions: **17**
 - Prelude wrappers: 14
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `Std`, `HashMap`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`, `Box`, `Slice`
 - Prelude values: `Some`, `None`, `Ok`, `Err`
-- Categories: `assert` 1, `collections` 21, `conversion` 1, `host_fs` 3, `string` 2
-- Source-backed modules: 41
+- Categories: `assert` 1, `collections` 10, `conversion` 1, `host_fs` 3, `string` 2
+- Source-backed modules: 40
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 
 ## Additional Documents

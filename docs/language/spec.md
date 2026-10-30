@@ -2066,13 +2066,19 @@ The former `bimap_i32_i32_*` free functions are retired (E0100).
 The former `trie_*` free functions are retired (E0100).
 
 **Collections — Deque**:
-`deque_new() -> Vec<i32>`,
-`deque_push_front(d: Vec<i32>, x: i32)`,
-`deque_push_back(d: Vec<i32>, x: i32)`,
-`deque_pop_front(d: Vec<i32>) -> i32`,
-`deque_pop_back(d: Vec<i32>) -> i32`,
-`deque_len(d: Vec<i32>) -> i32`,
-`deque_is_empty(d: Vec<i32>) -> bool`
+`Deque::new<T>() -> Deque<T>`,
+`Deque::with_capacity<T>(cap: i32) -> Deque<T>`,
+`d.push_front(x: T)`,
+`d.push_back(x: T)`,
+`d.pop_front() -> Option<T>`,
+`d.pop_back() -> Option<T>`,
+`d.front() -> Option<T>`,
+`d.back() -> Option<T>`,
+`d.len() -> i32`,
+`d.is_empty() -> bool`,
+`d.clear()`,
+`d.iter() -> DequeIter<T>`.
+The former `deque_*` free functions are retired (E0100).
 
 **Collections — Priority Queue**:
 `PriorityQueue::new<i32>() -> PriorityQueue<i32>`,

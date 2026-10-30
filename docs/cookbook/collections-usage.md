@@ -145,16 +145,19 @@ println(to_string(top)) // 20
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-// Breadth-first traversal using Deque as a queue
-let queue = deque_new_i32()
-deque_push_back(queue, 0)  // start node
+// Breadth-first traversal using Deque<i32> as a queue
+let mut queue: Deque<i32> = Deque::new<i32>()
+queue.push_back(0)  // start node
 
-while deque_is_empty(queue) == false {
-    let node = unwrap(deque_pop_front(queue))
+while !queue.is_empty() {
+    let node: i32 = match queue.pop_front() {
+        Option::Some(value) => value,
+        Option::None => { break },
+    }
     println(concat("visiting: ", to_string(node)))
     // push neighbors...
     if node < 3 {
-        deque_push_back(queue, node + 1)
+        queue.push_back(node + 1)
     }
 }
 ```

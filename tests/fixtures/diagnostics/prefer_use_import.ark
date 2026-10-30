@@ -1,8 +1,8 @@
 // W0010: module-style qualified path used >= 3 times → prefer `use` + short name.
-use std::collections::linear
+use std::core::i32
 
 fn main() {
-    let _a: Vec<i32> = linear::deque_new()
-    let _b: Vec<i32> = linear::deque_new()
-    let _c: Vec<i32> = linear::deque_new()
+    let _a = i32::MAX
+    let _b = i32::MAX
+    let _c = i32::MAX
 }

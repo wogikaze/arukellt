@@ -68,7 +68,7 @@ These modules exist in `std/manifest.toml` and require `use` to access:
 | `std::component` | 2 | `abi_version`, `model_version` |
 | `std::core` | 3 | `hash`, `ordering` |
 | `std::collections::hash` | 5 | `hashmap_new`, `hashmap_set`, `hashmap_get_option` |
-| `std::collections::linear` | 13 | `Vec_new`, `deque_new` |
+| `std::collections::linear` | 0 (retired) | module removed; use `Deque<T>` methods |
 | `std::collections::ordered` | 10 | `BTreeMap_new` |
 
 ## Resolver Behavior

@@ -342,6 +342,8 @@ diag:diagnostics/removed_ordered_stable_free.ark
 diag:diagnostics/removed_ordered_stable_free_wasm32.ark
 diag:diagnostics/removed_pq_free.ark
 diag:diagnostics/removed_pq_free_wasm32.ark
+diag:diagnostics/removed_deque_free.ark
+diag:diagnostics/removed_deque_free_wasm32.ark
 diag:diagnostics/removed_linked_list_free.ark
 diag:diagnostics/removed_linked_list_free_wasm32.ark
 diag:diagnostics/removed_vec_new_i32.ark
@@ -1119,6 +1121,7 @@ run:stdlib_deque/deque_from_iter_eq.ark
 run:stdlib_deque/deque_iter.ark
 run:stdlib_deque/deque_traits.ark
 run:stdlib_deque/queue_stack.ark
+run:stdlib_deque/deque_bfs.ark
 run:stdlib_hashmap/clear_empties.ark
 run:stdlib_hashmap/clear_empty.ark
 run:stdlib_hashmap/clear_reinsert.ark
@@ -1499,9 +1502,6 @@ run:stdlib_json/rfc8259/y_string_surrogate_pair.ark
 run:stdlib_json/rfc8259/y_string_unicode_bmp.ark
 run:stdlib_json/rfc8259/y_structure_lonely_true.ark
 run:stdlib_json/rfc8259/y_structure_whitespace.ark
-run:stdlib_linear/deque_ops.ark
-run:stdlib_linear/deque_wrap.ark
-run:stdlib_linear/linear_basic.ark
 run:stdlib_linear/pq_ops.ark
 run:stdlib_linear/pq_sort.ark
 run:stdlib_linear/pq_type.ark
@@ -3154,6 +3154,7 @@ t3-run:stdlib_deque/deque_from_iter_eq.ark
 t3-run:stdlib_deque/deque_iter.ark
 t3-run:stdlib_deque/deque_traits.ark
 t3-run:stdlib_deque/queue_stack.ark
+t3-run:stdlib_deque/deque_bfs.ark
 t3-run:stdlib_linked_list/linked_list_basic.ark
 t3-run:stdlib_linked_list/linked_list_from_iter_eq.ark
 t3-run:stdlib_linked_list/linked_list_iter.ark

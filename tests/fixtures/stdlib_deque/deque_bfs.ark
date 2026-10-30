@@ -1,0 +1,100 @@
+// 0-1 BFS over Deque<i32> on a 450x450 grid (202,500 nodes, ~810,000
+// directed edges). Exercises the receiver surface that replaces the retired
+// deque_* frees: new/with_capacity/push_front/push_back/pop_front/pop_back/
+// front/back/len/is_empty/clear/iter.
+use std::collections::deque::Deque
+use std::host::stdio::Stdio
+
+const GRID_WIDTH: i32 = 450
+const GRID_HEIGHT: i32 = 450
+const INF: i32 = 1000000000
+
+// Zero-weight relaxations go to the front so the deque is processed in
+// nondecreasing distance order; one-weight relaxations go to the back.
+fn relax(mut queue: Deque<i32>, mut dist: Vec<i32>, to: i32, candidate: i32, weight: i32) {
+    if candidate >= get_unchecked(dist, to) {
+        return
+    }
+    set(dist, to, candidate)
+    if weight == 0 {
+        queue.push_front(to)
+    } else {
+        queue.push_back(to)
+    }
+}
+
+fn main() {
+    let count: i32 = GRID_WIDTH * GRID_HEIGHT
+    let mut dist: Vec<i32> = Vec::with_capacity<i32>(count)
+    let mut i: i32 = 0
+    while i < count {
+        push(dist, INF)
+        i = i + 1
+    }
+    let mut queue: Deque<i32> = Deque::with_capacity<i32>(count)
+    assert(queue.capacity() == count)
+    set(dist, 0, 0)
+    queue.push_back(0)
+    let mut visits: i32 = 0
+    let mut total: i32 = 0
+    let mut max_dist: i32 = 0
+    while !queue.is_empty() {
+        let node: i32 = match queue.pop_front() {
+            Option::Some(value) => value,
+            Option::None => { break },
+        }
+        visits = visits + 1
+        let node_dist: i32 = get_unchecked(dist, node)
+        total = total + node_dist
+        if node_dist > max_dist {
+            max_dist = node_dist
+        }
+        let x: i32 = node % GRID_WIDTH
+        let y: i32 = node / GRID_WIDTH
+        let weight: i32 = (x + y) % 2
+        if x + 1 < GRID_WIDTH {
+            relax(queue, dist, node + 1, node_dist + weight, weight)
+        }
+        if x > 0 {
+            relax(queue, dist, node - 1, node_dist + weight, weight)
+        }
+        if y + 1 < GRID_HEIGHT {
+            relax(queue, dist, node + GRID_WIDTH, node_dist + weight, weight)
+        }
+        if y > 0 {
+            relax(queue, dist, node - GRID_WIDTH, node_dist + weight, weight)
+        }
+    }
+    assert(queue.is_empty())
+    assert(queue.len() == 0)
+    Stdio::println((visits).to_string())
+    Stdio::println((total).to_string())
+    Stdio::println((max_dist).to_string())
+    Stdio::println((queue.len()).to_string())
+
+    let mut tail: Deque<i32> = Deque::new<i32>()
+    let mut value: i32 = 0
+    while value < 5 {
+        tail.push_back(value)
+        value = value + 1
+    }
+    match tail.back() {
+        Option::Some(last) => assert(last == 4),
+        Option::None => assert(false),
+    }
+    match tail.pop_back() {
+        Option::Some(last) => assert(last == 4),
+        Option::None => assert(false),
+    }
+    match tail.front() {
+        Option::Some(first) => assert(first == 0),
+        Option::None => assert(false),
+    }
+    tail.push_back(4)
+    let collected: Vec<i32> = tail.iter().collect()
+    assert(len(collected) == 5)
+    assert(get_unchecked(collected, 0) == 0)
+    assert(get_unchecked(collected, 4) == 4)
+    tail.clear()
+    assert(tail.is_empty())
+}

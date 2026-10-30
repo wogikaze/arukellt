@@ -1,0 +1,6 @@
+// E0100 on the retired linear deque free family (#917 deque wave).
+use std::collections::linear
+
+fn main() {
+    let _deque: Vec<i32> = linear::deque_new()
+}

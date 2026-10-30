@@ -23,7 +23,6 @@ The `std::collections` family provides the primary collection data structures fo
 | `Queue::new` / `.push` / `.pop` | FIFO queue newtype over `Deque<T>`. |
 | `Stack::new` / `.push` / `.pop` | LIFO stack newtype over `Deque<T>`. |
 | `LinkedList::new` / `.push_back` / `.iter_mut` | Node-pool doubly-linked list with cursors. |
-| `deque_push_back` / `deque_pop_front` | Legacy monomorphic i32 deque (migration window). |
 | `PriorityQueue::new` / `.push` / `.pop` | Generic min-heap — smallest element first, `Option` on empty. |
 | `SortedMap::new` / `.insert` / `.get` | Sorted-vector map for ordered iteration. |
 | `BTreeMap::new` / `.keys` / `.range` | Sorted-vector map with key and range queries. |
@@ -332,93 +331,6 @@ their `[count, ...heap]` layout.
 | `PriorityQueue` | `struct` | `new`, `push`, `pop`, `peek`, `len`, `is_empty`, `clear` | - | Binary min-heap with Ord-ordered elements. |
 
 _No manifest-backed functions in this module._
-
-## Module `std::collections::linear`
-
-- Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
-- Manifest-backed functions: 11
-- Stability: deprecated 11
-
-Legacy linear deque helpers: the pre-ADR-086 `deque_*` free functions.
-
-The `deque_*` functions are an `i32` ring buffer laid out as
-`[head, tail, count, cap, ...data(cap)]`. They stay callable through the
-ADR-014 deprecation window, but new code should use
-`std::collections::deque::Deque<T>` (plus `Queue<T>` / `Stack<T>`); the
-manifest points every `deque_*` entry at its method replacement.
-
-The former `pq_*` min-heap frees and their `[count, ...heap]` layout were
-retired under ADR-087; the replacement is
-`std::collections::pq::PriorityQueue<T>`.
-
-**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
-
-### `std::collections::linear` — Deque (ring buffer)
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`deque_new`~~ ⚠️ Deprecated → `Deque::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | - |
-| ~~`deque_push_back`~~ ⚠️ Deprecated → `Deque::push_back` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`deque_push_front`~~ ⚠️ Deprecated → `Deque::push_front` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | - |
-| ~~`deque_pop_front`~~ ⚠️ Deprecated → `Deque::pop_front` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`deque_pop_back`~~ ⚠️ Deprecated → `Deque::pop_back` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`deque_len`~~ ⚠️ Deprecated → `Deque::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | - |
-| ~~`deque_is_empty`~~ ⚠️ Deprecated → `Deque::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | - |
-
-#### `std::collections::linear::deque_new`
-
-Create a new empty Deque backed by a ring buffer (i32, monomorphic).
-
-#### `std::collections::linear::deque_push_back`
-
-Append a value to the back of the deque.
-
-#### `std::collections::linear::deque_push_front`
-
-Prepend a value to the front of the deque.
-
-#### `std::collections::linear::deque_pop_front`
-
-Remove and return the front element. Panics if empty.
-
-#### `std::collections::linear::deque_pop_back`
-
-Remove and return the back element. Panics if empty.
-
-#### `std::collections::linear::deque_len`
-
-Return the number of elements in the deque.
-
-#### `std::collections::linear::deque_is_empty`
-
-Return true if the deque contains no elements.
-
-### `std::collections::linear` — Additional Deque accessors
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`deque_front`~~ ⚠️ Deprecated → `Deque::front` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Peek at the front element without removing it. |
-| ~~`deque_back`~~ ⚠️ Deprecated → `Deque::back` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Peek at the back element without removing it. |
-| ~~`deque_clear`~~ ⚠️ Deprecated → `Deque::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Reset the deque to empty (preserves capacity). |
-| ~~`deque_to_vec`~~ ⚠️ Deprecated → `Deque::iter` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Copy all deque elements (front to back) into a new Vec<i32>. |
-
-#### `std::collections::linear::deque_front`
-
-Peek at the front element without removing it. Returns 0 when empty.
-
-#### `std::collections::linear::deque_back`
-
-Peek at the back element without removing it. Returns 0 when empty.
-
-#### `std::collections::linear::deque_clear`
-
-Reset the deque to empty (preserves allocated capacity).
-
-#### `std::collections::linear::deque_to_vec`
-
-Copy all deque elements (front to back) into a new Vec<i32>.
-
-> ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
 
 ## Module `std::collections::ordered`
 

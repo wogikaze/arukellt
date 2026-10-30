@@ -1,13 +1,15 @@
 // Fixture: use_func_destructure.ark
-// Issue #717: `use std::collections::linear::{deque_new, deque_push_back}`
-// imports the functions directly into scope, so the bare `deque_new(...)` /
-// `deque_push_back(...)` calls resolve through the use-alias mechanism.
+// Issue #717: `use std::collections::deque::{Deque, Queue}` imports both type
+// names directly into scope, so the associated constructors resolve through
+// the use-alias mechanism.
 //
 // Expected output: true
-use std::collections::linear::{deque_new, deque_push_back, deque_len}
+use std::collections::deque::{Deque, Queue}
 
 fn main() {
-    let mut d: Vec<i32> = deque_new()
-    deque_push_back(d, 7)
-    __intrinsic_println((deque_len(d) == 1).to_string())
+    let mut deque: Deque<i32> = Deque::new<i32>()
+    deque.push_back(7)
+    let mut queue: Queue<i32> = Queue::new<i32>()
+    queue.push(9)
+    __intrinsic_println((deque.len() == 1 && queue.len() == 1).to_string())
 }

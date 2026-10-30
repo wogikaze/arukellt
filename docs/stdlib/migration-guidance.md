@@ -492,6 +492,36 @@ over the adapter in that unit, or keep the adapter fixture free of the
 `std::collections::vec` import; the canonical `.collect()` form remains
 valid in iterator-only units.
 
+## Deprecated `std::collections::linear` deque monomorphic frees (11 removed 2026-10-30, #917)
+
+The 11 `deque_*` free functions operated on the pre-ADR-086
+`[head, tail, count, cap, ...data]` `Vec<i32>` ring buffer. They completed
+their ADR-014 / ADR-086 §8 window in the `wave/deque-frees` slice after the
+`Deque<T>` receiver surface was verified on both targets, including the
+`is_empty` / `len` receiver dispatch and the 0-1 BFS shape (#968):
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `linear::deque_new()` | `Deque::new<T>()` / `Deque::with_capacity<T>(n)` |
+| `linear::deque_push_front(d, v)` | `d.push_front(v)` |
+| `linear::deque_push_back(d, v)` | `d.push_back(v)` |
+| `linear::deque_pop_front(d)` | `d.pop_front()` (`Option<T>`, `None` when empty) |
+| `linear::deque_pop_back(d)` | `d.pop_back()` (`Option<T>`, `None` when empty) |
+| `linear::deque_front(d)` | `d.front()` (`Option<T>`, `None` when empty) |
+| `linear::deque_back(d)` | `d.back()` (`Option<T>`, `None` when empty) |
+| `linear::deque_len(d)` | `d.len()` |
+| `linear::deque_is_empty(d)` | `d.is_empty()` |
+| `linear::deque_clear(d)` | `d.clear()` |
+| `linear::deque_to_vec(d)` | `d.iter().collect()` |
+
+Import `use std::collections::deque::Deque`. Empty `pop_front` / `pop_back` /
+`front` / `back` return `Option<T>` instead of the old panic / `0` sentinel,
+so replace the fallback assumptions with a `match` (or `unwrap_or` for
+`Option<i32>`). `deque_new` preallocated capacity 16; `Deque::new<T>()` makes
+no capacity claim, so use `Deque::with_capacity<T>(n)` when a reservation is
+required. Old qualified and bare calls fail with **E0100** hints from
+`resolver::removed_names`; `std::collections::linear` is removed.
+
 ## Deprecated `std::collections::linked_list` monomorphic frees (11 removed 2026-10-30, #917)
 
 The 11 `linked_list_*` free functions operated on the pre-ADR-086
@@ -531,17 +561,6 @@ The following public entries currently carry `deprecated_by` in
 |----------------|-------------|
 | `char_at` | `byte_at` |
 | `concat` | `a.concat(b)` |
-| `std::collections::linear::deque_new` | `Deque::new<T>()` or `Deque::with_capacity<T>(n)` |
-| `std::collections::linear::deque_push_front` | `d.push_front(v)` |
-| `std::collections::linear::deque_push_back` | `d.push_back(v)` |
-| `std::collections::linear::deque_pop_front` | `d.pop_front()` (`Option<T>`, `None` when empty) |
-| `std::collections::linear::deque_pop_back` | `d.pop_back()` (`Option<T>`, `None` when empty) |
-| `std::collections::linear::deque_front` | `d.front()` (`Option<T>`, `None` when empty) |
-| `std::collections::linear::deque_back` | `d.back()` (`Option<T>`, `None` when empty) |
-| `std::collections::linear::deque_len` | `d.len()` |
-| `std::collections::linear::deque_is_empty` | `d.is_empty()` |
-| `std::collections::linear::deque_clear` | `d.clear()` |
-| `std::collections::linear::deque_to_vec` | `d.iter().collect()` |
 | `std::io::writer_write` | `Stdout::new().write(data)` / `Stderr::new().write(data)` from `use std::io`; memory sinks keep `w.write(data)` on `Writer` |
 | `std::io::writer_write_str` | `Stdout::new().write_string(s)` / `Stderr::new().write_string(s)` from `use std::io`; memory sinks keep `w.write_string(s)` on `Writer` |
 
@@ -561,20 +580,10 @@ manifest entries. The `std::seq` module itself was removed on 2026-10-30
 with its last 13 deprecated helpers (see
 [Deprecated std::seq monomorphic helpers](#deprecated-stdseq-monomorphic-helpers-13-removed-2026-10-30-917)).
 
-The `deque_*` and `linked_list_*` rows are the ADR-086 linear collection
-migration ([#710](https://github.com/wogikaze/arukellt/issues/710)). They keep
-their monomorphic `Vec<i32>` layout for the [ADR-014](../adr/ADR-014-stability-labels.md)
-deprecation window, so the observable differences from the type API are:
-
-- Empty `deque_pop_front` / `deque_pop_back` panic on the legacy layout while
-  `Deque::pop_front()` / `pop_back()` return `Option::None`.
-- `deque_front` / `deque_back` return the `0` sentinel when empty while
-  `Deque::front()` / `back()` return `Option::None`.
-- `linked_list_pop_front` / `pop_back` / `front` / `back` take a `fallback`
-  value while the `LinkedList<T>` methods return `Option<T>`.
-- `deque_new` preallocates a fixed capacity of 16; `Deque::new<T>()` makes no
-  capacity claim, so use `Deque::with_capacity<T>(n)` when a reservation is
-  required.
+The `deque_*` and `linked_list_*` families completed the ADR-086 linear
+collection migration ([#710](https://github.com/wogikaze/arukellt/issues/710))
+and were removed on 2026-10-30; their sections above record the replaced
+legacy panics, `0` sentinels, fallback arguments, and fixed capacity 16.
 
 New code should use `Deque<T>` / `Queue<T>` / `Stack<T>` from
 `std::collections::deque` and `LinkedList<T>` from
