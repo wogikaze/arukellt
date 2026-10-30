@@ -141,6 +141,12 @@ fn hashset_i32_method_target(method: String) -> String {
     if method.clone().eq(String_from("to_vec")) {
         return String_from("hashset_to_vec")
     }
+    if method.clone().eq(String_from("iter")) {
+        return String_from("HashSet_i32::iter")
+    }
+    if method.clone().eq(String_from("retain")) {
+        return String_from("HashSet_i32::retain")
+    }
     if method.clone().eq(String_from("union")) {
         return String_from("hashset_union")
     }
@@ -193,6 +199,12 @@ fn hashset_str_method_target(method: String) -> String {
     }
     if method.clone().eq(String_from("to_vec")) {
         return String_from("hash_string::hashset_str_to_vec")
+    }
+    if method.clone().eq(String_from("iter")) {
+        return String_from("HashSet_String::iter")
+    }
+    if method.clone().eq(String_from("retain")) {
+        return String_from("HashSet_String::retain")
     }
     // The aggregate helpers are private to hash_string, so the target has to
     // carry the module prefix; the membership names stay bare because they are

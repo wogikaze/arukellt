@@ -1861,83 +1861,45 @@ classified there, in dependency-safe waves.
   `entry` / `iter` / `retain`, `FromIterator` parity, and a true unit-value
   (`()`) set representation remain deferred.
 
-### Landed slice (wave/eradication-remain, 2026-10-30)
+### Landed slice (wave/borrowed-iter, 2026-10-30)
 
-- **Group**: `std::seq` — the last 13 deprecated monomorphic helpers
-  (`map_i32_i32`, `filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`,
-  `sum_i32`, `binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
-  `seq_contains`, `unique`, `count_eq`). All 13 carried
-  `stability = "deprecated"`, `deprecated_since = "0.1.0"`, and
-  `remove_in = "1.0.0"` after the ADR-087 Wave 1 window, so this is their
-  Wave 2 deletion. The manifest `[[functions]]` entries and the
-  `std/seq/mod.ark` declarations are gone; because no public function
-  remains, the module source, the curated `modules/seq.md` page, and the
-  README module row were removed too.
-- **Replacement surface**: `Vec<T>` receiver queries
-  (`v.binary_search(x)`, `v.min()`, `v.max()`) via
-  `use std::collections::vec`, and the `std::core::iter` pipelines
-  (`v.iter().map(f).collect()`, `filter`, `take`, `skip`, `fold`, `sum`,
-  `rev`, `contains`, `unique`, `count_eq`). The wrappers already delegated
-  to these methods, so no new API was needed.
-- **E0100**: `resolver::removed_names::removed_seq_member_hint` now maps
-  all 13 names for the `seq::` / `std::seq::` qualified calls; the bare
-  names keep the existing `removed_prelude_free_hint` rows. Unit
-  assertions cover every symbol in `removed_names.ark`, and the 13
-  `deprecated_seq_qualified_message` W0009 rows and their unit test are
-  deleted because the warning can no longer fire.
-- **Compiler cleanup**: the now-dead `seq::min_i32` / `seq::max_i32`
-  FunctionId rebind (`call_func_id.ark`, `call_rewrite.ark`),
-  `mir_should_defer_stdlib_body_for_qualified` and
-  `mir_is_seq_iterator_compatibility_entry`
-  (`stdlib_body_defer.ark`, plus the two callers), and the `seq::` example
-  comments were removed. The optional `seq.*` CoreOps and their legacy
-  emitter branches stay in `data/core-ops.toml` / `wasm/call_seq*.ark`;
-  no source call can reach them after the declaration deletion.
-- **Migration**: `docs/stdlib/migration-guidance.md` moves the 13 rows from
-  "Currently Deprecated APIs" to a removed-API table and records the
-  measured `std::collections::vec` + adapter `.collect()` GC limitation
-  (#967); `docs/stdlib/changelog.md` records the wave; the language spec,
-  stability policy, expansion policy, prelude-dedup inventory, current
-  state, and trait-redesign status note were updated.
-- **Fixtures**: `stdlib_seq/{seq_basic,seq_edge_cases,seq_map_filter,
-  seq_take_skip_fold,seq_take_skip_collect,seq_take_skip_collect_wasm32}`,
-  `stdlib_trait/iterator_query_consumers`, `prelude_compiled_user_body/main`,
-  and the check-only `stdlib_inline/abs_probe` now use the method surface.
-  The two W0009 goldens became
-  `diagnostics/removed_seq_map_i32_i32` (gc) and
-  `diagnostics/removed_seq_sum_i32_wasm32` (linear) E0100 goldens.
-  `seq_basic` / `seq_edge_cases` consume `unique()` through a `for` loop
-  because they also import `std::collections::vec` (the #967 gap);
-  `iterator_query_consumers` keeps the `.collect()` form in an
-  iterator-only unit.
-- **Scorecard**: eradication scope 82 -> **69**; `must delete` 66 ->
-  **53**; manifest public entries 82 -> **69**; manifest functions 83 ->
-  **70**; `pub fn` declarations 82 -> **69**; monomorphic manifest helpers
-  27 -> **19**; `prelude_wrapper` 26, `associated-or-method` 16, and
-  `intrinsic-only` 1 unchanged; unregistered declarations stay 0. The
-  `deprecated std::seq helpers` rule is removed from
-  `docs/data/stdlib-api-eradication.toml`; source-backed modules 41 -> 40
-  and module pages 18 -> 17. Fixture registry: 1945 `run:` entries
-  (2 diag fixtures renamed, no count change).
-- **Verification**: `verify fixtures` **1945/1945** compile+validate PASS
-  (112 runtime smoke, 42/42 `test:` fixtures PASS, 2 runtime-unsupported,
-  0 FAIL); every changed run fixture compiles, validates, and runs on
-  `wasm32-gc` (P2 component) and `--target wasm32` (linear), including
-  `seq_take_skip_collect_wasm32`; cross-backend parity **6/6**;
-  `selfhost diag-parity` PASS; `docs check` 6/6; `verify lane` PASS;
-  `check-stdlib-eradication` 70/70 manifest functions and 0/0 unregistered
-  declarations classified; `check-compat-orphans`,
-  `check-comment-policy`, `check-ark-code-quality`, and
-  `check-semantic-debt` clean; ADR-029 fixpoint PASS: s2 == s3 at sha256
-  `75797e12d8819f4fbb1ebad69dd26ab6ba926ccdc9ff56390085ad47b5cc4176`
-  (pinned base `56ff0808…`).
-- **Residuals**: the other E0100 families are untouched — monomorphic
-  numeric conversions 17, vec intrinsic-compat 9, assertion 4,
-  legacy `std::collections::linear` deque 11, `linked_list` 11, the
-  provisional prelude `filter_i32` 1, the four ADR-091 prelude exceptions
-  (`assert`, `String_from`, `String_new`, `char_to_string`), the 9
-  `std::io` / host stdio compatibility frees, and the 3 experimental
-  `std::host::fs` fd frees (ADR-092 exception). The measured compiler
-  limitation above (a `std::collections::vec` import plus an adapter
-  `.collect()` into `Vec` on GC) is pre-existing #967 work, not a removed
-  surface.
+- **Feasibility**: yes, as snapshot/owned rather than borrowed. v2 has no
+  general `&T` / `&mut T`, so `iter` returns `HashMapIter<K, V>` owning
+  key/value snapshots and `entry` returns `Entry<K, V>` owning the map handle
+  plus key. `VecIter<(K, V)>` was rejected: tuple elements lose their payload
+  in `next()` on both targets. The design is recorded in ADR-093.
+- **Landed**: `HashMap<K, V>::iter`, `HashMap<K, V>::entry`
+  (`key`, `or_insert`, `or_insert_with`), and
+  `HashMap<K, V>::retain(keep: fn((K, V)) -> bool)`. `HashSet<i32>` /
+  `HashSet<String>` gain snapshot `iter()` and `retain(fn(T) -> bool)`.
+  `HashMap` gains concrete `FromIterator<HashMapIter<...>>` impls for all six
+  supported pairs, invoked as `HashMap::from_iter(m.iter())`. The existing
+  `IntoIterator for HashMap` keys contract is unchanged; pairs are reached
+  through `m.iter()`.
+- **Lowering**: `iter` / `entry` are source-level concrete pair impls selected
+  by `mir_rewrite_hashmap_method`; `retain` lowers to new store targets
+  (`hashmap_retain`, `hashmap_str_retain`, `hashmap_i32_str_retain`,
+  `hashmap_str_str_retain`, `hashmap_i32_fn_retain`,
+  `hashmap_str_fn_retain`). The typechecker HashMap table types `iter` /
+  `entry` / `retain`, unifies `retain`'s predicate with `fn((K, V)) -> bool`,
+  and `call_fn` / `mir_try_resolve_associated_function` select the concrete
+  `FromIterator` impl from the `HashMapIter` source type. The field-type
+  lookup normalizes `HashMap<i32, i32>` to the flat Vec store alias so
+  `Entry.map` and user struct fields keep the same GC ref as the map value.
+- **Fixtures**: added dual-target
+  `stdlib_hashmap/hashmap_entry_iter_retain` (+ `_wasm32`) and
+  `stdlib_hashset/hashset_iter_retain` (+ `_wasm32`), covering i32, String,
+  and fn-valued pairs on both targets.
+- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
+  (112 runtime executed, 42/42 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `verify lane` PASS; `docs check` 6/6; `selfhost diag-parity` PASS;
+  ADR-029 fixpoint PASS, s2 == s3 sha256
+  `b4cd5a221941d6dafba9aefb586cc572980fb4051e647848bb968e75bbaf87cd`
+  (pinned base `56ff0808…`). The new fixtures ran on wasm32-gc as P2
+  components and on `--target wasm32`.
+- **Residuals**: `HashMap::into_iter` still yields keys; `retain` is a
+  snapshot pass plus per-key removal (worst-case O(n²) for the flat store);
+  borrow-based `iter` / `Entry` waits for the lifetime design. The
+  `VecIter<(K, V)>` tuple cursor and the std-method multi-parameter String
+  callback ABI remain compiler residuals (the owned-pair predicate avoids the
+  latter).

@@ -184,6 +184,7 @@ let text: String = String::from_utf8_lossy(back) // "hello"
         "modules": [
             "std::collections::compiler",
             "std::collections::hash",
+            "std::collections::hash_map",
             "std::collections::hash_set",
             "std::collections::deque",
             "std::collections::linked_list",

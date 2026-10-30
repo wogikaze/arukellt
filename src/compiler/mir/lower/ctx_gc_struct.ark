@@ -473,6 +473,15 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     if type_name.clone().starts_with(String_from("hashmap:strstr")) {
         return String_from("_ref18")
     }
+    // The flat HashMap<i32, i32> store is the Vec<i32> layout, not the
+    // open-addressing bucket struct the other pairs use. A field declared as
+    // a flat map must carry the Vec ref or every method call on it is a ref
+    // type mismatch (#974).
+    if type_name.clone().eq(String_from("hashmap:i32i32")) ||
+    type_name.clone().eq(String_from("HashMap<i32, i32>")) ||
+    type_name.clone().eq(String_from("HashMap<i32,i32>")) {
+        return String_from("_ref10")
+    }
     if type_name.clone().starts_with(String_from("hashmap:")) || type_name.clone().starts_with(String_from("HashMap")) {
         return String_from("_ref16")
     }

@@ -16,40 +16,38 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-30 — `std::seq` の deprecated 13 関数と module を削除 (#917, wave/eradication-remain)
+## 2026-10-30 — Hash collection の `entry` / `iter` / `retain` / `FromIterator` (ADR-093, wave/borrowed-iter)
 
-- **Removed**: `std::seq` の最後の公開 free function 13 件 —
-  `map_i32_i32`, `filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`,
-  `sum_i32`, `binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
-  `seq_contains`, `unique`, `count_eq`。ADR-087 の Wave 1 で
-  `deprecated` + W0009 済みだった stable entry の Wave 2 削除であり、
-  `std/seq/mod.ark` と `std/manifest.toml` の `[[functions]]` 13 件を
-  同時に落とした。module に公開関数が残らないため source file と
-  `modules/seq.md` も削除した。
-- **Replacement**: `Vec<T>` の receiver method (`v.binary_search(x)`,
-  `v.min()`, `v.max()`) と `std::core::iter` の pipeline
-  (`v.iter().map(f).collect()`, `v.iter().sum()`, `v.iter().unique().collect()`,
-  `v.iter().count_eq(x)`, ...)。`use std::collections::vec` /
-  `use std::core::iter` が必要。
-- **E0100**: `resolver::removed_names::removed_seq_member_hint` が
-  `seq::` / `std::seq::` の旧 qualified call に各 replacement を返す。
-  bare 名の hint は既存の `removed_prelude_free_hint` が保持する。
-  W0009 の `deprecated_seq_qualified_message` 13 行は削除した。
-- **Migration**: `docs/stdlib/migration-guidance.md` に 13 行の
-  before/after 表を移設し、`docs/language/spec.md` の
-  `std::seq` compatibility 記述を更新した。
-- **Fixtures**: `stdlib_seq/*`, `stdlib_trait/iterator_query_consumers`,
-  `prelude_compiled_user_body/main`, `stdlib_inline/abs_probe` を method
-  surface へ移行。`diagnostics/removed_seq_{map_i32_i32,sum_i32_wasm32}`
-  を E0100 golden として追加した。
-- **Verification**: `verify fixtures` **1945/1945** compile+validate PASS
-  (112 runtime smoke, 42/42 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
-  both-target compile + `wasm-tools validate` for the changed run fixtures
-  (`wasm32-gc` P2 component and `--target wasm32` linear); cross-backend
-  parity 6/6; `selfhost diag-parity` PASS; `docs check` 6/6;
-  `verify lane` PASS; ADR-029 fixpoint PASS s2 == s3 at sha256
-  `75797e12d8819f4fbb1ebad69dd26ab6ba926ccdc9ff56390085ad47b5cc4176`
-  (pinned base `56ff0808…`).
+- **Added**: `HashMap<K, V>::iter()`、`HashMap<K, V>::entry(key)`、
+  `HashMap<K, V>::retain(keep: fn((K, V)) -> bool)`、および 6 pair の
+  `FromIterator<HashMapIter<...>> for HashMap<...>`。`HashSet<i32>` /
+  `HashSet<String>` にも snapshot `iter()` と `retain(keep: fn(T) -> bool)` を
+  追加した。公開型は `HashMapIter<K, V>`（snapshot cursor）と
+  `Entry<K, V>`（owned handle）で、いずれも provisional。
+- **Contract**: v2 に borrow がないため、`iter` は keys/values の snapshot を
+  所有する cursor、`entry` は map と key を所有する handle である。
+  `or_insert` / `or_insert_with` は消費時に lookup して absent なら書き戻す。
+  `retain` の predicate は borrowed `&K` / `&V` ではなく owned pair 1 個を
+  受け取る。`HashMap` の既存 `IntoIterator` は keys のままで、pairs は
+  `m.iter()` で走査する。cursor の順序は bucket order（implementation-defined）。
+- **Design**: 採用理由と却下案は ADR-093 に記録した。`VecIter<(K, V)>` は
+  両 target で tuple payload を落とすため cursor にせず、専用の
+  `HashMapIter<K, V>` が keys/values snapshot を保持する。`Entry` は pair ごとの
+  concrete impl で map field の GC layout を確定する。`retain` は pair ごとの
+  store target で snapshot 評価後に拒否 key を削除する。
+- **Not changed**: 退役済み `hashmap_*` free function 群は非公開 MIR lowering
+  target のままで、新しい method surface はそれらを置き換えない。E0100
+  hint / migration scorecard の変更はない。
+- **Fixtures**: `stdlib_hashmap/hashmap_entry_iter_retain` と `_wasm32`、
+  `stdlib_hashset/hashset_iter_retain` と `_wasm32` を追加し、i32/String/fn pair の
+  `iter` / `entry` / `retain` / `FromIterator` と set の `iter` / `retain` を
+  両 target で実行する。
+- **Verification**: `verify fixtures` 1949/1949 PASS、`verify lane` PASS、
+  `docs check` 6/6、`selfhost diag-parity` PASS、ADR-029 fixpoint PASS
+  （s2 == s3 sha256 `b4cd5a22…`、pinned base `56ff0808…`）。
+- **Residual**: `HashMap::into_iter` の keys 契約は据え置き。borrow / lifetime
+  導入時に `iter` / `entry` を参照ベースへ置き換えるか併存させるかを再検討する。
+  `retain` の flat store は snapshot + 個別 remove のため最悪 O(n²)。
 
 ## 2026-10-30 — `Vec<T>::clone` は import なしで deep (ADR-091, wave/clone-noimport)
 

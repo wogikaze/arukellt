@@ -14,6 +14,10 @@
 //! implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
 //! `Debug`.
 //!
+//! `iter` returns a `VecIter<T>` over a snapshot and `retain` evaluates its
+//! predicate against a snapshot before reinserting kept elements; Arukellt v2
+//! has no general borrow, so a borrowed set cursor is not exposed.
+//!
 //! The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 //! #917; this module's only public symbols are `HashSet` and its methods.
 //!
@@ -73,6 +77,33 @@ impl HashSet<i32> {
     /// Returns all elements as a `Vec<i32>` in implementation-defined order.
     fn to_vec(self: HashSet<i32>) -> Vec<i32> {
         self.to_vec()
+    }
+
+    /// Returns a cursor over a snapshot of the set's elements.
+    ///
+    /// The cursor owns the snapshot, so later set writes are not observed.
+    /// Element order is the store's bucket order, which is implementation-
+    /// defined; compare sets with `Eq`, not iteration order.
+    fn iter(self: HashSet<i32>) -> VecIter<i32> {
+        let values: Vec<i32> = self.to_vec()
+        values.iter()
+    }
+
+    /// Keeps only elements for which `keep` returns true.
+    ///
+    /// The predicate is evaluated against a snapshot, then matching elements
+    /// are reinserted, so `keep` never observes a partially rebuilt store.
+    fn retain(mut self: HashSet<i32>, keep: fn(i32) -> bool) {
+        let values: Vec<i32> = self.to_vec()
+        self.clear()
+        let mut index: i32 = 0
+        while index < len(values) {
+            let value: i32 = get_unchecked(values, index)
+            if keep(value) {
+                let _ = self.insert(value)
+            }
+            index = index + 1
+        }
     }
 
     /// Returns a new set with the elements present in either set.
@@ -151,6 +182,33 @@ impl HashSet<String> {
     /// Returns all elements as a `Vec<String>` snapshot in bucket order.
     fn to_vec(self: HashSet<String>) -> Vec<String> {
         self.to_vec()
+    }
+
+    /// Returns a cursor over a snapshot of the set's elements.
+    ///
+    /// The cursor owns the snapshot, so later set writes are not observed.
+    /// Element order is the store's bucket order, which is implementation-
+    /// defined; compare sets with `Eq`, not iteration order.
+    fn iter(self: HashSet<String>) -> VecIter<String> {
+        let values: Vec<String> = self.to_vec()
+        values.iter()
+    }
+
+    /// Keeps only elements for which `keep` returns true.
+    ///
+    /// The predicate is evaluated against a snapshot, then matching elements
+    /// are reinserted, so `keep` never observes a partially rebuilt store.
+    fn retain(mut self: HashSet<String>, keep: fn(String) -> bool) {
+        let values: Vec<String> = self.to_vec()
+        self.clear()
+        let mut index: i32 = 0
+        while index < len(values) {
+            let value: String = get_unchecked(values, index)
+            if keep(value) {
+                let _ = self.insert(value)
+            }
+            index = index + 1
+        }
     }
 
     /// Returns a new set with the elements present in either set.

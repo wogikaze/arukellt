@@ -1,0 +1,99 @@
+use std::host::stdio
+use std::test::Test
+use std::core::iter
+
+fn inc(n: i32) -> i32 {
+    n + 1
+}
+
+fn keep_large(pair: (i32, i32)) -> bool {
+    let (key, value) = pair
+    key > 1
+}
+
+fn keep_rich(pair: (String, i32)) -> bool {
+    let (word, value) = pair
+    len(word) > 2
+}
+
+fn keep_fn(pair: (i32, fn(i32) -> i32)) -> bool {
+    let (key, f) = pair
+    key > 1
+}
+
+fn main() {
+    let mut flat: HashMap<i32, i32> = HashMap::new<i32, i32>()
+    let _ = flat.insert(1, 10)
+    let _ = flat.insert(2, 20)
+    let _ = flat.insert(3, 30)
+
+    let mut total: i32 = 0
+    for pair in flat.iter() {
+        let (key, value) = pair
+        total = total + key * 100 + value
+    }
+    Test::assert_eq_i32(total, 660)
+
+    let mut cursor = flat.iter()
+    Test::assert_false(cursor.is_empty())
+    let mut cursor_count: i32 = 0
+    while true {
+        match cursor.next() {
+            Option::Some(_) => cursor_count = cursor_count + 1,
+            Option::None => { break },
+        }
+    }
+    Test::assert_eq_i32(cursor_count, 3)
+
+    let mut entry = flat.entry(4)
+    Test::assert_eq_i32(entry.key(), 4)
+    Test::assert_eq_i32(entry.or_insert(40), 40)
+    Test::assert_eq_i32(flat.len(), 4)
+    Test::assert_eq_i32(flat.entry(4).or_insert(99), 40)
+
+    flat.retain(keep_large)
+    Test::assert_eq_i32(flat.len(), 3)
+    Test::assert_false(flat.contains_key(1))
+
+    let flat_copy: HashMap<i32, i32> = HashMap::from_iter(flat.iter())
+    Test::assert_eq_i32(flat_copy.len(), 3)
+    Test::assert_true(flat_copy.contains_key(4))
+    let flat_pairs: Vec<(i32, i32)> = flat_copy.iter().collect()
+    Test::assert_eq_i32(len(flat_pairs), 3)
+
+    let mut words: HashMap<String, i32> = HashMap::new<String, i32>()
+    let _ = words.insert("a", 1)
+    let _ = words.insert("bb", 2)
+    let mut word_total: i32 = 0
+    for pair in words.iter() {
+        let (key, value) = pair
+        word_total = word_total + len(key) * 10 + value
+    }
+    Test::assert_eq_i32(word_total, 33)
+    Test::assert_eq_i32(words.entry("a").or_insert(99), 1)
+    Test::assert_eq_i32(words.entry("ccc").or_insert(3), 3)
+    words.retain(keep_rich)
+    Test::assert_eq_i32(words.len(), 1)
+    Test::assert_true(words.contains_key("ccc"))
+    let words_copy: HashMap<String, i32> = HashMap::from_iter(words.iter())
+    Test::assert_eq_i32(words_copy.len(), 1)
+
+    let mut fns: HashMap<i32, fn(i32) -> i32> = HashMap::new<i32, fn(i32) -> i32>()
+    let _ = fns.insert(1, inc)
+    let _ = fns.insert(2, inc)
+    let mut fn_count: i32 = 0
+    for pair in fns.iter() {
+        let (key, f) = pair
+        fn_count = fn_count + f(key)
+    }
+    Test::assert_eq_i32(fn_count, 5)
+    fns.retain(keep_fn)
+    Test::assert_eq_i32(fns.len(), 1)
+    let fn_copy: HashMap<i32, fn(i32) -> i32> = HashMap::from_iter(fns.iter())
+    match fn_copy.get(2) {
+        Option::Some(f) => Test::assert_eq_i32(f(10), 11),
+        Option::None => Std::panic("missing fn entry"),
+    }
+
+    stdio::println("hashmap-entry-iter-retain-ok")
+}

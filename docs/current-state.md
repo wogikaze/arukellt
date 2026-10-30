@@ -389,8 +389,8 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3611 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 2023 registry entries (not proof they fail)
+- Fixture registry: 3614 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 2026 registry entries (not proof they fail)
 - Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3575 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1987, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, the ADR-088 mut-parameter fixtures were added, and the ADR-088 §6 Box-escape and §7 function-type-position fixtures were added, and the ADR-089 associated generic-return fixture was added, and the E0212 non-call read-position fixtures were added, and the Vec<T: Ord> i64/String sort fixtures were added (#965), and the HashMap flat-store method-surface migration plus the dual-target deprecated/removed HashMap diagnostics were added (#917), and the #936 prelude Vec signature and owner-receiver fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
@@ -481,9 +481,9 @@ associated-function lowering selects
 `Vec_String::from_iter__FilterIter_String`, producing valid GC references and
 linear-memory handles on the respective backends. A `T: Iterator` helper
 monomorphizes the same String source to the matching `FromIterator` symbol on
-both backends. The `std::seq` free helpers and the module were removed on 2026-10-30
-(#917); the adapters remain in `std::core::iter`. The RFC-011 item 37 audit
-is closed with its residuals tracked by #887/#888/#878. The
+both backends. Manifest-level deprecation remains for the non-deprecated
+`std::seq` adapters (#703/#917); the RFC-011 item 37 audit is
+closed with its residuals tracked by #887/#888/#878. The
 `map(fn(String) -> String).filter(fn(String) -> bool).collect()` composition
 and its `Vec::from_iter` form are also covered through
 `MapFilterIter<String, String>`; the predicate receives a clone of the
@@ -503,7 +503,8 @@ The same fixture now passes this composed String source through a generic
 the adapter's identity `IntoIterator` conversion before `next` on both
 `wasm32-gc` and linear-memory `wasm32`. This remains bounded static
 monomorphization evidence; arbitrary dynamic item dispatch is out of scope
-(ADR-076); the removed `std::seq` module has no adapter surface left.
+(ADR-076), and manifest-level deprecation remains for the non-deprecated
+`std::seq` adapters.
 The callback lane also provides bounded `map(...).take(n)` and
 `filter(...).take(n)` adapters through
 `TakeIter<MapIter<String, String>>` and `TakeIter<FilterIter<String>>`.

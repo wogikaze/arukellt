@@ -176,6 +176,28 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
                 )
             }
         }
+        let hashmap_conversion = hashmap_from_iter_candidate(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            callee_name.clone()
+        )
+        if len(hashmap_conversion.clone()) > 0 {
+            let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, hashmap_conversion)
+            if contract_fn_sig::FnSig_has_name(conversion_sig) {
+                return infer_concrete_call_expr(
+                    env,
+                    scope,
+                    fn_sigs,
+                    enum_defs,
+                    node,
+                    conversion_sig,
+                    child_count - 1
+                )
+            }
+        }
         // Vec::new<T>() / with_capacity without inherent-impl sig still need
         // mono sites so bare (unannotated) lets get vec:T (#845).
         if call_vec_ctor::is_vec_associated_ctor_name(callee_name.clone()) {
@@ -375,6 +397,51 @@ fn hashset_from_iter_candidate(
     let string_name = String_from("HashSet_String::from_iter__").concat(source_name)
     if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, string_name.clone())) {
         return string_name
+    }
+    String_new()
+}
+
+fn hashmap_from_iter_candidate(
+    mut env: TypeEnv,
+    mut scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    callee_name: String
+) -> String {
+    let is_from_iter = callee_name.clone().eq(String_from("HashMap::from_iter")) ||
+    callee_name.clone().ends_with(String_from("::HashMap::from_iter"))
+    if !is_from_iter || ast_access::node_child_count(node) < 2 {
+        return String_new()
+    }
+    let source_ty = infer_expr(
+        env,
+        scope,
+        fn_sigs,
+        enum_defs,
+        ast_access::node_child_at(node, 1)
+    )
+    let source_name = call_method::type_name_for_mangling(source_ty)
+    // Only the snapshot cursor carries the pair in its mangled type; a
+    // different source type cannot name one of HashMap's concrete impls.
+    if !source_name.clone().starts_with(String_from("HashMapIter_")) {
+        return String_new()
+    }
+    let mut owners: Vec<String> = Vec::new<String>()
+    push(owners, String_from("HashMap_i32_i32"))
+    push(owners, String_from("HashMap_String_i32"))
+    push(owners, String_from("HashMap_i32_String"))
+    push(owners, String_from("HashMap_String_String"))
+    push(owners, String_from("HashMap_i32_fnref"))
+    push(owners, String_from("HashMap_String_fnref"))
+    let mut index: i32 = 0
+    while index < len(owners) {
+        let owner = get_unchecked(owners, index)
+        let candidate = owner.concat(String_from("::from_iter__").concat(source_name.clone()))
+        if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, candidate.clone())) {
+            return candidate
+        }
+        index = index + 1
     }
     String_new()
 }

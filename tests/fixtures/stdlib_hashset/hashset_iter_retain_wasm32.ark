@@ -1,0 +1,49 @@
+// HashSet<i32> / HashSet<String> snapshot iteration and retain (#974).
+use std::host::stdio
+use std::test::Test
+use std::collections::hash_set::HashSet
+
+fn keep_odd(value: i32) -> bool {
+    value % 2 == 1
+}
+
+fn keep_long(word: String) -> bool {
+    len(word) > 2
+}
+
+fn main() {
+    let mut set: HashSet<i32> = HashSet::new<i32>()
+    let _ = set.insert(1)
+    let _ = set.insert(2)
+    let _ = set.insert(3)
+    let mut set_iter = set.iter()
+    let mut set_total: i32 = 0
+    while true {
+        match set_iter.next() {
+            Option::Some(value) => set_total = set_total + value,
+            Option::None => { break },
+        }
+    }
+    Test::assert_eq_i32(set_total, 6)
+    set.retain(keep_odd)
+    Test::assert_eq_i32(set.len(), 2)
+    Test::assert_false(set.contains(2))
+
+    let mut word_set: HashSet<String> = HashSet::new<String>()
+    let _ = word_set.insert("a")
+    let _ = word_set.insert("abcd")
+    let mut word_iter = word_set.iter()
+    let mut word_lengths: i32 = 0
+    while true {
+        match word_iter.next() {
+            Option::Some(word) => word_lengths = word_lengths + len(word),
+            Option::None => { break },
+        }
+    }
+    Test::assert_eq_i32(word_lengths, 5)
+    word_set.retain(keep_long)
+    Test::assert_eq_i32(word_set.len(), 1)
+    Test::assert_true(word_set.contains("abcd"))
+
+    stdio::println("hashset-iter-retain-ok")
+}
