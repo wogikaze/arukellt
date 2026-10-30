@@ -1,4 +1,4 @@
-//! `LinkedList<T>` and legacy free-function helpers for a doubly-linked list.
+//! `LinkedList<T>` — a doubly-linked list.
 //!
 //! `LinkedList<T>` is a `Vec`-backed node pool with a free list. Node metadata
 //! (`prev` / `next` indices and a value index) lives in parallel `Vec<i32>`
@@ -6,9 +6,9 @@
 //! push / pop and peek are O(1); front-to-back traversal is O(n). `clear` drops
 //! the value log and keeps the node-pool capacity.
 //!
-//! The older `linked_list_*` free functions below operate on a monomorphic
-//! `Vec<i32>` layout and remain only for the ADR-086 migration window. New code
-//! should use `LinkedList<T>`.
+//! The former `linked_list_*` free functions and their monomorphic `Vec<i32>`
+//! layout were retired under ADR-046 / ADR-086 §8. The receiver methods below
+//! are the only public surface; old calls fail with E0100 hints.
 //!
 //! Cursors hold the list handle rather than a borrowed reference, so the type
 //! checker does not yet reject a push / pop / clear while an iterator is alive.
@@ -21,16 +21,6 @@
 //! list cursors cannot be added as further `FromIterator` sources.
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
-//!
-//! ## Legacy layout
-//!
-//! The backing `Vec<i32>` stores:
-//! ```text
-//! [head, tail, free_head, count, capacity,
-//!  node_0_prev, node_0_next, node_0_value,
-//!  node_1_prev, node_1_next, node_1_value, ...]
-//! ```
-//! where `head`, `tail`, `free_head` are node indices or `-1` (nil).
 
 // Do not import `std::collections::vec` here. Loading that module's own
 // `impl Vec<T>` shadows the prelude Vec constructor inside this module's
@@ -45,236 +35,7 @@ use std::text
 
 // ── internal layout constants ───────────────────────────────────────────────
 
-const HEADER_LEN: i32 = 5
-const NODE_FIELDS: i32 = 3   // prev, next, value
-const PREV_OFFSET: i32 = 0
-const NEXT_OFFSET: i32 = 1
-const VALUE_OFFSET: i32 = 2
-
 const NIL: i32 = 0 - 1
-
-fn slot_prev(buf: Vec<i32>, node: i32) -> i32 {
-    get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + PREV_OFFSET)
-}
-
-fn slot_next(buf: Vec<i32>, node: i32) -> i32 {
-    get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + NEXT_OFFSET)
-}
-
-fn slot_value(buf: Vec<i32>, node: i32) -> i32 {
-    get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + VALUE_OFFSET)
-}
-
-fn set_slot_prev(mut buf: Vec<i32>, node: i32, val: i32) {
-    set(buf, HEADER_LEN + node * NODE_FIELDS + PREV_OFFSET, val)
-}
-
-fn set_slot_next(mut buf: Vec<i32>, node: i32, val: i32) {
-    set(buf, HEADER_LEN + node * NODE_FIELDS + NEXT_OFFSET, val)
-}
-
-fn set_slot_value(mut buf: Vec<i32>, node: i32, val: i32) {
-    set(buf, HEADER_LEN + node * NODE_FIELDS + VALUE_OFFSET, val)
-}
-
-fn header_head(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 0)
-}
-
-fn header_tail(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 1)
-}
-
-fn header_free(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 2)
-}
-
-fn header_count(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 3)
-}
-
-fn header_capacity(buf: Vec<i32>) -> i32 {
-    get_unchecked(buf, 4)
-}
-
-fn set_header(mut buf: Vec<i32>, slot: i32, val: i32) {
-    set(buf, slot, val)
-}
-
-fn set_header_head(mut buf: Vec<i32>, val: i32) {
-    set(buf, 0, val)
-}
-
-fn set_header_tail(mut buf: Vec<i32>, val: i32) {
-    set(buf, 1, val)
-}
-
-fn set_header_free(mut buf: Vec<i32>, val: i32) {
-    set(buf, 2, val)
-}
-
-fn set_header_count(mut buf: Vec<i32>, val: i32) {
-    set(buf, 3, val)
-}
-
-fn set_header_capacity(mut buf: Vec<i32>, val: i32) {
-    set(buf, 4, val)
-}
-
-// ── node allocation ─────────────────────────────────────────────────────────
-
-fn alloc_node(mut buf: Vec<i32>) -> i32 {
-    let free_head = header_free(buf)
-    if free_head != NIL {
-        let next_free = slot_next(buf, free_head)
-        set_header_free(buf, next_free)
-        set_slot_prev(buf, free_head, NIL)
-        set_slot_next(buf, free_head, NIL)
-        return free_head
-    }
-    // Grow: append a new node slot
-    let cap = header_capacity(buf)
-    push(buf, NIL)  // prev
-    push(buf, NIL)  // next
-    push(buf, 0)    // value
-    set_header_capacity(buf, cap + 1)
-    return cap
-}
-
-fn free_node(mut buf: Vec<i32>, node: i32) {
-    set_slot_prev(buf, node, NIL)
-    set_slot_next(buf, node, header_free(buf))
-    set_header_free(buf, node)
-}
-
-// ── public API ──────────────────────────────────────────────────────────────
-
-/// Create a new empty legacy i32 list over a `Vec<i32>` node pool.
-pub fn linked_list_new() -> Vec<i32> {
-    let mut buf = Vec::new<i32>()
-    push(buf, NIL)  // head
-    push(buf, NIL)  // tail
-    push(buf, NIL)  // free_head
-    push(buf, 0)    // count
-    push(buf, 0)    // capacity
-    buf
-}
-
-/// Push a value to the front of the legacy i32 list. O(1).
-pub fn linked_list_push_front(mut buf: Vec<i32>, value: i32) {
-    let node = alloc_node(buf)
-    set_slot_value(buf, node, value)
-    let old_head = header_head(buf)
-    set_slot_next(buf, node, old_head)
-    if old_head != NIL {
-        set_slot_prev(buf, old_head, node)
-    } else {
-        set_header_tail(buf, node)
-    }
-    set_header_head(buf, node)
-    set_header_count(buf, header_count(buf) + 1)
-}
-
-/// Push a value to the back of the legacy i32 list. O(1).
-pub fn linked_list_push_back(mut buf: Vec<i32>, value: i32) {
-    let node = alloc_node(buf)
-    set_slot_value(buf, node, value)
-    let old_tail = header_tail(buf)
-    set_slot_prev(buf, node, old_tail)
-    if old_tail != NIL {
-        set_slot_next(buf, old_tail, node)
-    } else {
-        set_header_head(buf, node)
-    }
-    set_header_tail(buf, node)
-    set_header_count(buf, header_count(buf) + 1)
-}
-
-/// Pop and return the front value of the legacy i32 list, or `fallback` if empty. O(1).
-pub fn linked_list_pop_front(mut buf: Vec<i32>, fallback: i32) -> i32 {
-    let head = header_head(buf)
-    if head == NIL {
-        return fallback
-    }
-    let value = slot_value(buf, head)
-    let next = slot_next(buf, head)
-    set_header_head(buf, next)
-    if next != NIL {
-        set_slot_prev(buf, next, NIL)
-    } else {
-        set_header_tail(buf, NIL)
-    }
-    free_node(buf, head)
-    set_header_count(buf, header_count(buf) - 1)
-    value
-}
-
-/// Pop and return the back value of the legacy i32 list, or `fallback` if empty. O(1).
-pub fn linked_list_pop_back(mut buf: Vec<i32>, fallback: i32) -> i32 {
-    let tail = header_tail(buf)
-    if tail == NIL {
-        return fallback
-    }
-    let value = slot_value(buf, tail)
-    let prev = slot_prev(buf, tail)
-    set_header_tail(buf, prev)
-    if prev != NIL {
-        set_slot_next(buf, prev, NIL)
-    } else {
-        set_header_head(buf, NIL)
-    }
-    free_node(buf, tail)
-    set_header_count(buf, header_count(buf) - 1)
-    value
-}
-
-/// Peek the front value of the legacy i32 list, or `fallback` if empty. O(1).
-pub fn linked_list_front(buf: Vec<i32>, fallback: i32) -> i32 {
-    let head = header_head(buf)
-    if head == NIL {
-        return fallback
-    }
-    slot_value(buf, head)
-}
-
-/// Peek the back value of the legacy i32 list, or `fallback` if empty. O(1).
-pub fn linked_list_back(buf: Vec<i32>, fallback: i32) -> i32 {
-    let tail = header_tail(buf)
-    if tail == NIL {
-        return fallback
-    }
-    slot_value(buf, tail)
-}
-
-/// Return the number of elements in the legacy i32 list. O(1).
-pub fn linked_list_len(buf: Vec<i32>) -> i32 {
-    header_count(buf)
-}
-
-/// Return true if the legacy i32 list is empty. O(1).
-pub fn linked_list_is_empty(buf: Vec<i32>) -> bool {
-    header_count(buf) == 0
-}
-
-/// Remove all elements from the legacy i32 list. O(1) (resets headers).
-pub fn linked_list_clear(mut buf: Vec<i32>) {
-    set_header_head(buf, NIL)
-    set_header_tail(buf, NIL)
-    set_header_free(buf, NIL)
-    set_header_count(buf, 0)
-    // Note: capacity stays; node slots are reused on next push.
-}
-
-/// Copy the legacy i32 list into a `Vec<i32>` in front-to-back order. O(n).
-pub fn linked_list_to_vec(buf: Vec<i32>) -> Vec<i32> {
-    let mut result = Vec::new<i32>()
-    let mut node = header_head(buf)
-    while node != NIL {
-        push(result, slot_value(buf, node))
-        node = slot_next(buf, node)
-    }
-    result
-}
 
 // ── LinkedList<T> (ADR-086 Phase 3) ─────────────────────────────────────────
 
@@ -756,88 +517,102 @@ fn linked_list_debug_items<T: Debug>(list: LinkedList<T>) -> String {
     out.concat(String_from("]"))
 }
 
+fn expect_list_i32(value: Option<i32>, expected: i32) {
+    match value {
+        Option::Some(actual) => assert(actual == expected),
+        Option::None => assert(false),
+    }
+}
+
+fn expect_list_none_i32(value: Option<i32>) {
+    match value {
+        Option::Some(_) => assert(false),
+        Option::None => {},
+    }
+}
+
 test mod "linked_list" {
     test "new_is_empty" {
-        let l = linked_list_new()
-        assert(linked_list_is_empty(l))
-        assert(linked_list_len(l) == 0)
+        let list: LinkedList<i32> = LinkedList::new<i32>()
+        assert(list.is_empty())
+        assert(list.len() == 0)
     }
     test "push_front_order" {
-        let mut l = linked_list_new()
-        linked_list_push_front(l, 1)
-        linked_list_push_front(l, 2)
-        assert(linked_list_front(l, 0 - 1) == 2)
-        assert(linked_list_back(l, 0 - 1) == 1)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_front(1)
+        list.push_front(2)
+        expect_list_i32(list.front(), 2)
+        expect_list_i32(list.back(), 1)
     }
     test "push_back_order" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 1)
-        linked_list_push_back(l, 2)
-        assert(linked_list_front(l, 0 - 1) == 1)
-        assert(linked_list_back(l, 0 - 1) == 2)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(1)
+        list.push_back(2)
+        expect_list_i32(list.front(), 1)
+        expect_list_i32(list.back(), 2)
     }
     test "pop_front_fifo" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 10)
-        linked_list_push_back(l, 20)
-        assert(linked_list_pop_front(l, 0 - 1) == 10)
-        assert(linked_list_pop_front(l, 0 - 1) == 20)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(10)
+        list.push_back(20)
+        expect_list_i32(list.pop_front(), 10)
+        expect_list_i32(list.pop_front(), 20)
     }
     test "pop_back_lifo" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 10)
-        linked_list_push_back(l, 20)
-        assert(linked_list_pop_back(l, 0 - 1) == 20)
-        assert(linked_list_pop_back(l, 0 - 1) == 10)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(10)
+        list.push_back(20)
+        expect_list_i32(list.pop_back(), 20)
+        expect_list_i32(list.pop_back(), 10)
     }
-    test "pop_empty_returns_fallback" {
-        let mut l = linked_list_new()
-        assert(linked_list_pop_front(l, 77) == 77)
-        assert(linked_list_pop_back(l, 88) == 88)
+    test "pop_empty_returns_none" {
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        expect_list_none_i32(list.pop_front())
+        expect_list_none_i32(list.pop_back())
     }
-    test "peek_empty_returns_fallback" {
-        let l = linked_list_new()
-        assert(linked_list_front(l, 55) == 55)
-        assert(linked_list_back(l, 66) == 66)
+    test "peek_empty_returns_none" {
+        let list: LinkedList<i32> = LinkedList::new<i32>()
+        expect_list_none_i32(list.front())
+        expect_list_none_i32(list.back())
     }
     test "len_after_pops" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 1)
-        linked_list_push_back(l, 2)
-        linked_list_pop_front(l, 0 - 1)
-        assert(linked_list_len(l) == 1)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(1)
+        list.push_back(2)
+        list.pop_front()
+        assert(list.len() == 1)
     }
     test "clear_resets" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 1)
-        linked_list_push_back(l, 2)
-        linked_list_clear(l)
-        assert(linked_list_is_empty(l))
-        assert(linked_list_len(l) == 0)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(1)
+        list.push_back(2)
+        list.clear()
+        assert(list.is_empty())
+        assert(list.len() == 0)
     }
-    test "to_vec_front_to_back" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 3)
-        linked_list_push_back(l, 4)
-        linked_list_push_front(l, 2)
-        let v = linked_list_to_vec(l)
-        assert(v.len() == 3)
-        assert(v.get_unchecked(0) == 2)
-        assert(v.get_unchecked(1) == 3)
-        assert(v.get_unchecked(2) == 4)
+    test "iter_collect_front_to_back" {
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(3)
+        list.push_back(4)
+        list.push_front(2)
+        let values: Vec<i32> = list.iter().collect()
+        assert(len(values) == 3)
+        assert(values.get_unchecked(0) == 2)
+        assert(values.get_unchecked(1) == 3)
+        assert(values.get_unchecked(2) == 4)
     }
     test "push_after_drain_reuses" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 1)
-        linked_list_pop_front(l, 0 - 1)
-        linked_list_push_back(l, 9)
-        assert(linked_list_len(l) == 1)
-        assert(linked_list_front(l, 0 - 1) == 9)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(1)
+        list.pop_front()
+        list.push_back(9)
+        assert(list.len() == 1)
+        expect_list_i32(list.front(), 9)
     }
     test "single_element_both_ends" {
-        let mut l = linked_list_new()
-        linked_list_push_back(l, 5)
-        assert(linked_list_front(l, 0 - 1) == 5)
-        assert(linked_list_back(l, 0 - 1) == 5)
+        let mut list: LinkedList<i32> = LinkedList::new<i32>()
+        list.push_back(5)
+        expect_list_i32(list.front(), 5)
+        expect_list_i32(list.back(), 5)
     }
 }

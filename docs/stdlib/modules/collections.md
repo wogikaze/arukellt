@@ -267,10 +267,10 @@ _No manifest-backed functions in this module._
 ## Module `std::collections::linked_list`
 
 - Source: [`../../../std/collections/linked_list.ark`](../../../std/collections/linked_list.ark)
-- Manifest-backed functions: 11
-- Stability: deprecated 11
+- Manifest-backed functions: 0
+- Stability: n/a
 
-`LinkedList<T>` and legacy free-function helpers for a doubly-linked list.
+`LinkedList<T>` — a doubly-linked list.
 
 `LinkedList<T>` is a `Vec`-backed node pool with a free list. Node metadata
 (`prev` / `next` indices and a value index) lives in parallel `Vec<i32>`
@@ -278,9 +278,9 @@ vectors, and element values live in an append-only `Vec<T>` log. Both-end
 push / pop and peek are O(1); front-to-back traversal is O(n). `clear` drops
 the value log and keeps the node-pool capacity.
 
-The older `linked_list_*` free functions below operate on a monomorphic
-`Vec<i32>` layout and remain only for the ADR-086 migration window. New code
-should use `LinkedList<T>`.
+The former `linked_list_*` free functions and their monomorphic `Vec<i32>`
+layout were retired under ADR-046 / ADR-086 §8. The receiver methods below
+are the only public surface; old calls fail with E0100 hints.
 
 Cursors hold the list handle rather than a borrowed reference, so the type
 checker does not yet reject a push / pop / clear while an iterator is alive.
@@ -294,16 +294,6 @@ list cursors cannot be added as further `FromIterator` sources.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Legacy layout
-
-The backing `Vec<i32>` stores:
-```text
-[head, tail, free_head, count, capacity,
-node_0_prev, node_0_next, node_0_value,
-node_1_prev, node_1_next, node_1_value, ...]
-```
-where `head`, `tail`, `free_head` are node indices or `-1` (nil).
-
 ### `std::collections::linked_list` — Public Types
 
 | Name | Kind | Methods | Trait impls | Summary |
@@ -313,67 +303,7 @@ where `head`, `tail`, `free_head` are node indices or `-1` (nil).
 | `LinkedListIterMut` | `struct` | `set_current` | `Iterator`, `IntoIterator` | Writable cursor over a LinkedList<T>, front to back. |
 | `LinkedListIntoIter` | `struct` | - | `Iterator`, `IntoIterator` | Owning cursor over a LinkedList<T>, front to back. |
 
-### `std::collections::linked_list` — Public API
-
-| Name | Signature | Stability | Implementation | Summary |
-|------|-----------|-----------|----------------|---------|
-| ~~`linked_list_new`~~ ⚠️ Deprecated → `LinkedList::new` | `() -> Vec<i32>` | `deprecated` | ✅ functional | Create a new empty legacy i32 list over a Vec<i32> node pool. |
-| ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | Push a value to the front of the legacy i32 list. O(1). |
-| ~~`linked_list_push_back`~~ ⚠️ Deprecated → `LinkedList::push_back` | `(Vec<i32>, i32) -> ()` | `deprecated` | ✅ functional | Push a value to the back of the legacy i32 list. O(1). |
-| ~~`linked_list_pop_front`~~ ⚠️ Deprecated → `LinkedList::pop_front` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Pop and return the front value of the legacy i32 list, or fallback if empty. O(1). |
-| ~~`linked_list_pop_back`~~ ⚠️ Deprecated → `LinkedList::pop_back` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Pop and return the back value of the legacy i32 list, or fallback if empty. O(1). |
-| ~~`linked_list_front`~~ ⚠️ Deprecated → `LinkedList::front` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Peek the front value of the legacy i32 list, or fallback if empty. O(1). |
-| ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `deprecated` | ✅ functional | Peek the back value of the legacy i32 list, or fallback if empty. O(1). |
-| ~~`linked_list_len`~~ ⚠️ Deprecated → `LinkedList::len` | `(Vec<i32>) -> i32` | `deprecated` | ✅ functional | Return the number of elements in the legacy i32 list. O(1). |
-| ~~`linked_list_is_empty`~~ ⚠️ Deprecated → `LinkedList::is_empty` | `(Vec<i32>) -> bool` | `deprecated` | ✅ functional | Return true if the legacy i32 list is empty. O(1). |
-| ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `deprecated` | ✅ functional | Remove all elements from the legacy i32 list. O(1) (resets headers). |
-| ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `deprecated` | ✅ functional | Copy the legacy i32 list into a Vec<i32> in front-to-back order. O(n). |
-
-#### `std::collections::linked_list::linked_list_new`
-
-Create a new empty monomorphic i32 list over a `Vec<i32>` node pool.
-
-#### `std::collections::linked_list::linked_list_push_front`
-
-Push a value to the front of the legacy i32 list.
-
-#### `std::collections::linked_list::linked_list_push_back`
-
-Push a value to the back of the legacy i32 list.
-
-#### `std::collections::linked_list::linked_list_pop_front`
-
-Pop the front value of the legacy i32 list, or the caller's fallback when empty.
-
-#### `std::collections::linked_list::linked_list_pop_back`
-
-Pop the back value of the legacy i32 list, or the caller's fallback when empty.
-
-#### `std::collections::linked_list::linked_list_front`
-
-Peek the front value of the legacy i32 list, or the caller's fallback when empty.
-
-#### `std::collections::linked_list::linked_list_back`
-
-Peek the back value of the legacy i32 list, or the caller's fallback when empty.
-
-#### `std::collections::linked_list::linked_list_len`
-
-Return the number of elements in the legacy i32 list.
-
-#### `std::collections::linked_list::linked_list_is_empty`
-
-Return true when the legacy i32 list is empty.
-
-#### `std::collections::linked_list::linked_list_clear`
-
-Remove all elements from the legacy i32 list, keeping node capacity.
-
-#### `std::collections::linked_list::linked_list_to_vec`
-
-Copy the legacy i32 list into a `Vec<i32>` in front-to-back order.
-
-> ⚠️ **11 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+_No manifest-backed functions in this module._
 
 ## Module `std::collections::pq`
 

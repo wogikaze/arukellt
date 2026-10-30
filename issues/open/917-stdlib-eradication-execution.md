@@ -1903,3 +1903,46 @@ classified there, in dependency-safe waves.
   `VecIter<(K, V)>` tuple cursor and the std-method multi-parameter String
   callback ABI remain compiler residuals (the owned-pair predicate avoids the
   latter).
+
+### Landed slice (wave/linked-list, 2026-10-30)
+
+- **Group**: `std::collections::linked_list` — the last 11 `must delete`
+  legacy `linked_list_*` free functions, which the eradication-remain residual
+  list marked as needing a method surface.
+- **Method surface**: no new method was missing. Every free mapped onto an
+  existing `LinkedList<T>` inherent method: `new` / `push_front` /
+  `push_back` / `pop_front` / `pop_back` / `front` / `back` / `len` /
+  `is_empty` / `clear` / `iter`. `linked_list_to_vec` composes
+  `l.iter().collect()`. The old fallback argument is replaced by
+  `Option<T>` (`None` when empty); the manifest type surface already listed
+  all members.
+- **Removed**: the 11 declarations and their monomorphic `Vec<i32>` node-pool
+  layout / header / slot / alloc helpers in `std/collections/linked_list.ark`.
+  The in-file `test mod "linked_list"` moved to the method surface (12 tests)
+  and covers both-end order, pops, empty `Option::None`, len, clear, collect,
+  and free-list reuse.
+- **E0100**: `resolver::removed_names` gained
+  `removed_linked_list_member_hint` for all 11 names, wired into both the bare
+  and qualified (`linked_list` / `collections::linked_list` /
+  `std::collections::linked_list`) dispatch. Dual-target goldens:
+  `diagnostics/removed_linked_list_free*` (the qualified constructor hint).
+  Unit assertions cover the other ten names.
+- **Fixture**: registry 3617 -> **3619** (`verify fixtures` outcome count is
+  unchanged because `diag:` fixtures are checked by diag-parity).
+- **Scorecard**: eradication scope 69 -> **58**; `must delete` 53 -> **42**;
+  `associated-or-method` 16 and `intrinsic-only` 1 unchanged; manifest public
+  entries 69 -> **58**; `pub fn` declarations 69 -> **58**. The
+  `legacy linked_list frees` rule is removed because it matches no entry, and
+  the `std::collections::linked_list` function row disappears from the
+  scoreboard (the `LinkedList` type stays registered).
+- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
+  (112 runtime executed, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `verify lane` PASS; `docs check` 6/6; `selfhost diag-parity` **268/268**
+  PASS; ADR-029 fixpoint PASS, s2 == s3 sha256
+  `601c36700cb72f01a744a98d0bfdfad7b3f36ee5123c6629c6f14d2b33bd44f1`
+  (pinned base `56ff0808…`). `selfhost build-compiler` ran twice (58.5 s,
+  53.1 s) because a formatting-only resolver edit landed after the first s2.
+- **Residuals**: the 11 `deque_*` frees remain under their #710 ADR-014
+  window; the `LinkedList<T>` cursor borrow / lifetime contract is unchanged
+  (ADR-086 §5). No lowering gap blocked this slice — both targets ran the
+  method surface.

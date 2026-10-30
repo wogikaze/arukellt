@@ -11,7 +11,7 @@
 | `stable` | 13 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 52 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 41 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -253,17 +253,6 @@
 | ~~`get`~~ ⚠️ Deprecated → `Vec::get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`get_unchecked`~~ ⚠️ Deprecated → `Vec::get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
 | ~~`len`~~ ⚠️ Deprecated → `Vec::len` | `(Vec<T>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
-| ~~`linked_list_back`~~ ⚠️ Deprecated → `LinkedList::back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the back value of the legacy i32 list, or the caller's fallback when empty. |
-| ~~`linked_list_clear`~~ ⚠️ Deprecated → `LinkedList::clear` | `(Vec<i32>) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Remove all elements from the legacy i32 list, keeping node capacity. |
-| ~~`linked_list_front`~~ ⚠️ Deprecated → `LinkedList::front` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Peek the front value of the legacy i32 list, or the caller's fallback when empty. |
-| ~~`linked_list_is_empty`~~ ⚠️ Deprecated → `LinkedList::is_empty` | `(Vec<i32>) -> bool` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Return true when the legacy i32 list is empty. |
-| ~~`linked_list_len`~~ ⚠️ Deprecated → `LinkedList::len` | `(Vec<i32>) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Return the number of elements in the legacy i32 list. |
-| ~~`linked_list_new`~~ ⚠️ Deprecated → `LinkedList::new` | `() -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Create a new empty monomorphic i32 list over a Vec<i32> node pool. |
-| ~~`linked_list_pop_back`~~ ⚠️ Deprecated → `LinkedList::pop_back` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Pop the back value of the legacy i32 list, or the caller's fallback when empty. |
-| ~~`linked_list_pop_front`~~ ⚠️ Deprecated → `LinkedList::pop_front` | `(Vec<i32>, i32) -> i32` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Pop the front value of the legacy i32 list, or the caller's fallback when empty. |
-| ~~`linked_list_push_back`~~ ⚠️ Deprecated → `LinkedList::push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the back of the legacy i32 list. |
-| ~~`linked_list_push_front`~~ ⚠️ Deprecated → `LinkedList::push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Push a value to the front of the legacy i32 list. |
-| ~~`linked_list_to_vec`~~ ⚠️ Deprecated → `LinkedList::iter` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linked_list` | `deprecated` | `functional` | `builtin` | no | - | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
 | ~~`pop`~~ ⚠️ Deprecated → `Vec::pop` | `(Vec<T>) -> Option<T>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
 | ~~`push`~~ ⚠️ Deprecated → `Vec::push` | `(Vec<T>, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
 | ~~`set`~~ ⚠️ Deprecated → `Vec::set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
@@ -401,7 +390,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **52 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **41 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -437,17 +426,6 @@ let input = stdio::read_stdin()
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i8_to_i32`~~ | `i8::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_back`~~ | `LinkedList::back` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_clear`~~ | `LinkedList::clear` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_front`~~ | `LinkedList::front` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_is_empty`~~ | `LinkedList::is_empty` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_len`~~ | `LinkedList::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_new`~~ | `LinkedList::new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_pop_back`~~ | `LinkedList::pop_back` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_pop_front`~~ | `LinkedList::pop_front` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_push_back`~~ | `LinkedList::push_back` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_push_front`~~ | `LinkedList::push_front` | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_to_vec`~~ | `LinkedList::iter` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |

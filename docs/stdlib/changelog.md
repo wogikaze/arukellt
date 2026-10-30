@@ -16,6 +16,42 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `std::collections::linked_list` monomorphic frees 退役 (ADR-046, wave/linked-list)
+
+- **Removed**: pre-ADR-086 の `linked_list_*` free function 11 個
+  (`linked_list_new` / `push_front` / `push_back` / `pop_front` /
+  `pop_back` / `front` / `back` / `len` / `is_empty` / `clear` /
+  `to_vec`) と、その `Vec<i32>` node-pool layout・legacy helper。
+  `std/collections/linked_list.ark` の in-file tests は receiver method
+  surface へ移行した（12 tests）。
+- **Replacement**: `LinkedList<T>` の `new` / `push_front` /
+  `push_back` / `pop_front` / `pop_back` / `front` / `back` / `len` /
+  `is_empty` / `clear` / `iter`。空の pop / peek は `Option::None` を
+  返すため、旧 fallback 引数は `match`（`Option<i32>` は
+  `unwrap_or`）へ置き換える。`to_vec` は `l.iter().collect()`。
+- **Lifecycle**: [ADR-046](../adr/ADR-046-free-function-eradication.md)
+  D1 と [ADR-086 §8](../adr/ADR-086-linear-collection-adts.md)。
+  manifest は `deprecated_since = "0.1.0"` /
+  `remove_in = "1.0.0"` を満たしていた。
+- **Migration**: qualified / bare の旧 call は **E0100** と
+  `resolver::removed_names` の replacement hint を返す。正規入口は
+  `use std::collections::linked_list::LinkedList`。dual-target の
+  `diagnostics/removed_linked_list_free*` が golden。
+- **Docs**: `reference` / `name-index` / `modules/collections` /
+  `monomorphic-deprecation` / `eradication` / `scoreboard` を再生成。
+  eradication scope 69 -> **58**、`must delete` 53 -> **42**、
+  manifest public entries 69 -> **58**。fixture registry 3617 ->
+  **3619**。
+- **Verification**: `verify fixtures` **1949/1949** compile+validate
+  PASS（112 runtime executed、43/43 `test:` PASS、2 runtime-unsupported、
+  0 FAIL）、`verify lane` PASS、`docs check` 6/6、
+  `selfhost diag-parity` **268/268** PASS、ADR-029 fixpoint PASS
+  （s2 == s3 sha256
+  `601c36700cb72f01a744a98d0bfdfad7b3f36ee5123c6629c6f14d2b33bd44f1`、
+  pinned base `56ff0808…`）。
+- **Residual**: 11 `deque_*` frees は #710 の ADR-014 window 下で継続。
+  `LinkedList<T>` cursor の borrow / lifetime 契約は ADR-086 §5 のまま。
+
 ## 2026-10-30 — Hash collection の `entry` / `iter` / `retain` / `FromIterator` (ADR-093, wave/borrowed-iter)
 
 - **Added**: `HashMap<K, V>::iter()`、`HashMap<K, V>::entry(key)`、

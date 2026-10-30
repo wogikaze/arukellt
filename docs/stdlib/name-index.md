@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 17
-- **Historical/deprecated names:** 52
-- **Total entries:** 69
+- **Historical/deprecated names:** 41
+- **Total entries:** 58
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -79,17 +79,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`i64_to_i32`~~ | `i64::to_i32_checked` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`i8_to_i32`~~ | `i8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`len`~~ | `Vec::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_back`~~ | `LinkedList::back` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_clear`~~ | `LinkedList::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_front`~~ | `LinkedList::front` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_is_empty`~~ | `LinkedList::is_empty` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_len`~~ | `LinkedList::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_new`~~ | `LinkedList::new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_pop_back`~~ | `LinkedList::pop_back` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_pop_front`~~ | `LinkedList::pop_front` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_push_back`~~ | `LinkedList::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_push_front`~~ | `LinkedList::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`linked_list_to_vec`~~ | `LinkedList::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -147,17 +136,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`i64_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i64::to_i32_checked` · [migration guide](migration-guidance.md) |
 | ~~`i8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i8::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::back` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_clear`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::clear` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::front` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_is_empty`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::is_empty` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_len`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::len` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_new`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::new` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_pop_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::pop_back` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_pop_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::pop_front` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_push_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_back` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_push_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_front` · [migration guide](migration-guidance.md) |
-| ~~`linked_list_to_vec`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::iter` · [migration guide](migration-guidance.md) |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |

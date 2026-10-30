@@ -7,12 +7,11 @@
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
 | `prelude` | 35 | 4 | 1 | 0 | 30 | 5/5 (100%) | no |
 | `std::collections::linear` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
-| `std::collections::linked_list` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::host::fs` | 3 | 0 | 0 | 3 | 0 | **0/3 (0%)** | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::io` | 5 | 5 | 0 | 0 | 0 | 4/5 (80%) | no |
 
-**Total**: 69 APIs, 13 stable, 1 provisional, 3 experimental, 52 deprecated, 13/17 (76%) fixture coverage
+**Total**: 58 APIs, 13 stable, 1 provisional, 3 experimental, 41 deprecated, 13/17 (76%) fixture coverage
 
 ## Legend
 

@@ -165,13 +165,11 @@ class = "must delete"
 owner = "710"
 replacement = "Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window"
 
-[[rules]]
-label = "legacy linked_list frees"
-module = "std::collections::linked_list"
-prefix = "linked_list_"
-class = "must delete"
-owner = "710"
-replacement = "LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8"
+# The 11 legacy `linked_list_*` frees were retired by #917 on 2026-10-30
+# (wave/linked-list). The `LinkedList<T>` receiver surface already covered every
+# replacement (new/push_front/push_back/pop_front/pop_back/front/back/len/
+# is_empty/clear/iter + collect), so the family rule is gone and old calls fail
+# with E0100 hints.
 
 # The 13 deprecated monomorphic `std::seq` helpers (`map_i32_i32`,
 # `filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`, `binary_search`,

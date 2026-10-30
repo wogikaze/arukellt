@@ -340,6 +340,8 @@ diag:diagnostics/removed_ordered_stable_free.ark
 diag:diagnostics/removed_ordered_stable_free_wasm32.ark
 diag:diagnostics/removed_pq_free.ark
 diag:diagnostics/removed_pq_free_wasm32.ark
+diag:diagnostics/removed_linked_list_free.ark
+diag:diagnostics/removed_linked_list_free_wasm32.ark
 diag:diagnostics/removed_vec_new_i32.ark
 diag:diagnostics/removed_vec_new_i32_wasm32.ark
 diag:diagnostics/removed_canonical_free.ark

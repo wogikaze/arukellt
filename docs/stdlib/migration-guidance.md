@@ -482,6 +482,35 @@ over the adapter in that unit, or keep the adapter fixture free of the
 `std::collections::vec` import; the canonical `.collect()` form remains
 valid in iterator-only units.
 
+## Deprecated `std::collections::linked_list` monomorphic frees (11 removed 2026-10-30, #917)
+
+The 11 `linked_list_*` free functions operated on the pre-ADR-086
+`Vec<i32>` node-pool layout. They completed their ADR-014 / ADR-086 §8
+window in the `wave/linked-list` slice after the `LinkedList<T>` receiver
+surface was verified for every replacement:
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `linked_list::linked_list_new()` | `LinkedList::new<T>()` |
+| `linked_list::linked_list_push_front(l, v)` | `l.push_front(v)` |
+| `linked_list::linked_list_push_back(l, v)` | `l.push_back(v)` |
+| `linked_list::linked_list_pop_front(l, fallback)` | `l.pop_front()` (`Option<T>`, `None` when empty) |
+| `linked_list::linked_list_pop_back(l, fallback)` | `l.pop_back()` (`Option<T>`, `None` when empty) |
+| `linked_list::linked_list_front(l, fallback)` | `l.front()` (`Option<T>`, `None` when empty) |
+| `linked_list::linked_list_back(l, fallback)` | `l.back()` (`Option<T>`, `None` when empty) |
+| `linked_list::linked_list_len(l)` | `l.len()` |
+| `linked_list::linked_list_is_empty(l)` | `l.is_empty()` |
+| `linked_list::linked_list_clear(l)` | `l.clear()` |
+| `linked_list::linked_list_to_vec(l)` | `l.iter().collect()` |
+
+Import `use std::collections::linked_list::LinkedList`. Empty
+`pop_front` / `pop_back` / `front` / `back` return `Option<T>` instead of
+the old caller-supplied fallback, so replace `fallback` with a `match`
+(or `unwrap_or` for `Option<i32>`). Old qualified calls fail with
+**E0100** and a replacement hint from `resolver::removed_names`; bare
+calls resolve through the same table. The module remains for
+`LinkedList<T>` and its cursors.
+
 ## Currently Deprecated APIs
 
 The following public entries currently carry `deprecated_by` in
@@ -503,17 +532,6 @@ The following public entries currently carry `deprecated_by` in
 | `std::collections::linear::deque_is_empty` | `d.is_empty()` |
 | `std::collections::linear::deque_clear` | `d.clear()` |
 | `std::collections::linear::deque_to_vec` | `d.iter().collect()` |
-| `std::collections::linked_list::linked_list_new` | `LinkedList::new<T>()` |
-| `std::collections::linked_list::linked_list_push_front` | `l.push_front(v)` |
-| `std::collections::linked_list::linked_list_push_back` | `l.push_back(v)` |
-| `std::collections::linked_list::linked_list_pop_front` | `l.pop_front()` (`Option<T>`, `None` when empty) |
-| `std::collections::linked_list::linked_list_pop_back` | `l.pop_back()` (`Option<T>`, `None` when empty) |
-| `std::collections::linked_list::linked_list_front` | `l.front()` (`Option<T>`, `None` when empty) |
-| `std::collections::linked_list::linked_list_back` | `l.back()` (`Option<T>`, `None` when empty) |
-| `std::collections::linked_list::linked_list_len` | `l.len()` |
-| `std::collections::linked_list::linked_list_is_empty` | `l.is_empty()` |
-| `std::collections::linked_list::linked_list_clear` | `l.clear()` |
-| `std::collections::linked_list::linked_list_to_vec` | `l.iter().collect()` |
 | `std::io::writer_write` | `Stdout::new().write(data)` / `Stderr::new().write(data)` from `use std::io`; memory sinks keep `w.write(data)` on `Writer` |
 | `std::io::writer_write_str` | `Stdout::new().write_string(s)` / `Stderr::new().write_string(s)` from `use std::io`; memory sinks keep `w.write_string(s)` on `Writer` |
 

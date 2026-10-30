@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: linked_list::linked_list_new; removed free constructor; use `LinkedList::new<i32>()` from `use std::collections::linked_list::LinkedList` instead

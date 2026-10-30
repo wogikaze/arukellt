@@ -117,6 +117,10 @@ fn removed_name_specific_hint(name: String) -> String {
     if len(pq_hint.clone()) > 0 {
         return pq_hint
     }
+    let linked_list_hint = removed_linked_list_member_hint(name.clone())
+    if len(linked_list_hint.clone()) > 0 {
+        return linked_list_hint
+    }
     if name.clone().eq("new_i32") {
         return "removed free Vec constructor; use `Vec::new<i32>()` instead"
     }
@@ -649,6 +653,46 @@ fn removed_pq_member_hint(name: String) -> String {
     String_new()
 }
 
+/// Replacement hints for the `std::collections::linked_list` free functions
+/// retired by #917. Empty pops and peeks now return `Option`, so callers that
+/// passed the old fallback argument need a `match` / `unwrap_or` instead.
+fn removed_linked_list_member_hint(name: String) -> String {
+    if name.clone().eq("linked_list_new") {
+        return "removed free constructor; use `LinkedList::new<i32>()` from `use std::collections::linked_list::LinkedList` instead"
+    }
+    if name.clone().eq("linked_list_push_front") {
+        return "removed free function; use `list.push_front(value)` on `LinkedList<i32>` instead"
+    }
+    if name.clone().eq("linked_list_push_back") {
+        return "removed free function; use `list.push_back(value)` on `LinkedList<i32>` instead"
+    }
+    if name.clone().eq("linked_list_pop_front") {
+        return "removed free function; use `list.pop_front()` on `LinkedList<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("linked_list_pop_back") {
+        return "removed free function; use `list.pop_back()` on `LinkedList<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("linked_list_front") {
+        return "removed free function; use `list.front()` on `LinkedList<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("linked_list_back") {
+        return "removed free function; use `list.back()` on `LinkedList<i32>` (`Option<i32>`) instead"
+    }
+    if name.clone().eq("linked_list_len") {
+        return "removed free function; use `list.len()` on `LinkedList<i32>` instead"
+    }
+    if name.clone().eq("linked_list_is_empty") {
+        return "removed free function; use `list.is_empty()` on `LinkedList<i32>` instead"
+    }
+    if name.clone().eq("linked_list_clear") {
+        return "removed free function; use `list.clear()` on `LinkedList<i32>` instead"
+    }
+    if name.clone().eq("linked_list_to_vec") {
+        return "removed free function; use `list.iter().collect()` on `LinkedList<i32>` instead"
+    }
+    String_new()
+}
+
 fn is_retired_hash_free_module(module: String) -> bool {
     if module.clone().eq("hash") || module.clone().eq("collections::hash") {
         return true
@@ -845,6 +889,10 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     }
     if module.clone().eq("linear") || module.clone().eq("collections::linear") || module.clone().eq("std::collections::linear") {
         return removed_pq_member_hint(name)
+    }
+    if (module.clone().eq("linked_list") || module.clone().eq("collections::linked_list") ||
+        module.clone().eq("std::collections::linked_list")) {
+        return removed_linked_list_member_hint(name)
     }
     if module.clone().eq("vec") || module.clone().eq("collections::vec") || module.clone().eq("std::collections::vec") {
         if name.clone().eq("new_i32") {
@@ -1792,6 +1840,23 @@ test mod "removed_names" {
         // window, so they must not gain a removal hint.
         assert(len(removed_module_member_hint("linear", "deque_new")) == 0)
         assert(len(removed_module_member_hint("linear", "unrelated")) == 0)
+    }
+    test "removed linked list frees" {
+        assert(len(removed_name_hint("linked_list_new")) > 0)
+        assert(len(removed_name_hint("linked_list_push_front")) > 0)
+        assert(len(removed_name_hint("linked_list_push_back")) > 0)
+        assert(len(removed_name_hint("linked_list_pop_front")) > 0)
+        assert(len(removed_name_hint("linked_list_pop_back")) > 0)
+        assert(len(removed_name_hint("linked_list_front")) > 0)
+        assert(len(removed_name_hint("linked_list_back")) > 0)
+        assert(len(removed_name_hint("linked_list_len")) > 0)
+        assert(len(removed_name_hint("linked_list_is_empty")) > 0)
+        assert(len(removed_name_hint("linked_list_clear")) > 0)
+        assert(len(removed_name_hint("linked_list_to_vec")) > 0)
+        assert(len(removed_module_member_hint("linked_list", "linked_list_new")) > 0)
+        assert(len(removed_module_member_hint("collections::linked_list", "linked_list_to_vec")) > 0)
+        assert(len(removed_module_member_hint("std::collections::linked_list", "linked_list_pop_front")) > 0)
+        assert(len(removed_module_member_hint("linked_list", "unrelated")) == 0)
     }
     test "result option helpers" {
         assert(len(removed_name_hint("ok")) > 0)

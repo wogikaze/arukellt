@@ -1,0 +1,6 @@
+// E0100 on the retired LinkedList free family (#917 linked-list wave).
+use std::collections::linked_list
+
+fn main() {
+    let _list: Vec<i32> = linked_list::linked_list_new()
+}
