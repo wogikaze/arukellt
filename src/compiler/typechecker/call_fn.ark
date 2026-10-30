@@ -185,18 +185,6 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
                 return ctor_ty
             }
         }
-        if child_count > 1 {
-            let recv_ty = infer_expr(
-                env,
-                scope,
-                fn_sigs,
-                enum_defs,
-                ast_access::node_child_at(node, 1)
-            )
-            if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() {
-                vec_core_mono::record_vec_core_mono_for_callee(env, callee_name.clone(), recv_ty)
-            }
-        }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }
