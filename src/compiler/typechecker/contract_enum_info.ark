@@ -53,7 +53,7 @@ fn EnumInfo_variant_count(info: EnumInfo) -> i32 {
 }
 
 fn EnumInfo_variant_at(info: EnumInfo, index: i32) -> String {
-    get_unchecked(info.variant_names, index).clone()
+    info.variant_names.get_unchecked(index).clone()
 }
 
 fn EnumInfo_variant_index(info: EnumInfo, name: String) -> i32 {
@@ -61,7 +61,7 @@ fn EnumInfo_variant_index(info: EnumInfo, name: String) -> i32 {
     let count = info.variant_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(info.variant_names, i).eq(variant_name.clone()) {
+        if info.variant_names.get_unchecked(i).eq(variant_name.clone()) {
             return i
         }
         i = i + 1
@@ -73,19 +73,19 @@ fn EnumInfo_variant_payload_count(info: EnumInfo, variant_index: i32) -> i32 {
     if variant_index < 0 || variant_index >= info.variant_payload_counts.len() {
         return 0
     }
-    get_unchecked(info.variant_payload_counts, variant_index)
+    info.variant_payload_counts.get_unchecked(variant_index)
 }
 
 fn EnumInfo_variant_payload_at(info: EnumInfo, variant_index: i32, payload_index: i32) -> TypeInfo {
     if variant_index < 0 || variant_index >= info.variant_payload_starts.len() {
         return contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
     }
-    let start = get_unchecked(info.variant_payload_starts, variant_index)
+    let start = info.variant_payload_starts.get_unchecked(variant_index)
     let count = EnumInfo_variant_payload_count(info, variant_index)
     if payload_index < 0 || payload_index >= count {
         return contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
     }
-    get_unchecked(info.variant_payload_types, start + payload_index)
+    info.variant_payload_types.get_unchecked(start + payload_index)
 }
 
 fn enum_variant_leaf_name(name: String) -> String {

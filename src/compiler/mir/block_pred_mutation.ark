@@ -8,7 +8,7 @@ fn MirBlock_push_pred_unique(mut block: MirBlock, pred_id: i32) {
     let count = block.preds.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(block.preds, i) == pred_id {
+        if block.preds.get_unchecked(i) == pred_id {
             return
         }
         i = i + 1

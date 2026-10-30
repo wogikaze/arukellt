@@ -22,7 +22,7 @@ fn lower_core_match(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExp
     // The shortcut is only safe for name-bearing exprs (ident/path): a
     // field access or method call carries just the member name in `text`,
     // which can resolve to an unrelated same-named local (#907).
-    let scrut_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let scrut_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let mut scrut_idx = 0 - 1
     if core_expr_shape_atoms::mir_core_expr_is_ident(scrut_expr) ||
     core_expr_shape_atoms::mir_core_expr_is_path(scrut_expr) {
@@ -36,10 +36,10 @@ fn lower_core_match(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExp
     let mut arm = 1
     let mut if_depth = 0
     while arm < child_count {
-        let arm_node = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm))
+        let arm_node = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, arm))
         let arm_child_count = core_expr_shape_accessors::mir_core_expr_child_count(arm_node)
         let is_last = arm == child_count - 1
-        let pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(arm_node, 0))
+        let pat = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(arm_node, 0))
         let body = core_expr_shape_accessors::mir_core_expr_child(arm_node, arm_child_count - 1)
         if_depth = lower_core_match_arm(ctx, exprs, arm_node, pat, body, scrut_idx, result, payload_info, if_depth, is_last)
         arm = arm + 1

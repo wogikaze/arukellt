@@ -4,7 +4,7 @@ use main::commands
 pub fn parse_target_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_target(opts, get_unchecked(argv, next).clone())
+        args_record::cli_set_target(opts, argv.get_unchecked(next).clone())
     }
     next
 }
@@ -15,7 +15,7 @@ pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, mut opts: CliOpti
         args_record::cli_set_error(opts, String_from("--memory-width requires auto, memory32, or memory64"))
         return next
     }
-    let width = get_unchecked(argv, next).clone()
+    let width = argv.get_unchecked(next).clone()
     if width.clone().eq(String_from("auto")) ||
     width.clone().eq(String_from("memory32")) ||
     width.clone().eq(String_from("memory64")) {
@@ -29,7 +29,7 @@ pub fn parse_memory_width_option(argv: Vec<String>, argc: i32, mut opts: CliOpti
 pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        let input = get_unchecked(argv, next).clone()
+        let input = argv.get_unchecked(next).clone()
         if input.clone().eq(String_from("p1")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p1"))
             args_record::cli_set_wasi_version_explicit(opts, true)
@@ -54,7 +54,7 @@ pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, mut opts: CliOpti
 pub fn parse_emit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_emit_mode(opts, get_unchecked(argv, next).clone())
+        args_record::cli_set_emit_mode(opts, argv.get_unchecked(next).clone())
     }
     next
 }
@@ -62,7 +62,7 @@ pub fn parse_emit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: 
 pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_dump_phases(opts, get_unchecked(argv, next).clone())
+        args_record::cli_set_dump_phases(opts, argv.get_unchecked(next).clone())
     }
     next
 }
@@ -70,7 +70,7 @@ pub fn parse_dump_phases_option(argv: Vec<String>, argc: i32, mut opts: CliOptio
 pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        let val = get_unchecked(argv, next)
+        let val = argv.get_unchecked(next)
         args_record::cli_set_opt_level(opts, args_record_opt::parse_opt_level_value(val.clone(), args_record::cli_opt_level(opts)))
     }
     next
@@ -79,7 +79,7 @@ pub fn parse_opt_level_option(argv: Vec<String>, argc: i32, mut opts: CliOptions
 pub fn parse_wit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_add_wit_path(opts, get_unchecked(argv, next).clone())
+        args_record::cli_add_wit_path(opts, argv.get_unchecked(next).clone())
     } else {
         args_record::cli_set_error(opts, String_from("--wit requires a path"))
     }
@@ -89,7 +89,7 @@ pub fn parse_wit_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i
 pub fn parse_output_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, arg: String, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        let out_arg = get_unchecked(argv, next).clone()
+        let out_arg = argv.get_unchecked(next).clone()
         if commands::cli_str_eq(arg.clone(), String_from("--output")) && commands::cli_str_eq(out_arg.clone(), String_from("json")) {
             args_record::cli_set_json_output(opts, true)
         } else {
@@ -102,7 +102,7 @@ pub fn parse_output_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, a
 pub fn parse_template_option(argv: Vec<String>, argc: i32, mut opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_init_template(opts, get_unchecked(argv, next).clone())
+        args_record::cli_set_init_template(opts, argv.get_unchecked(next).clone())
     } else {
         args_record::cli_set_error(opts, String_from("--template requires a template name"))
     }

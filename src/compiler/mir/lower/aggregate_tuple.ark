@@ -38,8 +38,8 @@ fn mir_emit_tuple_from_locals(mut ctx: LowerCtx, field_locals: Vec<i32>, field_v
     let mut byte_off = 0
     let mut ti = 0
     while ti < child_count {
-        let field_local = get_unchecked(field_locals, ti)
-        let field_vt = get_unchecked(field_vts, ti)
+        let field_local = field_locals.get_unchecked(ti)
+        let field_vt = field_vts.get_unchecked(ti)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(field_local))
         let set_off = byte_off
         let mut set_vt = value_types::VT_VOID()
@@ -83,8 +83,8 @@ fn tuple_name_keys_from_field_locals(ctx: LowerCtx, field_locals: Vec<i32>, fiel
         if i > 0 {
             name = name.concat(String_from(","))
         }
-        let local_type = ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(field_locals, i))
-        let key = tuple_key_from_local_type(local_type, get_unchecked(field_vts, i))
+        let local_type = ctx_api_local_types::ctx_get_local_type(ctx, field_locals.get_unchecked(i))
+        let key = tuple_key_from_local_type(local_type, field_vts.get_unchecked(i))
         name = name.concat(key)
         i = i + 1
     }
@@ -146,7 +146,7 @@ fn tuple_struct_name_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32>, field_co
         if ti > 0 {
             name = name.concat(",")
         }
-        name = name.concat(tuple_field_mono_key(get_unchecked(field_vts, ti)))
+        name = name.concat(tuple_field_mono_key(field_vts.get_unchecked(ti)))
         ti = ti + 1
     }
     let _ = total_bytes
@@ -159,7 +159,7 @@ fn tuple_field_vts_need_named_gc_struct(ctx: LowerCtx, field_vts: Vec<i32>, fiel
     }
     let mut ti = 0
     while ti < field_count {
-        let field_vt = get_unchecked(field_vts, ti)
+        let field_vt = field_vts.get_unchecked(ti)
         // fn-valued fields need the named tuple:fnref,... layout on every
         // backend — destructured bindings recover their fn type from the
         // field key, and an anonymous tuple demotes them to i32 (#874).
@@ -192,7 +192,7 @@ fn tuple_gc_sig_from_field_vts(field_vts: Vec<i32>, field_count: i32) -> String 
     let mut sig = "GS"
     let mut ti = 0
     while ti < field_count {
-        let field_vt = get_unchecked(field_vts, ti)
+        let field_vt = field_vts.get_unchecked(ti)
         sig = sig.concat(tuple_gc_field_sig_for_vt(field_vt, ti))
         ti = ti + 1
     }
@@ -337,7 +337,7 @@ fn ctx_register_tuple_gc_struct_from_field_vts(mut ctx: LowerCtx, field_vts: Vec
         if i > 0 {
             keys = keys.concat(",")
         }
-        keys = keys.concat(tuple_field_mono_key(get_unchecked(field_vts, i)))
+        keys = keys.concat(tuple_field_mono_key(field_vts.get_unchecked(i)))
         i = i + 1
     }
     ctx_register_tuple_gc_struct_from_keys(ctx, keys)

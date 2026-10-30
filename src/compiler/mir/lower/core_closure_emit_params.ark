@@ -10,7 +10,7 @@ fn core_emit_closure_params(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: Co
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
     let mut pi = 0
     while pi + 1 < child_count {
-        let p = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, pi))
+        let p = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(clos, pi))
         if core_expr_shape_atoms::mir_core_expr_is_ident(p) {
             let param_name = core_expr_shape_accessors::mir_core_expr_text(p)
             // Typed params arrive with the resolved expr type; falling back

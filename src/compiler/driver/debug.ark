@@ -16,7 +16,7 @@ pub fn dump_ast(decls: Vec<AstNode>) {
     let decl_count = decls.len()
     let mut j = 0
     while j < decl_count {
-        let d = get_unchecked(decls, j)
+        let d = decls.get_unchecked(j)
         parser_dump_view::driver_print_ast(d, 0)
         j = j + 1
     }
@@ -64,7 +64,7 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
     let paths = config_record::config_wit_paths(config)
     Stdio::eprintln("wit-imports: ".concat(paths.len().to_string()))
     for i in 0..paths.len() {
-        let path = get_unchecked(paths, i)
+        let path = paths.get_unchecked(i)
         let scan_package = match Fs::read_to_string(path.clone()) {
             Result::Ok(source) => wit_parse_text_scan::wit_extract_package(source),
             Result::Err(_) => String_new(),
@@ -106,7 +106,7 @@ fn dump_wit_bindings_if_enabled(config: DriverConfig) {
     Stdio::eprintln("=== WIT BINDINGS ===")
     let paths = config_record::config_wit_paths(config)
     for i in 0..paths.len() {
-        let path = get_unchecked(paths, i)
+        let path = paths.get_unchecked(i)
         let read_result = Fs::read_to_string(path.clone())
         match read_result {
             Result::Ok(source) => {
@@ -133,7 +133,7 @@ pub fn dump_tokens(tokens: Vec<Token>) {
     let token_count = tokens.len()
     let mut i = 0
     while i < token_count {
-        let tok = get_unchecked(tokens, i)
+        let tok = tokens.get_unchecked(i)
         Stdio::eprintln(names::token_kind_name(token_state::Token_kind(tok)).concat(" ".concat(token_state::Token_text(tok))))
         i = i + 1
     }

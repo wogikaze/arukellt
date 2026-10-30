@@ -1,0 +1,22 @@
+// The retired `get_unchecked` free was the method's generic signature anchor.
+// The receiver must still bind nested and struct element types so the result
+// can be used as a field receiver / nested Vec without losing the element type.
+use std::host::stdio::Stdio
+use std::test::Test
+
+struct Point {
+    x: i32,
+}
+
+fn main() {
+    let mut points: Vec<Point> = Vec::new<Point>()
+    points.push(Point { x: 7 })
+    Test::assert_eq_i32(points.get_unchecked(0).x, 7)
+
+    let mut outer: Vec<Vec<i32>> = Vec::new<Vec<i32>>()
+    let mut inner: Vec<i32> = Vec::new<i32>()
+    inner.push(9)
+    outer.push(inner)
+    Test::assert_eq_i32(outer.get_unchecked(0).get_unchecked(0), 9)
+    Stdio::println("get_unchecked element types ok")
+}

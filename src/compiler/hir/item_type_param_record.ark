@@ -33,5 +33,5 @@ fn hir_type_param_bound_count(param: HirTypeParam) -> i32 {
 }
 
 fn hir_type_param_bound_at(param: HirTypeParam, index: i32) -> HirTraitBound {
-    get_unchecked(param.bounds, index)
+    param.bounds.get_unchecked(index)
 }

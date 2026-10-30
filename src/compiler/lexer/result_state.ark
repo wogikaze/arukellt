@@ -28,7 +28,7 @@ fn LexResult_diagnostic_count(result: LexResult) -> i32 {
 }
 
 fn LexResult_diagnostic_at(result: LexResult, index: i32) -> LexDiagnostic {
-    get_unchecked(result.diagnostics, index)
+    result.diagnostics.get_unchecked(index)
 }
 
 fn LexDiagnostic_code(diag: LexDiagnostic) -> i32 {

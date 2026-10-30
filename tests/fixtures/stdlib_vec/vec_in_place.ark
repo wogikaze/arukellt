@@ -10,7 +10,7 @@ fn is_even(value: i32) -> bool {
 fn print_values(values: Vec<i32>) {
     let mut i: i32 = 0
     while i < values.len() {
-        Stdio::println((get_unchecked(values, i)).to_string())
+        Stdio::println((values.get_unchecked(i)).to_string())
         i = i + 1
     }
 }

@@ -8,6 +8,6 @@ fn main() {
 
     let taken = v.iter().take(10).collect()
     Test::assert_eq_i32(taken.len(), 2)
-    Test::assert_eq_i32(get_unchecked(taken, 0), 1)
-    Test::assert_eq_i32(get_unchecked(taken, 1), 2)
+    Test::assert_eq_i32(taken.get_unchecked(0), 1)
+    Test::assert_eq_i32(taken.get_unchecked(1), 2)
 }

@@ -11,6 +11,6 @@ fn main() {
 
     let out: Vec<i32> = w.into_bytes()
     Test::assert_eq_i32(out.len(), 5)
-    Test::assert_eq_i32(get_unchecked(out, 0), 104)
-    Test::assert_eq_i32(get_unchecked(out, 4), 111)
+    Test::assert_eq_i32(out.get_unchecked(0), 104)
+    Test::assert_eq_i32(out.get_unchecked(4), 111)
 }

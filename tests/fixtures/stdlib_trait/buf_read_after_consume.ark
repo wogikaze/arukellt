@@ -19,8 +19,8 @@ fn main() {
     match r.fill_buf() {
         Result::Ok(filled) => {
             Test::assert_eq_i32(filled.len(), 2)
-            Test::assert_eq_i32(get_unchecked(filled, 0), 30)
-            Test::assert_eq_i32(get_unchecked(filled, 1), 40)
+            Test::assert_eq_i32(filled.get_unchecked(0), 30)
+            Test::assert_eq_i32(filled.get_unchecked(1), 40)
         },
         Result::Err(e) => Std::panic(e.message()),
     }

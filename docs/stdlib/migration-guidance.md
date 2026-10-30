@@ -280,7 +280,7 @@ through the `__intrinsic_*` conversion bridges (ADR-067).
 | `f64_bits_lo(x)` | `(x).to_bits_lo()` |
 | `f64_bits_hi(x)` | `(x).to_bits_hi()` |
 
-### Vec intrinsic-compat frees (10; `len` retired 2026-10-30)
+### Vec intrinsic-compat frees (10; `len` and `get_unchecked` retired 2026-10-30)
 
 `len` retired in `wave/vec-intrinsic-len`. Bare calls and selective
 `use std::prelude::{len}` imports now fail with **E0100** and the
@@ -289,6 +289,15 @@ receiver-method hint; the same wave migrated 5,701 in-tree call sites
 served both `String` and `Vec` receivers; the checker selected the
 owner, so both are covered by one method name.
 
+`get_unchecked` retired in `wave/vec-get-unchecked`. Bare calls and selective
+`use std::prelude::{get_unchecked}` imports now fail with **E0100** and the
+`v.get_unchecked(i)` receiver-method hint; the same wave migrated 3,282
+in-tree call sites (compiler, std, fixtures, benchmarks) to the method
+spelling. MIR lowering binds the method to the sealed raw accessor, so the
+element type comes from the receiver local instead of a free-name suffix.
+`docs/sample/parser.ark` is a stale sample that already fails current
+typechecking at HEAD; it keeps its free calls like the `len` wave residual.
+
 | Deprecated API | Replacement |
 |----------------|-------------|
 | `push(v, x)` | `v.push(x)` |
@@ -296,7 +305,7 @@ owner, so both are covered by one method name.
 | `len(v)` / `len(s)` | `v.len()` / `s.len()` (retired 2026-10-30) |
 | `get(v, i)` | `v.get(i)` |
 | `set(v, i, x)` | `v.set(i, x)` |
-| `get_unchecked(v, i)` | `v.get_unchecked(i)` |
+| `get_unchecked(v, i)` | `v.get_unchecked(i)` (retired 2026-10-30) |
 | `clear(v)` | `v.clear()` — stale non-callable entry, retired |
 | `as_slice(v, s, e)` | `v.as_slice(s, e)` |
 | `slice_len(view)` | `view.len()` |
@@ -1245,7 +1254,7 @@ E0100 goldens are `diagnostics/removed_bytes_free*.ark`.
 - **`Vec<String>::concat`**: the method lowers to a `String::concat` receiver
   on wasm32-gc and fails validation for a `Vec<String>` local (pre-existing,
   independent of the associated-call fix). Join with an explicit loop or use
-  `len` / `get_unchecked` in the meantime.
+  `v.len()` / `v.get_unchecked(i)` in the meantime.
 - **Bootstrap adapter**: the checked-in associated surface is now the
   bootstrap input. The flat overlay ships `std/toml.ark`, `std/host/fs.ark`,
   `std/host/clock.ark`, and `std/io/mod.ark`, so `toml::TomlText::*`,

@@ -11,7 +11,7 @@ fn main() {
     push(v, 3)
     let result: Vec<i32> = filter_i32(v, is_positive)
     Test::assert_eq_i32(result.len(), 3)
-    Test::assert_eq_i32(get_unchecked(result, 0), 1)
-    Test::assert_eq_i32(get_unchecked(result, 1), 2)
-    Test::assert_eq_i32(get_unchecked(result, 2), 3)
+    Test::assert_eq_i32(result.get_unchecked(0), 1)
+    Test::assert_eq_i32(result.get_unchecked(1), 2)
+    Test::assert_eq_i32(result.get_unchecked(2), 3)
 }

@@ -38,7 +38,7 @@ fn main() {
     while i < 8 {
         let mut j = 0
         while j < 8 {
-            check_pair(get_unchecked(vals, i), get_unchecked(vals, j))
+            check_pair(vals.get_unchecked(i), vals.get_unchecked(j))
             j = j + 1
         }
         i = i + 1

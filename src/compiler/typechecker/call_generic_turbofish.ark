@@ -11,7 +11,7 @@ fn constrain_turbofish_type_arg(
 ) {
     let type_node = ast_access::node_child_at(callee, index + 1)
     let concrete = types::resolve_type_ann_node(type_node)
-    unify::unify(infer_env, get_unchecked(var_types, index), concrete)
+    unify::unify(infer_env, var_types.get_unchecked(index), concrete)
 }
 
 // Bind turbofish type arguments from a PATH callee's children onto fresh

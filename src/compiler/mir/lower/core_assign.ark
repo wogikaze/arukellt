@@ -15,7 +15,7 @@ fn lower_core_assign(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     let assign_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     if assign_name.len() > 0 {
         let val_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
-        let val_expr = get_unchecked(exprs, val_index)
+        let val_expr = exprs.get_unchecked(val_index)
         let val_idx = if mir_core_assign_value_is_fn_pair(ctx, assign_name.clone(), val_expr) {
             value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(val_expr))
         } else {
@@ -27,10 +27,10 @@ fn lower_core_assign(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) >= 2 {
         let target_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
         let value_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
-        let target_expr = get_unchecked(exprs, target_index)
+        let target_expr = exprs.get_unchecked(target_index)
         if core_expr_shape_aggregate::mir_core_expr_is_field_access(target_expr) && core_expr_shape_accessors::mir_core_expr_child_count(target_expr) >= 1 {
             let base_expr_index = core_expr_shape_accessors::mir_core_expr_child(target_expr, 0)
-            let base_expr = get_unchecked(exprs, base_expr_index)
+            let base_expr = exprs.get_unchecked(base_expr_index)
             let mut struct_idx = 0 - 1
             if core_expr_shape_atoms::mir_core_expr_is_ident(base_expr) {
                 struct_idx = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(base_expr))

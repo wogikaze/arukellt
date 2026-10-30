@@ -71,7 +71,7 @@ fn validate_export_function(f: AstNode, allows: ComponentContractAllows) -> Stri
 fn validate_export_surface(decls: Vec<AstNode>) -> String {
     let allows = contract_allows::component_contract_allows(decls)
     for i in 0..decls.len() {
-        let f = get_unchecked(decls, i)
+        let f = decls.get_unchecked(i)
         if contract_helpers::is_export_func_decl(f) {
             let export_error = validate_export_function(f, allows)
             if export_error.len() > 0 {

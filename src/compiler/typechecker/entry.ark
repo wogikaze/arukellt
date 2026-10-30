@@ -31,14 +31,14 @@ fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<Str
     let module_count = modules.len()
     let mut mi = 0
     while mi < module_count && pos < decl_count {
-        let m = get_unchecked(modules, mi)
+        let m = modules.get_unchecked(mi)
         let mname = modules::module_name(m)
         let mdcount = modules::module_decl_count(m)
         let mut dk = 0
         while dk < mdcount && pos < decl_count {
             push_sig_index_key(
                 keys,
-                get_unchecked(decls, pos),
+                decls.get_unchecked(pos),
                 mname.clone(),
                 known_type_names.clone()
             )
@@ -50,7 +50,7 @@ fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<Str
     while pos < decl_count {
         push_sig_index_key(
             keys,
-            get_unchecked(decls, pos),
+            decls.get_unchecked(pos),
             String_new(),
             known_type_names.clone()
         )
@@ -108,8 +108,8 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     // Concrete entry decls keep the existing imported-first order so
     // std-internal calls to colliding names are not re-bound.
     while i < count {
-        if i < qualified_keys.len() && get_unchecked(qualified_keys, i).len() == 0 {
-            let own_sig = get_unchecked(fn_sigs, i)
+        if i < qualified_keys.len() && qualified_keys.get_unchecked(i).len() == 0 {
+            let own_sig = fn_sigs.get_unchecked(i)
             if contract_fn_sig::FnSig_type_param_count(own_sig) > 0 {
                 name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(own_sig), i)
             }
@@ -118,9 +118,9 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     }
     i = 0
     while i < count {
-        let sig = get_unchecked(fn_sigs, i)
+        let sig = fn_sigs.get_unchecked(i)
         if i < qualified_keys.len() {
-            let qname = get_unchecked(qualified_keys, i)
+            let qname = qualified_keys.get_unchecked(i)
             if qname.len() > 0 {
                 name_index::name_index_insert_first(index, qname, i)
             }
@@ -152,7 +152,7 @@ fn typecheck_module_with_options(
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(node) {
             module::append_typed_fn(result, node)
             let mut fn_env = module_env_merge::type_env_for_fn_check(env)

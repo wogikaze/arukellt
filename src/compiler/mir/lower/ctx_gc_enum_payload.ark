@@ -12,13 +12,13 @@ fn ctx_ensure_gc_enum_payload_variant(mut ctx: LowerCtx, variant_name: String, p
     if name_slot >= 0 {
         let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, variant_name.clone())
         if layout_field_sigs.len() > 0 {
-            let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
+            let existing_sig = ctx.gc_enum_variant_sigs.get_unchecked(name_slot).clone()
             let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
             if existing_payload.clone().eq(layout_field_sigs.clone()) {
                 return name_slot
             }
         }
-        let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
+        let existing_sig = ctx.gc_enum_variant_sigs.get_unchecked(name_slot).clone()
         let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(ctx, payload_vts)
         if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
             return name_slot
@@ -99,8 +99,8 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     let count = ctx.gc_enum_variant_sigs.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(ctx.gc_enum_variant_sigs, i).eq(want_sig.clone()) {
-            if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), normalized.clone()) {
+        if ctx.gc_enum_variant_sigs.get_unchecked(i).eq(want_sig.clone()) {
+            if ctx_gc_enum::ctx_gc_enum_variant_names_match(ctx.gc_enum_variant_names.get_unchecked(i).clone(), normalized.clone()) {
                 return i
             }
         }
@@ -108,8 +108,8 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     }
     i = 0
     while i < count {
-        if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), normalized.clone()) {
-            let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, i).clone()
+        if ctx_gc_enum::ctx_gc_enum_variant_names_match(ctx.gc_enum_variant_names.get_unchecked(i).clone(), normalized.clone()) {
+            let existing_sig = ctx.gc_enum_variant_sigs.get_unchecked(i).clone()
             let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
             if existing_payload.clone().eq(field_sigs.clone()) {
                 return i
@@ -125,7 +125,7 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
     }
     let name_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, variant_name.clone())
     if name_slot >= 0 {
-        let existing_sig = get_unchecked(ctx.gc_enum_variant_sigs, name_slot).clone()
+        let existing_sig = ctx.gc_enum_variant_sigs.get_unchecked(name_slot).clone()
         let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(existing_sig.clone(), "SubF+14_S_f0_i32")
         let is_vec_container = ctx_gc_enum::gc_enum_variant_is_vec_container(normalized.clone())
         if is_vec_container && existing_payload.clone().contains("ref14") && field_sigs.clone().contains("ref25") {
@@ -168,8 +168,8 @@ fn gc_enum_build_payload_field_sigs_for_type(mut ctx: LowerCtx, variant_name: St
     let mut li = 0
     let mut first_sig = String_new()
     while li < layout_count {
-        if get_unchecked(ctx.struct_names, li).eq(layout_name.clone()) || get_unchecked(ctx.struct_names, li).eq(variant_name.clone()) {
-            let field_count = get_unchecked(ctx.struct_field_counts, li)
+        if ctx.struct_names.get_unchecked(li).eq(layout_name.clone()) || ctx.struct_names.get_unchecked(li).eq(variant_name.clone()) {
+            let field_count = ctx.struct_field_counts.get_unchecked(li)
             let mut row_sig = String_new()
             let mut payload_ft = String_new()
             let mut fi = 1
@@ -177,11 +177,11 @@ fn gc_enum_build_payload_field_sigs_for_type(mut ctx: LowerCtx, variant_name: St
                 let mut off = 0
                 let mut si = 0
                 while si < li {
-                    off = off + get_unchecked(ctx.struct_field_counts, si)
+                    off = off + ctx.struct_field_counts.get_unchecked(si)
                     si = si + 1
                 }
                 off = off + fi
-                let raw_ft = get_unchecked(ctx.struct_field_types, off)
+                let raw_ft = ctx.struct_field_types.get_unchecked(off)
                 let ft = if fi == 1 && type_name.len() > 0 && ctx_struct_field_type::ctx_payload_field_types_match(raw_ft.clone(), type_name.clone()) {
                     type_name.clone()
                 } else {

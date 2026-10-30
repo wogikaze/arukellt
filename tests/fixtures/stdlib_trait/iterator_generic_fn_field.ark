@@ -27,7 +27,7 @@ impl<T, U> Iterator for GenMap<T, U> {
     type Item = U
     fn next(mut self: GenMap<T, U>) -> Option<U> {
         if self.index < self.length {
-            let raw: T = get_unchecked(self.vec, self.index)
+            let raw: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             Option::Some((self.f)(raw))
         } else {

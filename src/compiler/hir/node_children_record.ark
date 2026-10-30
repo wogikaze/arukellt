@@ -5,7 +5,7 @@ fn hir_node_child_count(node: HirNode) -> i32 {
 }
 
 fn hir_node_child_at(node: HirNode, index: i32) -> HirNode {
-    get_unchecked(node.children, index)
+    node.children.get_unchecked(index)
 }
 
 fn hir_node_push_child(mut node: HirNode, child: HirNode) {

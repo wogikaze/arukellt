@@ -4,7 +4,7 @@ fn roots_contains(roots: Vec<String>, path: String) -> bool {
     let n = roots.len()
     let mut i = 0
     while i < n {
-        if get_unchecked(roots, i).eq(path.clone()) {
+        if roots.get_unchecked(i).eq(path.clone()) {
             return true
         }
         i = i + 1
@@ -26,7 +26,7 @@ pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
     let mut out = Vec::new<String>()
     let mut i = 0
     while i < n {
-        let path = symbol_index_paths::uri_to_file_path(get_unchecked(uris, i))
+        let path = symbol_index_paths::uri_to_file_path(uris.get_unchecked(i))
         out = roots_push_unique(out, path)
         i = i + 1
     }

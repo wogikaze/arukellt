@@ -59,7 +59,7 @@ fn mir_gc_layout_plan_binding_count(plan: MirGcLayoutPlan) -> i32 {
 }
 
 fn mir_gc_layout_plan_binding_at(plan: MirGcLayoutPlan, index: i32) -> MirGcLayoutBinding {
-    get_unchecked(plan.bindings, index)
+    plan.bindings.get_unchecked(index)
 }
 
 fn mir_gc_layout_binding_type_id(binding: MirGcLayoutBinding) -> TypeId {
@@ -77,14 +77,14 @@ fn mir_gc_layout_binding_source_value(binding: MirGcLayoutBinding) -> i32 {
 fn mir_gc_layout_plan_find_type(plan: MirGcLayoutPlan, type_id_value: TypeId) -> i32 {
     let raw = type_id::TypeId_raw(type_id_value)
     if raw >= 0 && raw < plan.index_by_raw.len() {
-        return get_unchecked(plan.index_by_raw, raw)
+        return plan.index_by_raw.get_unchecked(raw)
     }
     // Invalid TypeIds are not indexed; keep the scan so a duplicate
     // invalid binding is still found and replaced in place.
     let count = plan.bindings.len()
     let mut index = 0
     while index < count {
-        let binding = get_unchecked(plan.bindings, index)
+        let binding = plan.bindings.get_unchecked(index)
         if type_id::type_id_eq(binding.type_id, type_id_value) {
             return index
         }
@@ -123,7 +123,7 @@ fn mir_gc_layout_plan_bind(
 // only exist if some writer bypassed bind(), and then at most one slot
 // can match index_by_raw[raw], so the check still fails closed.
 fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> bool {
-    let binding = get_unchecked(plan.bindings, index)
+    let binding = plan.bindings.get_unchecked(index)
     let tid = binding.type_id
     if !type_id::type_id_is_valid(tid) {
         return false
@@ -138,7 +138,7 @@ fn mir_gc_layout_plan_validate_binding(plan: MirGcLayoutPlan, index: i32) -> boo
         return false
     }
     let raw = type_id::TypeId_raw(tid)
-    if raw >= plan.index_by_raw.len() || get_unchecked(plan.index_by_raw, raw) != index {
+    if raw >= plan.index_by_raw.len() || plan.index_by_raw.get_unchecked(raw) != index {
         return false
     }
     true

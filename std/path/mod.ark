@@ -120,7 +120,7 @@ fn path_normalize(p: String) -> String {
     let n = parts.len()
     let mut i = 0
     while i < n {
-        let part = get_unchecked(parts, i)
+        let part = parts.get_unchecked(i)
         if part.eq(".") || part.is_empty() {
         } else {
             if part.eq("..") {
@@ -153,7 +153,7 @@ fn path_components(p: String) -> Vec<String> {
     let n = raw.len()
     let mut i = 0
     while i < n {
-        let part = get_unchecked(raw, i)
+        let part = raw.get_unchecked(i)
         if !part.is_empty() {
             push(out, part)
         }

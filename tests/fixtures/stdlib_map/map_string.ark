@@ -13,7 +13,7 @@ fn main() {
     let result: Vec<String> = v.iter().map(to_upper_wrapper).collect()
     let mut i: i32 = 0
     while i < result.len() {
-        Stdio::println(get_unchecked(result, i))
+        Stdio::println(result.get_unchecked(i))
         i = i + 1
     }
 }

@@ -29,8 +29,9 @@
 //     Std::panic  (associated control operation)
 //     String_from, String_new
 //     char_to_string  (essential conversion)
-//     plus push, pop, get, set, get_unchecked
-//       (`len` is a receiver method only: `s.len()` / `v.len()`)
+//     plus push, pop, get, set
+//       (`len` and `get_unchecked` are receiver methods only:
+//        `s.len()` / `v.len()` and `v.get_unchecked(i)`)
 //
 // ## Legacy / explicit-import section
 //
@@ -187,10 +188,10 @@ impl Std {
 fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            set(v, insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            set(v, insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         set(v, insertion, value)
@@ -205,10 +206,10 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            set(v, insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            set(v, insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         set(v, insertion, value)
@@ -219,10 +220,10 @@ fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
 fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
     let mut index = 1
     while index < v.len() {
-        let value = get_unchecked(v, index)
+        let value = v.get_unchecked(index)
         let mut insertion = index
-        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
-            set(v, insertion, get_unchecked(v, insertion - 1))
+        while insertion > 0 && v.get_unchecked(insertion - 1) > value {
+            set(v, insertion, v.get_unchecked(insertion - 1))
             insertion = insertion - 1
         }
         set(v, insertion, value)
@@ -338,8 +339,8 @@ fn __core_vec_reverse_string_impl(mut v: Vec<String>) {
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
     while lo < hi {
-        let tmp: String = get_unchecked(v, lo)
-        set(v, lo, get_unchecked(v, hi))
+        let tmp: String = v.get_unchecked(lo)
+        set(v, lo, v.get_unchecked(hi))
         set(v, hi, tmp)
         lo = lo + 1
         hi = hi - 1
@@ -360,7 +361,7 @@ fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut i: i32 = 0
     while i < v.len() {
-        total = total + get_unchecked(v, i)
+        total = total + v.get_unchecked(i)
         i = i + 1
     }
     total
@@ -369,7 +370,7 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 1
     let mut i: i32 = 0
     while i < v.len() {
-        total = total * get_unchecked(v, i)
+        total = total * v.get_unchecked(i)
         i = i + 1
     }
     total
@@ -399,10 +400,6 @@ pub fn get<T>(v: Vec<T>, idx: i32) -> Option<T> {
         return None
     }
     Some(raw_array_get_unchecked(v, idx))
-}
-
-pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
-    return v[idx]
 }
 
 pub fn pop<T>(mut v: Vec<T>) -> Option<T> {
@@ -514,7 +511,7 @@ pub fn slice_len<T>(view: Slice<T>) -> i32 {
 
 pub fn slice_get<T>(view: Slice<T>, index: i32) -> T {
     match view {
-        Slice::View(source, start, _) => get_unchecked(source, start + index),
+        Slice::View(source, start, _) => source.get_unchecked(start + index),
     }
 }
 
@@ -531,7 +528,7 @@ impl<T> Slice<T> {
     /// Returns the element at `index` within this view.
     fn get(self: Slice<T>, index: i32) -> T {
         match self {
-            Slice::View(source, start, _) => get_unchecked(source, start + index),
+            Slice::View(source, start, _) => source.get_unchecked(start + index),
         }
     }
 }

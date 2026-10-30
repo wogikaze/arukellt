@@ -24,7 +24,7 @@ fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         collect_use_decls_in_node(node, uses)
         i = i + 1
     }
@@ -69,7 +69,7 @@ fn collect_referenced_modules(decls: Vec<AstNode>, mut referenced: Vec<String>) 
     let count = decls.len()
     let mut i = 0
     while i < count {
-        collect_referenced_modules_in_node(get_unchecked(decls, i), referenced)
+        collect_referenced_modules_in_node(decls.get_unchecked(i), referenced)
         i = i + 1
     }
 }
@@ -95,7 +95,7 @@ fn name_in_vec(name: String, vec: Vec<String>) -> bool {
     let count = vec.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(vec, i).clone().eq(name.clone()) {
+        if vec.get_unchecked(i).clone().eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -111,7 +111,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let use_count = uses.len()
     let mut i = 0
     while i < use_count {
-        let info = get_unchecked(uses, i)
+        let info = uses.get_unchecked(i)
         let short_name = use_decl_info_short_name(info)
         if short_name.clone().starts_with("_") {
             i = i + 1

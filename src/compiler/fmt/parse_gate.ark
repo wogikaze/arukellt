@@ -19,7 +19,7 @@ fn fmt_parse_gate_error_count(gate: FmtParseGate) -> i32 {
 }
 
 fn fmt_parse_gate_error_at(gate: FmtParseGate, index: i32) -> Diagnostic {
-    get_unchecked(gate.errors, index)
+    gate.errors.get_unchecked(index)
 }
 
 fn fmt_parse_gate_decls(gate: FmtParseGate) -> Vec<AstNode> {

@@ -42,7 +42,7 @@ fn function_param_mvt(m: MirModule, func_name: String, param_idx: i32) -> MirVal
             let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
             let mono_params = mono_instance_table::mono_instance_entry_param_types(mono_entry)
             if param_idx >= 0 && param_idx < mono_params.len() {
-                return typed_mir_compat::mvt_copy(get_unchecked(mono_params, param_idx))
+                return typed_mir_compat::mvt_copy(mono_params.get_unchecked(param_idx))
             }
         }
     }
@@ -150,7 +150,7 @@ fn call_return_type_id_is_known(m: MirModule, inst: MirInst) -> bool {
     if mvts.len() <= 0 {
         return false
     }
-    let first = get_unchecked(mvts, 0)
+    let first = mvts.get_unchecked(0)
     type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(first))
 }
 

@@ -8,7 +8,7 @@ struct Point {
 fn main() {
     let mut items = Vec::new<Point>()
     items = push(items, Point { x: 1, y: 2 })
-    let p = get_unchecked(items, 0)
+    let p = items.get_unchecked(0)
     Stdio::println(p.x.to_string())
     Stdio::println(p.y.to_string())
 }

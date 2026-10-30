@@ -104,21 +104,21 @@ impl WitNode {
                 if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
-                    get_unchecked(items, index)
+                    items.get_unchecked(index)
                 }
             },
             WitNode::World(_, items) => {
                 if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
-                    get_unchecked(items, index)
+                    items.get_unchecked(index)
                 }
             },
             WitNode::Interface(_, items) => {
                 if index < 0 || index >= items.len() {
                     WitNode::Error(String_from("child_at: index out of bounds"))
                 } else {
-                    get_unchecked(items, index)
+                    items.get_unchecked(index)
                 }
             },
             WitNode::Record(_, _) |
@@ -143,11 +143,11 @@ impl WitNode {
             WitNode::Interface(name, _) => name.clone(),
             WitNode::Package(_, items) => {
                 for i in 0..items.len() {
-                    match get_unchecked(items, i) {
+                    match items.get_unchecked(i) {
                         WitNode::Interface(name, _) => return name.clone(),
                         WitNode::World(_, world_items) => {
                             for j in 0..world_items.len() {
-                                match get_unchecked(world_items, j) {
+                                match world_items.get_unchecked(j) {
                                     WitNode::Interface(name, _) => return name.clone(),
                                     _ => {},
                                 }
@@ -160,7 +160,7 @@ impl WitNode {
             },
             WitNode::World(_, items) => {
                 for i in 0..items.len() {
-                    match get_unchecked(items, i) {
+                    match items.get_unchecked(i) {
                         WitNode::Interface(name, _) => return name.clone(),
                         _ => {},
                     }
@@ -188,14 +188,14 @@ impl WitNode {
                 if index < 0 || index >= fields.len() {
                     String_new()
                 } else {
-                    get_unchecked(fields, index).name.clone()
+                    fields.get_unchecked(index).name.clone()
                 }
             },
             WitNode::Resource(_, fields) => {
                 if index < 0 || index >= fields.len() {
                     String_new()
                 } else {
-                    get_unchecked(fields, index).name.clone()
+                    fields.get_unchecked(index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -220,14 +220,14 @@ impl WitNode {
                 if index < 0 || index >= fields.len() {
                     WitType::Unknown(0)
                 } else {
-                    get_unchecked(fields, index).ty
+                    fields.get_unchecked(index).ty
                 }
             },
             WitNode::Resource(_, fields) => {
                 if index < 0 || index >= fields.len() {
                     WitType::Unknown(0)
                 } else {
-                    get_unchecked(fields, index).ty
+                    fields.get_unchecked(index).ty
                 }
             },
             WitNode::Package(_, _) |
@@ -252,7 +252,7 @@ impl WitNode {
                 if index < 0 || index >= variants.len() {
                     String_new()
                 } else {
-                    get_unchecked(variants, index).clone()
+                    variants.get_unchecked(index).clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -278,7 +278,7 @@ impl WitNode {
                 if index < 0 || index >= members.len() {
                     String_new()
                 } else {
-                    get_unchecked(members, index).clone()
+                    members.get_unchecked(index).clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -304,7 +304,7 @@ impl WitNode {
                 if index < 0 || index >= cases.len() {
                     String_new()
                 } else {
-                    get_unchecked(cases, index).name.clone()
+                    cases.get_unchecked(index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -330,7 +330,7 @@ impl WitNode {
                 if index < 0 || index >= cases.len() {
                     return false
                 }
-                let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
+                let case_ty: Option<types::WitType> = cases.get_unchecked(index).ty
                 match case_ty {
                     Option::Some(_) => true,
                     Option::None => false,
@@ -359,7 +359,7 @@ impl WitNode {
                 if index < 0 || index >= cases.len() {
                     return WitType::Unknown(0)
                 }
-                let case_ty: Option<types::WitType> = get_unchecked(cases, index).ty
+                let case_ty: Option<types::WitType> = cases.get_unchecked(index).ty
                 match case_ty {
                     Option::Some(ty) => ty,
                     Option::None => WitType::Unknown(0),
@@ -408,7 +408,7 @@ impl WitNode {
                 if index < 0 || index >= params.len() {
                     String_new()
                 } else {
-                    get_unchecked(params, index).name.clone()
+                    params.get_unchecked(index).name.clone()
                 }
             },
             WitNode::Package(_, _) |
@@ -434,7 +434,7 @@ impl WitNode {
                 if index < 0 || index >= params.len() {
                     WitType::Unknown(0)
                 } else {
-                    get_unchecked(params, index).ty
+                    params.get_unchecked(index).ty
                 }
             },
             WitNode::Package(_, _) |
@@ -625,7 +625,7 @@ fn wit_import_serialized_string_list(values: Vec<String>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, get_unchecked(values, i).clone())
+        out = String::concat(out, values.get_unchecked(i).clone())
     }
     out
 }
@@ -636,7 +636,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, get_unchecked(params, i).ty.wit_text())
+        out = String::concat(out, params.get_unchecked(i).ty.wit_text())
     }
     out
 }
@@ -644,7 +644,7 @@ fn wit_import_serialized_param_types(params: Vec<types::WitParam>) -> String {
 fn wit_import_serialized_field_names(fields: Vec<types::WitField>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..fields.len() {
-        push(names, get_unchecked(fields, i).name.clone())
+        push(names, fields.get_unchecked(i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -655,7 +655,7 @@ fn wit_import_serialized_field_types(fields: Vec<types::WitField>) -> String {
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        out = String::concat(out, get_unchecked(fields, i).ty.wit_text())
+        out = String::concat(out, fields.get_unchecked(i).ty.wit_text())
     }
     out
 }
@@ -667,7 +667,7 @@ fn wit_import_serialized_enum_variants(variants: Vec<String>) -> String {
 fn wit_import_serialized_variant_names(cases: Vec<types::WitVariantCase>) -> String {
     let mut names = Vec::new<String>()
     for i in 0..cases.len() {
-        push(names, get_unchecked(cases, i).name.clone())
+        push(names, cases.get_unchecked(i).name.clone())
     }
     wit_import_serialized_string_list(names)
 }
@@ -678,7 +678,7 @@ fn wit_import_serialized_variant_payloads(cases: Vec<types::WitVariantCase>) -> 
         if i > 0 {
             out = String::concat(out, String_from("~"))
         }
-        let case_ty: Option<types::WitType> = get_unchecked(cases, i).ty
+        let case_ty: Option<types::WitType> = cases.get_unchecked(i).ty
         let payload = match case_ty {
             Option::Some(ty) => ty.wit_text(),
             Option::None => String_new(),
@@ -706,7 +706,7 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
     out = String::concat(out, String_from("|"))
     out = String::concat(out, String::concat(name, String_from(";")))
     for i in 0..items.len() {
-        match get_unchecked(items, i) {
+        match items.get_unchecked(i) {
             WitNode::Func(func_name, params, result) => {
                 let r: Option<types::WitType> = result
                 let result_text = match r {
@@ -752,13 +752,13 @@ fn wit_import_serialized_interface(package: String, name: String, items: Vec<Wit
 
 fn wit_import_serialized_container(package: String, items: Vec<WitNode>) -> String {
     for i in 0..items.len() {
-        match get_unchecked(items, i) {
+        match items.get_unchecked(i) {
             WitNode::Interface(name, interface_items) => {
                 return wit_import_serialized_interface(package, name, interface_items)
             },
             WitNode::World(_, world_items) => {
                 for j in 0..world_items.len() {
-                    match get_unchecked(world_items, j) {
+                    match world_items.get_unchecked(j) {
                         WitNode::Interface(name, interface_items) => {
                             return wit_import_serialized_interface(package.clone(), name, interface_items)
                         },

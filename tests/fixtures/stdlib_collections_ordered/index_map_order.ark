@@ -13,7 +13,7 @@ fn main() {
     let keys = m.keys()
     let mut i: i32 = 0
     while i < keys.len() {
-        Stdio::println((get_unchecked(keys, i)).to_string())
+        Stdio::println((keys.get_unchecked(i)).to_string())
         i = i + 1
     }
     m.insert(10, 999)

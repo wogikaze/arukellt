@@ -182,7 +182,7 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
     let allow_count = allow_codes.len()
     let mut ai = 0
     while ai < allow_count {
-        if get_unchecked(allow_codes, ai).clone().eq(code.clone()) {
+        if allow_codes.get_unchecked(ai).clone().eq(code.clone()) {
             return LINT_ALLOW()
         }
         ai = ai + 1
@@ -190,7 +190,7 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
     let deny_count = deny_codes.len()
     let mut di = 0
     while di < deny_count {
-        if get_unchecked(deny_codes, di).clone().eq(code.clone()) {
+        if deny_codes.get_unchecked(di).clone().eq(code.clone()) {
             return LINT_DENY()
         }
         di = di + 1
@@ -208,7 +208,7 @@ pub fn should_suppress(code: String, allow_codes: Vec<String>) -> bool {
     let count = allow_codes.len()
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(allow_codes, i)
+        let entry = allow_codes.get_unchecked(i)
         if entry.clone().eq(code.clone()) {
             return true
         }
@@ -227,7 +227,7 @@ pub fn should_deny(code: String, deny_codes: Vec<String>) -> bool {
     let count = deny_codes.len()
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(deny_codes, i)
+        let entry = deny_codes.get_unchecked(i)
         if entry.clone().eq(code.clone()) {
             return true
         }

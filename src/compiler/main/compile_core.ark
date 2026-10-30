@@ -129,7 +129,7 @@ fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mod
     let diag_count = diags.len()
     let mut j = 0
     while j < diag_count {
-        Stdio::eprintln(diag_mod::format_diagnostic_text(String_new(), input_file.clone(), get_unchecked(diags, j)))
+        Stdio::eprintln(diag_mod::format_diagnostic_text(String_new(), input_file.clone(), diags.get_unchecked(j)))
         j = j + 1
     }
 }

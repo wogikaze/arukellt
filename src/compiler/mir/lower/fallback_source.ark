@@ -10,7 +10,7 @@ fn mir_fallback_source_from_decls(decls: Vec<MirLowerLegacyDecl>) -> MirLowerFal
 }
 
 fn mir_fallback_source_decl_at(source: MirLowerFallbackSource, index: i32) -> MirLowerLegacyDecl {
-    get_unchecked(source.decls, index)
+    source.decls.get_unchecked(index)
 }
 
 fn mir_fallback_source_fn_body(source: MirLowerFallbackSource, decl_index: i32, body_idx: i32) -> MirLowerEntryFallbackBody {
@@ -34,7 +34,7 @@ fn mir_fallback_source_release_fn_body(source: MirLowerFallbackSource, decl_inde
     if decl_index < 0 || decl_index >= source.decls.len() {
         return
     }
-    let mut decl = get_unchecked(source.decls, decl_index)
+    let mut decl = source.decls.get_unchecked(decl_index)
     legacy_decl::mir_legacy_decl_release_body(decl, body_idx)
 }
 
@@ -42,6 +42,6 @@ fn mir_fallback_source_release_method_body(source: MirLowerFallbackSource, impl_
     if impl_decl_index < 0 || impl_decl_index >= source.decls.len() {
         return
     }
-    let decl = get_unchecked(source.decls, impl_decl_index)
+    let decl = source.decls.get_unchecked(impl_decl_index)
     legacy_decl::mir_legacy_decl_release_method_body(decl, method_index, body_idx)
 }

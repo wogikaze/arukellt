@@ -77,13 +77,13 @@ fn method_concrete_return_from_mono_fn_name(fn_name: String, generic_return_name
         return String_new()
     }
     if key_count == 1 {
-        return get_unchecked(keys, 0)
+        return keys.get_unchecked(0)
     }
     let idx = mono_suffix_parse::mono_type_var_to_index(var_name.clone())
     if idx >= 0 && idx < key_count {
-        return get_unchecked(keys, idx)
+        return keys.get_unchecked(idx)
     }
-    get_unchecked(keys, key_count - 1)
+    keys.get_unchecked(key_count - 1)
 }
 
 fn method_return_vt_from_type_name(type_name: String) -> i32 {

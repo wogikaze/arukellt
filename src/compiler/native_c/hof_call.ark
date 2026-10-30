@@ -226,7 +226,7 @@ fn native_c_emit_call_indirect(
     let mut argument_index = 0
     while argument_index < arg_count {
         if argument_index > 0 { call = call.concat(String_from(", ")) }
-        call = call.concat(String_from("ark_v_").concat((get_unchecked(argument_locals, argument_index)).to_string()))
+        call = call.concat(String_from("ark_v_").concat((argument_locals.get_unchecked(argument_index)).to_string()))
         argument_index = argument_index + 1
     }
     call = call.concat(String_from(")"))
@@ -252,7 +252,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
                 let mut already = false
                 let mut scan = 0
                 while scan < emitted_names.len() {
-                    if get_unchecked(emitted_names, scan).eq(typedef_name.clone()) {
+                    if emitted_names.get_unchecked(scan).eq(typedef_name.clone()) {
                         already = true
                     }
                     scan = scan + 1

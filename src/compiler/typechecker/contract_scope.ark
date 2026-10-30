@@ -175,7 +175,7 @@ fn LocalScope_binding_count(scope: LocalScope) -> i32 {
 }
 
 fn LocalScope_binding_at(scope: LocalScope, index: i32) -> VarBinding {
-    get_unchecked(scope.bindings, index)
+    scope.bindings.get_unchecked(index)
 }
 
 fn LocalScope_push_binding(mut scope: LocalScope, binding: VarBinding) {

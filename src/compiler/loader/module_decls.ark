@@ -6,7 +6,7 @@ pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<
     let combined_mc = modules.len()
     let mut combined_mi = 0
     while combined_mi < combined_mc {
-        let combined_md = get_unchecked(modules, combined_mi)
+        let combined_md = modules.get_unchecked(combined_mi)
         let combined_dc = module_state_modules::ModuleDecls_decl_count(combined_md)
         let mut combined_dk = 0
         while combined_dk < combined_dc {

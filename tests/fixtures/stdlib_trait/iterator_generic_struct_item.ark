@@ -50,7 +50,7 @@ fn main() -> i32 {
     let it: EnumI<VecIter<i32>> = EnumI { iter: v.into_iter(), index: 0 }
     let items = it.collect()
     Stdio::println((items.len()).to_string())
-    let p0 = get_unchecked(items, 0)
+    let p0 = items.get_unchecked(0)
     Stdio::println((p0.first).to_string())
     Stdio::println((p0.second).to_string())
     let it2: EnumI<VecIter<i32>> = EnumI { iter: v.into_iter(), index: 0 }

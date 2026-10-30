@@ -20,7 +20,7 @@ fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {
     let n = store.docs.len()
     let mut i = 0
     while i < n {
-        let d = get_unchecked(store.docs, i)
+        let d = store.docs.get_unchecked(i)
         if d.uri.clone().eq(uri.clone()) {
             return i
         }
@@ -35,7 +35,7 @@ fn lsp_doc_store_set(mut store: LspDocStore, uri: String, text: String, version:
         push(store.docs, LspDoc_new(uri, text, version))
         return
     }
-    let mut d = get_unchecked(store.docs, idx)
+    let mut d = store.docs.get_unchecked(idx)
     d.text = text
     d.version = version
 }
@@ -45,6 +45,6 @@ fn lsp_doc_store_lookup_text(store: LspDocStore, uri: String) -> String {
     if idx < 0 {
         return String_new()
     }
-    let d = get_unchecked(store.docs, idx)
+    let d = store.docs.get_unchecked(idx)
     d.text.clone()
 }

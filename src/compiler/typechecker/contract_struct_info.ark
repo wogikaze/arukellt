@@ -32,7 +32,7 @@ fn StructInfo_field_index(info: StructInfo, field_name: String) -> i32 {
     let count = info.field_names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(info.field_names, i).eq(field_name.clone()) {
+        if info.field_names.get_unchecked(i).eq(field_name.clone()) {
             return i
         }
         i = i + 1
@@ -44,5 +44,5 @@ fn StructInfo_field_type_at(info: StructInfo, index: i32) -> TypeInfo {
     if index < 0 || index >= info.field_types.len() {
         return contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
     }
-    get_unchecked(info.field_types, index)
+    info.field_types.get_unchecked(index)
 }

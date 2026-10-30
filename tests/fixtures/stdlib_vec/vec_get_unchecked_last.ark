@@ -5,5 +5,5 @@ fn main() {
     push(v, 100)
     push(v, 200)
     push(v, 300)
-    Test::assert_eq_i32(get_unchecked(v, 2), 300)
+    Test::assert_eq_i32(v.get_unchecked(2), 300)
 }

@@ -54,7 +54,7 @@ fn parse_generic_params_into_node(mut p: Parser, mut node: AstNode) {
     let count = params.len()
     let mut i = 0
     while i < count {
-        core_ast_type_ann::AstNode_push_type_ann(node, get_unchecked(params, i))
+        core_ast_type_ann::AstNode_push_type_ann(node, params.get_unchecked(i))
         i = i + 1
     }
 }

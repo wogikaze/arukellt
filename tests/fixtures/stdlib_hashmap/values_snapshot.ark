@@ -15,7 +15,7 @@ fn main() {
     let mut found_333 = false
     let mut i = 0
     while i < vals.len() {
-        let v = get_unchecked(vals, i)
+        let v = vals.get_unchecked(i)
         if v == 111 { found_111 = true }
         if v == 222 { found_222 = true }
         if v == 333 { found_333 = true }

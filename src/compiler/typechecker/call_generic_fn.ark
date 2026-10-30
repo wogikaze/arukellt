@@ -53,7 +53,7 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     if infer_env.error_count > 0 && generic_call_args_concrete(arg_types) {
         let mut speculation_error = 0
         while speculation_error < infer_env.error_count {
-            unify::type_error(env, get_unchecked(infer_env.errors, speculation_error).clone())
+            unify::type_error(env, infer_env.errors.get_unchecked(speculation_error).clone())
             speculation_error = speculation_error + 1
         }
     }
@@ -100,7 +100,7 @@ fn generic_call_args_concrete(arg_types: Vec<TypeInfo>) -> bool {
     let count = arg_types.len()
     let mut i = 0
     while i < count {
-        let arg_ty = get_unchecked(arg_types, i)
+        let arg_ty = arg_types.get_unchecked(i)
         if associated_types::type_contains_var(arg_ty.clone()) {
             return false
         }
@@ -137,9 +137,9 @@ fn bind_uninferable_impl_type_params(
     let count = var_types.len()
     let mut i = 0
     while i < count && i < impl_param_count {
-        let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        let resolved = unify::resolve_type(infer_env, var_types.get_unchecked(i))
         if call_generic_resolve::is_unresolved_fresh_type_var(infer_env, resolved) &&
-        !fn_sig_mentions_type_param(sig, get_unchecked(var_names, i)) {
+        !fn_sig_mentions_type_param(sig, var_names.get_unchecked(i)) {
             unify::bind_var(
                 infer_env,
                 contract_type_access::TypeInfo_name(resolved),
@@ -195,7 +195,7 @@ fn call_owner_type_param_count(env: TypeEnv, fn_name: String) -> i32 {
     let count = env.struct_defs.len()
     let mut i = 0
     while i < count {
-        let def = get_unchecked(env.struct_defs, i)
+        let def = env.struct_defs.get_unchecked(i)
         if contract_struct_info::StructInfo_name(def).eq(base.clone()) {
             return contract_struct_info::StructInfo_type_params(def).len()
         }
@@ -214,13 +214,13 @@ fn report_unbindable_type_params(mut env: TypeEnv, infer_env: TypeEnv, var_names
     let count = var_types.len()
     let mut i = 0
     while i < count {
-        let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        let resolved = unify::resolve_type(infer_env, var_types.get_unchecked(i))
         if call_generic_resolve::is_unresolved_fresh_type_var(infer_env, resolved) {
             let var_name = contract_type_access::TypeInfo_name(resolved)
             if !type_mentions_var(ret_ty, var_name) {
                 unify::type_error(
                     env,
-                    "cannot infer type parameter ".concat(get_unchecked(var_names, i).concat(" in call ".concat(fn_name.clone())))
+                    "cannot infer type parameter ".concat(var_names.get_unchecked(i).concat(" in call ".concat(fn_name.clone())))
                 )
             }
         }

@@ -5,7 +5,7 @@ fn expr_tree_is_supported(exprs: Vec<CoreHirExpr>, root: i32) -> bool {
     if root < 0 || root >= exprs.len() {
         return false
     }
-    let expr = get_unchecked(exprs, root)
+    let expr = exprs.get_unchecked(root)
     if expr_predicates::expr_is_unsupported(expr) {
         return false
     }

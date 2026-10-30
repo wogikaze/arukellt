@@ -31,7 +31,7 @@ pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> V
             let mut skip = false
             let mut oi = 0
             while oi < out.len() {
-                if get_unchecked(out, oi).eq(label.clone()) {
+                if out.get_unchecked(oi).eq(label.clone()) {
                     skip = true
                 }
                 oi = oi + 1

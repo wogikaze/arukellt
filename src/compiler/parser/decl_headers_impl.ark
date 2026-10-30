@@ -43,7 +43,7 @@ fn push_impl_generics(mut node: AstNode, generics: Vec<AstNode>, span: Span) {
     let count = generics.len()
     let mut i = 0
     while i < count {
-        core_ast_children::AstNode_push_child(binder, get_unchecked(generics, i))
+        core_ast_children::AstNode_push_child(binder, generics.get_unchecked(i))
         i = i + 1
     }
     core_ast_type_ann::AstNode_push_type_ann(node, binder)

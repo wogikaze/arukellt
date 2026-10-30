@@ -16,7 +16,7 @@ impl WitFunc {
         let n = self.params.len()
         let mut i = 0
         while i < n {
-            let param = get_unchecked(self.params, i)
+            let param = self.params.get_unchecked(i)
             if i > 0 {
                 line = String::concat(line, ", ")
             }
@@ -40,7 +40,7 @@ impl Interface {
         let n = self.functions.len()
         let mut i = 0
         while i < n {
-            let func = get_unchecked(self.functions, i)
+            let func = self.functions.get_unchecked(i)
             out = String::concat(out, String::concat(func.to_wit(), "\n"))
             i = i + 1
         }
@@ -55,14 +55,14 @@ impl World {
         let import_count = self.imports.len()
         let mut i = 0
         while i < import_count {
-            let iface = get_unchecked(self.imports, i)
+            let iface = self.imports.get_unchecked(i)
             out = String::concat(out, iface.to_wit(String_from("import")))
             i = i + 1
         }
         let export_count = self.exports.len()
         i = 0
         while i < export_count {
-            let iface = get_unchecked(self.exports, i)
+            let iface = self.exports.get_unchecked(i)
             out = String::concat(out, iface.to_wit(String_from("export")))
             i = i + 1
         }

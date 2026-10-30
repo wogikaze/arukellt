@@ -5,7 +5,7 @@ fn main() {
     let vals = [0, 1, -1, 42, -42, 100, -100, 7, -7]
     let mut i = 0
     while i < 9 {
-        let x = get_unchecked(vals, i)
+        let x = vals.get_unchecked(i)
         let a1 = x.abs()
         let a2 = a1.abs()
         Test::assert_eq_i32(a1, a2)

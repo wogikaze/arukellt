@@ -12,7 +12,7 @@ fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_struct_decl(node) ||
         ast_decl_predicates::node_is_enum_decl(node) ||
         ast_decl_predicates::node_is_resource_decl(node) {
@@ -28,7 +28,7 @@ fn register_trait_impl_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         traits::maybe_register_impl_decl(env, node, env.declared_type_names.clone())
         i = i + 1
     }

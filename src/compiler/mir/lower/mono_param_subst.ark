@@ -229,7 +229,7 @@ fn mono_subst_named_generic_param(mut ctx: LowerCtx, p: i32, ty_name: String, mo
     let gcount = ctx.generic_struct_names.len()
     let mut gi = 0
     while gi < gcount {
-        if get_unchecked(ctx.generic_struct_names, gi).eq(base.clone()) {
+        if ctx.generic_struct_names.get_unchecked(gi).eq(base.clone()) {
             base_is_generic_struct = true
         }
         gi = gi + 1
@@ -299,7 +299,7 @@ fn mono_hashmap_arg_type_info(ctx: LowerCtx, arg: String) -> TypeInfo {
     let count = ctx.mono_type_param_names.len()
     let mut i = 0
     while i < count && i < inst_args {
-        if get_unchecked(ctx.mono_type_param_names, i).eq(arg.clone()) {
+        if ctx.mono_type_param_names.get_unchecked(i).eq(arg.clone()) {
             return type_contracts::MonoInstance_type_arg_at(inst, i)
         }
         i = i + 1
@@ -486,7 +486,7 @@ fn resolve_nested_vec_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix
     let type_keys = mono_suffix_parse::split_mono_suffix(mono_suffix.clone())
     let key_count = type_keys.len()
     if key_count == 1 {
-        let only = get_unchecked(type_keys, 0)
+        let only = type_keys.get_unchecked(0)
         if only.clone().starts_with(String_from("Vec")) {
             return only
         }
@@ -514,13 +514,13 @@ fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, h
         return String_new()
     }
     if key_count == 1 {
-        return get_unchecked(type_keys, 0)
+        return type_keys.get_unchecked(0)
     }
     let idx = mono_suffix_parse::mono_type_var_to_index(type_var.clone())
     if idx < 0 || idx >= key_count {
-        return get_unchecked(type_keys, 0)
+        return type_keys.get_unchecked(0)
     }
-    get_unchecked(type_keys, idx)
+    type_keys.get_unchecked(idx)
 }
 
 // A local spelling that names a declared struct or enum is a concrete

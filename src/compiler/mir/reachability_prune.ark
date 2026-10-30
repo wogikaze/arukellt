@@ -20,11 +20,11 @@ fn mir_prune_unmarked_functions(mut m: MirModule, reachable: Vec<i32>) -> i32 {
     let mut old_to_new = Vec::new<i32>()
     while i < fn_count {
         let f = module_functions::MirModule_function_at(m, i)
-        if get_unchecked(reachable, i) != 0 {
+        if reachable.get_unchecked(i) != 0 {
             push(kept, f)
             push(old_to_new, kept.len() - 1)
             if keep_slots {
-                push(kept_slots, get_unchecked(slots, i))
+                push(kept_slots, slots.get_unchecked(i))
             }
         } else {
             push(old_to_new, 0 - 1)

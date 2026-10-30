@@ -19,7 +19,7 @@ fn type_ann_return_count(node: AstNode) -> i32 {
 }
 
 fn type_ann_return_at(node: AstNode, idx: i32) -> AstNode {
-    get_unchecked(node.type_ann, idx)
+    node.type_ann.get_unchecked(idx)
 }
 
 // Keep the two reference-bearing callback shapes used by item-preserving

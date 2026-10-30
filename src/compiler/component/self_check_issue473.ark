@@ -20,22 +20,22 @@ fn issue473_resource_parse_self_check() -> bool {
     if doc.funcs.len() != 2 {
         return false
     }
-    let take = get_unchecked(doc.funcs, 0)
+    let take = doc.funcs.get_unchecked(0)
     if !take.wit_name.clone().eq("take") {
         return false
     }
     if take.param_wit_types.len() != 1 {
         return false
     }
-    if !wit_parse_resource::wit_is_own_type(get_unchecked(take.param_wit_types, 0)) {
+    if !wit_parse_resource::wit_is_own_type(take.param_wit_types.get_unchecked(0)) {
         return false
     }
-    let peek = get_unchecked(doc.funcs, 1)
+    let peek = doc.funcs.get_unchecked(1)
     if !peek.wit_name.clone().eq("peek") {
         return false
     }
     if peek.param_wit_types.len() != 1 {
         return false
     }
-    wit_parse_resource::wit_is_borrow_type(get_unchecked(peek.param_wit_types, 0))
+    wit_parse_resource::wit_is_borrow_type(peek.param_wit_types.get_unchecked(0))
 }

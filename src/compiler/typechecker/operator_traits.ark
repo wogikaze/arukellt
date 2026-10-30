@@ -106,7 +106,7 @@ fn enforce_operator_trait(
         let mut declared = false
         let mut pi = 0
         while pi < env.current_fn_type_params.len() {
-            if get_unchecked(env.current_fn_type_params, pi).eq(contract_type_access::TypeInfo_name(resolved_ty)) {
+            if env.current_fn_type_params.get_unchecked(pi).eq(contract_type_access::TypeInfo_name(resolved_ty)) {
                 declared = true
             }
             pi = pi + 1

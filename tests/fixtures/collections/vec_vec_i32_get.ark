@@ -8,7 +8,7 @@ fn main() {
     push(inner, 9)
     push(outer, inner)
     match get(outer, 0) {
-        Some(row) => Stdio::println(get_unchecked(row, 0).to_string()),
+        Some(row) => Stdio::println(row.get_unchecked(0).to_string()),
         None => Stdio::println("none"),
     }
 }

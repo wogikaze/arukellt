@@ -48,7 +48,7 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
     let mut cap_types = Vec::new<String>()
     let mut ci = 0
     while ci < cap_names.len() {
-        let li = ctx_api_local_alloc::ctx_lookup_local(ctx, get_unchecked(cap_names, ci).clone())
+        let li = ctx_api_local_alloc::ctx_lookup_local(ctx, cap_names.get_unchecked(ci).clone())
         if li >= 0 {
             push(cap_vts, ctx_api_local_types::ctx_local_vt(ctx, li))
             push(cap_types, closure_capture_type::mir_closure_lookup_capture_type(ctx, li))
@@ -76,11 +76,11 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
         let mut wb_off = 0
         let mut wi = 0
         while wi < cap_names.len() {
-            let cvt = get_unchecked(cap_vts, wi)
-            if wi < wb_rebinds.len() && get_unchecked(wb_rebinds, wi) != 0 {
+            let cvt = cap_vts.get_unchecked(wi)
+            if wi < wb_rebinds.len() && wb_rebinds.get_unchecked(wi) != 0 {
                 let src_li = ctx_api_local_alloc::ctx_lookup_local(
                     ctx,
-                    get_unchecked(wb_caps, wi).clone()
+                    wb_caps.get_unchecked(wi).clone()
                 )
                 if src_li >= 0 {
                     closure_cells::ctx_register_env_writeback(

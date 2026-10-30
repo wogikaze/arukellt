@@ -15,7 +15,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
     while vi < variants.len() {
-        let variant = get_unchecked(variants, vi).clone()
+        let variant = variants.get_unchecked(vi).clone()
         let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if variant_found >= 0 {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, variant_found)
@@ -87,7 +87,7 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
     }
     let mut si = 0
     while si < sep_count {
-        let sep_pos = get_unchecked(sep_positions, si)
+        let sep_pos = sep_positions.get_unchecked(si)
         let suffix = name.slice(sep_pos + 2, name_len)
         if mono_suffix_looks_like_type_keys(suffix) {
             return name.slice(0, sep_pos)

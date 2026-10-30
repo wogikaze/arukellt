@@ -29,7 +29,7 @@ fn stdlib_resolve_validator_receiver_local(
     if staged_index < 0 || staged_index >= before.len() {
         return 0 - 1
     }
-    let staged = get_unchecked(before, staged_index)
+    let staged = before.get_unchecked(staged_index)
     if inst_accessors_shape::MirInst_op(staged) != opcodes::MIR_LOCAL_GET() {
         return 0 - 1
     }
@@ -213,8 +213,8 @@ fn stdlib_resolve_block_translation_valid(
             f,
             before,
             i,
-            get_unchecked(before, i),
-            get_unchecked(after, i)
+            before.get_unchecked(i),
+            after.get_unchecked(i)
         ) {
             return false
         }

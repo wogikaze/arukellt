@@ -15,7 +15,7 @@ impl<T> Iterator for GenVecIter<T> {
     type Item = T
     fn next(mut self: GenVecIter<T>) -> Option<T> {
         if self.index < self.length {
-            let val: T = get_unchecked(self.vec, self.index)
+            let val: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             Option::Some(val)
         } else {

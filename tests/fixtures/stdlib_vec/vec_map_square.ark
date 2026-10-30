@@ -12,8 +12,8 @@ fn main() {
     push(v, 3)
     push(v, 4)
     let result: Vec<i32> = v.iter().map(square).collect()
-    Test::assert_eq_i32(get_unchecked(result, 0), 1)
-    Test::assert_eq_i32(get_unchecked(result, 1), 4)
-    Test::assert_eq_i32(get_unchecked(result, 2), 9)
-    Test::assert_eq_i32(get_unchecked(result, 3), 16)
+    Test::assert_eq_i32(result.get_unchecked(0), 1)
+    Test::assert_eq_i32(result.get_unchecked(1), 4)
+    Test::assert_eq_i32(result.get_unchecked(2), 9)
+    Test::assert_eq_i32(result.get_unchecked(3), 16)
 }

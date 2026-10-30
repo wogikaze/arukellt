@@ -2,7 +2,7 @@ use parser::core_ast_children
 
 fn append_where_bindings(mut block_node: AstNode, where_bindings: Vec<AstNode>) {
     for wi in 0..where_bindings.len() {
-        let wb = get_unchecked(where_bindings, wi)
+        let wb = where_bindings.get_unchecked(wi)
         core_ast_children::AstNode_push_child(block_node, wb)
     }
 }

@@ -72,7 +72,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     while payload_index < payload_count && payload_index < arg_types.len() {
         let declared = contract_enum_info::EnumInfo_variant_payload_at(enum_def, variant_index, payload_index)
         let inst_payload = instantiate::instantiate_type(declared, type_params.clone(), inst_args)
-        unify::unify(infer_env, inst_payload, get_unchecked(arg_types, payload_index))
+        unify::unify(infer_env, inst_payload, arg_types.get_unchecked(payload_index))
         payload_index = payload_index + 1
     }
     // A constructor that mentions no parameter (a unit variant) leaves the
@@ -82,7 +82,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     let mut resolved_args = Vec::new<TypeInfo>()
     let mut resolve_index = 0
     while resolve_index < inst_args.len() {
-        let arg_ty = unify::resolve_type(infer_env, get_unchecked(inst_args, resolve_index))
+        let arg_ty = unify::resolve_type(infer_env, inst_args.get_unchecked(resolve_index))
         if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_TYPE_VAR() {
             return base_ty
         }
@@ -92,7 +92,7 @@ fn instantiate_variant_result(mut env: TypeEnv, enum_defs: Vec<EnumInfo>, callee
     let mut result_ty = base_ty
     let mut push_index = 0
     while push_index < resolved_args.len() {
-        contract_type_mutation::TypeInfo_push_type_arg(result_ty, get_unchecked(resolved_args, push_index))
+        contract_type_mutation::TypeInfo_push_type_arg(result_ty, resolved_args.get_unchecked(push_index))
         push_index = push_index + 1
     }
     result_ty
@@ -103,7 +103,7 @@ fn find_enum_def(enum_defs: Vec<EnumInfo>, path: String, enum_name: String) -> E
     let count = enum_defs.len()
     let mut i = 0
     while i < count {
-        let enum_def = get_unchecked(enum_defs, i)
+        let enum_def = enum_defs.get_unchecked(i)
         let declared_name = contract_enum_info::EnumInfo_name(enum_def)
         if enum_names_match(declared_name.clone(), enum_name.clone()) &&
         contract_enum_info::EnumInfo_variant_index(enum_def, path.clone()) >= 0 {

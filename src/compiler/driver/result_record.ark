@@ -55,7 +55,7 @@ fn compile_result_error_count(result: CompileResult) -> i32 {
 }
 
 fn compile_result_error_message_at(result: CompileResult, index: i32) -> String {
-    get_unchecked(result.error_messages, index).clone()
+    result.error_messages.get_unchecked(index).clone()
 }
 
 fn compile_result_error_message_count(result: CompileResult) -> i32 {

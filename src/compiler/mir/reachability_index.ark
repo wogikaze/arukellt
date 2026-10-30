@@ -29,7 +29,7 @@ fn mir_reachability_index_bind_fid(
     let mut slot = name_index::name_index_get(fid_chain_head, fname.clone())
     let mut step = ordinal
     while step > 0 && slot >= 0 {
-        slot = get_unchecked(fid_chain_next, slot)
+        slot = fid_chain_next.get_unchecked(slot)
         step = step - 1
     }
     let fid = if slot >= 0 {
@@ -45,7 +45,7 @@ fn mir_reachability_index_bind_fid(
         return
     }
     // First MirFunction wins if aliases collide.
-    if get_unchecked(fid_to_mir, raw) >= 0 {
+    if fid_to_mir.get_unchecked(raw) >= 0 {
         return
     }
     set(fid_to_mir, raw, fi)
@@ -101,7 +101,7 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
     }
     let mut fi = 0
     while fi < fn_count {
-        let f = get_unchecked(functions, fi)
+        let f = functions.get_unchecked(fi)
         let fname = function_identity::MirFunction_name(f)
         mir_reachability_index_bind_name(name_to_mir, fname.clone(), fi)
         let mut ordinal = name_index::name_index_get(ordinal_counts, fname.clone())
@@ -127,14 +127,14 @@ fn mir_reachability_lookup_by_func_id(index: MirReachabilityIndex, func_id_raw: 
     if func_id_raw < 0 || func_id_raw >= index.fid_to_mir.len() {
         return 0 - 1
     }
-    get_unchecked(index.fid_to_mir, func_id_raw)
+    index.fid_to_mir.get_unchecked(func_id_raw)
 }
 
 fn mir_reachability_try_enqueue(mut reachable: Vec<i32>, mut queue: Vec<i32>, mir_index: i32) -> bool {
     if mir_index < 0 || mir_index >= reachable.len() {
         return false
     }
-    if get_unchecked(reachable, mir_index) != 0 {
+    if reachable.get_unchecked(mir_index) != 0 {
         return false
     }
     set(reachable, mir_index, 1)

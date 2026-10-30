@@ -13,7 +13,7 @@ fn mir_layout_source_count(source: CoreHirMirLayoutSource) -> i32 {
 }
 
 fn mir_layout_source_decl_at(source: CoreHirMirLayoutSource, index: i32) -> CoreHirLayoutDecl {
-    get_unchecked(source.layout_decls, index)
+    source.layout_decls.get_unchecked(index)
 }
 
 fn mir_layout_source_is_struct_at(source: CoreHirMirLayoutSource, index: i32) -> bool {

@@ -8,8 +8,8 @@ fn main() {
         Result::Ok(table) => {
             let keys = table.table_keys()
             Test::assert_eq_i32(keys.len(), 3)
-            Test::assert_eq_string(get_unchecked(keys, 0), "zebra")
-            Test::assert_eq_string(get_unchecked(keys, 2), "mango")
+            Test::assert_eq_string(keys.get_unchecked(0), "zebra")
+            Test::assert_eq_string(keys.get_unchecked(2), "mango")
         },
         Result::Err(_) => assert(false),
     }

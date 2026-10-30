@@ -32,7 +32,7 @@ fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
     let count = insts.len()
     let mut i = 0
     while i < count {
-        let inst = get_unchecked(insts, i)
+        let inst = insts.get_unchecked(i)
         let op = inst_accessors_shape::MirInst_op(inst)
         if op == opcodes::MIR_LOOP() {
             push(stack, i)
@@ -63,7 +63,7 @@ fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegio
     let count = insts.len()
     let mut i = 0
     while i < count {
-        let inst = get_unchecked(insts, i)
+        let inst = insts.get_unchecked(i)
         let op = inst_draft::MirInstDraft_op(inst)
         if op == opcodes::MIR_LOOP() {
             push(stack, i)
@@ -90,14 +90,14 @@ fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegio
 fn mir_opt_pick_innermost(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
     let mut max_depth = 0
     for ri in 0..regions.len() {
-        let d = LoopRegion_depth(get_unchecked(regions, ri))
+        let d = LoopRegion_depth(regions.get_unchecked(ri))
         if d > max_depth {
             max_depth = d
         }
     }
     let mut out = Vec::new<LoopRegion>()
     for ri in 0..regions.len() {
-        let r = get_unchecked(regions, ri)
+        let r = regions.get_unchecked(ri)
         if LoopRegion_depth(r) == max_depth {
             push(out, r)
         }
@@ -109,14 +109,14 @@ fn mir_opt_regions_by_depth_desc(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
     let mut out = Vec::new<LoopRegion>()
     let mut max_depth = 0
     for ri in 0..regions.len() {
-        let d = LoopRegion_depth(get_unchecked(regions, ri))
+        let d = LoopRegion_depth(regions.get_unchecked(ri))
         if d > max_depth {
             max_depth = d
         }
     }
     while max_depth > 0 {
         for ri in 0..regions.len() {
-            let r = get_unchecked(regions, ri)
+            let r = regions.get_unchecked(ri)
             if LoopRegion_depth(r) == max_depth {
                 push(out, r)
             }

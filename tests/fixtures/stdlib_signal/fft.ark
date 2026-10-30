@@ -13,7 +13,7 @@ fn assert_vec_close(actual: Vec<f64>, expected: Vec<f64>) {
     }
     let mut i = 0
     while i < actual.len() {
-        assert_close(get_unchecked(actual, i), get_unchecked(expected, i))
+        assert_close(actual.get_unchecked(i), expected.get_unchecked(i))
         i = i + 1
     }
 }

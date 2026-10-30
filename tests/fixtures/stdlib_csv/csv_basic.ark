@@ -5,19 +5,19 @@ fn main() {
     let fields = csv::Csv::split_line("name,age,city")
     let mut i: i32 = 0
     while i < fields.len() {
-        Stdio::println(get_unchecked(fields, i))
+        Stdio::println(fields.get_unchecked(i))
         i = i + 1
     }
     Stdio::println("---")
     let fields2 = csv::Csv::split_line("hello, world, test")
     let mut j: i32 = 0
     while j < fields2.len() {
-        Stdio::println(get_unchecked(fields2, j))
+        Stdio::println(fields2.get_unchecked(j))
         j = j + 1
     }
     Stdio::println("---")
     let fields3 = csv::Csv::split_line("solo")
-    Stdio::println(get_unchecked(fields3, 0))
+    Stdio::println(fields3.get_unchecked(0))
 }
 // Split a basic CSV line
 // Split a line with spaces

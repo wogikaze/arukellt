@@ -6,7 +6,7 @@ fn main() {
     push(v, String_from("beta"))
     push(v, String_from("gamma"))
     Test::assert_eq_i32(v.len(), 3)
-    Test::assert_eq_string(get_unchecked(v, 0), String_from("alpha"))
-    Test::assert_eq_string(get_unchecked(v, 1), String_from("beta"))
-    Test::assert_eq_string(get_unchecked(v, 2), String_from("gamma"))
+    Test::assert_eq_string(v.get_unchecked(0), String_from("alpha"))
+    Test::assert_eq_string(v.get_unchecked(1), String_from("beta"))
+    Test::assert_eq_string(v.get_unchecked(2), String_from("gamma"))
 }

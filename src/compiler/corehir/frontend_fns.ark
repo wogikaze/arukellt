@@ -24,7 +24,7 @@ fn find_named_fn_decl_index(decls: Vec<AstNode>, name: String) -> i32 {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let decl = get_unchecked(decls, i)
+        let decl = decls.get_unchecked(i)
         if decl_node::decl_is_fn(decl) {
             if decl_node_identity::decl_name(decl).eq(name.clone()) {
                 entry_main_decl_index = i
@@ -89,7 +89,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
     let module_count = modules.len()
     let mut module_index = 0
     while module_index < module_count {
-        let module_info = get_unchecked(modules, module_index)
+        let module_info = modules.get_unchecked(module_index)
         let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module_info)
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
         if decl_index >= decl_start && decl_index < decl_end {
@@ -111,7 +111,7 @@ fn module_fn_is_stdlib(modules: Vec<CoreHirModuleInfo>, decl_index: i32) -> bool
     let module_count = modules.len()
     let mut module_index = 0
     while module_index < module_count {
-        let module_info = get_unchecked(modules, module_index)
+        let module_info = modules.get_unchecked(module_index)
         let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module_info)
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
         if decl_index >= decl_start && decl_index < decl_end {
@@ -133,7 +133,7 @@ fn build_fn_infos(
     let mut typed_fn_index = 0
     let mut i = 0
     while i < decl_count {
-        let decl = get_unchecked(decls, i)
+        let decl = decls.get_unchecked(i)
         if decl_node::decl_is_fn(decl) {
             let body_index = decl_children::decl_body_index(decl)
             let param_count = decl_children::decl_param_count(decl)

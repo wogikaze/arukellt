@@ -343,7 +343,7 @@ fn match_enum_info(enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo) -> EnumInfo
     let enum_name = contract_type_access::TypeInfo_name(scrutinee_ty)
     let mut i = 0
     while i < enum_defs.len() {
-        let info = get_unchecked(enum_defs, i)
+        let info = enum_defs.get_unchecked(i)
         let declared = contract_enum_info::EnumInfo_name(info)
         if declared.clone().eq(enum_name.clone()) || declared.clone().ends_with("::".concat(enum_name.clone())) {
             return info

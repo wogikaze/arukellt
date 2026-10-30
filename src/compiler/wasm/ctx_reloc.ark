@@ -157,7 +157,7 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let mut out_v = Vec::new<i32>()
     let mut i = 0
     while i < off {
-        push(out_v, get_unchecked(body, i))
+        push(out_v, body.get_unchecked(i))
         i = i + 1
     }
     let mut sw = writer_core::WasmWriter_new()
@@ -165,14 +165,14 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
     while j < enc.len() {
-        push(out_v, get_unchecked(enc, j))
+        push(out_v, enc.get_unchecked(j))
         j = j + 1
     }
     // The placeholder operand is always the 1-byte sleb(0); skip exactly
     // one byte.
     let mut k = off + 1
     while k < body.len() {
-        push(out_v, get_unchecked(body, k))
+        push(out_v, body.get_unchecked(k))
         k = k + 1
     }
     out_v
@@ -183,7 +183,7 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let mut out_v = Vec::new<i32>()
     let mut i = 0
     while i < off {
-        push(out_v, get_unchecked(body, i))
+        push(out_v, body.get_unchecked(i))
         i = i + 1
     }
     let mut sw = writer_core::WasmWriter_new()
@@ -191,12 +191,12 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
     while j < enc.len() {
-        push(out_v, get_unchecked(enc, j))
+        push(out_v, enc.get_unchecked(j))
         j = j + 1
     }
     let mut k = off + 1
     while k < body.len() {
-        push(out_v, get_unchecked(body, k))
+        push(out_v, body.get_unchecked(k))
         k = k + 1
     }
     out_v

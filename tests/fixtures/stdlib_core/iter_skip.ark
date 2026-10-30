@@ -11,8 +11,8 @@ fn main() {
 
     let skipped = v.iter().skip(2).collect()
     Test::assert_eq_i32(skipped.len(), 3)
-    Test::assert_eq_i32(get_unchecked(skipped, 0), 30)
-    Test::assert_eq_i32(get_unchecked(skipped, 2), 50)
+    Test::assert_eq_i32(skipped.get_unchecked(0), 30)
+    Test::assert_eq_i32(skipped.get_unchecked(2), 50)
 
     // Skip more than available
     let skipped_all = v.iter().skip(100).collect()

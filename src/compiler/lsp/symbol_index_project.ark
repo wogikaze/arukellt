@@ -14,7 +14,7 @@ fn pending_contains(pending: Vec<String>, path: String) -> bool {
     let n = pending.len()
     let mut i = 0
     while i < n {
-        if get_unchecked(pending, i).eq(path.clone()) {
+        if pending.get_unchecked(i).eq(path.clone()) {
             return true
         }
         i = i + 1
@@ -104,7 +104,7 @@ pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir
     let n = paths.len()
     let mut i = 0
     while i < n {
-        let import_path = get_unchecked(paths, i)
+        let import_path = paths.get_unchecked(i)
         if !import_path.clone().contains(String_from("std::")) {
             let file_path = resolve_import_to_path(import_path.clone(), base_dir.clone(), root_dir.clone(), project_root.clone())
             if file_path.len() > 0 {
@@ -166,7 +166,7 @@ fn index_import_graph_from(mut state: LspState, start_path: String, project_root
     let root_dir = module_package_root::find_package_root(project_root.clone())
     let mut pos = 0
     while pos < pending.len() {
-        let path = get_unchecked(pending, pos)
+        let path = pending.get_unchecked(pos)
         index_file_at_path(state, path.clone())
         let read_result = Fs::read_to_string(path.clone())
         match read_result {
@@ -177,7 +177,7 @@ fn index_import_graph_from(mut state: LspState, start_path: String, project_root
                 let in_n = imports.len()
                 let mut ii = 0
                 while ii < in_n {
-                    pending = pending_push_unique(pending, get_unchecked(imports, ii))
+                    pending = pending_push_unique(pending, imports.get_unchecked(ii))
                     ii = ii + 1
                 }
             },

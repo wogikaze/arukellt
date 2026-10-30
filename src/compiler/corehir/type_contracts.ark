@@ -43,7 +43,7 @@ fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
 }
 
 fn TypeInfo_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
-    get_unchecked(ty.type_args, index)
+    ty.type_args.get_unchecked(index)
 }
 
 fn TypedFn_return_type(fn_info: TypedFn) -> TypeInfo {
@@ -63,7 +63,7 @@ fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
 }
 
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
-    get_unchecked(instance.type_args, index)
+    instance.type_args.get_unchecked(index)
 }
 
 fn MonoInstance_return_type(instance: MonoInstance) -> TypeInfo {

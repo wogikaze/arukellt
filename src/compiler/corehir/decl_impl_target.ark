@@ -193,7 +193,7 @@ fn effective_impl_param_names(decl: AstNode, known_type_names: Vec<String>) -> V
     let count = implicit.len()
     let mut i = 0
     while i < count {
-        let name = get_unchecked(implicit, i)
+        let name = implicit.get_unchecked(i)
         if !string_vec_contains(names, name.clone()) {
             push(names, name.clone())
         }
@@ -206,7 +206,7 @@ fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).eq(name.clone()) {
+        if names.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -256,7 +256,7 @@ fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
     let count = declared.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(declared, i).eq(name.clone()) {
+        if declared.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1

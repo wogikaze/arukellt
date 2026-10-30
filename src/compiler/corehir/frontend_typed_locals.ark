@@ -9,7 +9,7 @@ fn scan_typed_locals(decls: Vec<AstNode>) -> Vec<CoreHirTypedLocal> {
     let decl_count = decls.len()
     let mut di = 0
     while di < decl_count {
-        scan_locals_in_node(get_unchecked(decls, di), locals)
+        scan_locals_in_node(decls.get_unchecked(di), locals)
         di = di + 1
     }
     locals

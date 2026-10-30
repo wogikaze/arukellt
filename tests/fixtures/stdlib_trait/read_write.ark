@@ -24,11 +24,11 @@ fn main() {
     match r.read(5) {
         Result::Ok(read) => {
             assert(read.len() == 5)
-            assert(get_unchecked(read, 0) == 72)   // 'H'
-            assert(get_unchecked(read, 1) == 101)  // 'e'
-            assert(get_unchecked(read, 2) == 108)  // 'l'
-            assert(get_unchecked(read, 3) == 108)  // 'l'
-            assert(get_unchecked(read, 4) == 111)  // 'o'
+            assert(read.get_unchecked(0) == 72)   // 'H'
+            assert(read.get_unchecked(1) == 101)  // 'e'
+            assert(read.get_unchecked(2) == 108)  // 'l'
+            assert(read.get_unchecked(3) == 108)  // 'l'
+            assert(read.get_unchecked(4) == 111)  // 'o'
         },
         Result::Err(_e) => assert(false),
     }

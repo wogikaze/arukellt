@@ -19,7 +19,7 @@ fn issue504_parser_self_check() -> String {
     if decls.len() != 2 {
         return "issue504 parser fail: decl count=".concat(decls.len().to_string())
     }
-    let impl_decl = get_unchecked(decls, 0)
+    let impl_decl = decls.get_unchecked(0)
     if ast_kind_fields::AstNode_kind(impl_decl) != kinds::NK_IMPL_DECL() {
         return "issue504 parser fail: expected impl decl"
     }
@@ -34,7 +34,7 @@ fn issue504_parser_self_check() -> String {
     if !core_ast_text_fields::AstNode_text(impl_target).eq("MyStruct") {
         return "issue504 parser fail: impl target"
     }
-    let fn_decl = get_unchecked(decls, 1)
+    let fn_decl = decls.get_unchecked(1)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {
         return "issue504 parser fail: expected fn decl"
     }

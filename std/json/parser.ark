@@ -289,7 +289,7 @@ impl JsonValue {
                 let n = fields.len()
                 let mut i = 0
                 while i < n {
-                    let f = get_unchecked(fields, i)
+                    let f = fields.get_unchecked(i)
                     if f.key.eq(key) {
                         return Some(f.value)
                     }
@@ -312,7 +312,7 @@ impl JsonValue {
                 if index < 0 || index >= items.len() {
                     return None
                 }
-                Some(get_unchecked(items, index))
+                Some(items.get_unchecked(index))
             },
             JsonValue::Null => None,
             JsonValue::Bool(_) => None,
@@ -815,7 +815,7 @@ fn json_stringify_array(items: Vec<JsonValue>) -> String {
         if i > 0 {
             out = out.concat(",")
         }
-        out = out.concat(json_stringify_value(get_unchecked(items, i)))
+        out = out.concat(json_stringify_value(items.get_unchecked(i)))
         i = i + 1
     }
     out.concat("]")
@@ -829,7 +829,7 @@ fn stringify_object(fields: Vec<JsonField>) -> String {
         if i > 0 {
             out = out.concat(",")
         }
-        let f = get_unchecked(fields, i)
+        let f = fields.get_unchecked(i)
         out = out.concat(json_value_encode_string(f.key).concat(":".concat(json_stringify_value(f.value))))
         i = i + 1
     }
@@ -882,7 +882,7 @@ fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> Str
             result = result.concat(",\n")
         }
         result = result.concat(child_pad)
-        result = result.concat(stringify_pretty_at(get_unchecked(items, i), indent, depth + 1))
+        result = result.concat(stringify_pretty_at(items.get_unchecked(i), indent, depth + 1))
         i = i + 1
     }
     result.concat("\n").concat(close_pad).concat("]")
@@ -901,7 +901,7 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
         if i > 0 {
             result = result.concat(",\n")
         }
-        let f = get_unchecked(fields, i)
+        let f = fields.get_unchecked(i)
         result = result.concat(child_pad)
         result = result.concat(json_value_encode_string(f.key))
         result = result.concat(": ")

@@ -70,7 +70,7 @@ fn lsp_state_workspace_roots_len(state: LspState) -> i32 {
 }
 
 fn lsp_state_workspace_root_at(state: LspState, index: i32) -> String {
-    get_unchecked(state.workspace_roots, index).clone()
+    state.workspace_roots.get_unchecked(index).clone()
 }
 
 fn lsp_state_set_workspace_roots(mut state: LspState, roots: Vec<String>) {

@@ -11,7 +11,7 @@ fn main() {
 
     let filtered = v.iter().filter(always_true).collect()
     Test::assert_eq_i32(filtered.len(), 3)
-    Test::assert_eq_i32(get_unchecked(filtered, 0), 10)
-    Test::assert_eq_i32(get_unchecked(filtered, 1), 20)
-    Test::assert_eq_i32(get_unchecked(filtered, 2), 30)
+    Test::assert_eq_i32(filtered.get_unchecked(0), 10)
+    Test::assert_eq_i32(filtered.get_unchecked(1), 20)
+    Test::assert_eq_i32(filtered.get_unchecked(2), 30)
 }

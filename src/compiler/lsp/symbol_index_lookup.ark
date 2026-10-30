@@ -44,7 +44,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     let n = symbols.len()
     let mut i = 0
     while i < n {
-        let sym = get_unchecked(symbols, i)
+        let sym = symbols.get_unchecked(i)
         if symbol_index_record::indexed_symbol_name(sym).eq(name.clone()) {
             return IndexDefinition {
                 found: true,
@@ -61,7 +61,7 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     let sn = stdlib.len()
     let mut j = 0
     while j < sn {
-        let sym = get_unchecked(stdlib, j)
+        let sym = stdlib.get_unchecked(j)
         if symbol_index_record::stdlib_indexed_symbol_name(sym).eq(name.clone()) {
             let source_uri = symbol_index_record::stdlib_indexed_symbol_source_uri(sym)
             let mut decl_start = symbol_index_record::stdlib_indexed_symbol_decl_start(sym)
@@ -92,7 +92,7 @@ pub fn lookup_type_definition(state: LspState, name: String) -> IndexDefinition 
     let n = symbols.len()
     let mut i = 0
     while i < n {
-        let sym = get_unchecked(symbols, i)
+        let sym = symbols.get_unchecked(i)
         if symbol_index_record::indexed_symbol_name(sym).eq(name.clone()) {
             let kind = symbol_index_record::indexed_symbol_kind(sym)
             if kind == kinds::LSP_SYMBOL_STRUCT() || kind == kinds::LSP_SYMBOL_ENUM() {

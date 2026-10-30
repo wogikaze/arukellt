@@ -20,11 +20,11 @@ fn find_payload_variant_type(ctx: SelfEmitCtx) -> i32 {
     let count = names.len()
     let mut i = 0
     while i < count {
-        let name = get_unchecked(names, i).clone()
+        let name = names.get_unchecked(i).clone()
         // Look for "Some" or "Ok" variants (payload variants with i32 field 1)
         if name.contains("Some") || name.contains("Ok") {
             if i < type_map.len() {
-                let variant_type = get_unchecked(type_map, i)
+                let variant_type = type_map.get_unchecked(i)
                 let enum_open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
                 if variant_type != enum_open {
                     return variant_type

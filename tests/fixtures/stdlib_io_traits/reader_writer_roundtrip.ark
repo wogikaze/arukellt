@@ -67,9 +67,9 @@ fn read_report<T: io::Read>(mut source: T) -> Result<ReadReport, io::IoError> {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
     }
-    let first_byte0: i32 = if first.len() > 0 { get_unchecked(first, 0) } else { 0 }
-    let first_byte1: i32 = if first.len() > 1 { get_unchecked(first, 1) } else { 0 }
-    let rest_byte0: i32 = if rest.len() > 0 { get_unchecked(rest, 0) } else { 0 }
+    let first_byte0: i32 = if first.len() > 0 { first.get_unchecked(0) } else { 0 }
+    let first_byte1: i32 = if first.len() > 1 { first.get_unchecked(1) } else { 0 }
+    let rest_byte0: i32 = if rest.len() > 0 { rest.get_unchecked(0) } else { 0 }
     Ok(ReadReport {
             first_len: first.len(),
             first_byte0: first_byte0,
@@ -95,8 +95,8 @@ fn main() {
     }
     let bytes: Vec<i32> = bytes_handoff.sink.into_bytes()
     Stdio::println((bytes.len()).to_string())
-    Stdio::println((get_unchecked(bytes, 0)).to_string())
-    Stdio::println((get_unchecked(bytes, 4)).to_string())
+    Stdio::println((bytes.get_unchecked(0)).to_string())
+    Stdio::println((bytes.get_unchecked(4)).to_string())
 
     let mut roundtrip_writer: Writer = Writer::new()
     let roundtrip_handoff: Handoff<io::Writer> = write_and_flush(roundtrip_writer, payload())
@@ -122,7 +122,7 @@ fn main() {
     Stdio::println((from_bytes.len()).to_string())
     let image: Vec<i32> = from_bytes.into_bytes()
     Stdio::println(image.len().to_string())
-    Stdio::println((get_unchecked(image, 2)).to_string())
+    Stdio::println((image.get_unchecked(2)).to_string())
 
     let mut empty: Reader = Reader::new()
     Stdio::println((empty.len()).to_string())

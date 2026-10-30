@@ -21,7 +21,7 @@ fn SelfEmitCtx_string_offset_for_value(ctx: SelfEmitCtx, value: String) -> i32 {
     let values = module_strings::MirModule_string_constants(ctx.mir)
     let mut i = 0
     while i < values.len() {
-        if get_unchecked(values, i).clone().eq(value.clone()) {
+        if values.get_unchecked(i).clone().eq(value.clone()) {
             return SelfEmitCtx_string_offset_at(ctx, i)
         }
         i = i + 1

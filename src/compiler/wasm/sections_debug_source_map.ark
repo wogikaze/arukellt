@@ -38,7 +38,7 @@ fn emit_debug_source_map_custom_section(mut out: WasmWriter, ctx: SelfEmitCtx, i
         let f = ctx_record::SelfEmitCtx_function_at(ctx, fi)
         let loc = function_identity::MirFunction_source_location(f)
         if !source_location_record::SourceLocation_is_unmapped(loc) {
-            let offset = if fi < offsets.len() { get_unchecked(offsets, fi) } else { 0 }
+            let offset = if fi < offsets.len() { offsets.get_unchecked(fi) } else { 0 }
             writer_core::emit_leb128_u(payload, offset)
             writer_core::emit_leb128_u(payload, source_location_record::SourceLocation_file_id(loc))
             writer_core::emit_leb128_u(payload, source_location_record::SourceLocation_line(loc))

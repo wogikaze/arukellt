@@ -24,7 +24,7 @@ fn collect_program_declared_type_names(decls: Vec<AstNode>, modules: Vec<ModuleD
     let module_count = modules.len()
     let mut mi = 0
     while mi < module_count {
-        let module = get_unchecked(modules, mi)
+        let module = modules.get_unchecked(mi)
         let decl_count = modules::module_decl_count(module)
         let mut di = 0
         while di < decl_count {
@@ -50,7 +50,7 @@ fn resolve_program_for_target_and_host(decls: Vec<AstNode>, modules: Vec<ModuleD
     register::register_decl_headers(ctx, decls)
     let mut j = 0
     while j < count {
-        let d = get_unchecked(decls, j)
+        let d = decls.get_unchecked(j)
         if ast_decl_predicates::node_is_fn_decl(d) {
             bindings::resolve_fn(ctx, d)
         } else {

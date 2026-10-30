@@ -329,7 +329,7 @@ impl<T> VecIter<T> {
     fn any(self: VecIter<T>, f: fn(T) -> bool) -> bool {
         let mut index = self.index
         while index < self.length {
-            if f(get_unchecked(self.vec, index)) {
+            if f(self.vec.get_unchecked(index)) {
                 return true
             }
             index = index + 1
@@ -342,7 +342,7 @@ impl<T> VecIter<T> {
     fn all(self: VecIter<T>, f: fn(T) -> bool) -> bool {
         let mut index = self.index
         while index < self.length {
-            if f(get_unchecked(self.vec, index)) == false {
+            if f(self.vec.get_unchecked(index)) == false {
                 return false
             }
             index = index + 1
@@ -354,7 +354,7 @@ impl<T> VecIter<T> {
     fn find(self: VecIter<T>, f: fn(T) -> bool) -> Option<T> {
         let mut index = self.index
         while index < self.length {
-            let value = get_unchecked(self.vec, index)
+            let value = self.vec.get_unchecked(index)
             if f(value) {
                 return Some(value)
             }
@@ -383,7 +383,7 @@ impl<T> Iterator for VecIter<T> {
 
     fn next(mut self: VecIter<T>) -> Option<T> {
         if self.index < self.length {
-            let val: T = get_unchecked(self.vec, self.index)
+            let val: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             Some(val)
         } else {
@@ -561,7 +561,7 @@ impl<T, U> Iterator for MapIter<T, U> {
 
     fn next(mut self: MapIter<T, U>) -> Option<U> {
         if self.index < self.length {
-            let raw: T = get_unchecked(self.vec, self.index)
+            let raw: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             Some((self.f)(raw))
         } else {
@@ -606,7 +606,7 @@ impl<T, U> Iterator for MapFilterIter<T, U> {
 
     fn next(mut self: MapFilterIter<T, U>) -> Option<U> {
         while self.index < self.length {
-            let raw: T = get_unchecked(self.vec, self.index)
+            let raw: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             let mapped: U = (self.map_f)(raw)
             // The predicate takes ownership of its callback argument. Keep
@@ -668,7 +668,7 @@ impl<T> Iterator for FilterIter<T> {
 
     fn next(mut self: FilterIter<T>) -> Option<T> {
         while self.index < self.length {
-            let val: T = get_unchecked(self.vec, self.index)
+            let val: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             // The predicate takes ownership of its callback argument. Keep
             // the source item for the yielded path by passing a clone.
@@ -717,7 +717,7 @@ impl<T, U> Iterator for FilterMapIter<T, U> {
 
     fn next(mut self: FilterMapIter<T, U>) -> Option<U> {
         while self.index < self.length {
-            let val: T = get_unchecked(self.vec, self.index)
+            let val: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             let predicate_value = val.clone()
             if (self.filter_f)(predicate_value) {
@@ -1133,12 +1133,12 @@ impl<T> Iterator for FlatMapIter<T> {
         let mut done: bool = false
         while !done {
             if self.inner_index < self.inner.len() {
-                let v: T = get_unchecked(self.inner, self.inner_index)
+                let v: T = self.inner.get_unchecked(self.inner_index)
                 self.inner_index = self.inner_index + 1
                 out = Some(v)
                 done = true
             } else if self.index < self.length {
-                let outer: T = get_unchecked(self.vec, self.index)
+                let outer: T = self.vec.get_unchecked(self.index)
                 self.index = self.index + 1
                 let produced: Vec<T> = (self.f)(outer)
                 for item in produced {
@@ -1193,11 +1193,11 @@ impl<T> PeekIter<T> {
     /// drains it.
     fn peek(mut self: PeekIter<T>) -> Option<T> {
         if self.peeked.len() == 0 && self.index < self.length {
-            push(self.peeked, get_unchecked(self.vec, self.index))
+            push(self.peeked, self.vec.get_unchecked(self.index))
             self.index = self.index + 1
         }
         if self.peeked.len() > 0 {
-            Some(get_unchecked(self.peeked, 0))
+            Some(self.peeked.get_unchecked(0))
         } else {
             None
         }
@@ -1214,11 +1214,11 @@ impl<T> Iterator for PeekIter<T> {
 
     fn next(mut self: PeekIter<T>) -> Option<T> {
         if self.peeked.len() > 0 {
-            let v: T = get_unchecked(self.peeked, 0)
+            let v: T = self.peeked.get_unchecked(0)
             self.peeked = Vec::new<T>()
             Some(v)
         } else if self.index < self.length {
-            let v: T = get_unchecked(self.vec, self.index)
+            let v: T = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             Some(v)
         } else {
@@ -1270,7 +1270,7 @@ impl<T> Iterator for StepByIter<T> {
 
     fn next(mut self: StepByIter<T>) -> Option<T> {
         if self.index < self.length {
-            let v: T = get_unchecked(self.vec, self.index)
+            let v: T = self.vec.get_unchecked(self.index)
             self.index = self.index + self.step
             Some(v)
         } else {
@@ -1325,7 +1325,7 @@ impl<T> Iterator for ScanIter<T> {
     fn next(mut self: ScanIter<T>) -> Option<T> {
         let mut out: Option<T> = None
         if self.index < self.length {
-            let item: T = get_unchecked(self.vec, self.index)
+            let item: T = self.vec.get_unchecked(self.index)
             let stepped: Option<T> = (self.f)(self.state, item)
             match stepped {
                 Some(v) => {
@@ -1379,7 +1379,7 @@ fn unique_seen_contains(seen: Vec<i32>, value: i32) -> bool {
     let mut i: i32 = 0
     let mut found: bool = false
     while i < n {
-        if get_unchecked(seen, i) == value {
+        if seen.get_unchecked(i) == value {
             found = true
         }
         i = i + 1
@@ -1392,7 +1392,7 @@ impl Iterator for UniqueIter {
 
     fn next(mut self: UniqueIter) -> Option<i32> {
         while self.index < self.length {
-            let val: i32 = get_unchecked(self.vec, self.index)
+            let val: i32 = self.vec.get_unchecked(self.index)
             self.index = self.index + 1
             if !unique_seen_contains(self.seen, val) {
                 push(self.seen, val)
@@ -1431,7 +1431,7 @@ impl Iterator for RevIter {
     fn next(mut self: RevIter) -> Option<i32> {
         if self.length > self.index {
             self.length = self.length - 1
-            Some(get_unchecked(self.vec, self.length))
+            Some(self.vec.get_unchecked(self.length))
         } else {
             None
         }
@@ -1787,7 +1787,7 @@ impl IteratorContains<String> for VecIter<String> {
     fn contains(self: VecIter<String>, target: String) -> bool {
         let mut index = self.index
         while index < self.length {
-            if __intrinsic_string_eq(get_unchecked(self.vec, index), target.clone()) {
+            if __intrinsic_string_eq(self.vec.get_unchecked(index), target.clone()) {
                 return true
             }
             index = index + 1

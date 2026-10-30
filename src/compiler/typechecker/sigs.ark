@@ -62,7 +62,7 @@ fn resolve_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut i = 0
     while i < variants.len() {
-        let variant_sig = lookup_fn_sig(env, fn_sigs, get_unchecked(variants, i).clone())
+        let variant_sig = lookup_fn_sig(env, fn_sigs, variants.get_unchecked(i).clone())
         if contract_fn_sig::FnSig_has_name(variant_sig) {
             return variant_sig
         }

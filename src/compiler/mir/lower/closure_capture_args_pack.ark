@@ -7,7 +7,7 @@ fn closure_pack_caps(caps: Vec<String>) -> String {
         if i > 0 {
             s = s.concat(",")
         }
-        s = s.concat(get_unchecked(caps, i).clone())
+        s = s.concat(caps.get_unchecked(i).clone())
         i = i + 1
     }
     s

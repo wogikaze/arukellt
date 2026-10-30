@@ -16,7 +16,7 @@ fn main() {
     let mut mapped: Vec<i32> = Vec::new<i32>()
     let mut j: i32 = 0
     while j < v.len() {
-        push(mapped, map_fn(get_unchecked(v, j)))
+        push(mapped, map_fn(v.get_unchecked(j)))
         j = j + 1
     }
 
@@ -27,7 +27,7 @@ fn main() {
     let mut sum: i32 = seed
     let mut k: i32 = 0
     while k < mapped.len() {
-        sum = reduce_fn(sum, get_unchecked(mapped, k))
+        sum = reduce_fn(sum, mapped.get_unchecked(k))
         k = k + 1
     }
 

@@ -26,7 +26,7 @@ fn module_has_funcref_values(mir: MirModule) -> bool {
     let functions = module_functions::MirModule_functions(mir)
     let mut i = 0
     while i < fn_count {
-        let f = get_unchecked(functions, i)
+        let f = functions.get_unchecked(i)
         let block_count = function_block_queries::MirFunction_block_count(f)
         let mut bi = 0
         while bi < block_count {
@@ -56,7 +56,7 @@ fn module_has_funcref_params(mir: MirModule) -> bool {
     let functions = module_functions::MirModule_functions(mir)
     let mut i = 0
     while i < fn_count {
-        let f = get_unchecked(functions, i)
+        let f = functions.get_unchecked(i)
         let pc = function_param_view::MirFunction_param_count(f)
         let mut pi = 0
         while pi < pc {

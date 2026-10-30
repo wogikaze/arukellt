@@ -31,7 +31,7 @@ fn lower_core_payload_variant_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, e
     let mut pa = 1
     while pa < child_count {
         let parg_index = core_expr_shape_accessors::mir_core_expr_child(expr, pa)
-        let parg_expr = get_unchecked(exprs, parg_index)
+        let parg_expr = exprs.get_unchecked(parg_index)
         let p_idx = if mir_core_variant_arg_is_fn_value(ctx, variant_name.clone(), parg_expr) {
             value_variants::lower_function_value(ctx, core_expr_shape_accessors::mir_core_expr_text(parg_expr))
         } else {

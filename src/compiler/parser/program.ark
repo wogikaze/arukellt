@@ -33,7 +33,7 @@ fn ParseResult_error_count(result: ParseResult) -> i32 {
 }
 
 fn ParseResult_error_at(result: ParseResult, index: i32) -> Diagnostic {
-    get_unchecked(result.errors, index)
+    result.errors.get_unchecked(index)
 }
 
 fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {

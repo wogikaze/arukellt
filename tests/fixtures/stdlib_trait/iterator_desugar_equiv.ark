@@ -36,8 +36,8 @@ fn main() -> i32 {
     Stdio::println(desugared.len().to_string())
     let mut i: i32 = 0
     while i < manual.len() {
-        Stdio::println(get_unchecked(manual, i).to_string())
-        Stdio::println(get_unchecked(desugared, i).to_string())
+        Stdio::println(manual.get_unchecked(i).to_string())
+        Stdio::println(desugared.get_unchecked(i).to_string())
         i = i + 1
     }
     0

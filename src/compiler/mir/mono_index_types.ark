@@ -39,11 +39,11 @@ fn mono_index_name_count(idx: MonoIndex) -> i32 {
 }
 
 fn mono_index_name_at(idx: MonoIndex, index: i32) -> String {
-    get_unchecked(idx.names, index).clone()
+    idx.names.get_unchecked(index).clone()
 }
 
 fn mono_index_count_at(idx: MonoIndex, index: i32) -> i32 {
-    get_unchecked(idx.counts, index)
+    idx.counts.get_unchecked(index)
 }
 
 fn mono_index_mangled_count(idx: MonoIndex) -> i32 {
@@ -51,11 +51,11 @@ fn mono_index_mangled_count(idx: MonoIndex) -> i32 {
 }
 
 fn mono_index_mangled_at_offset(idx: MonoIndex, offset: i32) -> String {
-    get_unchecked(idx.mangled_names, offset).clone()
+    idx.mangled_names.get_unchecked(offset).clone()
 }
 
 fn mono_index_mangled_base_at(idx: MonoIndex, offset: i32) -> String {
-    get_unchecked(idx.mangled_bases, offset).clone()
+    idx.mangled_bases.get_unchecked(offset).clone()
 }
 
 fn mono_index_push_name(mut idx: MonoIndex, fn_name: String, mangled_name: String) {
@@ -110,11 +110,11 @@ fn mono_index_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
     let mut slot = mono_index_string_hash(name) % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = get_unchecked(slots, slot)
+        let bucket = slots.get_unchecked(slot)
         if bucket == 0 {
             return slot
         }
-        if get_unchecked(keys, bucket - 1).eq(name.clone()) {
+        if keys.get_unchecked(bucket - 1).eq(name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -137,7 +137,7 @@ fn mono_index_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = mono_index_zero_slots(capacity)
     let mut i = 0
     while i < keys.len() {
-        let slot = mono_index_probe(keys.clone(), slots, get_unchecked(keys, i).clone())
+        let slot = mono_index_probe(keys.clone(), slots, keys.get_unchecked(i).clone())
         set(slots, slot, i + 1)
         i = i + 1
     }
@@ -167,7 +167,7 @@ fn mono_index_name_insert(mut idx: MonoIndex, fn_name: String) {
     if slot < 0 {
         return
     }
-    if get_unchecked(idx.name_slots, slot) != 0 {
+    if idx.name_slots.get_unchecked(slot) != 0 {
         return
     }
     push(idx.name_keys, fn_name)
@@ -179,7 +179,7 @@ fn mono_index_name_pos(idx: MonoIndex, fn_name: String) -> i32 {
     if slot < 0 {
         return 0 - 1
     }
-    let bucket = get_unchecked(idx.name_slots, slot)
+    let bucket = idx.name_slots.get_unchecked(slot)
     if bucket == 0 {
         return 0 - 1
     }
@@ -205,7 +205,7 @@ fn mono_index_base_pos(idx: MonoIndex, base: String) -> i32 {
     if slot < 0 {
         return 0 - 1
     }
-    let bucket = get_unchecked(idx.base_slots, slot)
+    let bucket = idx.base_slots.get_unchecked(slot)
     if bucket == 0 {
         return 0 - 1
     }
@@ -218,7 +218,7 @@ fn mono_index_base_chain_push(mut idx: MonoIndex, base: String, mangled_pos: i32
     if slot < 0 {
         return
     }
-    let mut base_pos = get_unchecked(idx.base_slots, slot) - 1
+    let mut base_pos = idx.base_slots.get_unchecked(slot) - 1
     if base_pos < 0 {
         push(idx.base_keys, base)
         push(idx.base_heads, 0 - 1)
@@ -226,7 +226,7 @@ fn mono_index_base_chain_push(mut idx: MonoIndex, base: String, mangled_pos: i32
         base_pos = idx.base_keys.len() - 1
         set(idx.base_slots, slot, base_pos + 1)
     }
-    let tail = get_unchecked(idx.base_tails, base_pos)
+    let tail = idx.base_tails.get_unchecked(base_pos)
     if tail < 0 {
         set(idx.base_heads, base_pos, mangled_pos)
     } else {
@@ -240,12 +240,12 @@ fn mono_index_base_has_mangled(idx: MonoIndex, base: String, mangled: String) ->
     if base_pos < 0 {
         return false
     }
-    let mut cur = get_unchecked(idx.base_heads, base_pos)
+    let mut cur = idx.base_heads.get_unchecked(base_pos)
     while cur >= 0 {
-        if get_unchecked(idx.mangled_names, cur).eq(mangled.clone()) {
+        if idx.mangled_names.get_unchecked(cur).eq(mangled.clone()) {
             return true
         }
-        cur = get_unchecked(idx.mangled_next, cur)
+        cur = idx.mangled_next.get_unchecked(cur)
     }
     false
 }
@@ -260,14 +260,14 @@ fn mono_index_base_mangled_at(idx: MonoIndex, base: String, ordinal: i32) -> Str
     if base_pos < 0 {
         return ""
     }
-    let mut cur = get_unchecked(idx.base_heads, base_pos)
+    let mut cur = idx.base_heads.get_unchecked(base_pos)
     let mut steps = 0
     while cur >= 0 && steps < ordinal {
-        cur = get_unchecked(idx.mangled_next, cur)
+        cur = idx.mangled_next.get_unchecked(cur)
         steps = steps + 1
     }
     if cur < 0 {
         return ""
     }
-    get_unchecked(idx.mangled_names, cur).clone()
+    idx.mangled_names.get_unchecked(cur).clone()
 }

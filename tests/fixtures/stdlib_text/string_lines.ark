@@ -7,7 +7,7 @@ fn main() {
     Stdio::println((result.len()).to_string())
     let mut i: i32 = 0
     while i < result.len() {
-        Stdio::println(get_unchecked(result, i))
+        Stdio::println(result.get_unchecked(i))
         i = i + 1
     }
     Stdio::println(("".is_empty()).to_string())

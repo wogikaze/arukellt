@@ -201,7 +201,7 @@ fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {
     let count = values.len()
     let mut index = 0
     while index < count {
-        if get_unchecked(values, index).eq(value.clone()) {
+        if values.get_unchecked(index).eq(value.clone()) {
             return true
         }
         index = index + 1
@@ -241,7 +241,7 @@ fn native_c_enum_type_is_heap(heap_enum_flags: Vec<i32>, raw_type_id: i32) -> bo
     if raw_type_id < 0 || raw_type_id >= heap_enum_flags.len() {
         return false
     }
-    get_unchecked(heap_enum_flags, raw_type_id) != 0
+    heap_enum_flags.get_unchecked(raw_type_id) != 0
 }
 
 /// True when an ENUM entry with this basename exists and is not heap-marked.

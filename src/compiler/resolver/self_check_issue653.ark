@@ -26,7 +26,7 @@ fn issue653_parse_host_math() -> String {
     if doc.funcs.len() != 1 {
         return "issue653 fail: func count"
     }
-    let func = get_unchecked(doc.funcs, 0)
+    let func = doc.funcs.get_unchecked(0)
     if !func.ark_name.clone().eq("add") {
         return "issue653 fail: func name"
     }

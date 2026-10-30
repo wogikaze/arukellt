@@ -153,7 +153,7 @@ fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
     if nk.len() > 0 {
         let mut fi = 0
         while fi < n {
-            let f = get_unchecked(functions, fi)
+            let f = functions.get_unchecked(fi)
             if fn_is_pair_trampoline(f) {
                 if pair_key_matches(nk.clone(), pair_tramp_sig_key(f, true)) {
                     return emit_fn_type_idx(ctx, fi)
@@ -165,7 +165,7 @@ fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
     if vk.len() > 0 {
         let mut fi = 0
         while fi < n {
-            let f = get_unchecked(functions, fi)
+            let f = functions.get_unchecked(fi)
             if fn_is_pair_trampoline(f) {
                 if pair_key_matches(vk.clone(), pair_tramp_sig_key(f, false)) {
                     return emit_fn_type_idx(ctx, fi)
@@ -430,7 +430,7 @@ fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String
 fn pair_sig_struct_slot(gc_struct_names: Vec<String>, name: String) -> i32 {
     let mut i = 0
     while i < gc_struct_names.len() {
-        if get_unchecked(gc_struct_names, i).eq(name.clone()) {
+        if gc_struct_names.get_unchecked(i).eq(name.clone()) {
             return i
         }
         i = i + 1
@@ -502,7 +502,7 @@ fn emit_fn_type_idx(ctx: SelfEmitCtx, fi: i32) -> i32 {
     module_canon::MirModule_canon_index_of(
         ctx.mir,
         sections_types_sigs_detail::build_function_type_sig(
-            get_unchecked(functions, fi),
+            functions.get_unchecked(fi),
             ctx_record::SelfEmitCtx_target(ctx),
             ctx_record::SelfEmitCtx_wasi_version(ctx),
             ctx_record::SelfEmitCtx_memory64(ctx),
@@ -518,7 +518,7 @@ fn call_ref_pair_sig_type_idx(ctx: SelfEmitCtx, sig: String) -> i32 {
     let n = sigs.len()
     let mut i = 0
     while i < n {
-        if sig.clone().eq(get_unchecked(sigs, i).clone()) {
+        if sig.clone().eq(sigs.get_unchecked(i).clone()) {
             return module_canon::MirModule_canon_index_of(ctx.mir, sig)
         }
         i = i + 1
@@ -610,7 +610,7 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     }
     let mut fi = 0
     while fi < fn_count {
-        let f = get_unchecked(functions, fi)
+        let f = functions.get_unchecked(fi)
         let pc = function_param_view::MirFunction_param_count(f)
         if pc == arg_count {
             let effective_rt = effective_return_vt(f)
@@ -705,7 +705,7 @@ fn typed_string_callback_type_idx_from_struct_get(
     )
     let mut bi = 0
     while bi < f.blocks.len() {
-        let block = get_unchecked(f.blocks, bi)
+        let block = f.blocks.get_unchecked(bi)
         let mut ii = 0
         while ii < block_inst_access::MirBlock_inst_count(block) {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
@@ -752,15 +752,15 @@ fn typed_string_callback_type_idx_from_struct_field(
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
     while i < type_map.len() {
-        if get_unchecked(type_map, i) != struct_type_idx || i >= sigs.len() {
+        if type_map.get_unchecked(i) != struct_type_idx || i >= sigs.len() {
             i = i + 1
             continue
         }
-        let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+        let fields = sections_types_gc::struct_field_sigs(sigs.get_unchecked(i))
         if field_idx >= fields.len() {
             return 0 - 1
         }
-        let field_sig = get_unchecked(fields, field_idx)
+        let field_sig = fields.get_unchecked(field_idx)
         if field_sig.clone().eq(String_from("fnrefss")) {
             return callback_base
         }
@@ -939,7 +939,7 @@ fn find_fnsig_fn_type_idx(ctx: SelfEmitCtx, param_vt: i32, ret_vt: i32) -> i32 {
     let fn_count = functions.len()
     let mut fi = 0
     while fi < fn_count {
-        let f = get_unchecked(functions, fi)
+        let f = functions.get_unchecked(fi)
         if function_param_view::MirFunction_param_count(f) == 1 {
             let p0 = function_param_view::MirFunction_param_val_type(f, 0)
             let rt = effective_return_vt(f)
@@ -981,7 +981,7 @@ fn find_unary_i32_callback_type_memory64(ctx: SelfEmitCtx, fn_count: i32) -> i32
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let mut fi = 0
     while fi < fn_count {
-        let f = get_unchecked(functions, fi)
+        let f = functions.get_unchecked(fi)
         if function_param_view::MirFunction_param_count(f) == 1 {
             if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
                 if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
@@ -1001,7 +1001,7 @@ fn find_binary_i32_callback_type_memory64(ctx: SelfEmitCtx, fn_count: i32) -> i3
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let mut fi = 0
     while fi < fn_count {
-        let f = get_unchecked(functions, fi)
+        let f = functions.get_unchecked(fi)
         if function_param_view::MirFunction_param_count(f) == 2 {
             if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
                 if function_param_view::MirFunction_param_val_type(f, 1) == value_types::VT_I32() {
@@ -1053,7 +1053,7 @@ fn match_matches_param0(p0: i32, first_arg_vt: i32) -> bool {
 fn indirect_type_returns_value(ctx: SelfEmitCtx, type_idx: i32, dest_vt: i32) -> bool {
     let canon_sigs = module_canon::MirModule_canon_sigs(ctx.mir)
     if type_idx >= 0 && type_idx < canon_sigs.len() {
-        let sig = get_unchecked(canon_sigs, type_idx)
+        let sig = canon_sigs.get_unchecked(type_idx)
         let n = sig.len()
         let mut i = n - 1
         while i > 0 && sig.byte_at(i) != 95 {

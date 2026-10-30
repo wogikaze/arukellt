@@ -52,7 +52,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
     let mut in_block_comment = false
     let mut i = 0
     while i < line_count {
-        let raw = get_unchecked(lines, i)
+        let raw = lines.get_unchecked(i)
         let trimmed = fmt_indent_trimmed(raw)
         if trimmed.len() == 0 {
             push(out, String_new())

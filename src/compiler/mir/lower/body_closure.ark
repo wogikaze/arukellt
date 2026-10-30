@@ -59,14 +59,14 @@ fn lower_closure_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let mut eff_rebinds = Vec::new<i32>()
     let mut pi = 0
     while pi < caps.len() {
-        let mut eff = get_unchecked(rebind_flags, pi)
+        let mut eff = rebind_flags.get_unchecked(pi)
         // A move closure owns only its direct captures: a name that a
         // nested closure rebinds through this frame is still a borrow of
         // the source place, so the cell promotion applies regardless of
         // this frame's move prefix (#900).
         if eff != 0 && (is_move == 0 ||
-            !closure_free::closure_caps_contain(direct_caps, get_unchecked(caps, pi).clone())) &&
-        closure_pcells::ctx_promote_capture_cell(ctx, get_unchecked(caps, pi).clone()) >= 0 {
+            !closure_free::closure_caps_contain(direct_caps, caps.get_unchecked(pi).clone())) &&
+        closure_pcells::ctx_promote_capture_cell(ctx, caps.get_unchecked(pi).clone()) >= 0 {
             eff = 0
         }
         push(eff_rebinds, eff)

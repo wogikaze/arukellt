@@ -73,7 +73,7 @@ fn mir_canonicalize_qualified_callee(ctx: LowerCtx, callee_name: String) -> Stri
     }
     let mut i = 0
     while i < variants.len() {
-        let variant = get_unchecked(variants, i).clone()
+        let variant = variants.get_unchecked(i).clone()
         let idx = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if idx >= 0 {
             return ctx_fn_index::ctx_fn_index_name_at(ctx, idx)
@@ -215,7 +215,7 @@ fn mir_hashmap_from_iter_candidate(ctx: LowerCtx, source_name: String) -> String
     push(owners, String_from("HashMap_String_fnref"))
     let mut index: i32 = 0
     while index < owners.len() {
-        let owner = get_unchecked(owners, index)
+        let owner = owners.get_unchecked(index)
         let candidate = owner.concat(String_from("::from_iter__").concat(source_name.clone()))
         if ctx_fn_exists::ctx_has_fn_name(ctx, candidate.clone()) {
             return candidate

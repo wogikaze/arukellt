@@ -5,7 +5,7 @@ fn main() {
     let values = Env::args()
     let mut i = 0
     while i < values.len() {
-        Stdio::println(get_unchecked(values, i))
+        Stdio::println(values.get_unchecked(i))
         i = i + 1
     }
 }

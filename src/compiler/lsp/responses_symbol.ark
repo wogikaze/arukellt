@@ -53,9 +53,9 @@ pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record
     let n = symbols.len()
     let mut i = 0
     while i < n {
-        let sym = get_unchecked(symbols, i)
+        let sym = symbols.get_unchecked(i)
         let text = if i < source_texts.len() {
-            get_unchecked(source_texts, i)
+            source_texts.get_unchecked(i)
         } else {
             String_new()
         }

@@ -28,10 +28,10 @@ fn async_lower_translation_valid(before: Vec<MirInstDraft>, after: Vec<MirInstDr
     }
     let mut i = 0
     while i < before.len() {
-        let expected = async_lower_expected_instruction(get_unchecked(before, i))
+        let expected = async_lower_expected_instruction(before.get_unchecked(i))
         if !translation_validation::mir_translation_draft_equal(
             expected,
-            get_unchecked(after, i)
+            after.get_unchecked(i)
         ) {
             return false
         }

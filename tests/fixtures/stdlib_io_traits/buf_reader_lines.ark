@@ -72,8 +72,8 @@ fn main() {
     match read_some(buffered, 4) {
         Result::Ok(bytes) => {
             Stdio::println((bytes.len()).to_string())
-            Stdio::println((get_unchecked(bytes, 0)).to_string())
-            Stdio::println((get_unchecked(bytes, 3)).to_string())
+            Stdio::println((bytes.get_unchecked(0)).to_string())
+            Stdio::println((bytes.get_unchecked(3)).to_string())
         },
         Result::Err(err) => Stdio::println(err.message()),
     }
@@ -120,7 +120,7 @@ fn main() {
         Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(seekable, 1) {
-        Result::Ok(bytes) => Stdio::println((get_unchecked(bytes, 0)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.get_unchecked(0)).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
     match seek_of(seekable, io::SeekFrom::End(0i64 - 1i64)) {
@@ -128,7 +128,7 @@ fn main() {
         Result::Err(err) => Stdio::println(err.message()),
     }
     match read_some(seekable, 1) {
-        Result::Ok(bytes) => Stdio::println((get_unchecked(bytes, 0)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.get_unchecked(0)).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
 
@@ -139,7 +139,7 @@ fn main() {
     match read_some(tiny, 4) {
         Result::Ok(bytes) => {
             Stdio::println((bytes.len()).to_string())
-            Stdio::println((get_unchecked(bytes, 0)).to_string())
+            Stdio::println((bytes.get_unchecked(0)).to_string())
         },
         Result::Err(err) => Stdio::println(err.message()),
     }

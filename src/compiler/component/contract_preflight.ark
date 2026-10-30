@@ -12,9 +12,9 @@ fn validate_export(surface: CoreHirExportSurface) -> String {
 
 fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
     for i in 0..decls.len() {
-        let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+        let decl = wit_decl::wit_decl_from_node(decls.get_unchecked(i))
         if wit_decl::wit_decl_is_func(decl) {
-            let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+            let f = wit_decl::wit_func_from_node(decls.get_unchecked(i))
             let name = wit_decl::wit_func_name(f)
             if name.clone().eq("main") || name.clone().eq("_start") { return true }
         }
@@ -24,7 +24,7 @@ fn world_spec_has_command_entry(decls: Vec<AstNode>) -> bool {
 
 fn world_spec_export_roots_satisfy_run(export_roots: Vec<String>, decls: Vec<AstNode>) -> bool {
     for i in 0..export_roots.len() {
-        if get_unchecked(export_roots, i).clone().eq("run") { return true }
+        if export_roots.get_unchecked(i).clone().eq("run") { return true }
     }
     world_spec_has_command_entry(decls)
 }

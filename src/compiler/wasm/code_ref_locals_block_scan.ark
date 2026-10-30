@@ -34,11 +34,11 @@ fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> 
     if type_slot < 0 || type_slot >= sigs.len() {
         return Option::None
     }
-    let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(get_unchecked(sigs, type_slot))
+    let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(sigs.get_unchecked(type_slot))
     if field_idx < 0 || field_idx >= fields.len() {
         return Option::None
     }
-    let field_sig = get_unchecked(fields, field_idx)
+    let field_sig = fields.get_unchecked(field_idx)
     if !field_sig.clone().starts_with("ref") {
         return Option::None
     }
@@ -120,7 +120,7 @@ fn local_payload_extract_storage_type(f: MirFunction, local_idx: i32, ctx: SelfE
 }
 
 fn write_site_block(f: MirFunction, writes: LocalWriteIndex, write: i32) -> MirBlock {
-    get_unchecked(f.blocks, local_write_index::local_write_index_block_at(writes, write))
+    f.blocks.get_unchecked(local_write_index::local_write_index_block_at(writes, write))
 }
 
 fn write_site_inst(f: MirFunction, writes: LocalWriteIndex, write: i32) -> MirInst {

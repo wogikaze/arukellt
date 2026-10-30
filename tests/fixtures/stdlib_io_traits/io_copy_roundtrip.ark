@@ -30,7 +30,10 @@ impl io::Write for OneByteWriter {
         if data.len() == 0 {
             return Ok(0)
         }
-        push(self.bytes, get_unchecked(data, 0))
+        match data.get(0) {
+            Option::Some(byte) => push(self.bytes, byte),
+            Option::None => return Ok(0),
+        }
         Ok(1)
     }
 
@@ -65,8 +68,14 @@ fn main() {
     print_copy_count(Reader::from_bytes(payload()), writer)
     let image: Vec<i32> = writer.into_bytes()
     Stdio::println((image.len()).to_string())
-    Stdio::println((get_unchecked(image, 0)).to_string())
-    Stdio::println((get_unchecked(image, 4)).to_string())
+    match image.get(0) {
+        Option::Some(byte) => Stdio::println(byte.to_string()),
+        Option::None => Stdio::println("missing"),
+    }
+    match image.get(4) {
+        Option::Some(byte) => Stdio::println(byte.to_string()),
+        Option::None => Stdio::println("missing"),
+    }
 
     print_copy_count(Reader::new(), Writer::new())
 
@@ -78,8 +87,14 @@ fn main() {
     let mut rest_writer: Writer = Writer::new()
     print_copy_count(partial, rest_writer)
     let rest: Vec<i32> = rest_writer.into_bytes()
-    Stdio::println((get_unchecked(rest, 0)).to_string())
-    Stdio::println((get_unchecked(rest, 2)).to_string())
+    match rest.get(0) {
+        Option::Some(byte) => Stdio::println(byte.to_string()),
+        Option::None => Stdio::println("missing"),
+    }
+    match rest.get(2) {
+        Option::Some(byte) => Stdio::println(byte.to_string()),
+        Option::None => Stdio::println("missing"),
+    }
 
     match Io::read_to_end(Reader::from_bytes(payload())) {
         Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
@@ -118,7 +133,10 @@ fn main() {
         Result::Ok(_) => {
             let all: Vec<i32> = all_writer.into_bytes()
             Stdio::println((all.len()).to_string())
-            Stdio::println((get_unchecked(all, 0)).to_string())
+            match all.get(0) {
+                Option::Some(byte) => Stdio::println(byte.to_string()),
+                Option::None => Stdio::println("missing"),
+            }
         },
         Result::Err(err) => Stdio::println(err.message()),
     }

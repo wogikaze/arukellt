@@ -17,7 +17,7 @@ fn index_import_neighbors(mut state: LspState, file_path: String, project_root: 
             let n = imports.len()
             let mut i = 0
             while i < n {
-                let import_path = get_unchecked(imports, i)
+                let import_path = imports.get_unchecked(i)
                 let uri = symbol_index_paths::file_path_to_uri(import_path.clone())
                 if !symbol_index_record::symbol_index_is_indexed(indexed_uris, uri.clone()) {
                     let import_read = Fs::read_to_string(import_path.clone())

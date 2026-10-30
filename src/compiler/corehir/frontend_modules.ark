@@ -6,12 +6,12 @@ fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, m
     let module_count = module_names.len()
     let mut i = 0
     while i < module_count {
-        let decl_count = get_unchecked(module_decl_counts, i)
+        let decl_count = module_decl_counts.get_unchecked(i)
         let mut is_stdlib = false
         if i < module_stdlib_flags.len() {
-            is_stdlib = get_unchecked(module_stdlib_flags, i)
+            is_stdlib = module_stdlib_flags.get_unchecked(i)
         }
-        push(infos, raw_dto::CoreHirModuleInfo_new(get_unchecked(module_names, i), is_stdlib, decl_offset, decl_count))
+        push(infos, raw_dto::CoreHirModuleInfo_new(module_names.get_unchecked(i), is_stdlib, decl_offset, decl_count))
         decl_offset = decl_offset + decl_count
         i = i + 1
     }

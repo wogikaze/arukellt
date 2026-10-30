@@ -113,14 +113,21 @@ owner = "none"
 # `s.len()` / `v.len()` and retired the free with an E0100 hint. The bootstrap
 # overlay keeps an overlay-only declaration for the pinned compiler's method
 # lowering; user programs see only the receiver methods.
+#
+# `get_unchecked` was the method-lowering sibling: `wave/vec-get-unchecked`
+# migrated its 3,282 in-tree free calls to `v.get_unchecked(i)` and retired the
+# public declaration with an E0100 hint. The compiler now lowers the method to
+# the sealed `raw_array_get_unchecked` accessor instead of a bare name, and the
+# bootstrap overlay keeps an overlay-only declaration for the pinned
+# compiler's method lowering. `get` remains as the generic Vec typing anchor.
 
 [[rules]]
 label = "vec intrinsic-compat frees"
 module_less = true
-name = ["push", "pop", "get", "set", "get_unchecked", "clear", "as_slice", "slice_len", "slice_get"]
+name = ["push", "pop", "get", "set", "clear", "as_slice", "slice_len", "slice_get"]
 class = "must delete"
 owner = "917"
-replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `clear` was a stale non-callable entry and was retired directly."
+replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `get_unchecked` was retired with an E0100 hint onto `v.get_unchecked(idx)`; `clear` was a stale non-callable entry and was retired directly."
 
 # The 4 deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
 # `assert_eq_i64`, `assert_eq_str`) completed their ADR-087 Wave 2 deletion on

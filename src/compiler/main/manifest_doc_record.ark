@@ -82,8 +82,8 @@ fn DocManifestTable_functions(t: DocManifestTable) -> Vec<DocFnEntry> { t.functi
 fn DocManifestTable_modules(t: DocManifestTable) -> Vec<DocModuleEntry> { t.modules }
 fn DocManifestTable_function_count(t: DocManifestTable) -> i32 { t.functions.len() }
 fn DocManifestTable_module_count(t: DocManifestTable) -> i32 { t.modules.len() }
-fn DocManifestTable_function_at(t: DocManifestTable, idx: i32) -> DocFnEntry { get_unchecked(t.functions, idx) }
-fn DocManifestTable_module_at(t: DocManifestTable, idx: i32) -> DocModuleEntry { get_unchecked(t.modules, idx) }
+fn DocManifestTable_function_at(t: DocManifestTable, idx: i32) -> DocFnEntry { t.functions.get_unchecked(idx) }
+fn DocManifestTable_module_at(t: DocManifestTable, idx: i32) -> DocModuleEntry { t.modules.get_unchecked(idx) }
 
 struct DocModuleNameParts {
     module: String,

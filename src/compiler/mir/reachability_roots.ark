@@ -47,7 +47,7 @@ fn mir_mark_roots(
             functions,
             reachable,
             queue,
-            get_unchecked(extra_roots, ei).clone()
+            extra_roots.get_unchecked(ei).clone()
         ) {
             root_count = root_count + 1
         }

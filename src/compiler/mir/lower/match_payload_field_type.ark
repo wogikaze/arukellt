@@ -243,8 +243,8 @@ fn mir_variant_has_fnref_payload_field(ctx: LowerCtx, variant_name: String) -> b
     let count = ctx.gc_enum_variant_names.len()
     let mut i = 0
     while i < count {
-        if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), variant_name.clone()) {
-            let sig = get_unchecked(ctx.gc_enum_variant_sigs, i).clone()
+        if ctx_gc_enum::ctx_gc_enum_variant_names_match(ctx.gc_enum_variant_names.get_unchecked(i).clone(), variant_name.clone()) {
+            let sig = ctx.gc_enum_variant_sigs.get_unchecked(i).clone()
             if sig.clone().contains("_f1_fnref") {
                 return true
             }
@@ -281,9 +281,9 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
     let mut i = 0
     let mut saw_name = false
     while i < count {
-        if ctx_gc_enum::ctx_gc_enum_variant_names_match(get_unchecked(ctx.gc_enum_variant_names, i).clone(), variant_name.clone()) {
+        if ctx_gc_enum::ctx_gc_enum_variant_names_match(ctx.gc_enum_variant_names.get_unchecked(i).clone(), variant_name.clone()) {
             saw_name = true
-            let sig = get_unchecked(ctx.gc_enum_variant_sigs, i).clone()
+            let sig = ctx.gc_enum_variant_sigs.get_unchecked(i).clone()
             if field_idx == 0 {
                 if sig.clone().contains("_f1_ref") || sig.clone().contains("gcsref") {
                     return true

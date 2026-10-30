@@ -21,13 +21,13 @@ fn main() {
     Stdio::println((ctx.container.items.len()).to_string())
     push(ctx.container.items, ctx.current)
     Stdio::println((ctx.container.items.len()).to_string())
-    let i0 = get_unchecked(ctx.container.items, 0)
+    let i0 = ctx.container.items.get_unchecked(0)
     Stdio::println(i0.name)
     Stdio::println((i0.value).to_string())
     ctx.current = Item { name: String_from("second"), value: 20 }
     push(ctx.container.items, ctx.current)
     Stdio::println((ctx.container.items.len()).to_string())
-    let i1 = get_unchecked(ctx.container.items, 1)
+    let i1 = ctx.container.items.get_unchecked(1)
     Stdio::println(i1.name)
     Stdio::println((i1.value).to_string())
 }

@@ -12,9 +12,9 @@ fn main() {
 
     let chained = a.iter().chain(b.iter()).collect()
     Test::assert_eq_i32(chained.len(), 5)
-    Test::assert_eq_i32(get_unchecked(chained, 0), 1)
-    Test::assert_eq_i32(get_unchecked(chained, 1), 2)
-    Test::assert_eq_i32(get_unchecked(chained, 2), 3)
-    Test::assert_eq_i32(get_unchecked(chained, 3), 4)
-    Test::assert_eq_i32(get_unchecked(chained, 4), 5)
+    Test::assert_eq_i32(chained.get_unchecked(0), 1)
+    Test::assert_eq_i32(chained.get_unchecked(1), 2)
+    Test::assert_eq_i32(chained.get_unchecked(2), 3)
+    Test::assert_eq_i32(chained.get_unchecked(3), 4)
+    Test::assert_eq_i32(chained.get_unchecked(4), 5)
 }

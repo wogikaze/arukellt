@@ -34,7 +34,7 @@ fn sig_reg_register_builtin_named(
     let mut added = 0
     let mut i = 0
     while i < names.len() {
-        let name = get_unchecked(names, i)
+        let name = names.get_unchecked(i)
         if !signature_registry_host::sig_reg_registry_has_mangled(registry, name.clone()) {
             sig_reg_register_builtin_entry(table, registry, name.clone(), mir_value_type::mir_value_type_copy(ret))
             added = added + 1

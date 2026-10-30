@@ -125,7 +125,7 @@ fn csv_impl_stringify_row(fields: Vec<String>) -> String {
         if i > 0 {
             result = result.concat(",")
         }
-        let field = get_unchecked(fields, i)
+        let field = fields.get_unchecked(i)
         let needs_quote = field.contains(",") || field.contains("\"") || field.contains("\n")
         if needs_quote {
             let escaped = field.replace("\"", "\"\"")
@@ -146,7 +146,7 @@ fn csv_impl_count_rows(s: String) -> i32 {
     let mut count = 0
     let mut i = 0
     while i < n {
-        let line = get_unchecked(lines, i)
+        let line = lines.get_unchecked(i)
         if line.len() > 0 {
             count = count + 1
         }
@@ -162,7 +162,7 @@ fn csv_impl_get_row_raw(s: String, row_index: i32) -> String {
     let mut current = 0
     let mut i = 0
     while i < n {
-        let line = get_unchecked(lines, i)
+        let line = lines.get_unchecked(i)
         if line.len() > 0 {
             if current == row_index {
                 return line
@@ -189,7 +189,7 @@ fn csv_impl_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     let mut rows = Vec::new<Vec<String>>()
     let mut i = 0
     while i < n {
-        let line = get_unchecked(lines, i)
+        let line = lines.get_unchecked(i)
         if line.len() > 0 {
             push(rows, csv_impl_parse_row(line))
         }
@@ -207,7 +207,7 @@ fn csv_impl_stringify(rows: Vec<Vec<String>>) -> String {
         if i > 0 {
             out = out.concat("\n")
         }
-        out = out.concat(csv_impl_stringify_row(get_unchecked(rows, i)))
+        out = out.concat(csv_impl_stringify_row(rows.get_unchecked(i)))
         i = i + 1
     }
     out
@@ -227,7 +227,7 @@ fn csv_impl_parse_with_header(s: String) -> Result<Vec<String>, String> {
     if n == 0 {
         return Err("empty document")
     }
-    let first_line = get_unchecked(lines, 0)
+    let first_line = lines.get_unchecked(0)
     if first_line.len() == 0 {
         return Err("empty header")
     }

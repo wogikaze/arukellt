@@ -9,7 +9,7 @@ fn mono_instance_count_for(instances: Vec<MonoInstance>, fn_name: String) -> i32
     let mut found = 0
     let mut i = 0
     while i < count {
-        let mi = get_unchecked(instances, i)
+        let mi = instances.get_unchecked(i)
         if !mono_instance_is_marker(mi) && mono_instance_shape::mir_mono_instance_fn_name(mi).eq(fn_name.clone()) {
             found = found + 1
         }
@@ -23,7 +23,7 @@ fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordin
     let mut seen = 0
     let mut i = 0
     while i < count {
-        let mi = get_unchecked(instances, i)
+        let mi = instances.get_unchecked(i)
         if !mono_instance_is_marker(mi) && mono_instance_shape::mir_mono_instance_fn_name(mi).eq(fn_name.clone()) {
             if seen == ordinal {
                 return mono_instance_shape::mir_mono_instance_mangled_name(mi)

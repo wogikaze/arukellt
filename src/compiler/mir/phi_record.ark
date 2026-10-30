@@ -45,7 +45,7 @@ fn mir_phi_arg_count(phi: MirPhi) -> i32 {
 }
 
 fn mir_phi_arg_at(phi: MirPhi, idx: i32) -> MirPhiArg {
-    get_unchecked(phi.args, idx)
+    phi.args.get_unchecked(idx)
 }
 
 fn mir_phi_args(phi: MirPhi) -> Vec<MirPhiArg> {

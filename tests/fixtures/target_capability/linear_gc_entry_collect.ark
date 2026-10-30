@@ -24,6 +24,6 @@ fn main() {
         i = i + 1
     }
     Test::assert_eq_i32(keep.len(), 5)
-    Test::assert_eq_string(get_unchecked(keep, 0), String_from("alive-0"))
-    Test::assert_eq_string(get_unchecked(keep, 4), String_from("alive-128"))
+    Test::assert_eq_string(keep.get_unchecked(0), String_from("alive-0"))
+    Test::assert_eq_string(keep.get_unchecked(4), String_from("alive-128"))
 }

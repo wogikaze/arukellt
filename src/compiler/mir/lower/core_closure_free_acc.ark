@@ -2,7 +2,7 @@ fn core_closure_push_unique_cap(mut acc: Vec<String>, name: String) {
     let mut j = acc.len() - 1
     let mut dup = false
     while j >= 0 && !dup {
-        if get_unchecked(acc, j).clone().eq(name.clone()) {
+        if acc.get_unchecked(j).clone().eq(name.clone()) {
             dup = true
         }
         j = j - 1

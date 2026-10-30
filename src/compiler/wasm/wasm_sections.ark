@@ -112,12 +112,12 @@ fn emit_wasm_module_sections(
     )
     let mut gc_struct_base = 0 - 1
     if module_gc_struct::MirModule_gc_struct_sig_count(mir) > 0 {
-        gc_struct_base = get_unchecked(module_gc_struct::MirModule_gc_struct_canon_idxs(mir), 0)
+        gc_struct_base = module_gc_struct::MirModule_gc_struct_canon_idxs(mir).get_unchecked(0)
     }
     wasm_context::emit_wasm_context_set_gc_struct_base(ctx, gc_struct_base)
     let mut gc_enum_variant_base = 0 - 1
     if module_gc_enum::MirModule_gc_enum_variant_sig_count(mir) > 0 {
-        gc_enum_variant_base = get_unchecked(module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir), 0)
+        gc_enum_variant_base = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(mir).get_unchecked(0)
     }
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, gc_enum_variant_base)
     wasm_context::emit_wasm_context_finalize_gc_indexes(ctx)

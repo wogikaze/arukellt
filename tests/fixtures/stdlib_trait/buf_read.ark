@@ -15,9 +15,9 @@ fn main() {
     match r.fill_buf() {
         Result::Ok(filled) => {
             assert(filled.len() == 3)
-            assert(get_unchecked(filled, 0) == 65)
-            assert(get_unchecked(filled, 1) == 66)
-            assert(get_unchecked(filled, 2) == 67)
+            assert(filled.get_unchecked(0) == 65)
+            assert(filled.get_unchecked(1) == 66)
+            assert(filled.get_unchecked(2) == 67)
         },
         Result::Err(_e) => assert(false),
     }
@@ -30,7 +30,7 @@ fn main() {
     match r.read(1) {
         Result::Ok(one) => {
             assert(one.len() == 1)
-            assert(get_unchecked(one, 0) == 65)
+            assert(one.get_unchecked(0) == 65)
         },
         Result::Err(_e) => assert(false),
     }
@@ -38,8 +38,8 @@ fn main() {
     match r.fill_buf() {
         Result::Ok(filled2) => {
             assert(filled2.len() == 2)
-            assert(get_unchecked(filled2, 0) == 66)
-            assert(get_unchecked(filled2, 1) == 67)
+            assert(filled2.get_unchecked(0) == 66)
+            assert(filled2.get_unchecked(1) == 67)
         },
         Result::Err(_e) => assert(false),
     }

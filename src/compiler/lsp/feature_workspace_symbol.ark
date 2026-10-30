@@ -15,7 +15,7 @@ pub fn handle_workspace_symbol(mut state: LspState, body: String) {
     let mn = matches.len()
     let mut mi = 0
     while mi < mn {
-        let sym = get_unchecked(matches, mi)
+        let sym = matches.get_unchecked(mi)
         let uri = symbol_index_record::indexed_symbol_uri(sym)
         let doc_text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
         if doc_text.len() > 0 {

@@ -177,7 +177,7 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     // arg_srcs is nearest-first; reverse-scan for arg0 vec.
     let mut ai = arg_srcs.len() - 1
     while ai >= 0 {
-        let src = get_unchecked(arg_srcs, ai)
+        let src = arg_srcs.get_unchecked(ai)
         let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, src))
         if tname.clone().starts_with(String_from("vec:")) ||
         tname.clone().starts_with(String_from("Vec_")) ||
@@ -190,7 +190,7 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     }
     // type_name may be missing after typed-sync; farthest LOCAL_GET is arg0 (the vec).
     if found < 0 && arg_srcs.len() > 0 {
-        found = get_unchecked(arg_srcs, arg_srcs.len() - 1)
+        found = arg_srcs.get_unchecked(arg_srcs.len() - 1)
     }
     found
 }

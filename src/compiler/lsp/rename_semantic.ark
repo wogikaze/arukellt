@@ -37,7 +37,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     let mut end = 0
     let mut name = String_new()
     if refs.len() > 0 {
-        let loc = get_unchecked(refs, 0)
+        let loc = refs.get_unchecked(0)
         start = symbol_references::reference_location_start(loc)
         end = symbol_references::reference_location_end(loc)
         name = text.clone().slice(start, end)

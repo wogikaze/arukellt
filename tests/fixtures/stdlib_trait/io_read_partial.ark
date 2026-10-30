@@ -12,9 +12,9 @@ fn main() {
     match r.read(10) {
         Result::Ok(read) => {
             Test::assert_eq_i32(read.len(), 3)
-            Test::assert_eq_i32(get_unchecked(read, 0), 10)
-            Test::assert_eq_i32(get_unchecked(read, 1), 20)
-            Test::assert_eq_i32(get_unchecked(read, 2), 30)
+            Test::assert_eq_i32(read.get_unchecked(0), 10)
+            Test::assert_eq_i32(read.get_unchecked(1), 20)
+            Test::assert_eq_i32(read.get_unchecked(2), 30)
         },
         Result::Err(e) => Std::panic(e.message()),
     }

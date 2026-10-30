@@ -330,8 +330,8 @@ impl<K, V> Iterator for HashMapIter<K, V> {
         if self.index >= self.length {
             return Option::None
         }
-        let key: K = get_unchecked(self.keys, self.index)
-        let value: V = get_unchecked(self.values, self.index)
+        let key: K = self.keys.get_unchecked(self.index)
+        let value: V = self.values.get_unchecked(self.index)
         self.index = self.index + 1
         Option::Some((key, value))
     }

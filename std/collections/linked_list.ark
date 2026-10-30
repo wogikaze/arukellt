@@ -107,7 +107,7 @@ impl<T> LinkedList<T> {
         }
         let node: i32 = self.head
         let value: T = linked_list_value_at(self, node)
-        let next: i32 = get_unchecked(self.next_links, node)
+        let next: i32 = self.next_links.get_unchecked(node)
         self.head = next
         if next != NIL {
             set(self.prev_links, next, NIL)
@@ -126,7 +126,7 @@ impl<T> LinkedList<T> {
         }
         let node: i32 = self.tail
         let value: T = linked_list_value_at(self, node)
-        let prev: i32 = get_unchecked(self.prev_links, node)
+        let prev: i32 = self.prev_links.get_unchecked(node)
         self.tail = prev
         if prev != NIL {
             set(self.next_links, prev, NIL)
@@ -209,7 +209,7 @@ impl<T> LinkedList<T> {
         push(self.values, value)
         if self.free_head != NIL {
             let node: i32 = self.free_head
-            self.free_head = get_unchecked(self.next_links, node)
+            self.free_head = self.next_links.get_unchecked(node)
             set(self.prev_links, node, NIL)
             set(self.next_links, node, NIL)
             set(self.node_values, node, value_index)
@@ -230,7 +230,7 @@ impl<T> LinkedList<T> {
 }
 
 fn linked_list_value_at<T>(list: LinkedList<T>, node: i32) -> T {
-    get_unchecked(list.values, get_unchecked(list.node_values, node))
+    list.values.get_unchecked(list.node_values.get_unchecked(node))
 }
 
 fn drop_values<T>(mut values: Vec<T>) {
@@ -257,7 +257,7 @@ impl<T> Iterator for LinkedListIter<T> {
             return Option::None
         }
         let value: T = linked_list_value_at(self.list, self.node)
-        self.node = get_unchecked(self.list.next_links, self.node)
+        self.node = self.list.next_links.get_unchecked(self.node)
         self.remaining = self.remaining - 1
         Option::Some(value)
     }
@@ -266,7 +266,7 @@ impl<T> Iterator for LinkedListIter<T> {
         let mut out: Vec<T> = Vec::new<T>()
         while self.remaining > 0 {
             push(out, linked_list_value_at(self.list, self.node))
-            self.node = get_unchecked(self.list.next_links, self.node)
+            self.node = self.list.next_links.get_unchecked(self.node)
             self.remaining = self.remaining - 1
         }
         out
@@ -312,7 +312,7 @@ impl<T> Iterator for LinkedListIterMut<T> {
         }
         let value: T = linked_list_value_at(self.list, self.node)
         self.current = self.node
-        self.node = get_unchecked(self.list.next_links, self.node)
+        self.node = self.list.next_links.get_unchecked(self.node)
         self.remaining = self.remaining - 1
         Option::Some(value)
     }
@@ -321,7 +321,7 @@ impl<T> Iterator for LinkedListIterMut<T> {
         let mut out: Vec<T> = Vec::new<T>()
         while self.remaining > 0 {
             push(out, linked_list_value_at(self.list, self.node))
-            self.node = get_unchecked(self.list.next_links, self.node)
+            self.node = self.list.next_links.get_unchecked(self.node)
             self.remaining = self.remaining - 1
         }
         out
@@ -424,7 +424,7 @@ impl<T: Clone> Clone for LinkedList<T> {
         let mut node: i32 = self.head
         while node != NIL {
             copy.push_back((linked_list_value_at(self, node)).clone())
-            node = get_unchecked(self.next_links, node)
+            node = self.next_links.get_unchecked(node)
         }
         copy
     }
@@ -446,13 +446,13 @@ impl<T: Eq> Eq for LinkedList<T> {
             // `linked_list_value_at`: the helper return loses the concrete
             // element type in the monomorphised impl, and the `eq` call then
             // validates with a boxed ABI on wasm32-gc.
-            let left_value: T = get_unchecked(self.values, get_unchecked(self.node_values, left))
-            let right_value: T = get_unchecked(other.values, get_unchecked(other.node_values, right))
+            let left_value: T = self.values.get_unchecked(self.node_values.get_unchecked(left))
+            let right_value: T = other.values.get_unchecked(other.node_values.get_unchecked(right))
             if !left_value.eq(right_value) {
                 return false
             }
-            left = get_unchecked(self.next_links, left)
-            right = get_unchecked(other.next_links, right)
+            left = self.next_links.get_unchecked(left)
+            right = other.next_links.get_unchecked(right)
         }
         true
     }
@@ -512,7 +512,7 @@ fn linked_list_debug_items<T: Debug>(list: LinkedList<T>) -> String {
         }
         out = out.concat((linked_list_value_at(list, node)).fmt_debug())
         first = false
-        node = get_unchecked(list.next_links, node)
+        node = list.next_links.get_unchecked(node)
     }
     out.concat(String_from("]"))
 }

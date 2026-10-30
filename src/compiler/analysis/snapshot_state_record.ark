@@ -54,5 +54,5 @@ fn snapshot_diagnostic_count(snap: AnalysisSnapshot) -> i32 {
 }
 
 fn snapshot_diagnostic_at(snap: AnalysisSnapshot, index: i32) -> AnalysisDiagnostic {
-    get_unchecked(snap.diagnostics, index)
+    snap.diagnostics.get_unchecked(index)
 }

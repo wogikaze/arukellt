@@ -38,7 +38,7 @@ fn tccr_collect_reachable(
         let mut already_seen = false
         let mut seen_index = 0
         while seen_index < reachable.len() {
-            if get_unchecked(reachable, seen_index) == id {
+            if reachable.get_unchecked(seen_index) == id {
                 already_seen = true
                 seen_index = reachable.len()
             } else {
@@ -48,7 +48,7 @@ fn tccr_collect_reachable(
         if !already_seen {
             push(reachable, id)
             if id >= 0 && id < exprs.len() {
-                let expression = get_unchecked(exprs, id)
+                let expression = exprs.get_unchecked(id)
                 let child_count = expr_raw::corehir_expr_child_count(expression)
                 let mut child_index = 0
                 while child_index < child_count {

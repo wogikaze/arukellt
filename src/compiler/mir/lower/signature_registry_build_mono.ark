@@ -156,7 +156,7 @@ impl SigRegLeafIndex {
         }
         i = 0
         while i < count {
-            let inst = get_unchecked(mono_instances, i)
+            let inst = mono_instances.get_unchecked(i)
             i = i + 1
             if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
                 continue
@@ -193,7 +193,7 @@ impl SigRegLeafIndex {
         let mut ambiguous = false
         let mut i = name_index::name_index_get(index.head, query_leaf)
         while i >= 0 {
-            let inst = get_unchecked(mono_instances, i)
+            let inst = mono_instances.get_unchecked(i)
             if sig_reg_leaf_instance_name_match(
                 type_contracts::MonoInstance_fn_name(inst),
                 decl_name.clone(),
@@ -208,7 +208,7 @@ impl SigRegLeafIndex {
                 }
                 matched_mangled = inst_mangled
             }
-            i = get_unchecked(index.next, i)
+            i = index.next.get_unchecked(i)
         }
         if ambiguous {
             return 0 - 1

@@ -14,7 +14,7 @@ fn MirModule_function_count(m: MirModule) -> i32 {
 }
 
 fn MirModule_function_at(m: MirModule, idx: i32) -> MirFunction {
-    get_unchecked(m.functions, idx)
+    m.functions.get_unchecked(idx)
 }
 
 fn MirModule_set_functions(mut m: MirModule, functions: Vec<MirFunction>) {
@@ -38,7 +38,7 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
     }
     let mut i = 0
     while i < m.export_names.len() {
-        if get_unchecked(m.export_names, i).clone().eq(name.clone()) {
+        if m.export_names.get_unchecked(i).clone().eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -64,7 +64,7 @@ fn MirModule_return_variant_slot_at(m: MirModule, idx: i32) -> i32 {
     if idx < 0 || idx >= m.return_variant_slots.len() {
         return mir_return_variant_slot_unrecorded()
     }
-    get_unchecked(m.return_variant_slots, idx)
+    m.return_variant_slots.get_unchecked(idx)
 }
 
 fn MirModule_set_return_variant_slot_at(mut m: MirModule, idx: i32, slot: i32) {
@@ -99,7 +99,7 @@ fn MirModule_discovery_fn_ret_names(m: MirModule) -> Vec<String> {
 fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
     let mut i = 0
     while i < m.diagnostics.len() {
-        if get_unchecked(m.diagnostics, i).eq(message.clone()) {
+        if m.diagnostics.get_unchecked(i).eq(message.clone()) {
             return
         }
         i = i + 1

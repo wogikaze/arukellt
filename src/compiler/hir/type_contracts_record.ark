@@ -28,7 +28,7 @@ fn hir_type_type_arg_count(ty: HirType) -> i32 {
 }
 
 fn hir_type_type_arg_at(ty: HirType, index: i32) -> HirType {
-    get_unchecked(ty.type_args, index)
+    ty.type_args.get_unchecked(index)
 }
 
 fn hir_type_push_type_arg(mut ty: HirType, arg: HirType) {
@@ -40,7 +40,7 @@ fn hir_type_param_count(ty: HirType) -> i32 {
 }
 
 fn hir_type_param_at(ty: HirType, index: i32) -> HirType {
-    get_unchecked(ty.param_types, index)
+    ty.param_types.get_unchecked(index)
 }
 
 fn hir_type_push_param(mut ty: HirType, param: HirType) {

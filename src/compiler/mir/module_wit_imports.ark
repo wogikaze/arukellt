@@ -7,5 +7,5 @@ fn wit_import_count(bindings: Vec<wit_import_bind::WitImportBinding>) -> i32 {
 }
 
 fn wit_import_type_sig(bindings: Vec<wit_import_bind::WitImportBinding>, index: i32) -> String {
-    return wit_import_bind::wit_import_binding_type_sig(get_unchecked(bindings, index))
+    return wit_import_bind::wit_import_binding_type_sig(bindings.get_unchecked(index))
 }

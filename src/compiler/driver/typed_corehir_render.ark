@@ -17,7 +17,7 @@ fn typed_corehir_main_module_index(program: CoreHirRawProgram) -> i32 {
     }
     let mut module_index = 0
     while module_index < modules.len() {
-        let module = get_unchecked(modules, module_index)
+        let module = modules.get_unchecked(module_index)
         let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module)
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module)
         if entry_decl >= decl_start && entry_decl < decl_end {
@@ -54,7 +54,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         Stdio::eprintln("TypedCoreHIR reject: entry main module not found")
         return ""
     }
-    let source_module = get_unchecked(modules, source_module_index)
+    let source_module = modules.get_unchecked(source_module_index)
     let source_decl_start = raw_dto::CoreHirModuleInfo_decl_start(source_module)
     let source_decl_end = source_decl_start + raw_dto::CoreHirModuleInfo_decl_count(source_module)
 

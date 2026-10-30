@@ -68,17 +68,17 @@ fn main() {
     // unique yields first occurrences in source order.
     let uniq: Vec<i32> = v.iter().unique().collect()
     Test::assert_eq_i32(uniq.len(), 4)
-    Test::assert_eq_i32(get_unchecked(uniq, 0), 3)
-    Test::assert_eq_i32(get_unchecked(uniq, 1), 1)
-    Test::assert_eq_i32(get_unchecked(uniq, 2), 4)
-    Test::assert_eq_i32(get_unchecked(uniq, 3), 5)
+    Test::assert_eq_i32(uniq.get_unchecked(0), 3)
+    Test::assert_eq_i32(uniq.get_unchecked(1), 1)
+    Test::assert_eq_i32(uniq.get_unchecked(2), 4)
+    Test::assert_eq_i32(uniq.get_unchecked(3), 5)
 
     // rev yields the remaining elements in reverse order.
     let rev: Vec<i32> = v.iter().rev().collect()
     Test::assert_eq_i32(rev.len(), 6)
-    Test::assert_eq_i32(get_unchecked(rev, 0), 4)
-    Test::assert_eq_i32(get_unchecked(rev, 1), 5)
-    Test::assert_eq_i32(get_unchecked(rev, 5), 3)
+    Test::assert_eq_i32(rev.get_unchecked(0), 4)
+    Test::assert_eq_i32(rev.get_unchecked(1), 5)
+    Test::assert_eq_i32(rev.get_unchecked(5), 3)
 
     // Both adapters keep the IntoIterator and FromIterator boundaries. A
     // `T: Iterator` source is consumed by `for` without a conversion step.
@@ -88,7 +88,7 @@ fn main() {
     let via_from: Vec<i32> = Vec::from_iter(v.iter().unique())
     Test::assert_eq_i32(via_from.len(), 4)
     let via_from_rev: Vec<i32> = Vec::from_iter(v.iter().rev())
-    Test::assert_eq_i32(get_unchecked(via_from_rev, 0), 4)
+    Test::assert_eq_i32(via_from_rev.get_unchecked(0), 4)
 
     // The removed std::seq helpers map onto the same lazy paths.
     Test::assert_true(v.iter().contains(5))
@@ -97,5 +97,5 @@ fn main() {
     let seq_uniq: Vec<i32> = v.iter().unique().collect()
     Test::assert_eq_i32(seq_uniq.len(), 4)
     let seq_rev: Vec<i32> = v.iter().rev().collect()
-    Test::assert_eq_i32(get_unchecked(seq_rev, 0), 4)
+    Test::assert_eq_i32(seq_rev.get_unchecked(0), 4)
 }

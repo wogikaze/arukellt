@@ -47,24 +47,24 @@ fn ctx_mono_lookup_call(mut ctx: LowerCtx, span_start: i32, source: String) -> S
     let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
     while cursor > 0 {
         let i = cursor - 1
-        if get_unchecked(ctx.mono_call_starts, i) == span_start {
-            let candidate_source = get_unchecked(ctx.mono_call_span_sources, i)
-            let candidate_target = get_unchecked(ctx.mono_call_span_targets, i)
+        if ctx.mono_call_starts.get_unchecked(i) == span_start {
+            let candidate_source = ctx.mono_call_span_sources.get_unchecked(i)
+            let candidate_target = ctx.mono_call_span_targets.get_unchecked(i)
             if mono_sources_match(candidate_source, source.clone()) &&
             mono_target_matches_source(candidate_target.clone(), source.clone()) {
                 if first_match < 0 {
                     first_match = i
                 }
-                if get_unchecked(ctx.mono_call_span_used, i) == 0 {
+                if ctx.mono_call_span_used.get_unchecked(i) == 0 {
                     ctx_mono_rewrites::ctx_mono_mark_span_rewrite_used(ctx, i)
                     return ctx_mono_concretize_span_target(ctx, candidate_target)
                 }
             }
         }
-        cursor = get_unchecked(ctx.mono_span_next, i)
+        cursor = ctx.mono_span_next.get_unchecked(i)
     }
     if first_match >= 0 {
-        return ctx_mono_concretize_span_target(ctx, get_unchecked(ctx.mono_call_span_targets, first_match))
+        return ctx_mono_concretize_span_target(ctx, ctx.mono_call_span_targets.get_unchecked(first_match))
     }
     ""
 }
@@ -95,8 +95,8 @@ fn ctx_mono_substitute_span_vars(ctx: LowerCtx, target: String) -> String {
     let mut out = target.clone()
     let mut i = 0
     while i < count {
-        let var_name = get_unchecked(ctx.mono_type_param_names, i)
-        let concrete = get_unchecked(ctx.mono_type_param_types, i)
+        let var_name = ctx.mono_type_param_names.get_unchecked(i)
+        let concrete = ctx.mono_type_param_types.get_unchecked(i)
         out = ctx_mono_replace_var_token(
             out.clone(),
             String_from("?").concat(var_name.clone()),

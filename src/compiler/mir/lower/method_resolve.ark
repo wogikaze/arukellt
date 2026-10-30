@@ -553,7 +553,11 @@ fn mir_vec_method_prefer_coreop_name(mangled: String) -> String {
         return String_from("vec_get")
     }
     if bare_name.clone().eq(String_from("get_unchecked")) || bare_name.clone().starts_with(String_from("get_unchecked__")) {
-        return String_from("get_unchecked")
+        // Bind the sealed raw accessor directly. The method receiver is always
+        // a Vec, and the flat bootstrap overlay has no `Vec` element suffix to
+        // retype a bare `get_unchecked` free; returning the raw name keeps the
+        // element layout on the receiver local instead of losing it.
+        return String_from("raw_array_get_unchecked")
     }
     if bare_name.clone().eq(String_from("is_empty")) || bare_name.clone().starts_with(String_from("is_empty__")) {
         return String_from("is_empty")
@@ -616,7 +620,7 @@ fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
     let inst_count = ctx.mono_instances.len()
     let mut i = 0
     while i < inst_count {
-        let inst = get_unchecked(ctx.mono_instances, i)
+        let inst = ctx.mono_instances.get_unchecked(i)
         let inst_fn = mono_instance_shape::mir_mono_instance_fn_name(inst)
         if inst_fn.clone().ends_with(method_suffix.clone()) {
             let inst_owner = inst_fn.clone().slice(0, inst_fn.len() - method_suffix.len())
@@ -655,7 +659,7 @@ fn mir_mono_arg_segments_eq(recv_args: String, inst_args: String) -> bool {
     }
     let mut i = 0
     while i < recv_segs.len() {
-        if !get_unchecked(recv_segs, i).eq(get_unchecked(inst_segs, i)) {
+        if !recv_segs.get_unchecked(i).eq(inst_segs.get_unchecked(i)) {
             return false
         }
         i = i + 1

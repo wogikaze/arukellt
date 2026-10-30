@@ -9,7 +9,7 @@ fn main() {
             Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
                     Test::assert_eq_i32(arr.len(), 2)
-                    let first = get_unchecked(arr, 0)
+                    let first = arr.get_unchecked(0)
                     let id_opt: Option<toml::TomlValue> = first.get_field("id")
                     match id_opt {
                         Option::Some(id) => match id.as_int() {
@@ -18,7 +18,7 @@ fn main() {
                         },
                         None => assert(false),
                     }
-                    let second = get_unchecked(arr, 1)
+                    let second = arr.get_unchecked(1)
                     let name_opt: Option<toml::TomlValue> = second.get_field("name")
                     match name_opt {
                         Option::Some(nm) => match nm.as_string() {

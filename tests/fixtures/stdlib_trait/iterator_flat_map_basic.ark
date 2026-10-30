@@ -69,8 +69,8 @@ fn main() {
     push(w, 3)
     let drained = w.iter().flat_map(dup).collect()
     Test::assert_eq_i32(drained.len(), 2)
-    Test::assert_eq_i32(get_unchecked(drained, 0), 3)
-    Test::assert_eq_i32(get_unchecked(drained, 1), 30)
+    Test::assert_eq_i32(drained.get_unchecked(0), 3)
+    Test::assert_eq_i32(drained.get_unchecked(1), 30)
 
     // Receiver pipeline composes with take.
     let mut z: Vec<i32> = Vec::new<i32>()
@@ -78,7 +78,7 @@ fn main() {
     push(z, 2)
     let taken = z.iter().flat_map(dup).take(3).collect()
     Test::assert_eq_i32(taken.len(), 3)
-    Test::assert_eq_i32(get_unchecked(taken, 0), 1)
-    Test::assert_eq_i32(get_unchecked(taken, 1), 10)
-    Test::assert_eq_i32(get_unchecked(taken, 2), 2)
+    Test::assert_eq_i32(taken.get_unchecked(0), 1)
+    Test::assert_eq_i32(taken.get_unchecked(1), 10)
+    Test::assert_eq_i32(taken.get_unchecked(2), 2)
 }

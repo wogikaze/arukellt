@@ -9,7 +9,7 @@ fn main() {
             Option::Some(v) => match v.as_array() {
                 Option::Some(arr) => {
                     Test::assert_eq_i32(arr.len(), 1)
-                    let first = get_unchecked(arr, 0)
+                    let first = arr.get_unchecked(0)
                     let ports_opt: Option<toml::TomlValue> = first.get_field("ports")
                     match ports_opt {
                         Option::Some(ports) => {

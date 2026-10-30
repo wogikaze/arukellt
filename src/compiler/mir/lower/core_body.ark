@@ -10,7 +10,7 @@ fn lower_core_expr(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr_index: i32) 
     if expr_index < 0 || expr_index >= exprs.len() {
         return 0 - 1
     }
-    let expr = get_unchecked(exprs, expr_index)
+    let expr = exprs.get_unchecked(expr_index)
     let atomic = core_values::lower_core_atomic(ctx, expr)
     if atomic != 0 - 2 {
         return atomic

@@ -24,7 +24,7 @@ fn main() {
     }
 
     match r.read(1) {
-        Result::Ok(one) => Test::assert_eq_i32(get_unchecked(one, 0), 65),
+        Result::Ok(one) => Test::assert_eq_i32(one.get_unchecked(0), 65),
         Result::Err(e) => Std::panic(e.message()),
     }
 }

@@ -13,7 +13,7 @@ fn CoreHirDeclInfo_new(kind: i32, name: String, child_count: i32, is_pub: bool) 
 
 fn decl_info_kind_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> i32 {
     if idx < decl_infos.len() {
-        let info = get_unchecked(decl_infos, idx)
+        let info = decl_infos.get_unchecked(idx)
         return info.kind
     }
     commands::COREHIR_DECL_UNKNOWN()
@@ -21,7 +21,7 @@ fn decl_info_kind_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> i32 {
 
 fn decl_info_name_at(decl_infos: Vec<CoreHirDeclInfo>, idx: i32) -> String {
     if idx < decl_infos.len() {
-        let info = get_unchecked(decl_infos, idx)
+        let info = decl_infos.get_unchecked(idx)
         return info.name.clone()
     }
     String_new()
@@ -36,7 +36,7 @@ fn entry_main_decl_index(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHir
     let decl_count = decl_infos.len()
     let mut i = 0
     while i < decl_count {
-        let info = get_unchecked(decl_infos, i)
+        let info = decl_infos.get_unchecked(i)
         if info.kind == commands::COREHIR_DECL_FN() {
             if info.name.clone().eq("main") {
                 entry_main = i

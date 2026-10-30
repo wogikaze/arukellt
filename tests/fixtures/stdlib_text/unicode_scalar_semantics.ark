@@ -23,10 +23,10 @@ fn main() {
 
     let scalars = source.chars()
     Test::assert_eq_i32(scalars.len(), 5)
-    Test::assert_eq_i32(get_unchecked(scalars, 0).len_bytes(), 1)
-    Test::assert_eq_i32(get_unchecked(scalars, 1).len_bytes(), 2)
-    Test::assert_eq_i32(get_unchecked(scalars, 2).len_bytes(), 4)
-    Test::assert_eq_i32(get_unchecked(scalars, 4).len_bytes(), 2)
+    Test::assert_eq_i32(scalars.get_unchecked(0).len_bytes(), 1)
+    Test::assert_eq_i32(scalars.get_unchecked(1).len_bytes(), 2)
+    Test::assert_eq_i32(scalars.get_unchecked(2).len_bytes(), 4)
+    Test::assert_eq_i32(scalars.get_unchecked(4).len_bytes(), 2)
 
     Test::assert_eq_string(source.slice_bytes(1, 3), "é")
     Test::assert_eq_string(source.slice_bytes(2, 3), "")
@@ -64,11 +64,11 @@ fn main() {
     }
     let lossy = String::from_utf8_lossy(lossy_input)
     let lossy_bytes = lossy.to_utf8_bytes()
-    Test::assert_eq_i32(get_unchecked(lossy_bytes, 0), 65)
-    Test::assert_eq_i32(get_unchecked(lossy_bytes, 1), 239)
-    Test::assert_eq_i32(get_unchecked(lossy_bytes, 2), 191)
-    Test::assert_eq_i32(get_unchecked(lossy_bytes, 3), 189)
-    Test::assert_eq_i32(get_unchecked(lossy_bytes, 4), 40)
+    Test::assert_eq_i32(lossy_bytes.get_unchecked(0), 65)
+    Test::assert_eq_i32(lossy_bytes.get_unchecked(1), 239)
+    Test::assert_eq_i32(lossy_bytes.get_unchecked(2), 191)
+    Test::assert_eq_i32(lossy_bytes.get_unchecked(3), 189)
+    Test::assert_eq_i32(lossy_bytes.get_unchecked(4), 40)
 
     let mut built = String_new()
     match source.codepoint_at(1) {

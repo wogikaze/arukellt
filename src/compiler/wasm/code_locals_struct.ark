@@ -87,7 +87,7 @@ fn local_type_name_is_enum_instance(type_name: String, ctx: SelfEmitCtx) -> bool
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut vi = 0
     while vi < names.len() {
-        let variant = get_unchecked(names, vi)
+        let variant = names.get_unchecked(vi)
         if variant.clone().starts_with(head.clone().concat(String_from("::"))) ||
         variant.clone().contains(String_from("::").concat(head.clone().concat(String_from("::")))) {
             return true
@@ -229,7 +229,7 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
     let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
+        let block = f.blocks.get_unchecked(bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {

@@ -68,16 +68,16 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
     }
     let mut i = 0
     while i < field_names.len() {
-        let fi = ctx_struct_lookup::ctx_field_index(ctx, canon.clone(), get_unchecked(field_names, i).clone())
+        let fi = ctx_struct_lookup::ctx_field_index(ctx, canon.clone(), field_names.get_unchecked(i).clone())
         let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, canon.clone(), fi)
         if i < val_idxs.len() && struct_lit_field_type_mentions_params(ft.clone(), params) {
             let mut val_ty = ctx_struct_mono::ctx_derive_generic_struct_type_name(
                 ctx,
-                ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(val_idxs, i))
+                ctx_api_local_types::ctx_get_local_type(ctx, val_idxs.get_unchecked(i))
             )
             if val_ty.len() == 0 {
                 val_ty = struct_lit_scalar_type_for_vt(
-                    ctx_api_local_types::ctx_local_vt(ctx, get_unchecked(val_idxs, i))
+                    ctx_api_local_types::ctx_local_vt(ctx, val_idxs.get_unchecked(i))
                 )
             }
             if val_ty.len() == 0 {
@@ -96,13 +96,13 @@ fn mir_struct_lit_instance_name(mut ctx: LowerCtx, base_name: String, field_name
     let mut inst = canon.clone().concat(String_from("<"))
     let mut bi = 0
     while bi < params.len() {
-        if !get_unchecked(bound, bi) {
+        if !bound.get_unchecked(bi) {
             all_bound = false
         }
         if bi > 0 {
             inst = inst.concat(String_from(","))
         }
-        inst = inst.concat(get_unchecked(args, bi).clone())
+        inst = inst.concat(args.get_unchecked(bi).clone())
         bi = bi + 1
     }
     inst = inst.concat(String_from(">"))
@@ -153,7 +153,7 @@ fn struct_lit_ident_char(ch: i32) -> bool {
 fn struct_lit_param_index(params: Vec<String>, name: String) -> i32 {
     let mut i = 0
     while i < params.len() {
-        if get_unchecked(params, i).eq(name.clone()) {
+        if params.get_unchecked(i).eq(name.clone()) {
             return i
         }
         i = i + 1
@@ -202,7 +202,7 @@ fn struct_lit_canonical_type_spelling(name: String) -> String {
         let parts = ctx_mono_type_params::ctx_split_top_level_type_args(inner)
         if parts.len() == 2 {
             return String_from("result:").concat(
-                struct_lit_canonical_type_spelling(get_unchecked(parts, 0).clone()).concat(String_from(":").concat(struct_lit_canonical_type_spelling(get_unchecked(parts, 1).clone())))
+                struct_lit_canonical_type_spelling(parts.get_unchecked(0).clone()).concat(String_from(":").concat(struct_lit_canonical_type_spelling(parts.get_unchecked(1).clone())))
             )
         }
         return name
@@ -291,9 +291,9 @@ fn struct_lit_fnref_value_spelling(f: String, v: String, params: Vec<String>) ->
         if k > 1 {
             out = out.concat(String_from(";"))
         }
-        let f_seg = get_unchecked(f_segs, k)
+        let f_seg = f_segs.get_unchecked(k)
         if struct_lit_param_index(params, f_seg.clone()) >= 0 {
-            out = out.concat(get_unchecked(family, k - 1).clone())
+            out = out.concat(family.get_unchecked(k - 1).clone())
         } else {
             out = out.concat(f_seg)
         }
@@ -331,8 +331,8 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut ar
         }
         let mut k = 0
         while k < f_segs.len() {
-            let f_seg = get_unchecked(f_segs, k)
-            let v_seg = get_unchecked(v_segs, k)
+            let f_seg = f_segs.get_unchecked(k)
+            let v_seg = v_segs.get_unchecked(k)
             if struct_lit_param_index(params, f_seg.clone()) >= 0 {
                 if !struct_lit_unify_segments(f_seg.clone(), v_seg.clone(), params, args, bound) {
                     return false
@@ -365,8 +365,8 @@ fn struct_lit_unify_segments(ft: String, vt: String, params: Vec<String>, mut ar
         let mut k = 0
         while k < f_args.len() {
             if !struct_lit_unify_segments(
-                get_unchecked(f_args, k).clone(),
-                get_unchecked(v_args, k).clone(),
+                f_args.get_unchecked(k).clone(),
+                v_args.get_unchecked(k).clone(),
                 params,
                 args,
                 bound
@@ -454,7 +454,7 @@ fn struct_lit_params_bound(ft: String, params: Vec<String>, bound: Vec<bool>) ->
             }
             let tok = ft.clone().slice(start, i)
             let pi = struct_lit_param_index(params.clone(), tok.clone())
-            if pi >= 0 && (pi >= bound.len() || !get_unchecked(bound, pi)) {
+            if pi >= 0 && (pi >= bound.len() || !bound.get_unchecked(pi)) {
                 return false
             }
         }

@@ -23,7 +23,7 @@ fn register_trait_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_trait_decl(node) {
             register_trait_decl(env, node)
         }
@@ -118,7 +118,7 @@ fn register_trait_impl_entry(
     let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
-        let existing = get_unchecked(env.trait_impls, i)
+        let existing = env.trait_impls.get_unchecked(i)
         let existing_self = contract_trait_impl::TraitImplInfo_self_ty(existing)
         if names::same_type_name(
             contract_trait_impl::TraitImplInfo_trait_name(existing),
@@ -256,7 +256,7 @@ fn report_undefined_impl_head_types(mut env: TypeEnv, node: AstNode, known_type_
     decl_impl_target::adr089_binder_window_is_open()
     let mut i = 0
     while i < count {
-        let name = get_unchecked(undefined, i)
+        let name = undefined.get_unchecked(i)
         if is_window {
             let message = String_from("implicit impl type parameter `").concat(
                 name.clone().concat(
@@ -307,7 +307,7 @@ fn validate_impl_param_constraints(mut env: TypeEnv, node: AstNode, self_ty: Typ
     let declared = impl_generics::declared_type_param_names(node)
     let mut i = 0
     while i < declared.len() {
-        let name = get_unchecked(declared, i)
+        let name = declared.get_unchecked(i)
         if !type_contains_named_var(self_ty, name.clone()) {
             report_trait_error(
                 env,
@@ -344,7 +344,7 @@ fn validate_trait_supertraits(mut env: TypeEnv) {
     let impl_count = env.trait_impls.len()
     let mut i = 0
     while i < impl_count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         let trait_name = contract_trait_impl::TraitImplInfo_trait_name(impl_info)
         let trait_info = trait_info_at(env, trait_name.clone())
         let super_count = contract_trait_info::trait_info_supertrait_count(trait_info)
@@ -473,7 +473,7 @@ fn associated_type_impl_exists(
     let count = env.associated_types.len()
     let mut i = 0
     while i < count {
-        let entry = get_unchecked(env.associated_types, i)
+        let entry = env.associated_types.get_unchecked(i)
         if names::same_type_name(
             contract_associated_type::trait_associated_type_info_trait_name(entry),
             trait_name.clone()
@@ -519,7 +519,7 @@ fn trait_info_index(env: TypeEnv, trait_name: String) -> i32 {
     let mut i = 0
     while i < count {
         if names::same_type_name(
-            contract_trait_info::trait_info_name(get_unchecked(env.trait_defs, i)),
+            contract_trait_info::trait_info_name(env.trait_defs.get_unchecked(i)),
             trait_name.clone()
         ) {
             return i
@@ -534,14 +534,14 @@ fn trait_info_at(env: TypeEnv, trait_name: String) -> TraitInfo {
     if index < 0 {
         return contract_trait_info::TraitInfo_new(String_new(), 0 - 1)
     }
-    get_unchecked(env.trait_defs, index)
+    env.trait_defs.get_unchecked(index)
 }
 
 fn string_vec_contains(names: Vec<String>, name: String) -> bool {
     let count = names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).eq(name.clone()) {
+        if names.get_unchecked(i).eq(name.clone()) {
             return true
         }
         i = i + 1
@@ -605,7 +605,7 @@ fn is_legal_parametric_impl(trait_ref: TypeInfo, self_ty: TypeInfo) -> bool {
     let count = trait_vars.len()
     let mut i = 0
     while i < count {
-        if !string_vec_contains(self_vars, get_unchecked(trait_vars, i)) {
+        if !string_vec_contains(self_vars, trait_vars.get_unchecked(i)) {
             return false
         }
         i = i + 1
@@ -649,7 +649,7 @@ fn type_vec_equal(a: Vec<TypeInfo>, b: Vec<TypeInfo>) -> bool {
     }
     let mut i = 0
     while i < a.len() {
-        if !same_type(get_unchecked(a, i), get_unchecked(b, i)) {
+        if !same_type(a.get_unchecked(i), b.get_unchecked(i)) {
             return false
         }
         i = i + 1

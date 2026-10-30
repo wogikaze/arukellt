@@ -24,7 +24,7 @@ fn MirFunction_release_body(f: MirFunction) {
     let n = f.blocks.len()
     let mut i = 0
     while i < n {
-        block_inst_mutation::mir_block_clear_insts(get_unchecked(f.blocks, i))
+        block_inst_mutation::mir_block_clear_insts(f.blocks.get_unchecked(i))
         i = i + 1
     }
 }

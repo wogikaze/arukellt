@@ -13,19 +13,19 @@ fn main() {
 
     let first_two = values.iter().take(2).collect()
     Test::assert_eq_i32(first_two.len(), 2)
-    Test::assert_eq_i32(get_unchecked(first_two, 0), 1)
-    Test::assert_eq_i32(get_unchecked(first_two, 1), 2)
+    Test::assert_eq_i32(first_two.get_unchecked(0), 1)
+    Test::assert_eq_i32(first_two.get_unchecked(1), 2)
 
     let none = values.iter().take(0).collect()
     Test::assert_eq_i32(none.len(), 0)
     let all = values.iter().take(99).collect()
     Test::assert_eq_i32(all.len(), 5)
-    Test::assert_eq_i32(get_unchecked(all, 4), 5)
+    Test::assert_eq_i32(all.get_unchecked(4), 5)
 
     let after_two = values.iter().skip(2).collect()
     Test::assert_eq_i32(after_two.len(), 3)
-    Test::assert_eq_i32(get_unchecked(after_two, 0), 3)
-    Test::assert_eq_i32(get_unchecked(after_two, 2), 5)
+    Test::assert_eq_i32(after_two.get_unchecked(0), 3)
+    Test::assert_eq_i32(after_two.get_unchecked(2), 5)
 
     let unchanged = values.iter().skip(0).collect()
     Test::assert_eq_i32(unchanged.len(), 5)

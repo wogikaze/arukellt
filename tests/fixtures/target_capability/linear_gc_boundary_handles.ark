@@ -56,11 +56,11 @@ fn load_state_probe(keys: Vec<String>, slots: Vec<i32>, name: String) -> i32 {
     let mut slot = load_state_string_hash(name) % capacity
     let mut probes = 0
     while probes < capacity {
-        let bucket = get_unchecked(slots, slot)
+        let bucket = slots.get_unchecked(slot)
         if bucket == 0 {
             return slot
         }
-        if get_unchecked(keys, bucket - 1).eq(name.clone()) {
+        if keys.get_unchecked(bucket - 1).eq(name.clone()) {
             return slot
         }
         slot = (slot + 1) % capacity
@@ -88,7 +88,7 @@ fn load_state_clone_names(src: Vec<String>) -> Vec<String> {
     let mut out: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < src.len() {
-        push(out, get_unchecked(src, i).clone())
+        push(out, src.get_unchecked(i).clone())
         i = i + 1
     }
     out
@@ -98,7 +98,7 @@ fn load_state_clone_slots(src: Vec<i32>) -> Vec<i32> {
     let mut out: Vec<i32> = Vec::new<i32>()
     let mut i = 0
     while i < src.len() {
-        push(out, get_unchecked(src, i))
+        push(out, src.get_unchecked(i))
         i = i + 1
     }
     out
@@ -108,7 +108,7 @@ fn load_state_rehash(keys: Vec<String>, capacity: i32) -> Vec<i32> {
     let mut slots = load_state_zero_slots(capacity)
     let mut i = 0
     while i < keys.len() {
-        let slot = load_state_probe(load_state_clone_names(keys), slots, get_unchecked(keys, i).clone())
+        let slot = load_state_probe(load_state_clone_names(keys), slots, keys.get_unchecked(i).clone())
         set(slots, slot, i + 1)
         i = i + 1
     }
@@ -137,7 +137,7 @@ fn LoadState_has_loaded(state: LoadState, name: String) -> bool {
     if slot < 0 {
         return false
     }
-    get_unchecked(state.loaded_slots, slot) > 0
+    state.loaded_slots.get_unchecked(slot) > 0
 }
 
 fn LoadState_push_loaded(mut state: LoadState, name: String) {
@@ -158,7 +158,7 @@ fn stack_scan(state: LoadState, site: i32) -> i32 {
         return site * 10000 + 9999
     }
     while i < n {
-        let l = get_unchecked(v, i).len()
+        let l = v.get_unchecked(i).len()
         if l < 0 || l > 4096 {
             return site * 10000 + i
         }
@@ -196,10 +196,10 @@ fn main() {
     churn_small(2000000)
     i = 0
     while i < keep.len() {
-        let mut v = get_unchecked(keep, i)
+        let mut v = keep.get_unchecked(i)
         Test::assert_eq_i32(v.len(), 2)
-        Test::assert_eq_i32(get_unchecked(v, 0), i * 7 + 3)
-        Test::assert_eq_i32(get_unchecked(v, 1), i * 13 + 5)
+        Test::assert_eq_i32(v.get_unchecked(0), i * 7 + 3)
+        Test::assert_eq_i32(v.get_unchecked(1), i * 13 + 5)
         i = i + 1
     }
 
@@ -213,7 +213,7 @@ fn main() {
     Test::assert_eq_i32(keep_empty.len(), 512)
     i = 0
     while i < keep_empty.len() {
-        Test::assert_true(get_unchecked(keep_empty, i).eq(String_from("")))
+        Test::assert_true(keep_empty.get_unchecked(i).eq(String_from("")))
         i = i + 1
     }
 

@@ -19,7 +19,7 @@ fn fn_info_decl_slots(fn_infos: Vec<CoreHirFnInfo>) -> Vec<i32> {
     let mut max_decl = 0
     let mut i = 0
     while i < count {
-        let decl_index = get_unchecked(fn_infos, i).decl_index
+        let decl_index = fn_infos.get_unchecked(i).decl_index
         if decl_index > max_decl {
             max_decl = decl_index
         }
@@ -33,7 +33,7 @@ fn fn_info_decl_slots(fn_infos: Vec<CoreHirFnInfo>) -> Vec<i32> {
     }
     i = 0
     while i < count {
-        let decl_index = get_unchecked(fn_infos, i).decl_index
+        let decl_index = fn_infos.get_unchecked(i).decl_index
         if decl_index >= 0 {
             set(slots, decl_index, i + 1)
         }

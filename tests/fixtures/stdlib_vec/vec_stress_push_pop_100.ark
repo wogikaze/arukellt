@@ -16,6 +16,6 @@ fn main() {
         j = j + 1
     }
     Test::assert_eq_i32(v.len(), 50)
-    Test::assert_eq_i32(get_unchecked(v, 0), 0)
-    Test::assert_eq_i32(get_unchecked(v, 49), 49)
+    Test::assert_eq_i32(v.get_unchecked(0), 0)
+    Test::assert_eq_i32(v.get_unchecked(49), 49)
 }

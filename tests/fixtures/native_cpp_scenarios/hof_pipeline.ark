@@ -20,7 +20,7 @@ fn main() {
     let mut i = 0
     let n = filtered.len()
     while i < n {
-        Stdio::println(get_unchecked(filtered, i).to_string())
+        Stdio::println(filtered.get_unchecked(i).to_string())
         i = i + 1
     }
 }

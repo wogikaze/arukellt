@@ -201,7 +201,7 @@ impl File {
         let mut i: i32 = 0
         while i < count {
             let position: i32 = self.cursor + i
-            let byte: i32 = get_unchecked(data, i) & BYTE_MASK
+            let byte: i32 = data.get_unchecked(i) & BYTE_MASK
             if position < self.image.len() {
                 set(self.image, position, byte)
             } else {

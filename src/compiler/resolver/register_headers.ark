@@ -10,7 +10,7 @@ fn register_decl_headers(mut ctx: ResolveCtx, decls: Vec<AstNode>) {
     let count = decls.len()
     let mut i = 0
     while i < count {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(d) {
             scope_define::define_with_vis_span(
                 ctx,

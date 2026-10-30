@@ -42,7 +42,7 @@ pub fn lookup_stdlib_source_span(uri: String, name: String) -> SourceSpan {
             let n = extracted.len()
             let mut i = 0
             while i < n {
-                let sym = get_unchecked(extracted, i)
+                let sym = extracted.get_unchecked(i)
                 if symbol_index_record::indexed_symbol_name(sym).eq(name.clone()) {
                     return SourceSpan_found(symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
                 }

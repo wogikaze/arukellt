@@ -12,7 +12,7 @@ const INF: i32 = 1000000000
 // Zero-weight relaxations go to the front so the deque is processed in
 // nondecreasing distance order; one-weight relaxations go to the back.
 fn relax(mut queue: Deque<i32>, mut dist: Vec<i32>, to: i32, candidate: i32, weight: i32) {
-    if candidate >= get_unchecked(dist, to) {
+    if candidate >= dist.get_unchecked(to) {
         return
     }
     set(dist, to, candidate)
@@ -44,7 +44,7 @@ fn main() {
             Option::None => { break },
         }
         visits = visits + 1
-        let node_dist: i32 = get_unchecked(dist, node)
+        let node_dist: i32 = dist.get_unchecked(node)
         total = total + node_dist
         if node_dist > max_dist {
             max_dist = node_dist
@@ -93,8 +93,8 @@ fn main() {
     tail.push_back(4)
     let collected: Vec<i32> = tail.iter().collect()
     assert(collected.len() == 5)
-    assert(get_unchecked(collected, 0) == 0)
-    assert(get_unchecked(collected, 4) == 4)
+    assert(collected.get_unchecked(0) == 0)
+    assert(collected.get_unchecked(4) == 4)
     tail.clear()
     assert(tail.is_empty())
 }

@@ -136,9 +136,9 @@ fn core_emit_payload_tag_local(mut ctx: LowerCtx, scrut_idx: i32) -> i32 {
 fn core_match_has_variant_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
     let mut arm_scan = 1
     while arm_scan < core_expr_shape_accessors::mir_core_expr_child_count(expr) {
-        let scan_arm = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
+        let scan_arm = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
         if core_expr_shape_accessors::mir_core_expr_child_count(scan_arm) > 0 {
-            let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
+            let scan_pat = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
             if core_expr_shape_patterns::mir_core_expr_is_pat_variant(scan_pat) {
                 return true
             }
@@ -152,7 +152,7 @@ fn core_match_has_variant_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) ->
                 let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(scan_pat)
                 let mut or_oi = 0
                 while or_oi < alt_count {
-                    let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_pat, or_oi))
+                    let or_alt = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(scan_pat, or_oi))
                     if core_expr_shape_patterns::mir_core_expr_is_pat_variant(or_alt) {
                         return true
                     }
@@ -180,9 +180,9 @@ fn core_ident_is_unit_variant_name(name: String) -> bool {
 fn core_match_has_payload_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
     let mut arm_scan = 1
     while arm_scan < core_expr_shape_accessors::mir_core_expr_child_count(expr) {
-        let scan_arm = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
+        let scan_arm = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
         if core_expr_shape_accessors::mir_core_expr_child_count(scan_arm) > 0 {
-            let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
+            let scan_pat = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
             if core_expr_shape_patterns::mir_core_expr_is_pat_variant(scan_pat) && core_expr_shape_accessors::mir_core_expr_child_count(scan_pat) > 0 {
                 return true
             }
@@ -195,9 +195,9 @@ fn core_match_has_payload_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) ->
 fn core_match_has_record_variant_pattern(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
     let mut arm_scan = 1
     while arm_scan < core_expr_shape_accessors::mir_core_expr_child_count(expr) {
-        let scan_arm = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
+        let scan_arm = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
         if core_expr_shape_accessors::mir_core_expr_child_count(scan_arm) > 0 {
-            let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
+            let scan_pat = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
             if core_pat_is_record_variant(ctx, exprs, scan_pat) {
                 return true
             }
@@ -215,7 +215,7 @@ fn core_pat_is_record_variant(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreH
         let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
         let mut or_oi = 0
         while or_oi < alt_count {
-            let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
+            let or_alt = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
             if core_pat_is_record_variant(ctx, exprs, or_alt) {
                 return true
             }

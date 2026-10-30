@@ -14,7 +14,7 @@ fn corehir_expr_new(kind: i32, text: String, int_val: i32, float_val: f64, val_t
 }
 
 fn corehir_expr_child(expr: CoreHirExpr, index: i32) -> i32 {
-    get_unchecked(expr.children, index)
+    expr.children.get_unchecked(index)
 }
 
 fn corehir_expr_child_count(expr: CoreHirExpr) -> i32 {

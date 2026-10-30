@@ -50,7 +50,7 @@ fn main() {
 
     let mapped: Vec<i32> = values.iter().map(double).collect()
     Test::assert_eq_i32(mapped.len(), 3)
-    Test::assert_eq_i32(get_unchecked(mapped, 2), 4)
+    Test::assert_eq_i32(mapped.get_unchecked(2), 4)
     let filtered: Vec<i32> = values.iter().filter(is_even).collect()
     Test::assert_eq_i32(filtered.len(), 1)
 

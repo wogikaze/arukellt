@@ -254,7 +254,7 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
     let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
+        let block = f.blocks.get_unchecked(bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
@@ -359,7 +359,7 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
     let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
+        let block = f.blocks.get_unchecked(bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
@@ -422,7 +422,7 @@ fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32, ctx: Se
     let end = local_write_index::local_write_index_end(writes, local_idx)
     let mut wi = local_write_index::local_write_index_begin(writes, local_idx)
     while wi < end {
-        let block = get_unchecked(f.blocks, local_write_index::local_write_index_block_at(writes, wi))
+        let block = f.blocks.get_unchecked(local_write_index::local_write_index_block_at(writes, wi))
         let ii = local_write_index::local_write_index_inst_at(writes, wi)
         let inst = block_inst_access::MirBlock_inst_at(block, ii)
         let slot = enum_variant_slot_written_to_local(f, block, ii, inst, local_idx, ctx)
@@ -490,7 +490,7 @@ fn gc_struct_new_variant_slot_for_local(f: MirFunction, local_idx: i32, ctx: Sel
     let end = local_write_index::local_write_index_end(writes, local_idx)
     let mut wi = local_write_index::local_write_index_begin(writes, local_idx)
     while wi < end {
-        let block = get_unchecked(f.blocks, local_write_index::local_write_index_block_at(writes, wi))
+        let block = f.blocks.get_unchecked(local_write_index::local_write_index_block_at(writes, wi))
         let inst = block_inst_access::MirBlock_inst_at(block, local_write_index::local_write_index_inst_at(writes, wi))
         if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
             if inst_accessors_operands::MirInst_dest(inst) == local_idx {
@@ -529,9 +529,9 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         let field_idx = inst_accessors_literals::MirInst_int_val(inst)
         let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
         if type_slot >= 0 && type_slot < sigs.len() {
-            let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(get_unchecked(sigs, type_slot))
+            let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(sigs.get_unchecked(type_slot))
             if field_idx >= 0 && field_idx < fields.len() {
-                let field_sig = get_unchecked(fields, field_idx)
+                let field_sig = fields.get_unchecked(field_idx)
                 if field_sig.clone().starts_with("ref") {
                     let offset_str = field_sig.clone().slice(3, field_sig.len())
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)

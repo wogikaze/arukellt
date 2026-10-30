@@ -7,5 +7,5 @@ fn main() -> i32 {
         push(junk, i)
         i = i + 1
     }
-    if get_unchecked(values, 0) == 7 { 0 } else { 1 }
+    if values.get_unchecked(0) == 7 { 0 } else { 1 }
 }

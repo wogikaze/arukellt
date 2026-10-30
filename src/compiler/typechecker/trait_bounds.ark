@@ -74,7 +74,7 @@ fn env_type_var_has_trait_bound(env: TypeEnv, type_param_name: String, trait_nam
     let bound_count = env.current_fn_bounds.len()
     let mut i = 0
     while i < bound_count {
-        let param = get_unchecked(env.current_fn_bounds, i)
+        let param = env.current_fn_bounds.get_unchecked(i)
         if contract_type_param_bounds::TypeParamBounds_name(param).eq(type_param_name.clone()) && type_param_bounds_has_trait(param, trait_name.clone()) {
             return true
         }
@@ -100,7 +100,7 @@ fn trait_info_for_name(env: TypeEnv, trait_name: String) -> TraitInfo {
     let count = env.trait_defs.len()
     let mut i = 0
     while i < count {
-        let info = get_unchecked(env.trait_defs, i)
+        let info = env.trait_defs.get_unchecked(i)
         if names::same_type_name(contract_trait_info::trait_info_name(info), trait_name.clone()) {
             return info
         }
@@ -119,7 +119,7 @@ fn matching_trait_impl_count(
     let mut matches = 0
     let mut i = 0
     while i < count {
-        let impl_info = get_unchecked(env.trait_impls, i)
+        let impl_info = env.trait_impls.get_unchecked(i)
         if trait_impl_matches_at_depth(env, impl_info, resolved_ty, bound, depth) {
             matches = matches + 1
         }
@@ -178,7 +178,7 @@ fn impl_bounds_satisfied(
     let count = bounds.len()
     let mut i = 0
     while i < count {
-        let param = get_unchecked(bounds, i)
+        let param = bounds.get_unchecked(i)
         let actual = match_impl_param(
             self_pattern.clone(),
             resolved_ty.clone(),
@@ -251,7 +251,7 @@ fn type_args_match(impl_args: Vec<TypeInfo>, bound: TypeInfo) -> bool {
     let mut i = 0
     while i < bound_count {
         if !type_matches_pattern(
-            get_unchecked(impl_args, i),
+            impl_args.get_unchecked(i),
             contract_type_access::TypeInfo_type_arg_at(bound, i)
         ) {
             return false
@@ -333,7 +333,7 @@ fn enforce_fn_sig_bounds(mut env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_t
     let mut i = 0
     while i < tp_count {
         let tp = contract_fn_sig::FnSig_type_param_bound_at(sig, i)
-        let resolved_ty = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        let resolved_ty = unify::resolve_type(infer_env, var_types.get_unchecked(i))
         let bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(tp)
         let mut j = 0
         while j < bound_count {

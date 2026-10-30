@@ -95,7 +95,7 @@ impl<T> Clone for Vec<T> {
         let mut copy: Vec<T> = Vec::new<T>()
         let mut i: i32 = 0
         while i < self.len() {
-            copy.push(get_unchecked(self, i).clone())
+            copy.push(self.get_unchecked(i).clone())
             i = i + 1
         }
         copy
@@ -110,8 +110,8 @@ test mod "clone" {
         values.push(String_from("source"))
         let mut copy = values.clone()
         copy.set(0, String_from("copy"))
-        let original: String = get_unchecked(values, 0)
-        let copied: String = get_unchecked(copy, 0)
+        let original: String = values.get_unchecked(0)
+        let copied: String = copy.get_unchecked(0)
         assert(original.eq("source"))
         assert(copied.eq("copy"))
     }

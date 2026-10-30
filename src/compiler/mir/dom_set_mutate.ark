@@ -2,7 +2,7 @@ fn mir_push_unique_i32(mut ids: Vec<i32>, block_id: i32) {
     let pred_count = ids.len()
     let mut i = 0
     while i < pred_count {
-        if get_unchecked(ids, i) == block_id {
+        if ids.get_unchecked(i) == block_id {
             return
         }
         i = i + 1

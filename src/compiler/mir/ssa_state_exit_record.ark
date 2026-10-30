@@ -12,7 +12,7 @@ fn mir_ssa_state_pred_value_for(state: MirSsaRenameState, pred_block: i32, local
     }
     let idx = mir_ssa_state_exit_index(state, pred_block, local_id)
     if idx >= 0 && idx < state.exit_values.len() {
-        let value_id = get_unchecked(state.exit_values, idx)
+        let value_id = state.exit_values.get_unchecked(idx)
         if value_id >= 0 {
             return value_id
         }
@@ -29,7 +29,7 @@ fn mir_ssa_state_load_block_entry(mut state: MirSsaRenameState, block_id: i32) {
     while i < state.original_local_count {
         let idx = mir_ssa_state_exit_index(state, block_id, i)
         if idx >= 0 && idx < state.exit_values.len() {
-            push(next_current, get_unchecked(state.exit_values, idx))
+            push(next_current, state.exit_values.get_unchecked(idx))
         } else {
             push(next_current, 0 - 1)
         }

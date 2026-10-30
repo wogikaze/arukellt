@@ -11,8 +11,7 @@ fn is_stable_prelude_name(name: String) -> bool {
     name.clone().eq("String_from") || name.clone().eq("String_new") ||
     name.clone().eq("char_to_string") ||
     name.clone().eq("push") || name.clone().eq("pop") ||
-    name.clone().eq("get") || name.clone().eq("set") ||
-    name.clone().eq("get_unchecked")
+    name.clone().eq("get") || name.clone().eq("set")
 }
 
 test mod "prelude_stable" {
@@ -24,7 +23,7 @@ test mod "prelude_stable" {
     }
     test "intrinsic compat" {
         assert(!is_stable_prelude_name("len"))
-        assert(is_stable_prelude_name("get_unchecked"))
+        assert(!is_stable_prelude_name("get_unchecked"))
     }
     test "legacy names are not stable" {
         assert(!is_stable_prelude_name("concat"))

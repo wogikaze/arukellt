@@ -30,7 +30,7 @@ fn HirModule_function_count(module: HirModule) -> i32 {
 }
 
 fn HirModule_function_at(module: HirModule, index: i32) -> HirFunction {
-    get_unchecked(module.functions, index)
+    module.functions.get_unchecked(index)
 }
 
 fn HirModule_push_struct(mut module: HirModule, defn: HirStructDef) {

@@ -10,7 +10,7 @@ fn main() {
     push(v, 2)
     let o: Option<Vec<i32>> = Some(v)
     let sum = match o {
-        Some(xs) => get_unchecked(xs, 0) + get_unchecked(xs, 1),
+        Some(xs) => xs.get_unchecked(0) + xs.get_unchecked(1),
         None => 0,
     }
     Stdio::println(sum.to_string())

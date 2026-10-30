@@ -21,7 +21,7 @@ fn raw_array_len<T>(values: Vec<T>) -> i32 {
 }
 
 fn raw_array_get_unchecked<T>(values: Vec<T>, index: i32) -> T {
-    get_unchecked(values, index)
+    values.get_unchecked(index)
 }
 
 fn raw_array_set_unchecked<T>(mut values: Vec<T>, index: i32, value: T) {

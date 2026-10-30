@@ -39,7 +39,7 @@ fn main() {
         Stdio::eprintln("usage: arukellt compile <input> --target <target> -o <output>")
         Process::exit(1)
     }
-    let subcommand = get_unchecked(args, arg_start)
+    let subcommand = args.get_unchecked(arg_start)
     if !subcommand.clone().eq("compile") {
         Stdio::eprintln("unknown subcommand: ".concat(subcommand.clone()))
         Process::exit(1)

@@ -14,7 +14,7 @@ fn lower_core_hof_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     if hof_call_plan::mir_hof_call_plan_is_none(hof_plan) || !hof_call_plan::mir_hof_call_plan_has_min_children(hof_plan, child_count) {
         return 0 - 2
     }
-    let hof_cb_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, hof_call_plan::mir_hof_call_plan_callback_index(hof_plan)))
+    let hof_cb_expr = exprs.get_unchecked(core_expr_shape_accessors::mir_core_expr_child(expr, hof_call_plan::mir_hof_call_plan_callback_index(hof_plan)))
     let hof_fn_name = core_expr_shape_accessors::mir_core_expr_text(hof_cb_expr)
     let hof_vec_local = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
     if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_OPTION_I32()) {

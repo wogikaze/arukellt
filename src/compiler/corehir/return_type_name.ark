@@ -1,4 +1,4 @@
-use std::prelude::{get_unchecked, push}
+use std::prelude::{push}
 use std::text
 use corehir::decl_ann_children
 use corehir::decl_impl_target
@@ -162,7 +162,7 @@ fn return_declared_type_params(
     let count = method_names.len()
     let mut i = 0
     while i < count {
-        push(names, get_unchecked(method_names, i))
+        push(names, method_names.get_unchecked(i))
         i = i + 1
     }
     names

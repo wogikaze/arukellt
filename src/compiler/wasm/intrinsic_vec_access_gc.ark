@@ -56,7 +56,7 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     let mut ei = 0
     let prefix = bare.clone().concat("::")
     while ei < ev_count {
-        let nm = get_unchecked(ev_names, ei).clone()
+        let nm = ev_names.get_unchecked(ei).clone()
         if nm.clone().starts_with(prefix.clone()) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
@@ -110,7 +110,7 @@ fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
     let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
+        let block = f.blocks.get_unchecked(bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
@@ -433,7 +433,7 @@ fn build_get_unchecked_field_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i32>
             let op = inst_accessors_shape::MirInst_op(cur)
             if op == mir_opcodes::MIR_STRUCT_GET() || op == mir_opcodes::MIR_GC_STRUCT_GET() {
                 let base = inst_accessors_operands::MirInst_arg0(cur)
-                if base >= 0 && base < local_count && get_unchecked(types, base) == 0 - 2 {
+                if base >= 0 && base < local_count && types.get_unchecked(base) == 0 - 2 {
                     let byte_offset = inst_accessors_literals::MirInst_int_val(cur)
                     let size_hint = inst_accessors_operands::MirInst_arg1(cur)
                     let resolved = inst_struct_record::resolve_gc_struct_type_idx(
@@ -460,7 +460,7 @@ fn get_unchecked_field_type_at(types: Vec<i32>, local_idx: i32) -> i32 {
     if local_idx < 0 || local_idx >= types.len() {
         return 0 - 1
     }
-    get_unchecked(types, local_idx)
+    types.get_unchecked(local_idx)
 }
 
 fn call_arg_local_gets_include(block: MirBlock, call_ii: i32, local_idx: i32) -> bool {
@@ -544,7 +544,7 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
     let count = names.len()
     let mut i = 0
     while i < count {
-        if get_unchecked(names, i).clone().eq(struct_name.clone()) {
+        if names.get_unchecked(i).clone().eq(struct_name.clone()) {
             return "_f1_gcsref".concat((i).to_string())
         }
         i = i + 1
@@ -563,7 +563,7 @@ fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
     let mut ei = 0
     let prefix = bare.clone().concat("::")
     while ei < ev_count {
-        let nm = get_unchecked(ev_names, ei).clone()
+        let nm = ev_names.get_unchecked(ei).clone()
         if nm.clone().starts_with(prefix.clone()) {
             return true
         }
@@ -583,12 +583,12 @@ fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_ty
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
-        let name = get_unchecked(names, i).clone()
+        let name = names.get_unchecked(i).clone()
         if name.clone().eq("Option::Some") || name.clone().eq("Some") {
             if i < type_map.len() {
-                let variant_type = get_unchecked(type_map, i)
+                let variant_type = type_map.get_unchecked(i)
                 if variant_type != open_type {
-                    if i < sigs.len() && get_unchecked(sigs, i).clone().ends_with(field_suffix.clone()) {
+                    if i < sigs.len() && sigs.get_unchecked(i).clone().ends_with(field_suffix.clone()) {
                         return variant_type
                     }
                     if fallback < 0 {

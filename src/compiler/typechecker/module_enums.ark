@@ -8,7 +8,7 @@ fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
-        let node = get_unchecked(decls, i)
+        let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_enum_decl(node) {
             push(enum_defs, collect_enum_def(node))
         }

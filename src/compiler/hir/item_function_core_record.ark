@@ -28,7 +28,7 @@ fn hir_function_param_count(func: HirFunction) -> i32 {
 }
 
 fn hir_function_param_at(func: HirFunction, index: i32) -> HirParam {
-    get_unchecked(func.params, index)
+    func.params.get_unchecked(index)
 }
 
 fn hir_function_push_type_param(mut func: HirFunction, type_param: HirTypeParam) {
@@ -40,7 +40,7 @@ fn hir_function_type_param_count(func: HirFunction) -> i32 {
 }
 
 fn hir_function_type_param_at(func: HirFunction, index: i32) -> HirTypeParam {
-    get_unchecked(func.type_params, index)
+    func.type_params.get_unchecked(index)
 }
 
 fn hir_function_return_type(func: HirFunction) -> HirType {

@@ -91,7 +91,7 @@ fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneI
     let n = decls.len()
     let mut i = 0
     while i < n {
-        let d = get_unchecked(decls, i)
+        let d = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_use(d) || ast_decl_predicates::node_is_import(d) {
             let path = ast_access::node_text(d)
             let has_alias = ast_access::node_type_ann_count(d) > 0
@@ -117,7 +117,7 @@ fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
     let mut last_end = 0
     let mut i = 0
     while i < en {
-        let end = get_unchecked(entries, i).line_end
+        let end = entries.get_unchecked(i).line_end
         if end > last_end {
             last_end = end
         }
@@ -134,7 +134,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
     while group <= 2 {
         let mut i = 0
         while i < en {
-            let entry = get_unchecked(entries, i)
+            let entry = entries.get_unchecked(i)
             if entry.sort_group == group && import_is_used(entry.path.clone(), body.clone()) {
                 let line = text.clone().slice(entry.line_start, entry.line_end)
                 out = out.concat(line)
@@ -148,11 +148,11 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
 
 fn import_block_bounds(entries: Vec<PruneImportEntry>) -> ImportBlockSpan {
     let en = entries.len()
-    let mut first_start = get_unchecked(entries, 0).line_start
-    let mut last_end = get_unchecked(entries, 0).line_end
+    let mut first_start = entries.get_unchecked(0).line_start
+    let mut last_end = entries.get_unchecked(0).line_end
     let mut i = 1
     while i < en {
-        let entry = get_unchecked(entries, i)
+        let entry = entries.get_unchecked(i)
         if entry.line_start < first_start {
             first_start = entry.line_start
         }

@@ -35,7 +35,7 @@ fn gc_vec_elem_is_registered_struct(ctx: SelfEmitCtx, elem: String) -> bool {
     let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
     let mut i = 0
     while i < names.len() {
-        if get_unchecked(names, i).clone().eq(elem.clone()) {
+        if names.get_unchecked(i).clone().eq(elem.clone()) {
             return true
         }
         i = i + 1

@@ -57,7 +57,7 @@ pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<Module
     let n = indexed.len()
     let mut i = 0
     while i < n {
-        let uri = get_unchecked(indexed, i)
+        let uri = indexed.get_unchecked(i)
         if !uri.clone().eq(current_uri.clone()) {
             let text = module_text_for_uri(state, uri.clone())
             if text.len() > 0 {
@@ -80,13 +80,13 @@ pub fn build_resolve_modules_with_prelude(state: LspState, current_uri: String) 
     let pn = prelude_modules.len()
     let mut pi = 0
     while pi < pn {
-        push(combined, get_unchecked(prelude_modules, pi))
+        push(combined, prelude_modules.get_unchecked(pi))
         pi = pi + 1
     }
     let mn = project_modules.len()
     let mut mi = 0
     while mi < mn {
-        push(combined, get_unchecked(project_modules, mi))
+        push(combined, project_modules.get_unchecked(mi))
         mi = mi + 1
     }
     combined

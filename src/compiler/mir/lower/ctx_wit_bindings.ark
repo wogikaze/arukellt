@@ -3,7 +3,7 @@
 use mir::lower::ctx_types
 fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
     for i in 0..ctx.wit_call_names.len() {
-        if get_unchecked(ctx.wit_call_names, i).eq(qualified_name.clone()) {
+        if ctx.wit_call_names.get_unchecked(i).eq(qualified_name.clone()) {
             return i
         }
     }
@@ -11,9 +11,9 @@ fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
 }
 
 fn ctx_wit_call_iface(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.wit_call_iface_ids, index).clone()
+    ctx.wit_call_iface_ids.get_unchecked(index).clone()
 }
 
 fn ctx_wit_call_func(ctx: LowerCtx, index: i32) -> String {
-    get_unchecked(ctx.wit_call_func_names, index).clone()
+    ctx.wit_call_func_names.get_unchecked(index).clone()
 }

@@ -200,7 +200,7 @@ fn mir_inst_table_append_result_types(mut table: MirInstTable, result_types: Vec
     push(table.result_type_counts, result_types.len())
     let mut i = 0
     while i < result_types.len() {
-        let value_type = get_unchecked(result_types, i)
+        let value_type = result_types.get_unchecked(i)
         push(table.result_type_ids, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type)))
         push(table.result_type_reprs, mir_value_type::mir_value_type_repr(value_type))
         push(table.result_type_nullabilities, mir_value_type::mir_value_type_nullability(value_type))
@@ -362,30 +362,30 @@ fn mir_inst_table_append_scalar_result_type(
 }
 
 fn mir_inst_table_op(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.op, hid)
+    table.op.get_unchecked(hid)
 }
 
 fn mir_inst_table_dest(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.dest, hid)
+    table.dest.get_unchecked(hid)
 }
 
 fn mir_inst_table_arg0(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.arg0, hid)
+    table.arg0.get_unchecked(hid)
 }
 
 fn mir_inst_table_arg1(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.arg1, hid)
+    table.arg1.get_unchecked(hid)
 }
 
 fn mir_inst_table_int_val(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.int_val, hid)
+    table.int_val.get_unchecked(hid)
 }
 
 fn mir_inst_table_float_val(table: MirInstTable, hid: i32) -> f64 {
     let offset = hid * 2
     let bits = MirFloatBits_from_parts(
-        get_unchecked(table.float_val, offset),
-        get_unchecked(table.float_val, offset + 1)
+        table.float_val.get_unchecked(offset),
+        table.float_val.get_unchecked(offset + 1)
     )
     mir_float_bits_value(bits)
 }
@@ -417,37 +417,37 @@ fn mir_inst_table_set_string_pool(mut table: MirInstTable, string_pool: Vec<Stri
 }
 
 fn mir_inst_table_str_val(table: MirInstTable, hid: i32) -> String {
-    let string_id = get_unchecked(table.metadata, hid * 3)
+    let string_id = table.metadata.get_unchecked(hid * 3)
     if string_id < 0 || string_id >= table.string_pool.len() {
         return String_new()
     }
-    get_unchecked(table.string_pool, string_id).clone()
+    table.string_pool.get_unchecked(string_id).clone()
 }
 
 fn mir_inst_table_str_id(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.metadata, hid * 3)
+    table.metadata.get_unchecked(hid * 3)
 }
 
 fn mir_inst_table_val_type(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.metadata, hid * 3 + 1)
+    table.metadata.get_unchecked(hid * 3 + 1)
 }
 
 fn mir_inst_table_func_id_raw(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.metadata, hid * 3 + 2)
+    table.metadata.get_unchecked(hid * 3 + 2)
 }
 
 fn mir_inst_table_result_types(table: MirInstTable, hid: i32) -> Vec<MirValueType> {
     let mut result = Vec::new<MirValueType>()
-    let start = get_unchecked(table.result_type_starts, hid)
-    let count = get_unchecked(table.result_type_counts, hid)
+    let start = table.result_type_starts.get_unchecked(hid)
+    let count = table.result_type_counts.get_unchecked(hid)
     let mut i = 0
     while i < count {
         push(
             result,
             MirValueType_new_from_columns(
-                get_unchecked(table.result_type_ids, start + i),
-                get_unchecked(table.result_type_reprs, start + i),
-                get_unchecked(table.result_type_nullabilities, start + i)
+                table.result_type_ids.get_unchecked(start + i),
+                table.result_type_reprs.get_unchecked(start + i),
+                table.result_type_nullabilities.get_unchecked(start + i)
             )
         )
         i = i + 1
@@ -456,15 +456,15 @@ fn mir_inst_table_result_types(table: MirInstTable, hid: i32) -> Vec<MirValueTyp
 }
 
 fn mir_inst_table_result_type_count(table: MirInstTable, hid: i32) -> i32 {
-    get_unchecked(table.result_type_counts, hid)
+    table.result_type_counts.get_unchecked(hid)
 }
 
 fn mir_inst_table_result_type_at(table: MirInstTable, hid: i32, index: i32) -> MirValueType {
-    let start = get_unchecked(table.result_type_starts, hid)
+    let start = table.result_type_starts.get_unchecked(hid)
     MirValueType_new_from_columns(
-        get_unchecked(table.result_type_ids, start + index),
-        get_unchecked(table.result_type_reprs, start + index),
-        get_unchecked(table.result_type_nullabilities, start + index)
+        table.result_type_ids.get_unchecked(start + index),
+        table.result_type_reprs.get_unchecked(start + index),
+        table.result_type_nullabilities.get_unchecked(start + index)
     )
 }
 
@@ -499,7 +499,7 @@ fn mir_inst_table_string_id(mut table: MirInstTable, value: String) -> i32 {
     }
     let mut i = 0
     while i < table.string_pool.len() {
-        if get_unchecked(table.string_pool, i).clone().eq(value.clone()) {
+        if table.string_pool.get_unchecked(i).clone().eq(value.clone()) {
             return i
         }
         i = i + 1
@@ -514,13 +514,13 @@ fn mir_inst_table_set_func_id_raw(mut table: MirInstTable, hid: i32, func_id_raw
 }
 
 fn mir_inst_table_set_result_types(mut table: MirInstTable, hid: i32, result_types: Vec<MirValueType>) {
-    let old_start = get_unchecked(table.result_type_starts, hid)
-    let old_count = get_unchecked(table.result_type_counts, hid)
+    let old_start = table.result_type_starts.get_unchecked(hid)
+    let old_count = table.result_type_counts.get_unchecked(hid)
     let new_count = result_types.len()
     if old_count == new_count {
         let mut i = 0
         while i < new_count {
-            let value_type = get_unchecked(result_types, i)
+            let value_type = result_types.get_unchecked(i)
             set(table.result_type_ids, old_start + i, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type)))
             set(table.result_type_reprs, old_start + i, mir_value_type::mir_value_type_repr(value_type))
             set(table.result_type_nullabilities, old_start + i, mir_value_type::mir_value_type_nullability(value_type))
@@ -532,7 +532,7 @@ fn mir_inst_table_set_result_types(mut table: MirInstTable, hid: i32, result_typ
     set(table.result_type_counts, hid, new_count)
     let mut i = 0
     while i < new_count {
-        let value_type = get_unchecked(result_types, i)
+        let value_type = result_types.get_unchecked(i)
         push(table.result_type_ids, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type)))
         push(table.result_type_reprs, mir_value_type::mir_value_type_repr(value_type))
         push(table.result_type_nullabilities, mir_value_type::mir_value_type_nullability(value_type))

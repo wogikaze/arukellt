@@ -5,7 +5,7 @@ fn MirBlock_pred_count(block: MirBlock) -> i32 {
 }
 
 fn MirBlock_pred_at(block: MirBlock, idx: i32) -> i32 {
-    get_unchecked(block.preds, idx)
+    block.preds.get_unchecked(idx)
 }
 
 fn MirBlock_preds(block: MirBlock) -> Vec<i32> {

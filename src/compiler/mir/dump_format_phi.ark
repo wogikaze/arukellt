@@ -9,7 +9,7 @@ fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
     let mut out = "["
     let mut i = 0
     while i < count {
-        let arg = get_unchecked(args, i)
+        let arg = args.get_unchecked(i)
         if i > 0 {
             out = out.concat(", ")
         }

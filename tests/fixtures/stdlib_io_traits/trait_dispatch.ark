@@ -64,8 +64,8 @@ fn read_report<T: io::Read>(mut source: T) -> Result<ReadReport, io::IoError> {
         Result::Ok(chunk) => chunk,
         Result::Err(err) => return Err(err),
     }
-    let first_byte: i32 = if first.len() > 0 { get_unchecked(first, 0) } else { 0 }
-    let rest_byte: i32 = if rest.len() > 0 { get_unchecked(rest, 0) } else { 0 }
+    let first_byte: i32 = if first.len() > 0 { first.get_unchecked(0) } else { 0 }
+    let rest_byte: i32 = if rest.len() > 0 { rest.get_unchecked(0) } else { 0 }
     Ok(ReadReport {
             first_len: first.len(),
             first_byte: first_byte,

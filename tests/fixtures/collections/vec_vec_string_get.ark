@@ -7,7 +7,7 @@ fn main() {
     push(inner, String_from("ok"))
     push(outer, inner)
     match get(outer, 0) {
-        Some(row) => Stdio::println(get_unchecked(row, 0)),
+        Some(row) => Stdio::println(row.get_unchecked(0)),
         None => Stdio::println("none"),
     }
 }

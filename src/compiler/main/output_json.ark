@@ -11,7 +11,7 @@ pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnost
         if i > 0 {
             out = out.concat(",")
         }
-        let d = get_unchecked(diagnostics_vec, i)
+        let d = diagnostics_vec.get_unchecked(i)
         out = out.concat(mod::diagnostic_to_json(d))
         i = i + 1
     }

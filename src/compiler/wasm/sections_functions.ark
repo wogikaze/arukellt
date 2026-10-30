@@ -44,7 +44,7 @@ fn emit_function_section(
 fn emit_linear_gc_function_type_entries(mut func_sec: WasmWriter, type_map: Vec<i32>) {
     let mut i = 0
     while i < type_map.len() {
-        writer_core::emit_leb128_u(func_sec, get_unchecked(type_map, i))
+        writer_core::emit_leb128_u(func_sec, type_map.get_unchecked(i))
         i = i + 1
     }
 }
@@ -52,7 +52,7 @@ fn emit_linear_gc_function_type_entries(mut func_sec: WasmWriter, type_map: Vec<
 fn emit_library_wrapper_function_type_entries(mut func_sec: WasmWriter, wrapper_type_map: Vec<i32>) {
     let mut i = 0
     while i < wrapper_type_map.len() {
-        writer_core::emit_leb128_u(func_sec, get_unchecked(wrapper_type_map, i))
+        writer_core::emit_leb128_u(func_sec, wrapper_type_map.get_unchecked(i))
         i = i + 1
     }
 }
@@ -60,7 +60,7 @@ fn emit_library_wrapper_function_type_entries(mut func_sec: WasmWriter, wrapper_
 fn emit_function_type_entries(mut func_sec: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>) {
     let mut fi = 0
     while fi < fn_count {
-        let mapped_type = get_unchecked(fn_type_map, fi)
+        let mapped_type = fn_type_map.get_unchecked(fi)
         writer_core::emit_leb128_u(func_sec, mapped_type)
         fi = fi + 1
     }
@@ -75,7 +75,7 @@ fn emit_wrapper_function_type_entry(mut func_sec: WasmWriter, needs_wrapper: i32
 fn emit_library_post_function_type_entries(mut func_sec: WasmWriter, post_type_map: Vec<i32>) {
     let mut i = 0
     while i < post_type_map.len() {
-        writer_core::emit_leb128_u(func_sec, get_unchecked(post_type_map, i))
+        writer_core::emit_leb128_u(func_sec, post_type_map.get_unchecked(i))
         i = i + 1
     }
 }

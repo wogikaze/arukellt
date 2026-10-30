@@ -10,7 +10,7 @@ fn main() {
     let o: Option<Vec<fn(i32) -> i32>> = Some(fs)
     match o {
         Some(v) => {
-            let f = get_unchecked(v, 0)
+            let f = v.get_unchecked(0)
             Stdio::println((f(5)).to_string())
         }
         None => Stdio::println(String_from("none")),

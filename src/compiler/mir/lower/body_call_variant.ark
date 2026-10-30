@@ -120,7 +120,7 @@ fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
         let inner = expected.clone().slice(7, expected.len() - 1)
         let parts = mir_expected_enum_split_args(inner)
         if which >= 1 && which <= parts.len() {
-            return get_unchecked(parts, which - 1)
+            return parts.get_unchecked(which - 1)
         }
         return String_new()
     }

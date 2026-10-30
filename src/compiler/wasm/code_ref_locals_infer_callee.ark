@@ -256,7 +256,7 @@ fn named_ret_head_registers_enum_variants(ctx: SelfEmitCtx, name: String) -> boo
     let variants = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut vi = 0
     while vi < variants.len() {
-        let variant = get_unchecked(variants, vi)
+        let variant = variants.get_unchecked(vi)
         if variant.clone().starts_with(head.clone().concat(String_from("::"))) ||
         variant.clone().contains(String_from("::").concat(head.clone().concat(String_from("::")))) {
             return true
@@ -331,7 +331,7 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     if bare.len() > 0 {
         let candidate_index = ctx_record::SelfEmitCtx_gc_struct_index_by_module_stripped_name(ctx, bare)
         if candidate_index >= 0 {
-            let candidate = get_unchecked(ctx_record::SelfEmitCtx_gc_struct_names(ctx), candidate_index)
+            let candidate = ctx_record::SelfEmitCtx_gc_struct_names(ctx).get_unchecked(candidate_index)
             return Option::Some(
                 ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, candidate.clone())
             )

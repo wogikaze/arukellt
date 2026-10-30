@@ -45,7 +45,7 @@ fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
     let mut has_cell = 0
     let mut i = 0
     while i < cap_n {
-        if get_unchecked(rebind_flags, i) != 0 {
+        if rebind_flags.get_unchecked(i) != 0 {
             has_cell = 1
         }
         i = i + 1
@@ -67,11 +67,11 @@ fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
     let mut off = 0
     let mut ci = 0
     while ci < cap_n {
-        let cvt = get_unchecked(cap_vts, ci)
-        if get_unchecked(rebind_flags, ci) != 0 {
+        let cvt = cap_vts.get_unchecked(ci)
+        if rebind_flags.get_unchecked(ci) != 0 {
             let cap_li = ctx_api_local_alloc::ctx_lookup_local(
                 ctx,
-                get_unchecked(caps, ci).clone()
+                caps.get_unchecked(ci).clone()
             )
             ctx_register_env_cell(
                 ctx,
@@ -127,15 +127,15 @@ fn ctx_emit_closure_writeback(mut ctx: LowerCtx, synth: String) {
     }
     let mut i = 0
     while i < ctx.wb_synths.len() {
-        if get_unchecked(ctx.wb_synths, i).eq(synth.clone()) {
+        if ctx.wb_synths.get_unchecked(i).eq(synth.clone()) {
             ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
-                    get_unchecked(ctx.wb_env_lis, i),
-                    get_unchecked(ctx.wb_env_names, i).clone(),
-                    get_unchecked(ctx.wb_offsets, i),
-                    get_unchecked(ctx.wb_field_indices, i),
-                    get_unchecked(ctx.wb_totals, i),
-                    get_unchecked(ctx.wb_vts, i),
-                    get_unchecked(ctx.wb_src_lis, i)
+                    ctx.wb_env_lis.get_unchecked(i),
+                    ctx.wb_env_names.get_unchecked(i).clone(),
+                    ctx.wb_offsets.get_unchecked(i),
+                    ctx.wb_field_indices.get_unchecked(i),
+                    ctx.wb_totals.get_unchecked(i),
+                    ctx.wb_vts.get_unchecked(i),
+                    ctx.wb_src_lis.get_unchecked(i)
                 ))
         }
         i = i + 1

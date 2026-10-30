@@ -27,7 +27,7 @@ fn trait_info_associated_type_count(info: TraitInfo) -> i32 {
 }
 
 fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
-    get_unchecked(info.associated_type_names, index).clone()
+    info.associated_type_names.get_unchecked(index).clone()
 }
 
 fn trait_info_push_associated_type(mut info: TraitInfo, name: String) {
@@ -39,7 +39,7 @@ fn trait_info_supertrait_count(info: TraitInfo) -> i32 {
 }
 
 fn trait_info_supertrait_at(info: TraitInfo, index: i32) -> String {
-    get_unchecked(info.supertrait_names, index).clone()
+    info.supertrait_names.get_unchecked(index).clone()
 }
 
 fn trait_info_push_supertrait(mut info: TraitInfo, name: String) {

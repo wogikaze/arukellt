@@ -25,7 +25,7 @@ fn decl_site_count(index: RefIndex) -> i32 {
 }
 
 fn decl_site_at(index: RefIndex, i: i32) -> DeclSite {
-    get_unchecked(index.decl_sites, i)
+    index.decl_sites.get_unchecked(i)
 }
 
 fn use_site_count(index: RefIndex) -> i32 {
@@ -33,7 +33,7 @@ fn use_site_count(index: RefIndex) -> i32 {
 }
 
 fn use_site_at(index: RefIndex, i: i32) -> UseSite {
-    get_unchecked(index.use_sites, i)
+    index.use_sites.get_unchecked(i)
 }
 
 fn find_decl_index_at_offset(index: RefIndex, offset: i32) -> i32 {

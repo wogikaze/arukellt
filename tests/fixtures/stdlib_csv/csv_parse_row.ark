@@ -5,14 +5,14 @@ fn main() {
     let row1 = csv::Csv::parse_row("name,age,city")
     let mut i = 0
     while i < row1.len() {
-        Stdio::println(get_unchecked(row1, i))
+        Stdio::println(row1.get_unchecked(i))
         i = i + 1
     }
     Stdio::println("---")
     let row2 = csv::Csv::parse_row("\"Smith, John\",30,\"New York\"")
     let mut j = 0
     while j < row2.len() {
-        Stdio::println(get_unchecked(row2, j))
+        Stdio::println(row2.get_unchecked(j))
         j = j + 1
     }
     Stdio::println("---")

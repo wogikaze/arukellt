@@ -5,10 +5,10 @@ fn issue651_flags_parse_self_check() -> bool {
     if members.len() != 2 {
         return false
     }
-    if !get_unchecked(members, 0).eq("read") {
+    if !members.get_unchecked(0).eq("read") {
         return false
     }
-    if !get_unchecked(members, 1).eq("write") {
+    if !members.get_unchecked(1).eq("write") {
         return false
     }
     let doc = component::parse_wit_import_file("tests/fixtures/component/import_flags_type.wit")
@@ -21,7 +21,7 @@ fn issue651_flags_parse_self_check() -> bool {
     if doc.funcs.len() != 1 {
         return false
     }
-    let func = get_unchecked(doc.funcs, 0)
+    let func = doc.funcs.get_unchecked(0)
     if !func.wit_name.clone().eq("set-perms") {
         return false
     }
@@ -31,5 +31,5 @@ fn issue651_flags_parse_self_check() -> bool {
     if func.param_wit_types.len() != 1 {
         return false
     }
-    wit_parse_flags::wit_is_flags_type(get_unchecked(func.param_wit_types, 0))
+    wit_parse_flags::wit_is_flags_type(func.param_wit_types.get_unchecked(0))
 }
