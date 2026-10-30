@@ -50,6 +50,66 @@ class CoreOpsCheckerTest(unittest.TestCase):
     def _op(self, op_id: str) -> dict:
         return next(op for op in self.core_ops["operations"] if op["id"] == op_id)
 
+    @staticmethod
+    def _generic_identity_op() -> dict:
+        """Synthetic generic CoreOp: `fn(Vec<T>) -> Vec<T>`."""
+        return {
+            "id": "vec.identity",
+            "visibility": "public",
+            "classification": {"layer": "semantic_stdlib"},
+            "binding": {"policy": "required"},
+            "signature": {
+                "generic_params": ["T"],
+                "inputs": [
+                    {"name": "value", "type": {"kind": "ref", "name": "vec", "args": [{"kind": "var", "name": "T"}]}}
+                ],
+                "outputs": [
+                    {"type": {"kind": "ref", "name": "vec", "args": [{"kind": "var", "name": "T"}]}}
+                ],
+            },
+            "lowering": {"kind": "normal_call"},
+            "fallback": {"required": True, "implementation_symbol": "core.impl.vec_identity"},
+            "semantics": {
+                "const_evaluable": True, "overflow": "none", "nan": "none", "trap": "none", "equivalence": "exact_bitwise"
+            },
+            "effect": {
+                "memory": "none", "allocates": False, "may_trap": False, "noreturn": False,
+                "external_io": False, "nondeterminism": "deterministic", "atomic": False, "volatile": False,
+            },
+            "inline": {"policy": "hint"},
+        }
+
+    def _bind_manifest_function(
+        self,
+        core_op_id: str,
+        *,
+        name: str,
+        params: list[str],
+        returns: str,
+        module: str | None = None,
+        generic_params: list[str] | None = None,
+    ) -> None:
+        """Append a manifest binding for a CoreOp.
+
+        The live manifest declares no `core_op_id` after #917 retired the public
+        string and collection frees, so rules that need a manifest reference
+        synthesize one instead of relying on live data.
+        """
+        fn: dict = {
+            "name": name,
+            "core_op_id": core_op_id,
+            "params": params,
+            "returns": returns,
+        }
+        if module is not None:
+            fn["module"] = module
+        else:
+            fn["kind"] = "prelude_wrapper"
+            fn["prelude"] = True
+        if generic_params is not None:
+            fn["generic_params"] = generic_params
+        self.manifest["functions"].append(fn)
+
     def test_pass_scaffold_default(self) -> None:
         self.assertEqual(self._run(), [])
 
@@ -69,74 +129,26 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("generic_params" in e and "list" in e for e in errors))
 
     def test_generic_signature_roundtrip(self) -> None:
-        identity = {
-            "id": "vec.identity",
-            "visibility": "public",
-            "classification": {"layer": "semantic_stdlib"},
-            "binding": {"policy": "required"},
-            "signature": {
-                "generic_params": ["T"],
-                "inputs": [
-                    {"name": "value", "type": {"kind": "ref", "name": "vec", "args": [{"kind": "var", "name": "T"}]}}
-                ],
-                "outputs": [
-                    {"type": {"kind": "ref", "name": "vec", "args": [{"kind": "var", "name": "T"}]}}
-                ],
-            },
-            "lowering": {"kind": "normal_call"},
-            "fallback": {"required": True, "implementation_symbol": "core.impl.vec_identity"},
-            "semantics": {
-                "const_evaluable": True, "overflow": "none", "nan": "none", "trap": "none", "equivalence": "exact_bitwise"
-            },
-            "effect": {
-                "memory": "none", "allocates": False, "may_trap": False, "noreturn": False,
-                "external_io": False, "nondeterminism": "deterministic", "atomic": False, "volatile": False,
-            },
-            "inline": {"policy": "hint"},
-        }
-        self.core_ops["operations"].append(identity)
-        for fn in self.manifest["functions"]:
-            if fn.get("name") == "starts_with" and fn.get("module") == "std::text":
-                fn["core_op_id"] = "vec.identity"
-                fn["generic_params"] = ["T"]
-                fn["params"] = ["Vec<T>"]
-                fn["returns"] = "Vec<T>"
-                break
+        self.core_ops["operations"].append(self._generic_identity_op())
+        self._bind_manifest_function(
+            "vec.identity",
+            name="identity",
+            module="std::vec",
+            params=["Vec<T>"],
+            returns="Vec<T>",
+            generic_params=["T"],
+        )
         self.assertEqual(self._run(), [])
 
     def test_generic_manifest_without_generic_params_fails(self) -> None:
-        identity = {
-            "id": "vec.identity",
-            "visibility": "public",
-            "classification": {"layer": "semantic_stdlib"},
-            "binding": {"policy": "required"},
-            "signature": {
-                "generic_params": ["T"],
-                "inputs": [
-                    {"name": "value", "type": {"kind": "ref", "name": "vec", "args": [{"kind": "var", "name": "T"}]}}
-                ],
-                "outputs": [
-                    {"type": {"kind": "ref", "name": "vec", "args": [{"kind": "var", "name": "T"}]}}
-                ],
-            },
-            "lowering": {"kind": "normal_call"},
-            "fallback": {"required": True, "implementation_symbol": "core.impl.vec_identity"},
-            "semantics": {
-                "const_evaluable": True, "overflow": "none", "nan": "none", "trap": "none", "equivalence": "exact_bitwise"
-            },
-            "effect": {
-                "memory": "none", "allocates": False, "may_trap": False, "noreturn": False,
-                "external_io": False, "nondeterminism": "deterministic", "atomic": False, "volatile": False,
-            },
-            "inline": {"policy": "hint"},
-        }
-        self.core_ops["operations"].append(identity)
-        for fn in self.manifest["functions"]:
-            if fn.get("name") == "starts_with" and fn.get("module") == "std::text":
-                fn["core_op_id"] = "vec.identity"
-                fn["params"] = ["Vec<T>"]
-                fn["returns"] = "Vec<T>"
-                break
+        self.core_ops["operations"].append(self._generic_identity_op())
+        self._bind_manifest_function(
+            "vec.identity",
+            name="identity",
+            module="std::vec",
+            params=["Vec<T>"],
+            returns="Vec<T>",
+        )
         errors = self._run()
         self.assertTrue(any("unknown type identifier" in e for e in errors))
 
@@ -147,8 +159,18 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("tracking_issue" in e for e in errors))
 
     def test_internal_forbidden_with_manifest_ref(self) -> None:
-        self.core_ops["operations"][0]["visibility"] = "internal"
-        self.core_ops["operations"][0]["binding"] = {"policy": "forbidden"}
+        op = copy.deepcopy(self._op("string.starts_with"))
+        op["id"] = "test.internal_bound"
+        op["visibility"] = "internal"
+        op["binding"] = {"policy": "forbidden"}
+        self.core_ops["operations"].append(op)
+        self._bind_manifest_function(
+            "test.internal_bound",
+            name="internal_bound",
+            module="test::fixture",
+            params=["String", "String"],
+            returns="bool",
+        )
         errors = self._run()
         self.assertTrue(any("internal operation must not be referenced" in e for e in errors))
 
@@ -202,7 +224,7 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("semantics.trap" in e for e in errors))
 
     def test_when_value_invalid(self) -> None:
-        self.core_ops["operations"][3]["specializations"][0]["when"]["portable_simd_lowering"] = "ScalarFallback"
+        self._op("simd.i32x4.add")["specializations"][0]["when"]["portable_simd_lowering"] = "ScalarFallback"
         errors = self._run()
         self.assertTrue(any("ScalarFallback" in e or "portable_simd_lowering" in e for e in errors))
 
@@ -212,10 +234,13 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("portable_simd_lowering" in e and "capability" in e for e in errors))
 
     def test_unknown_manifest_type_identifier(self) -> None:
-        for fn in self.manifest["functions"]:
-            if fn.get("core_op_id") == "string.starts_with":
-                fn["params"] = ["Banana", "String"]
-                break
+        self._bind_manifest_function(
+            "string.starts_with",
+            name="starts_with",
+            module="test::fixture",
+            params=["Banana", "String"],
+            returns="bool",
+        )
         errors = self._run()
         self.assertTrue(any("unknown type identifier" in e for e in errors))
 
@@ -263,27 +288,27 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("generic args" in e for e in errors))
 
     def test_public_symbol_collision(self) -> None:
-        # Add a duplicate prelude::panic entry pointing to a different CoreOpId.
-        self.manifest["functions"].append({
-            "name": "panic",
-            "kind": "prelude_wrapper",
-            "prelude": True,
-            "core_op_id": "string.starts_with",
-            "params": ["String"],
-            "returns": "()",
-        })
+        # The same public symbol must not resolve to two different CoreOpIds.
+        for core_op_id in ("string.starts_with", "string.ends_with"):
+            self._bind_manifest_function(
+                core_op_id,
+                name="collide",
+                params=["String", "String"],
+                returns="bool",
+            )
         errors = self._run()
         self.assertTrue(any("public symbol" in e for e in errors))
 
     def test_specialization_ambiguity(self) -> None:
-        spec = copy.deepcopy(self.core_ops["operations"][3]["specializations"][0])
+        op = self._op("simd.i32x4.add")
+        spec = copy.deepcopy(op["specializations"][0])
         spec["when"] = {"backend": "wasm"}
-        self.core_ops["operations"][3]["specializations"].append(spec)
+        op["specializations"].append(spec)
         errors = self._run()
         self.assertTrue(any("ambiguity" in e for e in errors))
 
     def test_when_cross_axis_invalid(self) -> None:
-        self.core_ops["operations"][3]["specializations"][0]["when"]["target_family"] = "native"
+        self._op("simd.i32x4.add")["specializations"][0]["when"]["target_family"] = "native"
         errors = self._run()
         self.assertTrue(any("target_family" in e and "backend" in e for e in errors))
 
@@ -331,10 +356,7 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("not_a_type" in e for e in errors))
 
     def test_manifest_core_op_id_not_found(self) -> None:
-        for fn in self.manifest["functions"]:
-            if fn.get("core_op_id") == "string.starts_with":
-                fn["core_op_id"] = "not_an_op"
-                break
+        self._bind_manifest_function("not_an_op", name="missing", module="test::fixture", params=[], returns="()")
         errors = self._run()
         self.assertTrue(any("not_an_op" in e for e in errors))
 

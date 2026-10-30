@@ -21,37 +21,41 @@ through `FunctionId → SignatureEntry → CoreOpId`, while explicitly tracked
 | Public path, docs, stability, deprecation | `std/manifest.toml` |
 | Migration compatibility aliases | `data/core-ops.toml` `legacy_bindings` (resolver boundary only; removal #818) |
 
-`std/manifest.toml` entries may reference `core-ops.toml` via `core_op_id`
-(for `[[functions]]`) and `type_id` (for `[[types]]`). Example:
+`std/manifest.toml` `[[types]]` entries may reference `core-ops.toml` via
+`type_id`. Example:
 
 ```toml
-# std/manifest.toml (illustrative)
+# std/manifest.toml
 [[types]]
 name = "String"
+kind = "struct"
 type_id = "string"
 stability = "stable"
 
-[[functions]]
-name = "starts_with"
-module = "std::text"
-core_op_id = "string.starts_with"
-stability = "stable"
-
-[[functions]]
-name = "starts_with"
-kind = "prelude_wrapper"
-core_op_id = "string.starts_with"
+[[types]]
+name = "Vec"
+kind = "struct"
+type_id = "vec"
+generic_params = ["T"]
 stability = "stable"
 ```
 
-The compiler consumes `core_op_id` / `type_id` references and attaches the
-resolved `CoreOpId` to `SignatureEntry`. Backend helpers receive generated
-integer handler IDs and do not interpret alias strings.
+The checker also accepts an optional `core_op_id` link on `[[functions]]`
+entries and validates it when present, but no current entry declares one: #917
+retired the public string and collection frees, so method-only surfaces such as
+`String::starts_with` are declared `binding.policy = "optional"` with a reason
+and tracking issue instead of a manifest reference.
 
-A single `CoreOpId` may be referenced by multiple public bindings (e.g.
-`prelude::starts_with` and `std::text::starts_with`). All public bindings of
-the same `CoreOpId` must be consistent with the canonical `signature` in
-`core-ops.toml`.
+The compiler resolves `CoreOpId` through the generated binding table
+(`legacy_bindings` aliases plus fallback symbols, emitted into
+`src/compiler/corehir/core_op_binding_generated.ark`) and through
+receiver-owner method dispatch. Backend helpers receive generated integer
+handler IDs and do not interpret alias strings.
+
+Several callee spellings may resolve to the same `CoreOpId` (for example
+`slice`, `string_slice`, and `substring` for `string.slice`). Those aliases are
+name mappings only; the canonical `signature` in `core-ops.toml` is the single
+definition.
 
 ## Registry schema
 

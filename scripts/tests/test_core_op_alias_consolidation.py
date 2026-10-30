@@ -36,7 +36,10 @@ class AliasConsolidationTests(unittest.TestCase):
             self.assertEqual(self.alias_map[alias], "runtime.process.abort")
 
     def test_string_slice_aliases_share_core_op(self) -> None:
-        for alias in ("slice", "substring", "text::slice_bytes", "__intrinsic_string_slice"):
+        # `text::slice_bytes` is retired (#917) and only the `String` method
+        # remains, so the consolidated spellings are the internal callees and
+        # the legacy free-function aliases.
+        for alias in ("slice", "substring", "string_slice", "__intrinsic_string_slice", "__core_string_slice_impl"):
             self.assertEqual(self.alias_map[alias], "string.slice")
 
     def test_aliases_are_consolidated_onto_fewer_core_ops(self) -> None:
