@@ -8,15 +8,27 @@ fn answer() -> i32 {
     42
 }
 
+fn answer_arg(_ignored: i32) -> i32 {
+    42
+}
+
 fn apply0(f: fn() -> i32) -> i32 {
     f()
 }
 
 fn main() {
+    // The supported HashMap fn family stores fn(i32) -> i32 values, so this
+    // lane uses a matching callee. Zero-argument function values are covered
+    // by the Option payload, apply0, and FnHolder below.
     let mut m = HashMap::new<i32, fn(i32) -> i32>()
-    let _ = m.insert(1, answer)
+    let _ = m.insert(1, answer_arg)
     match m.get(1) {
-        Some(f) => stdio::println((f()).to_string()),
+        Some(f) => stdio::println((f(0)).to_string()),
+        None => stdio::println("missing"),
+    }
+    let opt: Option<fn() -> i32> = Option::Some(answer)
+    match opt {
+        Some(g) => stdio::println((g()).to_string()),
         None => stdio::println("missing"),
     }
     stdio::println(apply0(answer).to_string())

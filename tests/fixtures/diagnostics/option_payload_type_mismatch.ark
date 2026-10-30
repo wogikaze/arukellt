@@ -1,0 +1,20 @@
+// The payload bind of Option<Point> is Point, not an unknown the checker can
+// unify with i32. Binding it to a scalar must be rejected instead of emitting
+// a struct as an i32 local (#933 follow-up).
+
+use std::host::stdio
+
+struct Point {
+    x: i32,
+}
+
+fn main() {
+    let point: Option<Point> = Option::Some(Point { x: 3 })
+    match point {
+        Option::Some(value) => {
+            let scalar: i32 = value
+            stdio::println(scalar.to_string())
+        }
+        Option::None => {}
+    }
+}

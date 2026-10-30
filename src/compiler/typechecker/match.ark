@@ -187,6 +187,11 @@ fn builtin_variant_payload_type(scrutinee_ty: TypeInfo, variant_name: String, pa
             return contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, 1)
         }
     }
+    if tag == commands::TY_OPTION() {
+        if variant.clone().eq(String_from("Some")) && payload_index == 0 && arg_count > 0 {
+            return contract_type_access::TypeInfo_type_arg_at(scrutinee_ty, 0)
+        }
+    }
     return TypeInfo_simple(commands::TY_UNKNOWN())
 }
 
