@@ -481,9 +481,9 @@ associated-function lowering selects
 `Vec_String::from_iter__FilterIter_String`, producing valid GC references and
 linear-memory handles on the respective backends. A `T: Iterator` helper
 monomorphizes the same String source to the matching `FromIterator` symbol on
-both backends. Manifest-level deprecation remains for the non-deprecated
-`std::seq` adapters (#703/#917); the RFC-011 item 37 audit is
-closed with its residuals tracked by #887/#888/#878. The
+both backends. The `std::seq` free helpers and the module were removed on 2026-10-30
+(#917); the adapters remain in `std::core::iter`. The RFC-011 item 37 audit
+is closed with its residuals tracked by #887/#888/#878. The
 `map(fn(String) -> String).filter(fn(String) -> bool).collect()` composition
 and its `Vec::from_iter` form are also covered through
 `MapFilterIter<String, String>`; the predicate receives a clone of the
@@ -503,8 +503,7 @@ The same fixture now passes this composed String source through a generic
 the adapter's identity `IntoIterator` conversion before `next` on both
 `wasm32-gc` and linear-memory `wasm32`. This remains bounded static
 monomorphization evidence; arbitrary dynamic item dispatch is out of scope
-(ADR-076), and manifest-level deprecation remains for the non-deprecated
-`std::seq` adapters.
+(ADR-076); the removed `std::seq` module has no adapter surface left.
 The callback lane also provides bounded `map(...).take(n)` and
 `filter(...).take(n)` adapters through
 `TakeIter<MapIter<String, String>>` and `TakeIter<FilterIter<String>>`.

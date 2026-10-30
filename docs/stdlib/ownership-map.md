@@ -43,7 +43,6 @@ single source of truth. Hand-edits will be overwritten on the next regeneration.
 | `modules/path.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
 | `modules/process.md` | `generate-docs.py` | `std/manifest.toml` + host badges | `check_host_badge_presence`, `check_cross_page_metadata_consistency` |
 | `modules/random.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
-| `modules/seq.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
 | `modules/test.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
 | `modules/text.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
 | `modules/time.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |

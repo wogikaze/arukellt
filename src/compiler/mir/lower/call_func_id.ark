@@ -3,7 +3,6 @@ use corehir::function_id
 use corehir::signature_registry
 use corehir::core_op_binding
 use corehir::core_op_id
-use corehir::signature_entry
 use mir::inst_draft
 use mir::opcodes
 use mir::lower::ctx_current_storage
@@ -42,18 +41,6 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
         }
     }
     let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(symbol.clone())
-    if function_id::function_id_is_valid(fid) && is_seq_extremum_alias(symbol.clone()) {
-        let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
-        let entry_coid = signature_entry::signature_entry_core_op_id(entry)
-        if !core_op_id::core_op_id_is_some(entry_coid) ||
-        core_op_id::CoreOpId_raw(entry_coid) != core_op_id::CoreOpId_raw(exact_coid) {
-            fid = signature_registry::signature_registry_register_core_op_alias(
-                registry,
-                symbol.clone(),
-                exact_coid
-            )
-        }
-    }
     if !function_id::function_id_is_valid(fid) {
         // Exact SignatureRegistry miss → exact CoreOp alias.
         // Do not use short-name / param-count FunctionId search.
@@ -73,11 +60,6 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, sym
         )
     }
     inst
-}
-
-fn is_seq_extremum_alias(symbol: String) -> bool {
-    symbol.clone().eq(String_from("seq::min_i32")) ||
-    symbol.clone().eq(String_from("seq::max_i32"))
 }
 
 fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, mut inst: MirInstDraft) -> MirInstDraft {

@@ -11,7 +11,7 @@
 | `std::core` | maintenance | Error, hash, ordering primitives. Frozen surface. |
 | `std::collections` | expansion | Vec/HashMap/linear/ordered operations. Accepts new generic ops. |
 | `std::text` | expansion | String processing. Accepts Unicode-aware additions. |
-| `std::seq` | expansion | Iterator/sequence combinators. Accepts new combinators. |
+| `std::seq` | retired | Removed 2026-10-30 (#917); use `Vec` methods / `std::core::iter`. |
 | `std::path` | maintenance | Path manipulation. Stable surface. |
 | `std::json` | expansion | JSON stringify/parse. Accepts builder/query additions. |
 | `std::toml` | expansion | TOML line parsing. Accepts structured parse additions. |

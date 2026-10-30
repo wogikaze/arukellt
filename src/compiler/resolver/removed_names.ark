@@ -684,6 +684,48 @@ fn removed_private_member_hint(module: String, name: String) -> String {
 }
 
 fn removed_seq_member_hint(name: String) -> String {
+    // The 13 deprecated monomorphic helpers were deleted with std::seq on
+    // 2026-10-30 (#917). Each hint names the receiver method / iterator
+    // pipeline that replaced the free.
+    if name.clone().eq("map_i32_i32") {
+        return "removed free function; use `v.iter().map(f).collect()` via `use std::core::iter`"
+    }
+    if name.clone().eq("filter_i32") {
+        return "removed free function; use `v.iter().filter(f).collect()` via `use std::core::iter`"
+    }
+    if name.clone().eq("take_i32") {
+        return "removed free function; use `v.iter().take(n).collect()` via `use std::core::iter`"
+    }
+    if name.clone().eq("skip_i32") {
+        return "removed free function; use `v.iter().skip(n).collect()` via `use std::core::iter`"
+    }
+    if name.clone().eq("fold_i32_i32") {
+        return "removed free function; use `v.iter().fold(init, f)` via `use std::core::iter`"
+    }
+    if name.clone().eq("sum_i32") {
+        return "removed free function; use `v.iter().sum()` via `use std::core::iter`"
+    }
+    if name.clone().eq("seq_reverse") {
+        return "removed free function; use `v.iter().rev().collect()` via `use std::core::iter`"
+    }
+    if name.clone().eq("seq_contains") {
+        return "removed free function; use `v.iter().contains(target)` via `use std::core::iter`"
+    }
+    if name.clone().eq("unique") {
+        return "removed free function; use `v.iter().unique().collect()` via `use std::core::iter`"
+    }
+    if name.clone().eq("count_eq") {
+        return "removed free function; use `v.iter().count_eq(target)` via `use std::core::iter`"
+    }
+    if name.clone().eq("binary_search") {
+        return "removed free function; use `v.binary_search(target)` via `use std::collections::vec`"
+    }
+    if name.clone().eq("min_i32") {
+        return "removed free function; use `v.min()` via `use std::collections::vec`"
+    }
+    if name.clone().eq("max_i32") {
+        return "removed free function; use `v.max()` via `use std::collections::vec`"
+    }
     if name.clone().eq("sort_by") {
         return "removed free sort algorithm; use `v.sort()` via `use std::collections::vec`"
     }
@@ -1855,8 +1897,23 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint("seq", "min_by_key")) > 0)
         assert(len(removed_module_member_hint("seq", "max_by_key")) > 0)
         assert(len(removed_module_member_hint("seq", "unrelated")) == 0)
-        // The 13 deprecated helpers stay callable through the W0009 window.
-        assert(len(removed_module_member_hint("seq", "unique")) == 0)
+    }
+    test "retired seq monomorphic helpers have method hints" {
+        assert(len(removed_module_member_hint("seq", "map_i32_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "filter_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "take_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "skip_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "fold_i32_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "binary_search")) > 0)
+        assert(len(removed_module_member_hint("seq", "min_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "max_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "sum_i32")) > 0)
+        assert(len(removed_module_member_hint("seq", "seq_reverse")) > 0)
+        assert(len(removed_module_member_hint("seq", "seq_contains")) > 0)
+        assert(len(removed_module_member_hint("seq", "unique")) > 0)
+        assert(len(removed_module_member_hint("seq", "count_eq")) > 0)
+        assert(len(removed_module_member_hint("std::seq", "take_i32")) > 0)
+        assert(len(removed_module_member_hint("collections::seq", "take_i32")) == 0)
     }
     test "gated provisional filter_i32 has an import hint" {
         assert(len(removed_name_hint("filter_i32")) > 0)

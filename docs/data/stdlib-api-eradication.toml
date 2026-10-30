@@ -52,7 +52,9 @@
 # E0100 hints. The provisional `filter_i32` remains the only member of that
 # family (individual deferral), and the two stale, non-callable builtin
 # entries (`map_option_String_String`, `map_result_i32_i32`) were retired in
-# the earlier wave. #917 owns every other family as the execution umbrella.
+# the earlier wave. The last 13 deprecated `std::seq` helpers completed their
+# ADR-087 Wave 2 deletion on 2026-10-30 (wave/eradication-remain), so that
+# rule is gone and #917 owns every other family as the execution umbrella.
 
 [meta]
 policy_adr = "ADR-046"
@@ -171,13 +173,13 @@ class = "must delete"
 owner = "710"
 replacement = "LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8"
 
-[[rules]]
-label = "deprecated std::seq helpers"
-module = "std::seq"
-deprecated = true
-class = "must delete"
-owner = "703"
-replacement = "Iterator adapters / Vec methods (#691); the query wrappers delegate to the `Vec` receiver surface (`v.binary_search(target)`, `v.min()`, `v.max()`)"
+# The 13 deprecated monomorphic `std::seq` helpers (`map_i32_i32`,
+# `filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`, `binary_search`,
+# `min_i32`, `max_i32`, `sum_i32`, `seq_reverse`, `seq_contains`, `unique`,
+# `count_eq`) completed their ADR-087 Wave 2 deletion on 2026-10-30
+# (wave/eradication-remain). `std/seq/mod.ark` is gone, so no rule remains.
+# Old qualified calls fail with E0100 and a `removed_seq_member_hint`
+# replacement naming the Vec method / `std::core::iter` pipeline.
 
 # The 9 provisional generic std::seq algorithms (sort_by, binary_search_by,
 # binary_search_by_key, lower_bound, upper_bound, min_by, max_by, min_by_key,
@@ -187,9 +189,8 @@ replacement = "Iterator adapters / Vec methods (#691); the query wrappers delega
 # Vec<i64> and Vec<String> at 5+ elements on both targets, including the gc
 # core/test path (#965). The other eight map to the receiver methods
 # (binary_search / binary_search_by_key / lower_bound / upper_bound / min /
-# max / min_by_key / max_by_key). The 13 deprecated i32 helpers remain on the
-# rule above until their #703 Wave 2. The `std::seq remaining` rule below now
-# matches only those deprecated helpers.
+# max / min_by_key / max_by_key). The 13 deprecated i32 helpers were deleted
+# on 2026-10-30 with the whole `std::seq` module (wave/eradication-remain).
 
 # The std::text free surface was fully retired by #917 on 2026-10-27.
 #   String methods: len_bytes, trim/trim_start/trim_end, replace, lines,

@@ -139,9 +139,9 @@ cite the exception explicitly in the migration guide. The first ADR-087 wave
 and retired 3 stale non-callable entries; their physical deletion is Wave 2.
 The one deferral, `i8_to_i32`, was deprecated on 2026-10-28 after `i8::to_i32`
 landed.
-The `std::seq` qualified-call W0009 coverage for the 13 deprecated helpers
-remains in place, and the 31 converted seq/combinator entries now emit W0009
-for their bare names.
+The 31 converted seq/combinator entries now emit W0009 for their bare names.
+The 13 deprecated `std::seq` helpers completed Wave 2 on 2026-10-30 with the
+module deletion, so their qualified W0009 rows were replaced by E0100 hints.
 
 ---
 

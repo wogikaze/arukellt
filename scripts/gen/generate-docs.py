@@ -589,38 +589,6 @@ let shuffled = Rng::new(42).shuffle(vec) // deterministic shuffle
         },
     },
     {
-        "path": "modules/seq.md",
-        "title": "std::seq",
-        "description": "Source-backed docs for eager sequence helpers.",
-        "modules": ["std::seq"],
-        "overview": {
-            "summary": (
-                "The `std::seq` module provides eager sequence helpers over `Vec<i32>`: "
-                "search, aggregation, deduplication, and reversal. Lazy pipelines and "
-                "closure-heavy adapters are deferred to a future release."
-            ),
-            "highlights": [
-                ("`binary_search(vec, value)`", "Binary search a sorted vector; returns index or -1."),
-                ("`min_i32(vec)` / `max_i32(vec)`", "Find the minimum or maximum element."),
-                ("`sum_i32(vec)`", "Sum all elements in a vector."),
-                ("`unique(vec)`", "Remove duplicates, preserving first occurrence."),
-                ("`seq_reverse(vec)`", "Return a reversed copy of the vector."),
-                ("`seq_contains(vec, value)`", "Linear search for membership."),
-            ],
-            "typical_usage": """\
-> ⚠️ **Eradication scope (ADR-046):** the free helpers below remain callable but are scheduled for removal as method / associated equivalents land — [scorecard](../eradication.md) (issue #917).
-
-```ark
-use std::seq
-
-let nums = vec![3, 1, 4, 1, 5, 9]
-let total = seq::sum_i32(nums)          // 23
-let lo    = seq::min_i32(nums)          // 1
-let dedup = seq::unique(nums)           // [3, 1, 4, 5, 9]
-```""",
-        },
-    },
-    {
         "path": "modules/test.md",
         "title": "std::test",
         "description": "Source-backed docs for assertion and expectation helpers.",
@@ -3052,7 +3020,6 @@ def render_stdlib_readme(
         "|---|--------|-------------|",
         "| 1 | [std::core](modules/core.md) | Ranges, errors, and hashing — start here for foundational primitives. |",
         "| 2 | [std::collections](modules/collections.md) | Hash maps, deques, priority queues, sorted maps, bitsets. |",
-        "| 3 | [std::seq](modules/seq.md) | Eager sequence search, aggregation, and deduplication over collections. |",
         "",
         "### 2 · Text & Data Formats",
         "",

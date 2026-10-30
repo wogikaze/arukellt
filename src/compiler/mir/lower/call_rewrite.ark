@@ -158,13 +158,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
     rewritten.clone().starts_with(String_from("write_debug_to__")) ||
     rewritten.clone().ends_with(String_from("::write_debug_to")) ||
     rewritten.clone().contains(String_from("write_debug_to__"))
-    // These qualified aliases have the same short name as scalar math
-    // operations.  Generic mono lookup must not erase the module qualifier
-    // before FunctionId binding selects the sequence operation.
-    let is_seq_extremum_alias = rewritten.clone().eq(String_from("seq::min_i32")) ||
-    rewritten.clone().eq(String_from("seq::max_i32"))
-    if !is_seq_extremum_alias &&
-    !call_rewrite_hashmap::mir_hashmap_target_is_lowering(rewritten.clone()) &&
+    if !call_rewrite_hashmap::mir_hashmap_target_is_lowering(rewritten.clone()) &&
     !call_rewrite_vec::mir_vec_call_target_is_intrinsic(rewritten.clone()) &&
     !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)

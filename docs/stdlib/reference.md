@@ -11,7 +11,7 @@
 | `stable` | 13 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 65 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 52 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -388,24 +388,6 @@ let input = stdio::read_stdin()
 | ~~`u64_to_u32`~~ ⚠️ Deprecated → `u64::to_u32_wrapping` | `(u64) -> u32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
 | ~~`u8_to_i32`~~ ⚠️ Deprecated → `u8::to_i32` | `(u8) -> i32` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u8_to_i32` | - |
 
-## Seq
-
-| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`binary_search`~~ ⚠️ Deprecated → `Vec::binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use v.binary_search(target) over T: Ord. |
-| ~~`count_eq`~~ ⚠️ Deprecated → `VecIter::count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
-| ~~`filter_i32`~~ ⚠️ Deprecated → `VecIter::filter` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
-| ~~`fold_i32_i32`~~ ⚠️ Deprecated → `VecIter::fold` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f). |
-| ~~`map_i32_i32`~~ ⚠️ Deprecated → `VecIter::map` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect(). |
-| ~~`max_i32`~~ ⚠️ Deprecated → `Vec::max` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use v.max() over T: Ord. |
-| ~~`min_i32`~~ ⚠️ Deprecated → `Vec::min` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated monomorphic wrapper. Use v.min() over T: Ord. |
-| ~~`seq_contains`~~ ⚠️ Deprecated → `VecIter::contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target). |
-| ~~`seq_reverse`~~ ⚠️ Deprecated → `VecIter::rev` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect(). |
-| ~~`skip_i32`~~ ⚠️ Deprecated → `VecIter::skip` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect(). |
-| ~~`sum_i32`~~ ⚠️ Deprecated → `VecIter::sum` | `(Vec<i32>) -> i32` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
-| ~~`take_i32`~~ ⚠️ Deprecated → `VecIter::take` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
-| ~~`unique`~~ ⚠️ Deprecated → `VecIter::unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `deprecated` | `functional` | `builtin` | no | - | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
-
 ## String
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
@@ -415,7 +397,7 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **65 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **52 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -424,8 +406,6 @@ let input = stdio::read_stdin()
 | ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `Test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `Test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`binary_search`~~ | `Vec::binary_search` | [migration-guidance.md](migration-guidance.md) |
-| ~~`count_eq`~~ | `VecIter::count_eq` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |
@@ -441,8 +421,6 @@ let input = stdio::read_stdin()
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | `f64::to_f32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_i32`~~ | `VecIter::filter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`fold_i32_i32`~~ | `VecIter::fold` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | [migration-guidance.md](migration-guidance.md) |
@@ -466,21 +444,12 @@ let input = stdio::read_stdin()
 | ~~`linked_list_push_back`~~ | `LinkedList::push_back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_push_front`~~ | `LinkedList::push_front` | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | `LinkedList::iter` | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_i32_i32`~~ | `VecIter::map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`max_i32`~~ | `Vec::max` | [migration-guidance.md](migration-guidance.md) |
-| ~~`min_i32`~~ | `Vec::min` | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | [migration-guidance.md](migration-guidance.md) |
-| ~~`seq_contains`~~ | `VecIter::contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`seq_reverse`~~ | `VecIter::rev` | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | [migration-guidance.md](migration-guidance.md) |
-| ~~`skip_i32`~~ | `VecIter::skip` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sum_i32`~~ | `VecIter::sum` | [migration-guidance.md](migration-guidance.md) |
-| ~~`take_i32`~~ | `VecIter::take` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`unique`~~ | `VecIter::unique` | [migration-guidance.md](migration-guidance.md) |

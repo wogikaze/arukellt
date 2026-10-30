@@ -16,6 +16,41 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `std::seq` の deprecated 13 関数と module を削除 (#917, wave/eradication-remain)
+
+- **Removed**: `std::seq` の最後の公開 free function 13 件 —
+  `map_i32_i32`, `filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`,
+  `sum_i32`, `binary_search`, `min_i32`, `max_i32`, `seq_reverse`,
+  `seq_contains`, `unique`, `count_eq`。ADR-087 の Wave 1 で
+  `deprecated` + W0009 済みだった stable entry の Wave 2 削除であり、
+  `std/seq/mod.ark` と `std/manifest.toml` の `[[functions]]` 13 件を
+  同時に落とした。module に公開関数が残らないため source file と
+  `modules/seq.md` も削除した。
+- **Replacement**: `Vec<T>` の receiver method (`v.binary_search(x)`,
+  `v.min()`, `v.max()`) と `std::core::iter` の pipeline
+  (`v.iter().map(f).collect()`, `v.iter().sum()`, `v.iter().unique().collect()`,
+  `v.iter().count_eq(x)`, ...)。`use std::collections::vec` /
+  `use std::core::iter` が必要。
+- **E0100**: `resolver::removed_names::removed_seq_member_hint` が
+  `seq::` / `std::seq::` の旧 qualified call に各 replacement を返す。
+  bare 名の hint は既存の `removed_prelude_free_hint` が保持する。
+  W0009 の `deprecated_seq_qualified_message` 13 行は削除した。
+- **Migration**: `docs/stdlib/migration-guidance.md` に 13 行の
+  before/after 表を移設し、`docs/language/spec.md` の
+  `std::seq` compatibility 記述を更新した。
+- **Fixtures**: `stdlib_seq/*`, `stdlib_trait/iterator_query_consumers`,
+  `prelude_compiled_user_body/main`, `stdlib_inline/abs_probe` を method
+  surface へ移行。`diagnostics/removed_seq_{map_i32_i32,sum_i32_wasm32}`
+  を E0100 golden として追加した。
+- **Verification**: `verify fixtures` **1945/1945** compile+validate PASS
+  (112 runtime smoke, 42/42 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  both-target compile + `wasm-tools validate` for the changed run fixtures
+  (`wasm32-gc` P2 component and `--target wasm32` linear); cross-backend
+  parity 6/6; `selfhost diag-parity` PASS; `docs check` 6/6;
+  `verify lane` PASS; ADR-029 fixpoint PASS s2 == s3 at sha256
+  `75797e12d8819f4fbb1ebad69dd26ab6ba926ccdc9ff56390085ad47b5cc4176`
+  (pinned base `56ff0808…`).
+
 ## 2026-10-30 — `Vec<T>::clone` は import なしで deep (ADR-091, wave/clone-noimport)
 
 - **Changed**: `std/prelude.ark` が `std::core::clone` を import し、

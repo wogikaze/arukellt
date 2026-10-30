@@ -62,18 +62,5 @@ helpers are included alongside any other deprecated public entry.
 | `linked_list_push_back` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_back` | `0.1.0` | `1.0.0` | Push a value to the back of the legacy i32 list. |
 | `linked_list_push_front` | `std::collections::linked_list` | `deprecated` | `LinkedList::push_front` | `0.1.0` | `1.0.0` | Push a value to the front of the legacy i32 list. |
 | `linked_list_to_vec` | `std::collections::linked_list` | `deprecated` | `LinkedList::iter` | `0.1.0` | `1.0.0` | Copy the legacy i32 list into a Vec<i32> in front-to-back order. |
-| `binary_search` | `std::seq` | `deprecated` | `Vec::binary_search` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.binary_search(target) over T: Ord. |
-| `count_eq` | `std::seq` | `deprecated` | `VecIter::count_eq` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorCountEq capability v.iter().count_eq(target). |
-| `filter_i32` | `std::seq` | `deprecated` | `VecIter::filter` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().filter(f).collect(). |
-| `fold_i32_i32` | `std::seq` | `deprecated` | `VecIter::fold` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorFold capability v.iter().fold(init, f). |
-| `map_i32_i32` | `std::seq` | `deprecated` | `VecIter::map` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().map(f).collect(). |
-| `max_i32` | `std::seq` | `deprecated` | `Vec::max` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.max() over T: Ord. |
-| `min_i32` | `std::seq` | `deprecated` | `Vec::min` | `0.1.0` | `1.0.0` | Deprecated monomorphic wrapper. Use v.min() over T: Ord. |
-| `seq_contains` | `std::seq` | `deprecated` | `VecIter::contains` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorContains capability v.iter().contains(target). |
-| `seq_reverse` | `std::seq` | `deprecated` | `VecIter::rev` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().rev().collect(). |
-| `skip_i32` | `std::seq` | `deprecated` | `VecIter::skip` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().skip(n).collect(). |
-| `sum_i32` | `std::seq` | `deprecated` | `VecIter::sum` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the IteratorSum capability v.iter().sum(). |
-| `take_i32` | `std::seq` | `deprecated` | `VecIter::take` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().take(n).collect(). |
-| `unique` | `std::seq` | `deprecated` | `VecIter::unique` | `0.1.0` | `1.0.0` | Deprecated eager helper. Use the lazy pipeline v.iter().unique().collect(). |
 
-Total deprecated public entries: **65**.
+Total deprecated public entries: **52**.

@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: seq::map_i32_i32; removed free function; use `v.iter().map(f).collect()` via `use std::core::iter`

@@ -438,13 +438,49 @@ ADR-087 stable window and no W0009). Import the receiver surface with
 
 `min` / `max` / `min_by_key` / `max_by_key` trap on an empty vector, matching
 the removed free functions. The 13 deprecated i32 wrappers (`binary_search`,
-`min_i32`, `max_i32`, ...) remain callable until their own #703 Wave 2 and now
-delegate to these methods.
+`min_i32`, `max_i32`, ...) were removed with the module on 2026-10-30; their
+rows are in the next section.
 
 `seq::sort_by` was removed with this wave once the `Vec<T: Ord>` method
 scratch layout and the parametric `Ord::cmp` dispatch were fixed (#965).
 `v.sort()` is correct for `i32`, `i64`, `String`, and custom-struct elements
 at 5+ elements on both targets, including the gc core/test path.
+
+## Deprecated `std::seq` monomorphic helpers (13 removed 2026-10-30, #917)
+
+The 13 deprecated monomorphic `std::seq` helpers completed their ADR-087
+Wave 2 deletion together with the module itself:
+
+| Removed API | Replacement |
+|-------------|-------------|
+| `seq::map_i32_i32(v, f)` | `v.iter().map(f).collect()` |
+| `seq::filter_i32(v, f)` | `v.iter().filter(f).collect()` |
+| `seq::take_i32(v, n)` | `v.iter().take(n).collect()` |
+| `seq::skip_i32(v, n)` | `v.iter().skip(n).collect()` |
+| `seq::fold_i32_i32(v, init, f)` | `v.iter().fold(init, f)` |
+| `seq::sum_i32(v)` | `v.iter().sum()` |
+| `seq::seq_reverse(v)` | `v.iter().rev().collect()` |
+| `seq::seq_contains(v, target)` | `v.iter().contains(target)` |
+| `seq::unique(v)` | `v.iter().unique().collect()` |
+| `seq::count_eq(v, target)` | `v.iter().count_eq(target)` |
+| `seq::binary_search(v, target)` | `v.binary_search(target)` |
+| `seq::min_i32(v)` | `v.min()` |
+| `seq::max_i32(v)` | `v.max()` |
+
+Import `use std::collections::vec` for the `Vec` receiver queries
+(`binary_search` / `min` / `max`) and `use std::core::iter` for the
+iterator pipelines. Old qualified calls fail with **E0100** and a
+`removed_seq_member_hint` naming these replacements; bare old calls keep
+the hints in the prelude table. `std/seq/mod.ark` and its module page are
+gone, so a `use std::seq` import has no public function to import.
+
+Known compiler limitation (measured 2026-10-30, #967): in a compilation
+unit that also imports `std::collections::vec`, an adapter chain ending in
+`.collect()` into `Vec` (including `.unique().collect()` /
+`.rev().collect()`) currently emits invalid GC core Wasm. Use a `for` loop
+over the adapter in that unit, or keep the adapter fixture free of the
+`std::collections::vec` import; the canonical `.collect()` form remains
+valid in iterator-only units.
 
 ## Currently Deprecated APIs
 
@@ -456,19 +492,6 @@ The following public entries currently carry `deprecated_by` in
 |----------------|-------------|
 | `char_at` | `byte_at` |
 | `concat` | `a.concat(b)` |
-| `std::seq::map_i32_i32` | `v.iter().map(f).collect()` |
-| `std::seq::filter_i32` | `v.iter().filter(f).collect()` |
-| `std::seq::take_i32` | `v.iter().take(n).collect()` |
-| `std::seq::skip_i32` | `v.iter().skip(n).collect()` |
-| `std::seq::fold_i32_i32` | `v.iter().fold(init, f)` |
-| `std::seq::sum_i32` | `v.iter().sum()` |
-| `std::seq::seq_reverse` | `v.iter().rev().collect()` |
-| `std::seq::seq_contains` | `v.iter().contains(target)` |
-| `std::seq::unique` | `v.iter().unique().collect()` |
-| `std::seq::count_eq` | `v.iter().count_eq(target)` |
-| `std::seq::binary_search` | `v.binary_search(target)` |
-| `std::seq::min_i32` | `v.min()` |
-| `std::seq::max_i32` | `v.max()` |
 | `std::collections::linear::deque_new` | `Deque::new<T>()` or `Deque::with_capacity<T>(n)` |
 | `std::collections::linear::deque_push_front` | `d.push_front(v)` |
 | `std::collections::linear::deque_push_back` | `d.push_back(v)` |
@@ -505,11 +528,10 @@ other legacy `std::io` free function, including `reader_from_bytes`, the seven
 replacement hint; see
 [std::io trait migration](#stdio-trait-migration-adr-085-phase-ef-2026-10-27).
 
-The deprecated `std::seq` rows remain callable compatibility entries that
-delegate to the lazy `std::core::iter` pipeline or the generic
-`Ord`-based algorithms (ADR-076). Every monomorphic `std::seq` helper now
-carries `deprecated_by`; the legacy `Vec_*` constructors were removed by
-#845 and are no longer manifest entries.
+The legacy `Vec_*` constructors were removed by #845 and are no longer
+manifest entries. The `std::seq` module itself was removed on 2026-10-30
+with its last 13 deprecated helpers (see
+[Deprecated std::seq monomorphic helpers](#deprecated-stdseq-monomorphic-helpers-13-removed-2026-10-30-917)).
 
 The `deque_*` and `linked_list_*` rows are the ADR-086 linear collection
 migration ([#710](https://github.com/wogikaze/arukellt/issues/710)). They keep

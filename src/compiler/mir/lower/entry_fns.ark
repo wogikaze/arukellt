@@ -86,6 +86,5 @@ fn mir_defer_body_for_decl(
             return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(decl_name.clone(), param0)
         }
     }
-    let qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
-    stdlib_body_defer::mir_should_defer_stdlib_body_for_qualified(decl_name, qualified_name)
+    stdlib_body_defer::mir_should_defer_stdlib_body(decl_name)
 }

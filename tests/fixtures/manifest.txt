@@ -239,8 +239,8 @@ diag:deny_process_compile.ark
 diag:deny_random_compile.ark
 diag:diagnostics/capability_stub.ark
 diag:diagnostics/deprecated_prelude_println.ark
-diag:diagnostics/deprecated_seq_map_i32_i32.ark
-diag:diagnostics/deprecated_seq_sum_i32_wasm32.ark
+diag:diagnostics/removed_seq_map_i32_i32.ark
+diag:diagnostics/removed_seq_sum_i32_wasm32.ark
 diag:diagnostics/deprecated_numeric_conversion.ark
 diag:diagnostics/deprecated_numeric_conversion_wasm32.ark
 diag:diagnostics/prelude_scalar_conversion_arg_type.ark

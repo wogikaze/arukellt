@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 17
-- **Historical/deprecated names:** 65
-- **Total entries:** 82
+- **Historical/deprecated names:** 52
+- **Total entries:** 69
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -52,8 +52,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | `Test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`assert_ne`~~ | `Test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`binary_search`~~ | `Vec::binary_search` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`count_eq`~~ | `VecIter::count_eq` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -69,8 +67,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`f64_bits_hi`~~ | `f64::to_bits_hi` | Numeric | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_bits_lo`~~ | `f64::to_bits_lo` | Numeric | [migration-guidance.md](migration-guidance.md) |
 | ~~`f64_to_f32`~~ | `f64::to_f32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_i32`~~ | `VecIter::filter` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`fold_i32_i32`~~ | `VecIter::fold` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | `i16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
@@ -94,24 +90,15 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`linked_list_push_back`~~ | `LinkedList::push_back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_push_front`~~ | `LinkedList::push_front` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | `LinkedList::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`map_i32_i32`~~ | `VecIter::map` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`max_i32`~~ | `Vec::max` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`min_i32`~~ | `Vec::min` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`seq_contains`~~ | `VecIter::contains` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`seq_reverse`~~ | `VecIter::rev` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`skip_i32`~~ | `VecIter::skip` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_get`~~ | `Slice::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`slice_len`~~ | `Slice::len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`sum_i32`~~ | `VecIter::sum` | Seq | [migration-guidance.md](migration-guidance.md) |
-| ~~`take_i32`~~ | `VecIter::take` | Seq | [migration-guidance.md](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | `u16::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | `u32::to_u64` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | `u64::to_u32_wrapping` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | `u8::to_i32` | Scalar Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`unique`~~ | `VecIter::unique` | Seq | [migration-guidance.md](migration-guidance.md) |
 
 ---
 
@@ -127,9 +114,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`assert_eq_i64`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i64` · [migration guide](migration-guidance.md) |
 | ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
 | ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
-| ~~`binary_search`~~ | ⚠️ deprecated | `std::seq` | → `Vec::binary_search` · [migration guide](migration-guidance.md) |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
-| ~~`count_eq`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::count_eq` · [migration guide](migration-guidance.md) |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
 | ~~`deque_front`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::front` · [migration guide](migration-guidance.md) |
@@ -150,8 +135,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `filter_i32` | ✅ `provisional` | `prelude` | Collections |
-| ~~`filter_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::filter` · [migration guide](migration-guidance.md) |
-| ~~`fold_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::fold` · [migration guide](migration-guidance.md) |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
 | ~~`i16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `i16::to_i32` · [migration guide](migration-guidance.md) |
@@ -175,9 +158,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`linked_list_push_back`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_back` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_push_front`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::push_front` · [migration guide](migration-guidance.md) |
 | ~~`linked_list_to_vec`~~ | ⚠️ deprecated | `std::collections::linked_list` | → `LinkedList::iter` · [migration guide](migration-guidance.md) |
-| ~~`map_i32_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::map` · [migration guide](migration-guidance.md) |
-| ~~`max_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::max` · [migration guide](migration-guidance.md) |
-| ~~`min_i32`~~ | ⚠️ deprecated | `std::seq` | → `Vec::min` · [migration guide](migration-guidance.md) |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |
@@ -185,10 +165,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
 | `read_stdin` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
-| ~~`seq_contains`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::contains` · [migration guide](migration-guidance.md) |
-| ~~`seq_reverse`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::rev` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |
-| ~~`skip_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::skip` · [migration guide](migration-guidance.md) |
 | ~~`slice_get`~~ | ⚠️ deprecated | `prelude` | → `Slice::get` · [migration guide](migration-guidance.md) |
 | ~~`slice_len`~~ | ⚠️ deprecated | `prelude` | → `Slice::len` · [migration guide](migration-guidance.md) |
 | `stderr` | ✅ `stable` | `std::io` | Io |
@@ -196,10 +173,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stdout` | ✅ `stable` | `std::io` | Io |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `String_new` | ✅ `stable` | `prelude` | String |
-| ~~`sum_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::sum` · [migration guide](migration-guidance.md) |
-| ~~`take_i32`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::take` · [migration guide](migration-guidance.md) |
 | ~~`u16_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u16::to_i32` · [migration guide](migration-guidance.md) |
 | ~~`u32_to_u64`~~ | ⚠️ deprecated | `prelude` | → `u32::to_u64` · [migration guide](migration-guidance.md) |
 | ~~`u64_to_u32`~~ | ⚠️ deprecated | `prelude` | → `u64::to_u32_wrapping` · [migration guide](migration-guidance.md) |
 | ~~`u8_to_i32`~~ | ⚠️ deprecated | `prelude` | → `u8::to_i32` · [migration guide](migration-guidance.md) |
-| ~~`unique`~~ | ⚠️ deprecated | `std::seq` | → `VecIter::unique` · [migration guide](migration-guidance.md) |

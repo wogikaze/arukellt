@@ -118,9 +118,9 @@ fn signature_registry_register_core_op_alias(
     )
     let id = signature_registry_register(registry, entry, alias.clone())
     // An alias can already point at a normal entry with a different CoreOp
-    // identity (e.g. bare min_i32 versus seq::min_i32).  insert_first keeps
-    // the old mapping, so explicitly rebind this alias to the synthetic
-    // CoreOp entry.
+    // identity (e.g. a bare prelude name versus a qualified module member).
+    // insert_first keeps the old mapping, so explicitly rebind this alias to
+    // the synthetic CoreOp entry.
     name_index::name_index_set(registry.mangled_to_id, alias, FunctionId_raw(id))
     id
 }

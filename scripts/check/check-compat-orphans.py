@@ -50,7 +50,6 @@ QUALIFIED_WARN_MODULES = {
     "convert": "std::core::convert",
     "hash": "std::core::hash",
     "math": "std::core::math",
-    "seq": "std::seq",
 }
 
 
@@ -155,7 +154,6 @@ def main() -> int:
         "deprecated_cmp_qualified_message",
         "deprecated_convert_qualified_message",
         "deprecated_hash_qualified_message",
-        "deprecated_seq_qualified_message",
         "deprecated_io_qualified_message",
     ):
         qual_warn_paths += table_names(lint_text, fn)
@@ -165,7 +163,6 @@ def main() -> int:
         "deprecated_numeric_call_message",
         "deprecated_vec_call_message",
         "deprecated_assert_call_message",
-        "deprecated_seq_call_message",
     ):
         call_warn_names += table_names(lint_text, fn)
     removed_names = table_names(removed_text, "removed_name_hint")

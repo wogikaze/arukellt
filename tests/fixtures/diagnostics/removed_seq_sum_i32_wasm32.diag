@@ -1,0 +1,1 @@
+error[E0100|resolve]: undefined module member: seq::sum_i32; removed free function; use `v.iter().sum()` via `use std::core::iter`

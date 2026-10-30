@@ -33,8 +33,8 @@ fn mir_classify_hof_i64_call(callee: String) -> MirHofCallPlan {
 }
 
 fn mir_classify_hof_i32_call(callee: String) -> MirHofCallPlan {
-    // std::seq compatibility wrappers are ordinary Ark bodies now; only the
-    // prelude/intrinsic names retain this legacy HOF lowering path.
+    // The deprecated std::seq wrappers are gone; only the provisional prelude
+    // `filter_i32` and the intrinsic aliases retain this legacy HOF path.
     let is_map_i32_i32 = callee.clone().eq("map_i32_i32") || callee.clone().eq("map_String_String")
     let is_filter_i32 = callee.clone().eq("filter_i32") || callee.clone().eq("filter_String")
     let is_fold_i32_i32 = callee.clone().eq("fold_i32_i32")

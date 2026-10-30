@@ -6,8 +6,9 @@
 
 > **Status (2026-10-27)**: the stable seq/combinator prelude frees covered by
 > this design were deleted in the ADR-087 Wave 2 (#703 / #917). The provisional
-> `filter_i32` remains callable as an individual deferral. The tables below are
-> the original design record; see
+> `filter_i32` remains callable as an individual deferral. The 13 deprecated
+> `std::seq` helpers and the module itself were removed on 2026-10-30 (#917).
+> The tables below are the original design record; see
 > [migration-guidance.md](migration-guidance.md) for the current replacements.
 
 本 doc は PROPOSED ADR-036 の提案を具体化する非normativeな設計案である。

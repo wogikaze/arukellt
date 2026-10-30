@@ -57,7 +57,7 @@ These modules exist in `std/manifest.toml` and require `use` to access:
 | `std::time` | 3 | `format_timestamp`, `parse_timestamp` |
 | `std::json` | 6 | `stringify`, `parse` |
 | `std::text` | 15 | `pad_left`, `pad_right`, `repeat` |
-| `std::seq` | 8 | `range`, `enumerate`, `zip` |
+| `std::seq` | 0 (retired) | module removed; use `Vec` methods / `std::core::iter` |
 | `std::test` | 16 | `test`, `skip`, `bench` |
 | `std::bytes` | 20 | `bytes_new`, `bytes_len` |
 | `std::random` | 3 | `seed`, `next_i32` |

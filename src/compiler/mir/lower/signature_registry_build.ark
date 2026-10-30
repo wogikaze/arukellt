@@ -245,8 +245,7 @@ fn sig_reg_fn_is_signature_only(
             return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(decl_name.clone(), param0)
         }
     }
-    let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
-    stdlib_body_defer::mir_should_defer_stdlib_body_for_qualified(decl_name, qualified_name)
+    stdlib_body_defer::mir_should_defer_stdlib_body(decl_name)
 }
 
 fn sig_reg_index_impl_methods(

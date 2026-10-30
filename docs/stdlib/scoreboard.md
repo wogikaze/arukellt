@@ -11,9 +11,8 @@
 | `std::host::fs` | 3 | 0 | 0 | 3 | 0 | **0/3 (0%)** | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::io` | 5 | 5 | 0 | 0 | 0 | 4/5 (80%) | no |
-| `std::seq` | 13 | 0 | 0 | 0 | 13 | 0/0 (—) | no |
 
-**Total**: 82 APIs, 13 stable, 1 provisional, 3 experimental, 65 deprecated, 13/17 (76%) fixture coverage
+**Total**: 69 APIs, 13 stable, 1 provisional, 3 experimental, 52 deprecated, 13/17 (76%) fixture coverage
 
 ## Legend
 

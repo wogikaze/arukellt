@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::collections::vec
-use std::seq
+use std::core::iter
 fn main() {
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 3)
@@ -8,17 +8,20 @@ fn main() {
     push(v, 4)
     push(v, 1)
     push(v, 5)
-    stdio::println((seq::sum_i32(v)).to_string())
-    stdio::println((seq::min_i32(v)).to_string())
-    stdio::println((seq::max_i32(v)).to_string())
-    stdio::println((seq::seq_contains(v, 4)).to_string())
-    stdio::println((seq::seq_contains(v, 9)).to_string())
-    stdio::println((seq::count_eq(v, 1)).to_string())
+    stdio::println((v.iter().sum()).to_string())
+    stdio::println((v.min()).to_string())
+    stdio::println((v.max()).to_string())
+    stdio::println((v.iter().contains(4)).to_string())
+    stdio::println((v.iter().contains(9)).to_string())
+    stdio::println((v.iter().count_eq(1)).to_string())
     v.sort()
-    let idx: i32 = seq::binary_search(v, 4)
+    let idx: i32 = v.binary_search(4)
     stdio::println((idx).to_string())
-    let u: Vec<i32> = seq::unique(v)
-    stdio::println((len(u)).to_string())
+    let mut unique_count: i32 = 0
+    for value in v.iter().unique() {
+        unique_count = unique_count + 1
+    }
+    stdio::println((unique_count).to_string())
 }
 // binary search on sorted vec
 // unique

@@ -95,10 +95,10 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         )
     }
     // A function-typed local binding shadows the flat fn_sigs index:
-    // higher-order parameters such as `map_i32_i32(v, f: fn(i32) -> i32)`
-    // call `f(x)` inside their bodies and must resolve to the parameter,
-    // not to an imported module function that happens to share the bare
-    // name after signature-index flattening.
+    // a higher-order parameter such as `f: fn(i32) -> i32` is called as
+    // `f(x)` inside the body and must resolve to the parameter, not to an
+    // imported module function that happens to share the bare name after
+    // signature-index flattening.
     if ast_expr_predicates::node_is_ident(callee) {
         let local_fn_ty = scope::scope_lookup_instantiated(env, scope, callee_name.clone())
         if contract_type_access::TypeInfo_tag(local_fn_ty) == commands::TY_FN() {

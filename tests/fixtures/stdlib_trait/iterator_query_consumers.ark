@@ -1,8 +1,7 @@
 // Query consumers and lazy adapters on the concrete i32 iterator lane:
-// contains / count_eq capabilities, unique / rev adapters, and the
-// std::seq compatibility delegations that route through them.
+// contains / count_eq capabilities, unique / rev adapters, and the Vec
+// receiver queries that replaced the removed std::seq helpers.
 use std::core::iter
-use std::seq
 use std::test::Test
 
 fn is_even(x: i32) -> bool {
@@ -91,25 +90,12 @@ fn main() {
     let via_from_rev: Vec<i32> = Vec::from_iter(v.iter().rev())
     Test::assert_eq_i32(get_unchecked(via_from_rev, 0), 4)
 
-    // The std::seq compatibility entries delegate to the same lazy paths.
-    Test::assert_true(seq::seq_contains(v, 5))
-    Test::assert_true(!seq::seq_contains(v, 2))
-    Test::assert_eq_i32(seq::count_eq(v, 4), 2)
-    let seq_uniq: Vec<i32> = seq::unique(v)
+    // The removed std::seq helpers map onto the same lazy paths.
+    Test::assert_true(v.iter().contains(5))
+    Test::assert_true(!v.iter().contains(2))
+    Test::assert_eq_i32(v.iter().count_eq(4), 2)
+    let seq_uniq: Vec<i32> = v.iter().unique().collect()
     Test::assert_eq_i32(len(seq_uniq), 4)
-    let seq_rev: Vec<i32> = seq::seq_reverse(v)
+    let seq_rev: Vec<i32> = v.iter().rev().collect()
     Test::assert_eq_i32(get_unchecked(seq_rev, 0), 4)
-
-    // Aggregation and search delegate to the generic Ord algorithms.
-    Test::assert_eq_i32(seq::min_i32(v), 1)
-    Test::assert_eq_i32(seq::max_i32(v), 5)
-    let mut sorted: Vec<i32> = Vec::new<i32>()
-    push(sorted, 1)
-    push(sorted, 1)
-    push(sorted, 3)
-    push(sorted, 4)
-    push(sorted, 4)
-    push(sorted, 5)
-    Test::assert_eq_i32(seq::binary_search(sorted, 4), 4)
-    Test::assert_eq_i32(seq::binary_search(sorted, 2), 0 - 1)
 }

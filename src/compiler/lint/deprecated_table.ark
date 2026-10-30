@@ -159,10 +159,6 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if len(msg3) > 0 {
         return msg3
     }
-    let msg5 = deprecated_seq_qualified_message(path)
-    if len(msg5) > 0 {
-        return msg5
-    }
     return deprecated_hash_qualified_message(path)
 }
 
@@ -178,54 +174,10 @@ fn deprecated_convert_qualified_message(path: String) -> String {
     String_new()
 }
 
-// ── Deprecated std::seq helpers (ADR-076 / #703) ───────────────────────
-
-// The compatibility helpers stay callable through `use std::seq` until the
-// ADR-014 window closes.  They are keyed by the qualified call text because
-// the bare names overlap the still-stable prelude frees (for example
-// `sum_i32`), which must not warn before Wave 1 deprecates them.
-fn deprecated_seq_qualified_message(path: String) -> String {
-    if path.clone().eq("seq::map_i32_i32") {
-        return "use `v.iter().map(f).collect()` instead"
-    }
-    if path.clone().eq("seq::filter_i32") {
-        return "use `v.iter().filter(f).collect()` instead"
-    }
-    if path.clone().eq("seq::take_i32") {
-        return "use `v.iter().take(n).collect()` instead"
-    }
-    if path.clone().eq("seq::skip_i32") {
-        return "use `v.iter().skip(n).collect()` instead"
-    }
-    if path.clone().eq("seq::fold_i32_i32") {
-        return "use `v.iter().fold(init, f)` instead"
-    }
-    if path.clone().eq("seq::binary_search") {
-        return "use `v.binary_search(target)` instead"
-    }
-    if path.clone().eq("seq::min_i32") {
-        return "use `v.min()` instead"
-    }
-    if path.clone().eq("seq::max_i32") {
-        return "use `v.max()` instead"
-    }
-    if path.clone().eq("seq::sum_i32") {
-        return "use `v.iter().sum()` instead"
-    }
-    if path.clone().eq("seq::seq_reverse") {
-        return "use `v.iter().rev().collect()` instead"
-    }
-    if path.clone().eq("seq::seq_contains") {
-        return "use `v.iter().contains(target)` instead"
-    }
-    if path.clone().eq("seq::unique") {
-        return "use `v.iter().unique().collect()` instead"
-    }
-    if path.clone().eq("seq::count_eq") {
-        return "use `v.iter().count_eq(target)` instead"
-    }
-    String_new()
-}
+// The deprecated std::seq helpers were deleted with the whole module on
+// 2026-10-30 (#917, wave/eradication-remain). The qualified old calls fail
+// resolution with E0100 hints from resolver::removed_names, so no live W0009
+// row remains here.
 
 fn deprecated_hash_qualified_message(path: String) -> String {
     // std::core::hash exposes no callable free functions after the #917
@@ -254,21 +206,6 @@ test mod "deprecated" {
         assert(len(deprecated_qualified_call_message("hash::combine")) == 0)
     }
     test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
-    test "seq_deprecated_helpers" {
-        assert(len(deprecated_qualified_call_message("seq::map_i32_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::filter_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::take_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::skip_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::fold_i32_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::binary_search")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::min_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::max_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::sum_i32")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::seq_reverse")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::seq_contains")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::unique")) > 0)
-        assert(len(deprecated_qualified_call_message("seq::count_eq")) > 0)
-    }
     test "seq_generic_helpers_not_deprecated" {
         assert(len(deprecated_qualified_call_message("seq::binary_search_by")) == 0)
         assert(len(deprecated_qualified_call_message("seq::binary_search_by_key")) == 0)

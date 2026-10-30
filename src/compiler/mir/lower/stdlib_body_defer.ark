@@ -14,26 +14,6 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
     mir_is_unbound_prelude_intrinsic_shim(decl_name)
 }
 
-fn mir_should_defer_stdlib_body_for_qualified(decl_name: String, qualified_name: String) -> bool {
-    if mir_is_seq_iterator_compatibility_entry(qualified_name.clone()) {
-        return false
-    }
-    mir_should_defer_stdlib_body(decl_name)
-}
-
-// The qualified std::seq transformation entries are compatibility wrappers.
-// Their Ark bodies now delegate to std::core::iter, so the legacy HOF shim must
-// not discard those bodies before canonical iterator lowering can run.
-fn mir_is_seq_iterator_compatibility_entry(qualified_name: String) -> bool {
-    if qualified_name.clone().ends_with(String_from("seq::map_i32_i32")) {
-        return true
-    }
-    if qualified_name.clone().ends_with(String_from("seq::filter_i32")) {
-        return true
-    }
-    qualified_name.clone().ends_with(String_from("seq::fold_i32_i32"))
-}
-
 /// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
 /// using the first parameter type when needed.
 fn mir_should_defer_stdlib_body_with_param0(decl_name: String, param0: CoreHirParam) -> bool {

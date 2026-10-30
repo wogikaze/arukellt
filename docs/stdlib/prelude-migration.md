@@ -63,7 +63,7 @@ Do **not** treat the counts and timeline here as the current source of truth for
 
 ## Migration Steps
 
-1. Add explicit `use std::text`, `use std::seq`, `use std::collections`, etc. imports.
+1. Add explicit `use std::text`, `use std::collections`, etc. imports.
 2. Replace older prelude-style calls with module-qualified calls where applicable.
 3. Check `docs/stdlib/reference.md` for the currently documented public API rather than relying on this historical map alone.
 

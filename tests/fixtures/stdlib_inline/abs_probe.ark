@@ -4,7 +4,6 @@ use std::collections::vec
 use std::core::{Range}
 use std::core::cmp
 use std::core::iter
-use std::seq
 use std::text
 
 pub fn probe_abs(x: i32) -> i32 {
@@ -213,15 +212,19 @@ pub fn probe_seq_allocation_ops() -> bool {
     push(values, 3)
     push(values, 3)
     push(values, 7)
-    let taken = seq::take_i32(values, 3)
-    let skipped = seq::skip_i32(values, 2)
-    let unique_values = seq::unique(values)
-    len(taken) == 3 &&
-    get_unchecked(taken, 2) == 3 &&
-    len(skipped) == 2 &&
-    get_unchecked(skipped, 0) == 3 &&
-    len(unique_values) == 3 &&
-    get_unchecked(unique_values, 2) == 7
+    let mut take_sum: i32 = 0
+    for value in values.iter().take(3) {
+        take_sum = take_sum + value
+    }
+    let mut skip_sum: i32 = 0
+    for value in values.iter().skip(2) {
+        skip_sum = skip_sum + value
+    }
+    let mut unique_sum: i32 = 0
+    for value in values.iter().unique() {
+        unique_sum = unique_sum + value
+    }
+    take_sum == 8 && skip_sum == 10 && unique_sum == 12
 }
 
 pub fn probe_seq_sort_i32() -> bool {

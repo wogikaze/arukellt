@@ -1217,13 +1217,13 @@ fixture verifies direct collection, source-qualified construction, generic
 `T: IntoIterator` traversal, and matching `sum` results on GC and linear-memory
 Wasm. This is concrete numeric evidence, not arbitrary item-generic adapter
 support.
-The compatibility helpers in `std::seq` (`map_i32_i32`, `filter_i32`,
-`take_i32`, `skip_i32`, and `fold_i32_i32`) keep their eager signatures while
-delegating to the canonical lazy iterator methods, including
-`take` / `skip` and their `TakeIter` / `SkipIter` collectors (#691). The
+The deprecated `std::seq` compatibility helpers were removed with the module
+on 2026-10-30 (#917); the eager helpers are now written directly as the lazy
+iterator methods, including `v.iter().take(n).collect()` / `v.iter().skip(n).collect()`
+and their `TakeIter` / `SkipIter` collectors (#691). The
 `seq_map_filter.ark`, `seq_take_skip_fold.ark`, and
-`seq_take_skip_collect.ark` fixtures compile, validate, and produce identical
-output on `wasm32-gc` and linear-memory `wasm32`.
+`seq_take_skip_collect.ark` fixtures use that method surface and produce
+identical output on `wasm32-gc` and linear-memory `wasm32`.
 
 ### 4.6 Semicolons
 
@@ -1779,6 +1779,11 @@ their replacements are the `Vec<T: Ord>` methods `sort` / `binary_search` /
 `binary_search_by_key` / `lower_bound` / `upper_bound` / `min` / `max` /
 `min_by_key` / `max_by_key`.
 
+The 13 remaining deprecated monomorphic `std::seq` helpers (`binary_search`,
+`min_i32`, `max_i32`, `sum_i32`, `unique`, `count_eq`, `map_i32_i32`,
+`filter_i32`, `take_i32`, `skip_i32`, `fold_i32_i32`, `seq_reverse`,
+`seq_contains`) and the module itself were removed on 2026-10-30 (#917).
+
 ### 9.8 Vec — Higher-Order Functions
 
 The monomorphic higher-order prelude frees (`map_*`, `filter_*`, `fold_*`,
@@ -2019,13 +2024,11 @@ bulk `memory.copy` / `memory.fill` are compiler intrinsics only
 `std::wasm` free wrappers were removed under ADR-046.
 
 **Collections — Search & Sort**:
-`binary_search(v: Vec<i32>, x: i32) -> i32`,
-`unique(v: Vec<i32>) -> Vec<i32>`,
-`count_eq(v: Vec<i32>, x: i32) -> i32`,
-`min_i32(v: Vec<i32>) -> i32`,
-`max_i32(v: Vec<i32>) -> i32`,
-`seq_contains(v: Vec<i32>, x: i32) -> bool`,
-`seq_reverse(v: Vec<i32>) -> Vec<i32>`
+`v.binary_search(x)`, `v.min()`, `v.max()` on `Vec<T: Ord>`;
+`v.iter().unique().collect()`, `v.iter().count_eq(x)`,
+`v.iter().contains(x)`, `v.iter().rev().collect()` via
+`use std::core::iter`. The deprecated `std::seq` free spellings were removed
+with the module on 2026-10-30 (#917).
 
 **Collections — Arena**:
 `Arena::new() -> Arena`,
