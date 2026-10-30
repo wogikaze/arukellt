@@ -135,6 +135,14 @@ fn gc_ctor_semantic_payload_segment(payload_type_name: String) -> String {
 
 fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: String, variant_name: String, vt: i32) -> String {
     if gc_payload_type_name_needs_typed_variant(type_name.clone()) {
+        // Tuple locals can carry the storage wrapper struct:tuple:...:size;
+        // the GC struct registry keys the semantic tuple:<keys> name, so the
+        // variant must be selected with the same spelling.
+        if type_name.clone().starts_with(String_from("tuple:")) ||
+        type_name.clone().starts_with(String_from("Tuple:")) ||
+        type_name.clone().starts_with(String_from("struct:tuple:")) {
+            return ctx_struct_layout::ctx_struct_semantic_type_name(type_name)
+        }
         return type_name
     }
     // String payloads must select the `_f1_ref0` Ok/Some variant, not the
@@ -301,6 +309,14 @@ fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
         return true
     }
     if type_name.clone().eq("Ordering") {
+        return true
+    }
+    // Tuple payloads are nominal heap structs. Their element keys are not
+    // scalar names, so an untyped selection collapses the variant to
+    // `_f1_i32` and the ref-valued payload fails validation (#974).
+    if type_name.clone().starts_with("tuple:") ||
+    type_name.clone().starts_with("Tuple:") ||
+    type_name.clone().starts_with("struct:tuple:") {
         return true
     }
     false

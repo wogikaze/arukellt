@@ -97,12 +97,15 @@ fn generic_inst_args(name: String) -> Vec<String> {
     if n < 3 || name.clone().byte_at(n - 1) != 62 {
         return result
     }
+    // The first '<' opens the outermost argument list. A later '<' belongs
+    // to a nested argument (VecIter<Vec<i32>>) and must not be mistaken for
+    // the head, or the derived layout sees a bogus argument list.
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
         if name.clone().byte_at(i) == 60 {
             lt = i
-            i = n
+            break
         }
         i = i + 1
     }
@@ -130,6 +133,58 @@ fn generic_inst_args(name: String) -> Vec<String> {
         j = j + 1
     }
     result
+}
+
+// A bare tuple argument spells its elements with top-level commas
+// (`VecIter<tuple:i32,i32>`), which the depth scan reads as argument
+// separators. When the split yields more arguments than the declaration
+// takes and exactly one argument is a bare tuple, re-join the trailing
+// pieces onto that tuple. Container-nested tuples such as
+// `Wrap<Vec<tuple:i32,i32>>` are already balanced by the depth scan.
+// Tuple arguments can carry the storage wrapper `struct:tuple:...:size` on
+// paths that start from a local type instead of an annotation.
+fn generic_inst_arg_is_tuple(arg: String) -> bool {
+    arg.clone().starts_with(String_from("tuple:")) ||
+    arg.clone().starts_with(String_from("struct:tuple:"))
+}
+
+fn generic_inst_args_for_param_count(name: String, param_count: i32) -> Vec<String> {
+    let args = generic_inst_args(name)
+    if param_count <= 0 || len(args) <= param_count {
+        return args
+    }
+    let extra = len(args) - param_count
+    let mut tuple_index = 0 - 1
+    let mut tuple_heads = 0
+    let mut i = 0
+    while i < len(args) {
+        if generic_inst_arg_is_tuple(get_unchecked(args, i).clone()) {
+            if tuple_index < 0 {
+                tuple_index = i
+            }
+            tuple_heads = tuple_heads + 1
+        }
+        i = i + 1
+    }
+    if tuple_index < 0 || tuple_heads > 1 {
+        return args
+    }
+    let mut merged = Vec::new<String>()
+    let mut j = 0
+    while j < len(args) {
+        let mut arg = get_unchecked(args, j).clone()
+        if j == tuple_index {
+            let mut absorbed = 0
+            while absorbed < extra && j + 1 < len(args) {
+                arg = arg.concat(String_from(",").concat(get_unchecked(args, j + 1).clone()))
+                j = j + 1
+                absorbed = absorbed + 1
+            }
+        }
+        push(merged, arg)
+        j = j + 1
+    }
+    merged
 }
 
 fn type_ident_char(ch: i32) -> bool {
@@ -209,8 +264,8 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
     if len(joined) == 0 {
         return false
     }
-    let args = generic_inst_args(inst_name.clone())
     let params = ctx_split_declared_params(joined.clone())
+    let args = generic_inst_args_for_param_count(inst_name.clone(), len(params))
     if len(args) != len(params) || len(args) == 0 {
         return false
     }

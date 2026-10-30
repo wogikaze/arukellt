@@ -22,8 +22,9 @@ borrow として表現すると、borrow checker なしで map の構造変更�
 公開することは、コレクションの観測順序が implementation-defined である現行契約と整合する。
 
 `VecIter<(K, V)>` は tuple 要素の generic cursor として実装できるように見えるが、
-両 target で `next()` が payload を落とす（linear では 0 を返し、GC では型が
-unbound になる）。これは fake な borrowed iterator になるため採用しない。
+決定時点では両 target で `next()` が payload を落とす（linear では 0 を返し、GC では
+型が unbound になる）ことを実測していた。この不具合は後続の compiler 修正で解消済み
+である（下記「帰結」「再検討条件」）。
 
 ## 決定
 
@@ -56,8 +57,10 @@ unbound になる）。これは fake な borrowed iterator になるため採�
 
 - `HashMap::retain(self, keep: fn((K, V)) -> bool)` を公開する。predicate は
   borrowed `&K` / `&V` ではなく owned pair を 1 個受け取る。v2 に参照 pair がなく、
-  multi-parameter callback の std method ABI も String を含む signature を正しく
-  往復できないため、single-parameter の pair が現時点で sound な形である。
+  owned pair 1 個が所有権契約にそのまま対応するためである。決定時点では
+  multi-parameter callback の std method ABI が String を含む signature を往復
+  できなかったが、この ABI 制約は解消済みである（two-arg predicate の採用可否は
+  surface 変更として別途判断する）。
 - 実装は keys / values の snapshot に対して predicate を評価し、拒否された key を
   live store から削除する。predicate の実行中に bucket layout は変更しない。
 - `HashSet::retain(self, keep: fn(T) -> bool)` も同じ 2 段階で実装する。predicate は
@@ -72,9 +75,11 @@ unbound になる）。これは fake な borrowed iterator になるため採�
 - source は `m.iter()`、呼び出しは `HashMap::from_iter(m.iter())` を正規形とする。
   `HashMap` は builtin type なので、typechecker が source cursor の mangled pair から
   対応する concrete impl を選び、MIR がその impl へ解決する。
-- `VecIter<(K, V)>` は tuple cursor の不具合があるため `FromIterator` の source に
-  しない。generic な `impl<K, V> FromIterator<HashMapIter<K, V>> for HashMap<K, V>` は
-  body で `HashMap::new<K, V>()` が pair store に lower されず再帰するため採用しない。
+- `VecIter<(K, V)>` は決定時点の tuple cursor 不具合のため `FromIterator` の
+  source にしなかった。不具合は解消済みだが、本 ADR の source 契約は
+  `HashMapIter` snapshot のまま維持する。generic な
+  `impl<K, V> FromIterator<HashMapIter<K, V>> for HashMap<K, V>` は body で
+  `HashMap::new<K, V>()` が pair store に lower されず再帰するため採用しない。
 
 ### 5. `HashSet::iter` / `retain`
 
@@ -96,8 +101,12 @@ unbound になる）。これは fake な borrowed iterator になるため採�
 - `retain` の predicate は owned pair なので、Rust の `retain(|&k, &v| ...)` とは
   綴りが異なる。migration 時は `retain(|(k, v)| ...)` 相当の 1 引数 predicate へ
   書き換える。
-- `VecIter<(K, V)>` の tuple 不具合と、std method の multi-parameter String callback
-  ABI は別の言語/compiler 作業として残る。本 ADR はそれらを前提にしない。
+- `VecIter<(K, V)>` の tuple payload 不具合と、std method の multi-parameter String
+  callback ABI は解消済みである。両 target の fixture で
+  `VecIter<(i32, i32)>` / `VecIter<(String, i32)>` が pair を yield することを、
+  probe で std method が `fn(String, V) -> bool` の callback を呼べることを確認した。
+  本 ADR の公開 surface は snapshot cursor / owned pair predicate のままとするが、
+  これらの修正は後続の pair cursor / two-arg predicate を妨げない。
 - `HashMap` の `IntoIterator` は keys のままなので、Rust の `for (k, v) in map` と
   同じ綴りにはならない。pairs 走査は `for pair in map.iter()` を使う。
 
@@ -111,8 +120,10 @@ unbound になる）。これは fake な borrowed iterator になるため採�
 
 ### `VecIter<(K, V)>` を `iter` / `FromIterator` の cursor にする
 
-tuple 要素の generic `VecIter` は実測で `next()` が payload を落とす。borrowed 風の
-見た目だけを提供する fake になるため採用しない。
+決定時点では tuple 要素の generic `VecIter` の `next()` が payload を落とし、
+borrowed 風の見た目だけを提供する fake になるため採用しなかった。不具合は解消済みで
+pair cursor として成立するが、本 ADR の `iter` / `FromIterator` の公開契約は
+`HashMapIter` snapshot を維持する（既存 surface の変更は別の設計判断とする）。
 
 ### `Entry<K, V>` に `HashMap<K, V>` field を持たせ、generic method で実装する
 
@@ -121,10 +132,11 @@ Vec store と一致しない。pair ごとの concrete `Entry` impl で field �
 
 ### multi-parameter `fn(K, V) -> bool` predicate を std method に置く
 
-std module の method signature では `fn(String, V) -> bool` の callback ABI が
-call_indirect の引数/戻り値を失い、runtime で type mismatch になる。free function へ
-逃がす方法もあるが、API ごとに ABI が変わるより single-parameter の owned pair に
-固定する方が契約として単純である。
+決定時点では std module の method signature で `fn(String, V) -> bool` の callback
+ABI が call_indirect の引数/戻り値を失い、runtime で type mismatch になった。この
+ABI 制約は解消済みで two-arg predicate は lower できるが、`retain` の predicate
+surface は owned pair 1 個のまま固定する（Rust 風の two-arg への移行は API 変更と
+して別途判断する）。
 
 ### `HashMap` の `IntoIterator` を pairs に変更する
 
@@ -136,9 +148,13 @@ call_indirect の引数/戻り値を失い、runtime で type mismatch になる
 - borrow / lifetime 検査が採択され、`&T` / `&mut T` を cursor と `Entry` に安全に
   表現できるようになった場合。
 - tuple 要素の generic cursor が両 target で正しく lower できるようになり、
-  `VecIter<(K, V)>` を `FromIterator` の source にできる場合。
+  `VecIter<(K, V)>` を `FromIterator` の source にできる場合。→ 解消済み。
+  両 target の fixture で pair payload を確認した。source への採用は surface 変更
+  として別途判断する。
 - std method の multi-parameter callback ABI が修正され、`fn(K, V) -> bool` を
-  String pair でも使えるようになった場合。
+  String pair でも使えるようになった場合。→ 解消済み。`fn(String, i32) -> bool` /
+  `fn(String, String) -> bool` の std method 呼び出しを両 target で確認した。
+  `retain` を two-arg へ移行するかは未決である。
 - `retain` の計算量が問題になり、bucket 再構築を 1 pass で行う store target が必要に
   なった場合。
 

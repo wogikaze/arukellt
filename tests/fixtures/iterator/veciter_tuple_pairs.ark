@@ -1,0 +1,44 @@
+use std::core::iter
+use std::host::stdio::Stdio
+use std::test::Test
+
+fn main() {
+    let mut ints: Vec<(i32, i32)> = Vec::new<(i32, i32)>()
+    push(ints, (7, 9))
+    push(ints, (11, 13))
+    let mut int_iter = ints.iter()
+    let mut sums: Vec<i32> = Vec::new<i32>()
+    while true {
+        match int_iter.next() {
+            Some(pair) => {
+                match pair {
+                    (a, b) => { push(sums, a * 100 + b) },
+                }
+            },
+            None => { break },
+        }
+    }
+    Test::assert_eq_i32(len(sums), 2)
+    Test::assert_eq_i32(get_unchecked(sums, 0), 709)
+    Test::assert_eq_i32(get_unchecked(sums, 1), 1113)
+
+    let mut words: Vec<(String, i32)> = Vec::new<(String, i32)>()
+    push(words, (String_from("alpha"), 7))
+    let mut word_iter = words.iter()
+    match word_iter.next() {
+        Some(pair) => {
+            match pair {
+                (key, value) => {
+                    Test::assert_true(key.eq(String_from("alpha")))
+                    Test::assert_eq_i32(value, 7)
+                },
+            }
+        },
+        None => { Test::assert_true(false) },
+    }
+    match word_iter.next() {
+        Some(_) => { Test::assert_true(false) },
+        None => { Test::assert_true(true) },
+    }
+    Stdio::println("veciter-tuple-pairs-ok")
+}
