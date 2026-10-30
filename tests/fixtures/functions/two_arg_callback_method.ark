@@ -1,0 +1,48 @@
+use std::core::iter
+use std::host::stdio::Stdio
+use std::test::Test
+
+struct Checker<K, V> {
+    key: K,
+    value: V,
+}
+
+impl<K, V> Checker<K, V> {
+    fn check(self: Checker<K, V>, f: fn(K, V) -> bool) -> bool {
+        f(self.key, self.value)
+    }
+}
+
+struct WordBox {
+    word: String,
+    limit: i32,
+}
+
+impl WordBox {
+    fn accept(self: WordBox, f: fn(String, i32) -> bool) -> bool {
+        f(self.word, self.limit)
+    }
+}
+
+fn short_enough(s: String, limit: i32) -> bool {
+    len(s) <= limit
+}
+
+fn longer_than(s: String, limit: i32) -> bool {
+    len(s) > limit
+}
+
+fn main() {
+    let checked: Checker<String, i32> = Checker {
+        key: String_from("abc"),
+        value: 10,
+    }
+    Test::assert_true(checked.check(short_enough))
+
+    let wordbox = WordBox {
+        word: String_from("abcdef"),
+        limit: 3,
+    }
+    Test::assert_true(wordbox.accept(longer_than))
+    Stdio::println("two-arg-callback-method-ok")
+}

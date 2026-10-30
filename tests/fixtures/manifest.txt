@@ -613,6 +613,8 @@ run:functions/struct_fn_field_call.ark
 run:functions/tuple_tail_after_infix.ark
 run:functions/paren_receiver_after_if.ark
 run:functions/paren_receiver_after_if_wasm32.ark
+run:functions/two_arg_callback_method.ark
+run:functions/two_arg_callback_method_wasm32.ark
 test:functions/paren_receiver_after_if.ark
 run:collections/vec_option_i32.ark
 run:collections/vec_result_i32.ark
@@ -705,6 +707,8 @@ run:integration/word_counter.ark
 run:iterator/custom_iterator.ark
 run:iterator/seq_method_replacements.ark
 run:iterator/generic_scan_iter.ark
+run:iterator/veciter_tuple_pairs.ark
+run:iterator/veciter_tuple_pairs_wasm32.ark
 run:lang_uplift/comprehension_guard.ark
 run:lang_uplift/guard_const_enum_destructure.ark
 run:lang_uplift/guard_neg_range.ark
@@ -2566,6 +2570,8 @@ t3-compile:integration/sort_vec.ark
 t3-compile:integration/word_counter.ark
 t3-compile:iterator/custom_iterator.ark
 t3-compile:iterator/generic_scan_iter.ark
+t3-compile:iterator/veciter_tuple_pairs.ark
+t3-compile:functions/two_arg_callback_method.ark
 t3-compile:match_extensions/match_guard.ark
 t3-compile:match_extensions/catchall_unmatched.ark
 t3-compile:match_extensions/or_arm_edge.ark
@@ -3104,6 +3110,8 @@ t3-run:integration/fibonacci.ark
 t3-run:integration/word_counter.ark
 t3-run:iterator/custom_iterator.ark
 t3-run:iterator/generic_scan_iter.ark
+t3-run:iterator/veciter_tuple_pairs.ark
+t3-run:functions/two_arg_callback_method.ark
 t3-run:match_extensions/match_guard.ark
 t3-run:match_extensions/catchall_unmatched.ark
 t3-run:match_extensions/or_arm_edge.ark

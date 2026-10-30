@@ -18,7 +18,7 @@ use mir::lower::ctx_types
 use std::text
 
 fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
-    let count = ctx.generic_struct_names.len()
+    let count = len(ctx.generic_struct_names)
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.generic_struct_names, i).eq(base.clone()) {
@@ -30,13 +30,13 @@ fn ctx_generic_struct_params(ctx: LowerCtx, base: String) -> String {
 }
 
 fn ctx_struct_name_is_generic(ctx: LowerCtx, base: String) -> bool {
-    ctx_generic_struct_params(ctx, base).len() > 0
+    len(ctx_generic_struct_params(ctx, base)) > 0
 }
 
 // Comma-joined declared type parameter names for a generic enum base, or ""
 // when base is not a registered generic enum.
 fn ctx_generic_enum_params(ctx: LowerCtx, base: String) -> String {
-    let count = ctx.generic_enum_names.len()
+    let count = len(ctx.generic_enum_names)
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.generic_enum_names, i).eq(base.clone()) {
@@ -50,7 +50,7 @@ fn ctx_generic_enum_params(ctx: LowerCtx, base: String) -> String {
 // Split a comma-joined declared parameter list ("T" / "K,V").
 fn ctx_split_declared_params(joined: String) -> Vec<String> {
     let mut params = Vec::new<String>()
-    let pn = joined.len()
+    let pn = len(joined)
     if pn == 0 {
         return params
     }
@@ -68,7 +68,7 @@ fn ctx_split_declared_params(joined: String) -> Vec<String> {
 
 // "Pair<String>" -> "Pair"; "" when name is not a Name<args> spelling.
 fn generic_inst_base_name(name: String) -> String {
-    let n = name.len()
+    let n = len(name)
     if n < 3 || name.clone().byte_at(n - 1) != 62 {
         return String_new()
     }
@@ -93,16 +93,19 @@ fn generic_inst_base_name(name: String) -> String {
 // "Pair<String,vec:i32>" -> ["String", "vec:i32"] split at top-level commas.
 fn generic_inst_args(name: String) -> Vec<String> {
     let mut result = Vec::new<String>()
-    let n = name.len()
+    let n = len(name)
     if n < 3 || name.clone().byte_at(n - 1) != 62 {
         return result
     }
+    // The first '<' opens the outermost argument list. A later '<' belongs
+    // to a nested argument (VecIter<Vec<i32>>) and must not be mistaken for
+    // the head, or the derived layout sees a bogus argument list.
     let mut lt = 0 - 1
     let mut i = 0
     while i < n {
         if name.clone().byte_at(i) == 60 {
             lt = i
-            i = n
+            break
         }
         i = i + 1
     }
@@ -112,7 +115,7 @@ fn generic_inst_args(name: String) -> Vec<String> {
     let inner = name.clone().slice(lt + 1, n - 1)
     let mut depth = 0
     let mut seg_start = 0
-    let m = inner.len()
+    let m = len(inner)
     let mut j = 0
     while j <= m {
         let at_end = j == m
@@ -132,6 +135,58 @@ fn generic_inst_args(name: String) -> Vec<String> {
     result
 }
 
+// A bare tuple argument spells its elements with top-level commas
+// (`VecIter<tuple:i32,i32>`), which the depth scan reads as argument
+// separators. When the split yields more arguments than the declaration
+// takes and exactly one argument is a bare tuple, re-join the trailing
+// pieces onto that tuple. Container-nested tuples such as
+// `Wrap<Vec<tuple:i32,i32>>` are already balanced by the depth scan.
+// Tuple arguments can carry the storage wrapper `struct:tuple:...:size` on
+// paths that start from a local type instead of an annotation.
+fn generic_inst_arg_is_tuple(arg: String) -> bool {
+    arg.clone().starts_with(String_from("tuple:")) ||
+    arg.clone().starts_with(String_from("struct:tuple:"))
+}
+
+fn generic_inst_args_for_param_count(name: String, param_count: i32) -> Vec<String> {
+    let args = generic_inst_args(name)
+    if param_count <= 0 || len(args) <= param_count {
+        return args
+    }
+    let extra = len(args) - param_count
+    let mut tuple_index = 0 - 1
+    let mut tuple_heads = 0
+    let mut i = 0
+    while i < len(args) {
+        if generic_inst_arg_is_tuple(get_unchecked(args, i).clone()) {
+            if tuple_index < 0 {
+                tuple_index = i
+            }
+            tuple_heads = tuple_heads + 1
+        }
+        i = i + 1
+    }
+    if tuple_index < 0 || tuple_heads > 1 {
+        return args
+    }
+    let mut merged = Vec::new<String>()
+    let mut j = 0
+    while j < len(args) {
+        let mut arg = get_unchecked(args, j).clone()
+        if j == tuple_index {
+            let mut absorbed = 0
+            while absorbed < extra && j + 1 < len(args) {
+                arg = arg.concat(String_from(",").concat(get_unchecked(args, j + 1).clone()))
+                j = j + 1
+                absorbed = absorbed + 1
+            }
+        }
+        push(merged, arg)
+        j = j + 1
+    }
+    merged
+}
+
 fn type_ident_char(ch: i32) -> bool {
     (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch == 95
 }
@@ -139,13 +194,13 @@ fn type_ident_char(ch: i32) -> bool {
 // A still-generic argument: bare type parameter (T), ?-prefixed variable
 // (?T), or empty. Derived layouts require concrete arguments.
 fn generic_arg_is_unbound(arg: String) -> bool {
-    if arg.len() == 0 {
+    if len(arg) == 0 {
         return true
     }
     if arg.clone().starts_with(String_from("?")) {
         return true
     }
-    if arg.len() == 1 {
+    if len(arg) == 1 {
         let ch = arg.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true
@@ -157,7 +212,7 @@ fn generic_arg_is_unbound(arg: String) -> bool {
 // Replace whole identifier tokens equal to a declared parameter with the
 // matching argument (vec:T -> vec:String, Pair<T> -> Pair<String>).
 fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<String>) -> String {
-    let n = ft.len()
+    let n = len(ft)
     let mut out = String_new()
     let mut i = 0
     while i < n {
@@ -174,11 +229,11 @@ fn ctx_substitute_generic_field_type(ft: String, params: Vec<String>, args: Vec<
         let tok = ft.clone().slice(start, i)
         let mut replaced = false
         let mut pi = 0
-        while pi < params.len() {
-            if pi < args.len() && get_unchecked(params, pi).eq(tok.clone()) {
+        while pi < len(params) {
+            if pi < len(args) && get_unchecked(params, pi).eq(tok.clone()) {
                 out = out.concat(get_unchecked(args, pi).clone())
                 replaced = true
-                pi = params.len()
+                pi = len(params)
             }
             pi = pi + 1
         }
@@ -202,20 +257,20 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
         return true
     }
     let base = generic_inst_base_name(inst_name.clone())
-    if base.len() == 0 {
+    if len(base) == 0 {
         return false
     }
     let joined = ctx_generic_struct_params(ctx, base.clone())
-    if joined.len() == 0 {
+    if len(joined) == 0 {
         return false
     }
-    let args = generic_inst_args(inst_name.clone())
     let params = ctx_split_declared_params(joined.clone())
-    if args.len() != params.len() || args.len() == 0 {
+    let args = generic_inst_args_for_param_count(inst_name.clone(), len(params))
+    if len(args) != len(params) || len(args) == 0 {
         return false
     }
     let mut ai = 0
-    while ai < args.len() {
+    while ai < len(args) {
         if generic_arg_is_unbound(get_unchecked(args, ai).clone()) {
             return false
         }
@@ -260,14 +315,14 @@ fn ctx_derive_generic_struct_layout(mut ctx: LowerCtx, inst_name: String) -> boo
 // and derive its layout when possible. Handles ?Wrapper:T mono-body
 // spellings and Name<args> instantiations; other names pass through.
 fn ctx_derive_generic_struct_type_name(mut ctx: LowerCtx, type_name: String) -> String {
-    if type_name.len() == 0 {
+    if len(type_name) == 0 {
         return type_name
     }
     // Local type names can carry the storage spelling struct:Name:id;
     // strip it so instantiation derivation sees the semantic type name.
     let semantic = ctx_struct_layout::ctx_struct_semantic_type_name(type_name)
     let resolved = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, semantic)
-    if generic_inst_base_name(resolved.clone()).len() == 0 {
+    if len(generic_inst_base_name(resolved.clone())) == 0 {
         return resolved
     }
     if ctx_derive_generic_struct_layout(ctx, resolved.clone()) {
