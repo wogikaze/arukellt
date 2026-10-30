@@ -4,6 +4,7 @@ use mir::lower::core_call_arg_print_convert
 use mir::lower::core_call_arg_print_needs
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_emit_core
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
@@ -37,7 +38,9 @@ fn mir_core_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, a
 }
 
 // See call_args::mir_stage_call_arg_from_local: ident/constant sources are not
-// lowered, so the staged copy must produce the value itself.
+// lowered, so the staged copy must reload a value whose producer just
+// materialized it. The linear wasm32 path lowers CoreHIR, so both lowerers
+// need the same rule or p1 emission diverges from gc.
 fn mir_core_stage_call_arg_from_local(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, arg_idx: i32) -> i32 {
     mir_core_stage_call_arg_mode(ctx, staged_arg_locals, arg_idx, false)
 }
@@ -59,16 +62,26 @@ fn mir_core_stage_call_arg_mode(
         staged_local,
         ctx_api_local_types::ctx_local_mvt(ctx, arg_idx)
     )
-    if !source_on_stack {
-        // Protect any earlier producer of the same local that the enclosing
-        // call still needs: the explicit get is what the copy peephole
-        // consumes. Keep `local_set_from` so the local-type pass still sees
-        // the source index.
+    if !source_on_stack && mir_core_stage_arg_needs_reload(ctx, arg_idx) {
+        // Only a producer that materialized this exact local loses its stack
+        // copy to the staged copy: the store policy SETs when a copy reloads
+        // the local it just wrote (`v.push(get_unchecked(v, 0))`). A producer
+        // of another local keeps its TEE/SKIP decision and must not be
+        // duplicated on the operand stack here.
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(staged_local, arg_idx))
     staged_arg_locals.push(staged_local)
     staged_local
+}
+
+// True when the last emitted instruction materialized `arg_idx` itself, so
+// the staged copy is about to consume the only stack copy of that value.
+fn mir_core_stage_arg_needs_reload(ctx: LowerCtx, arg_idx: i32) -> bool {
+    if arg_idx < 0 {
+        return false
+    }
+    ctx_emit_core::ctx_current_block_last_inst_dest(ctx) == arg_idx
 }
 
 fn mir_core_stage_call_arg_vt(ctx: LowerCtx, arg_idx: i32) -> i32 {
