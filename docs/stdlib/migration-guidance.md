@@ -2432,13 +2432,10 @@ a method hint. The replacement is `HashMap::new<i32, i32>()` /
 `HashMap::with_capacity<i32, i32>(n)` plus the receiver methods. The capacity
 / bulk-maintenance group
 (`with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`,
-`clear`, `drain`, `remove_entry`, `extend`) is implemented for
-`HashMap<i32, i32>` only: the String and fn-valued stores reject those calls
-at typecheck with `E0200` instead of lowering over the wrong bucket layout.
-The diagnostic names the rejected method, the receiver pair, and the methods
-the pair does support. A generic capacity surface is deferred because the
-non-flat stores keep compiler-managed bucket arrays and would need per-pair
-`drain` / `remove_entry` / `extend` lowering first.
+`clear`, `drain`, `remove_entry`, `extend`) is generic over every supported
+pair. Each pair lowers to its own store: the flat `HashMap<i32, i32>` counters
+or the compiler-managed bucket arrays behind the non-public `__hm_*` bridge,
+with typed `Vec<(K, V)>` / `Option<(K, V)>` results.
 
 | Old API | Replacement |
 |---------|-------------|

@@ -77,6 +77,15 @@ fn mir_callee_name_accepts_i32_narrow_from_i64(callee_name: String) -> bool {
     callee_name.clone().contains(String_from("hashmap_try_reserve")) {
         return true
     }
+    // Non-flat pairs spell their capacity targets `hashmap_<pair>_<method>`,
+    // so the flat-only prefixes above do not match `hashmap_str_reserve` or
+    // `hashmap_str_with_capacity`. These parameters are i32 bucket counts
+    // and keys on every store.
+    if callee_name.clone().contains(String_from("_with_capacity")) ||
+    callee_name.clone().contains(String_from("_reserve")) ||
+    callee_name.clone().contains(String_from("_remove_entry")) {
+        return true
+    }
     if callee_name.clone().eq(String_from("assert_eq_i32")) ||
     callee_name.clone().ends_with(String_from("::assert_eq_i32")) {
         return true

@@ -1746,3 +1746,67 @@ classified there, in dependency-safe waves.
   （111 runtime executed、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、
   `selfhost diag-parity` PASS、`docs check` 6/6、`verify lane` PASS、
   ADR-029 fixpoint PASS（s2 == s3 = `35913e9d…`、pinned base `56ff0808…`）。
+
+### Landed slice (wave/hashmap-generic, 2026-10-30)
+
+- **Feasibility re-check**: the recorded blocker ("`drain` / `remove_entry` /
+  `extend` need per-pair typed-pair lowering") was stale. `Vec<(K, V)>` was
+  already the `entries()` lowering target for all five non-flat pairs, and
+  `Option<(K, V)>` lowers and runs on both targets for every value shape
+  (`String/i32`, `i32/String`, `String/String`, `i32/fn`, `String/fn`): the
+  probe compiled, validated, and executed on wasm32-gc and wasm32 before any
+  compiler edit. The `__hm_*` bridge already exposes
+  `new_with_cap`/`cap`/`size`/`set_size`/`get_flag`/`set_flag`/`get_key`/
+  `set_key`/`get_val`/`set_val`/`adopt` per family, and map-typed parameters
+  are already passed by `adopt`. No new lowering primitive was needed.
+- **Landed**: `with_capacity`, `capacity`, `reserve`, `try_reserve`,
+  `shrink_to_fit`, `clear`, `drain`, `remove_entry`, and `extend` now lower
+  for `HashMap<String, i32>`, `HashMap<i32, String>`,
+  `HashMap<String, String>`, `HashMap<i32, fn(i32) -> i32>`, and
+  `HashMap<String, fn(i32) -> i32>`, plus the flat `HashMap<i32, i32>` pair.
+  `hash_string.ark` / `hash_fn.ark` / `hash_str_fn.ark` hold one target per
+  pair (`<pair>_with_capacity` clamps zero to capacity 1, `_min_capacity`
+  keeps the 0.75 load factor, `_rehash_to` rebuilds a donor and adopts it,
+  `_drain` returns typed pairs and clears the store, `_remove_entry` returns
+  `Option<(K, V)>`, `_extend` drains the other map's pairs into `set`).
+  `call_rewrite_hashmap` maps the capacity group to
+  `<family>_<method>` and the typed `with_capacity` constructors to the
+  per-pair target; `call_type_hash` marks the `Vec<(K, V)>` drain and
+  `Option<(K, V)>` remove_entry result layouts, plus the i32 capacity and
+  bool try_reserve results.
+- **Bootstrap constraint**: the nine declarations stay on the flat
+  `impl HashMap<i32, i32>` block; the other pairs are accepted by the
+  typechecker's HashMap method table. Putting the surface on the generic
+  `impl<K, V>` shell made the pinned bootstrap reject
+  `std/collections/hash_map.ark` (its E0200 gate rejects gated calls on a
+  generic receiver), which broke `check-doc-examples` with the pin. The
+  constructor worklist entry for the bare `HashMap::with_capacity` spelling
+  now comes from `edge_collect_calls` adding the type-argument spelling, so
+  the pair-specific target survives reachability.
+- **Typechecker fixes**: `reserve` / `try_reserve` unify their argument with
+  `i32` (the old key-typed default worked only while every key was i32);
+  constructor type arguments resolve through the enclosing function's type
+  parameters so `HashMap::new<K, V>()` keeps `HashMap<K, V>`.
+- **Removed**: the capacity E0200 boundary and its four diagnostics fixtures
+  (`diagnostics/hashmap_string_capacity*`,
+  `hashmap_string_with_capacity*`). `HashMap<f64, i32>`-style unsupported
+  pairs still fail with the unchanged unsupported-pair diagnostic, and the
+  `HashSet<String>` capacity boundary is unchanged.
+- **Fixtures**: added `stdlib_hashmap/hashmap_string_capacity` (test,
+  capacity plan + bulk ops), `hashmap_pair_capacity` (test, the four
+  non-flat value pairs), and `hashmap_capacity_pairs` (run + `.expected`,
+  flat and String/fn stores). Registry 3582 -> **3587**; manifest
+  `t3-compile` / `t3-run` entries added for all three.
+- **Verification**: the three new fixtures pass `arukellt test` /
+  `arukellt run` on wasm32 and compile+run as wasm32-gc P2 components; the
+  two test fixtures compile+validate in the t3 lane. `verify fixtures`
+  **1932/1932** compile+validate PASS (111 runtime executed, 41/41 `test:`
+  PASS, 2 runtime-unsupported, 0 FAIL). `verify lane` PASS, `docs check`
+  6/6, ADR-029 fixpoint PASS: s2 == s3 sha256
+  `f17942c6076af0c61b69a4c7a065d0fc50239dc932d5ef8180737a2d01e2fbb2`
+  (pinned base `56ff0808…`). Every `with_capacity`/`reserve`/`drain`/
+  `remove_entry`/`extend` probe also ran on both targets before the gate.
+- **Residuals**: borrowed `entry` / `iter` / `retain` and `FromIterator`
+  parity remain deferred with the collection iterator design. The
+  `HashSet<String>` capacity boundary and the pair-generic
+  `removed_hashmap_adapter*` hint are unchanged.

@@ -266,6 +266,23 @@ fn hash_snapshot_vec_type_name(callee_name: String) -> String {
     callee_eq(callee_name.clone(), "hash_str_fn::hashmap_str_fn_entries") {
         return "vec:tuple:String,fnref"
     }
+    // drain() returns the same typed pair snapshot; the per-pair targets are
+    // separate from entries because drain also empties the store.
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_str_drain") {
+        return "vec:tuple:String,i32"
+    }
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_i32_str_drain") {
+        return "vec:tuple:i32,String"
+    }
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_str_str_drain") {
+        return "vec:tuple:String,String"
+    }
+    if callee_eq(callee_name.clone(), "hash_fn::hashmap_i32_fn_drain") {
+        return "vec:tuple:i32,fnref"
+    }
+    if callee_eq(callee_name.clone(), "hash_str_fn::hashmap_str_fn_drain") {
+        return "vec:tuple:String,fnref"
+    }
     String_new()
 }
 
@@ -360,6 +377,13 @@ fn is_hash_size_query(callee_name: String) -> bool {
     callee_eq(callee_name.clone(), "hashmap_capacity") {
         return true
     }
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_str_capacity") ||
+    callee_eq(callee_name.clone(), "hash_string::hashmap_i32_str_capacity") ||
+    callee_eq(callee_name.clone(), "hash_string::hashmap_str_str_capacity") ||
+    callee_eq(callee_name.clone(), "hash_fn::hashmap_i32_fn_capacity") ||
+    callee_eq(callee_name.clone(), "hash_str_fn::hashmap_str_fn_capacity") {
+        return true
+    }
     if callee_eq(callee_name.clone(), "hash::hashmap_size") {
         return true
     }
@@ -386,6 +410,13 @@ fn is_hash_bool_query(callee_name: String) -> bool {
     callee_eq(callee_name.clone(), "hashmap_try_reserve") {
         return true
     }
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_str_try_reserve") ||
+    callee_eq(callee_name.clone(), "hash_string::hashmap_i32_str_try_reserve") ||
+    callee_eq(callee_name.clone(), "hash_string::hashmap_str_str_try_reserve") ||
+    callee_eq(callee_name.clone(), "hash_fn::hashmap_i32_fn_try_reserve") ||
+    callee_eq(callee_name.clone(), "hash_str_fn::hashmap_str_fn_try_reserve") {
+        return true
+    }
     if callee_eq(callee_name.clone(), "hash::hashmap_is_empty") ||
     callee_eq(callee_name.clone(), "hash::hashmap_try_reserve") {
         return true
@@ -407,6 +438,28 @@ fn is_hash_bool_query(callee_name: String) -> bool {
 fn is_option_pair_i32_hash_query(callee_name: String) -> bool {
     callee_eq(callee_name.clone(), "hashmap_remove_entry_pair") ||
     callee_eq(callee_name, "hash::hashmap_remove_entry_pair")
+}
+
+// Option<(K, V)> spelling for the non-flat remove_entry targets. The pair
+// names match mir_type_info_to_mono_key so match payload binding recovers a
+// typed tuple on both targets (#890).
+fn hash_option_pair_type_name(callee_name: String) -> String {
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_str_remove_entry") {
+        return String_from("option:tuple:String,i32")
+    }
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_i32_str_remove_entry") {
+        return String_from("option:tuple:i32,String")
+    }
+    if callee_eq(callee_name.clone(), "hash_string::hashmap_str_str_remove_entry") {
+        return String_from("option:tuple:String,String")
+    }
+    if callee_eq(callee_name.clone(), "hash_fn::hashmap_i32_fn_remove_entry") {
+        return String_from("option:tuple:i32,fnref")
+    }
+    if callee_eq(callee_name.clone(), "hash_str_fn::hashmap_str_fn_remove_entry") {
+        return String_from("option:tuple:String,fnref")
+    }
+    String_new()
 }
 
 fn mark_hash_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -488,6 +541,13 @@ fn mark_hash_query_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32
     }
     if is_option_pair_i32_hash_query(callee_name.clone()) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "option:tuple:i32,i32")
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
+    }
+    let option_pair_ty = hash_option_pair_type_name(callee_name.clone())
+    if len(option_pair_ty) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, option_pair_ty)
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }

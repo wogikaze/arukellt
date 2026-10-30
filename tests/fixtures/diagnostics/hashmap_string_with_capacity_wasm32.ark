@@ -1,6 +1,0 @@
-// `with_capacity` allocates the flat i32 bucket layout; the String store
-// must reject the constructor instead of running the i32 helper.
-fn main() {
-    let m: HashMap<String, i32> = HashMap::with_capacity<String, i32>(4)
-    let _ = m
-}

@@ -8,10 +8,10 @@ This page records the intentional differences between Arukellt's current
 
 Arukellt's canonical source API is `HashMap::new<K,V>()` plus receiver methods
 (`insert`, `get`, `contains_key`, `remove`, `len`, `is_empty`, `keys`,
-`values`, and `entries`). The compiler statically monomorphizes the supported
-concrete pairs. The raw monomorphic `i32 -> i32` implementation in
-`std::collections::hash` is the compatibility and linear-memory implementation
-layer. It is backed by a flat `Vec<i32>`:
+`values`, `entries`, and the capacity / bulk-maintenance group). The compiler
+statically monomorphizes the supported concrete pairs. The raw monomorphic
+`i32 -> i32` implementation in `std::collections::hash` is the compatibility
+and linear-memory implementation layer. It is backed by a flat `Vec<i32>`:
 
 ```text
 [capacity, size, keys..., values..., flags...]
@@ -39,34 +39,40 @@ task if the project needs them later.
 
 ## Capacity And Growth
 
-The `i32 -> i32` map grows before inserts would exceed a 0.75 load-factor
-threshold. `HashMap<i32, i32>` exposes:
+Every supported pair grows before inserts would exceed a 0.75 load-factor
+threshold, and every pair exposes:
 
-- `HashMap::with_capacity<i32, i32>(n)`
+- `HashMap::with_capacity<K, V>(n)`
 - `m.capacity()`
 - `m.reserve(n)`
 - `m.try_reserve(n)`
 - `m.shrink_to_fit()`
 - `m.clear()`
-- `m.drain()` (returns `Vec<(i32, i32)>` and empties the map)
+- `m.drain()` (returns `Vec<(K, V)>` and empties the map)
+- `m.remove_entry(k)` (returns `Option<(K, V)>`)
 - `m.extend(other)`
 
 `try_reserve` returns `bool` because the current `Vec` implementation does not
 expose a recoverable allocation-error channel comparable to Rust's
 `TryReserveError`; `true` means the reserve completed.
 
-The capacity / bulk-maintenance surface is `HashMap<i32, i32>`-only. The
-String and fn-valued stores keep their bucket arrays as non-public lowering
-details, so a call on those pairs is rejected at typecheck with `E0200`
-instead of running the i32 helpers over the wrong layout. This is the same
-boundary that already applies to `HashSet<String>` capacity methods.
+The surface is accepted for every supported pair and lowered per pair.
+`HashMap<i32, i32>` uses the flat `Vec<i32>` counters; the String and
+fn-valued pairs keep their bucket arrays behind the non-public `__hm_*`
+bridge, and `hash_string.ark` / `hash_fn.ark` / `hash_str_fn.ark` hold one
+`with_capacity` / `capacity` / `reserve` / `try_reserve` / `shrink_to_fit` /
+`clear` / `drain` / `remove_entry` / `extend` target per pair. The source
+declarations stay on the flat pair and the typechecker's HashMap method table
+accepts the other pairs, because the pinned bootstrap must still typecheck
+`std/collections/hash_map.ark`; MIR picks the implementation from the
+receiver's pair. `drain` and `remove_entry` return typed pairs, so no caller
+sees the bucket layout. This does not weaken the separate `HashSet<String>`
+boundary: that facade has no bucket layout and still rejects capacity
+methods.
 
-A generic `HashMap<K, V>` capacity surface is deferred rather than
-unimplemented plumbing: the non-flat stores use compiler-managed bucket
-arrays, and exposing `drain` / `remove_entry` / `extend` on them needs
-per-pair typed-pair lowering before one contract can cover every pair. No
-capability was lost in the free-function retirement: the 21 retired
+No capability was lost in the free-function retirement: the 21 retired
 `hashmap_*` frees were i32-keyed and i32-valued.
+
 
 ## Replacement And Lookup
 

@@ -9,13 +9,14 @@
 //!
 //! The capacity / bulk-maintenance surface (`with_capacity`, `capacity`,
 //! `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`,
-//! `remove_entry`, `extend`) is declared for `HashMap<i32, i32>` only. The
-//! flat store is the one pair whose bucket counters and bulk helpers are
-//! exposed; the String and fn-valued stores keep their bucket arrays private,
-//! so a call on those pairs is rejected with `E0200` instead of being lowered
-//! over the wrong store layout. A generic capacity surface is deferred: those
-//! stores would need per-pair `drain` / `remove_entry` / `extend` lowering over
-//! their compiler-managed buckets before the contract could be shared.
+//! `remove_entry`, `extend`) is accepted for every supported pair and lowered
+//! per pair: the flat `HashMap<i32, i32>` store exposes its counters directly,
+//! while the String and fn-valued stores use their compiler-managed bucket
+//! arrays through the non-public `__hm_*` bridge. The declarations below are
+//! the flat pair's shells; the other pairs are checked by the typechecker's
+//! HashMap method table so the pinned bootstrap can still typecheck this
+//! module. MIR rewrites every call to the implementation function for the
+//! receiver's pair, so the shell bodies never run.
 
 use std::core::iter
 
@@ -67,9 +68,11 @@ impl<K, V> HashMap<K, V> {
     }
 }
 
-// The flat-store maintenance surface. MIR rewrites each call to the
-// non-public implementation functions in `std::collections::hash`; the
-// bodies here only carry the source contract and never run.
+// Flat-pair declarations for the capacity / bulk-maintenance surface. MIR
+// rewrites each call to the implementation function for the receiver's pair
+// (the non-flat targets live in `std::collections::hash_string` / `hash_fn` /
+// `hash_str_fn`); the bodies here only carry the source contract and never
+// run.
 impl HashMap<i32, i32> {
     /// Creates an empty map with at least `cap` bucket slots (minimum 1).
     fn with_capacity(cap: i32) -> HashMap<i32, i32> {

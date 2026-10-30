@@ -16,6 +16,31 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `HashMap<K, V>` capacity / bulk surface の全 pair 展開 (#917, wave/hashmap-generic)
+
+- **Changed**: `with_capacity` / `capacity` / `reserve` / `try_reserve` /
+  `shrink_to_fit` / `clear` / `drain` / `remove_entry` / `extend` を
+  `HashMap<i32, i32>` 限定から、サポートする全 pair
+  （`i32/String` キー × `i32`/`String`/`fn(i32) -> i32` 値）へ広げた。
+  宣言は flat pair の `impl HashMap<i32, i32>` shell と typechecker の HashMap
+  method table が担い、MIR が receiver の pair ごとの store 実装へ rewrite する。
+  非 flat 宣言を generic shell へ置かないのは、pinned bootstrap が
+  `std/collections/hash_map.ark` を型検査し続けられるようにするためである。
+  `HashMap<i32, i32>` は flat `Vec<i32>`、String/fn pair は compiler 管理
+  bucket 配列を `__hm_*` bridge 経由で操作する。
+- **Contract**: `drain` は `Vec<(K, V)>`、`remove_entry` は `Option<(K, V)>` を
+  返す。`try_reserve` の `true` は reserve 完了を意味する。flat pair の
+  `with_capacity(0) -> capacity 1` を含め、0 以下の容量は 1 に clamp する。
+- **Removed**: 非 flat pair の capacity 呼び出しに対する E0200 境界。診断 fixture
+  `diagnostics/hashmap_string_capacity*` と
+  `diagnostics/hashmap_string_with_capacity*` を削除し、positive fixture
+  `stdlib_hashmap/hashmap_string_capacity` / `hashmap_pair_capacity` /
+  `hashmap_capacity_pairs` を追加した。
+- **Not changed**: `HashSet<String>` の capacity 境界は据え置き。String set は
+  bucket layout を持たない `Vec<String>` facade のままである。
+- **Residual**: borrow-based `entry` / `iter` / `retain` /
+  `FromIterator` parity は collection iterator 設計待ちのまま。
+
 ## 2026-10-30 — `std::collections::string::eq` の退役 (#917 / ADR-046, wave/string-eq-qualified)
 
 - **Removed**: `std/collections/string.ark` の public `pub fn eq(a, b)` を

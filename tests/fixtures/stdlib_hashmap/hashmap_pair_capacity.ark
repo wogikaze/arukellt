@@ -1,0 +1,102 @@
+// Capacity / bulk-maintenance surface for the non-flat value pairs:
+// i32->String, String->String, i32->fn, and String->fn.
+use std::test::Test
+
+fn inc(n: i32) -> i32 {
+    n + 1
+}
+
+test "i32_to_string" {
+    let mut m = HashMap::with_capacity<i32, String>(2)
+    Test::assert_eq_i32(m.capacity(), 2)
+    Test::assert_true(m.try_reserve(2))
+
+    let _ = m.insert(1, "one")
+    let _ = m.insert(2, "two")
+    match m.remove_entry(1) {
+        Option::Some((key, value)) => {
+            Test::assert_eq_i32(key, 1)
+            Test::assert_eq_string(value, "one")
+        }
+        Option::None => Std::panic("missing i32->String remove_entry"),
+    }
+
+    let mut other = HashMap::new<i32, String>()
+    let _ = other.insert(3, "three")
+    m.extend(other)
+    Test::assert_eq_i32(m.len(), 2)
+
+    let drained: Vec<(i32, String)> = m.drain()
+    Test::assert_eq_i32(drained.len(), 2)
+    Test::assert_true(m.is_empty())
+    m.shrink_to_fit()
+    Test::assert_true(m.capacity() >= 1)
+}
+
+test "string_to_string" {
+    let mut m = HashMap::with_capacity<String, String>(2)
+    Test::assert_eq_i32(m.capacity(), 2)
+    Test::assert_true(m.try_reserve(2))
+
+    let _ = m.insert("a", "alpha")
+    let _ = m.insert("b", "beta")
+    match m.remove_entry("a") {
+        Option::Some((key, value)) => {
+            Test::assert_eq_string(key, "a")
+            Test::assert_eq_string(value, "alpha")
+        }
+        Option::None => Std::panic("missing String->String remove_entry"),
+    }
+
+    let mut other = HashMap::new<String, String>()
+    let _ = other.insert("c", "gamma")
+    m.extend(other)
+    Test::assert_eq_i32(m.len(), 2)
+
+    let drained: Vec<(String, String)> = m.drain()
+    Test::assert_eq_i32(drained.len(), 2)
+    m.clear()
+    Test::assert_true(m.is_empty())
+}
+
+test "i32_to_fn" {
+    let mut m = HashMap::with_capacity<i32, fn(i32) -> i32>(2)
+    Test::assert_eq_i32(m.capacity(), 2)
+    let _ = m.insert(1, inc)
+    match m.remove_entry(1) {
+        Option::Some((key, f)) => {
+            Test::assert_eq_i32(key, 1)
+            Test::assert_eq_i32(f(1), 2)
+        }
+        Option::None => Std::panic("missing i32->fn remove_entry"),
+    }
+
+    let mut other = HashMap::new<i32, fn(i32) -> i32>()
+    let _ = other.insert(2, inc)
+    m.extend(other)
+    let drained: Vec<(i32, fn(i32) -> i32)> = m.drain()
+    Test::assert_eq_i32(drained.len(), 1)
+    m.shrink_to_fit()
+    Test::assert_true(m.is_empty())
+}
+
+test "string_to_fn" {
+    let mut m = HashMap::with_capacity<String, fn(i32) -> i32>(2)
+    Test::assert_eq_i32(m.capacity(), 2)
+    let _ = m.insert("a", inc)
+    match m.remove_entry("a") {
+        Option::Some((key, f)) => {
+            Test::assert_eq_string(key, "a")
+            Test::assert_eq_i32(f(2), 3)
+        }
+        Option::None => Std::panic("missing String->fn remove_entry"),
+    }
+
+    let mut other = HashMap::new<String, fn(i32) -> i32>()
+    let _ = other.insert("b", inc)
+    m.extend(other)
+    let drained: Vec<(String, fn(i32) -> i32)> = m.drain()
+    Test::assert_eq_i32(drained.len(), 1)
+    m.clear()
+    Test::assert_true(m.is_empty())
+}

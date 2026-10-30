@@ -148,7 +148,7 @@ methods = ["panic"]
 [[types]]
 name = "HashMap"
 kind = "struct"
-doc = "Hash-based key/value map. `new`, `insert`, `get`, `contains_key`, `remove`, `len`, `is_empty`, `keys`, `values`, and `entries` are generic over the supported pairs. The capacity / bulk-maintenance surface (`with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend`) is implemented for `HashMap<i32, i32>` only; the other pairs reject it with E0200 instead of lowering over the wrong store layout."
+doc = "Hash-based key/value map. `new`, `insert`, `get`, `contains_key`, `remove`, `len`, `is_empty`, `keys`, `values`, `entries`, and the capacity / bulk-maintenance group (`with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend`) are generic over the supported pairs. Each pair lowers to its own store: the flat `HashMap<i32, i32>` implementation or the compiler-managed bucket arrays behind the non-public `__hm_*` bridge. `drain` returns typed `Vec<(K, V)>` pairs, `remove_entry` returns `Option<(K, V)>`, and `try_reserve` returns `true` when the reserve completed."
 prelude = true
 stability = "provisional"
 generic_params = ["K", "V"]
