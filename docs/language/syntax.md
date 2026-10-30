@@ -97,6 +97,9 @@ let n: i32 = 42
 let s: String = String_from("hello")
 ```
 
+`String` は `Add` を実装しているため、`s1 + s2` は `String` を返します
+（`s1.concat(s2)` と同じ連結）。数値の `+` は従来どおり数値演算です。
+
 > 📘 基本型・複合型の完全な一覧は [spec.md §2 Type System](spec.md#2-type-system) を参照。
 > struct / enum の定義構文は [spec.md §6.2–6.3](spec.md#62-struct-definition) を参照。
 

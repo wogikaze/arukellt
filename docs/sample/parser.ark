@@ -1510,5 +1510,6 @@ fn main() {
     Test::assert_eq_i32(lint_result.warnings.len(), 1)
     Test::assert_eq_string(lint_result.warnings.get_unchecked(0).code, MATH_UNCLOSED_INLINE())
 
-    Stdio::println("parser sample ok: events=".concat(result.events.len().to_string()))
+    let summary = "parser sample ok: events=" + result.events.len().to_string()
+    Stdio::println(summary)
 }

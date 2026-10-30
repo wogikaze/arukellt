@@ -1,0 +1,27 @@
+// `String` implements `Add`, so `+` concatenates and yields a `String`.
+// Numeric operands keep their built-in arithmetic typing.
+use std::host::stdio::Stdio
+
+fn main() {
+    let literal = "a" + "b"
+    let left: String = String_from("x")
+    let right: String = String_from("y")
+    let joined: String = left + right
+    let appended = joined + ""
+    let prefixed = "" + appended
+    let chained = literal + "-" + right
+
+    assert(literal == "ab")
+    assert(joined == "xy")
+    assert(appended == "xy")
+    assert(prefixed == "xy")
+    assert(chained == "ab-y")
+    assert(appended.concat("!") == "xy!")
+    assert(("" + "").len() == 0)
+
+    assert(1 + 2 == 3)
+    assert(4i64 + 5i64 == 9i64)
+    assert(1.5 + 2.5 == 4.0)
+
+    Stdio::println("OK")
+}

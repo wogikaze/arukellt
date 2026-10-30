@@ -1,6 +1,27 @@
+use mir::opcodes
 use mir::value_types
 fn mir_is_string_type_name(type_name: String) -> bool {
     type_name.clone().eq("String") || type_name.clone().eq("string")
+}
+
+// String addition is an ordinary `Add::add` call now. The intrinsic MIR_ADD
+// fast path must not intercept it: that path concatenates on wasm32-gc but
+// performs pointer arithmetic on wasm32-linear. Equality stays intrinsic
+// because it compares contents directly.
+fn mir_is_string_add_operator(type_name: String, mir_op: i32) -> bool {
+    mir_is_string_type_name(type_name.clone()) && mir_op == opcodes::MIR_ADD()
+}
+
+// String locals carry the lowercase "string" spelling, while impl methods
+// register under the canonical owner "String::". Operator lowering builds the
+// callee name from the local type, so normalize the owner before the lookup;
+// otherwise the `String::add` candidate is missed and MIR_ADD falls back to
+// backend-specific ref arithmetic.
+fn mir_operator_owner_type_name(type_name: String) -> String {
+    if mir_is_string_type_name(type_name.clone()) {
+        return String_from("String")
+    }
+    type_name
 }
 
 fn mir_is_primitive_operator_type(type_name: String) -> bool {

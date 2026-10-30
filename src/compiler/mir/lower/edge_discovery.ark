@@ -13,6 +13,7 @@ use corehir::mod
 use corehir::param
 use corehir::type_ann_node
 use mir::lower::ann_types
+use mir::lower::binary_type_names
 use mir::lower::entry_fns_mono
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_mono
@@ -1284,16 +1285,18 @@ fn edge_collect_calls(
         // non-scalar or unknown operands can emit a trait impl call, so
         // the bare_index family fan-out (add/eq/cmp on every impl) is
         // skipped entirely when both operand types are known scalars.
+        let mut lhs_ty = String_new()
+        let mut rhs_ty = String_new()
         let mut scalar_op = false
         if child_count >= 2 {
-            let lhs_ty = edge_infer_expr_type(
+            lhs_ty = edge_infer_expr_type(
                 ctx,
                 frontend_ast_children::corehir_node_child_at(node, 0),
                 env_names,
                 env_types,
                 memo
             )
-            let rhs_ty = edge_infer_expr_type(
+            rhs_ty = edge_infer_expr_type(
                 ctx,
                 frontend_ast_children::corehir_node_child_at(node, 1),
                 env_names,
@@ -1301,7 +1304,7 @@ fn edge_collect_calls(
                 memo
             )
             scalar_op = lhs_ty.len() > 0 && rhs_ty.len() > 0 &&
-            edge_is_scalar_type_name(lhs_ty) && edge_is_scalar_type_name(rhs_ty)
+            edge_is_scalar_type_name(lhs_ty.clone()) && edge_is_scalar_type_name(rhs_ty.clone())
         }
         if !scalar_op {
             edge_push_binary_op_candidates(
@@ -1310,6 +1313,14 @@ fn edge_collect_calls(
                 expr_node_access::expr_op(node),
                 frontend_ast_span::corehir_node_span_start(node)
             )
+            // String `+` lowers to `String::add`, whose impl name is qualified.
+            // The bare "add" fallback does not reach the owner method, so keep
+            // the concrete candidate or the impl body is pruned before
+            // lowering and the call falls back to backend ref arithmetic.
+            if expr_node_access::expr_op(node) == lower_kinds::OP_ADD() &&
+            binary_type_names::mir_is_string_type_name(lhs_ty) {
+                edge_push_typed_method_candidates(out, String_from("String"), "add")
+            }
         }
     }
     if frontend_expr_kind::corehir_kind_is_expr_unary(kind) {

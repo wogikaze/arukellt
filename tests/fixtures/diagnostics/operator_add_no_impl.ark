@@ -1,6 +1,6 @@
 use std::host::stdio::Stdio
 
 fn main() {
-    let c = String_from("x") + String_from("y")
-    Stdio::println(c)
+    let c = true + false
+    Stdio::println(c.to_string())
 }

@@ -303,7 +303,7 @@ status = "verified"
 id = "trait_operator_overload"
 domain = "trait"
 statement = "Operator traits (Add/Sub/Neg/Index) desugar to trait calls with identical operand order and result."
-fixtures = ["operator_overload/add_complex.ark", "operator_overload/sub_vec.ark", "operator_overload/neg_wrapper.ark", "operator_overload/index_custom.ark"]
+fixtures = ["operator_overload/add_complex.ark", "operator_overload/sub_vec.ark", "operator_overload/neg_wrapper.ark", "operator_overload/index_custom.ark", "operators/string_add.ark"]
 adrs = ["ADR-065", "ADR-062"]
 status = "verified"
 
