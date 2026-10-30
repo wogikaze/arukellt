@@ -8,6 +8,14 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
         return type_ann_node::type_ann_function_ref_name(ty)
     }
     if type_ann_node::type_ann_is_generic(ty) {
+        // `String<__Printable>` is the checker-only print boundary marker;
+        // MIR must keep the plain String name/representation so the emitted
+        // function ABI stays a String reference.
+        let raw_name = type_ann_node::type_ann_name(ty)
+        if raw_name.clone().eq(String_from("String")) ||
+        raw_name.clone().starts_with(String_from("String<")) {
+            return String_from("String")
+        }
         if type_ann_node::type_ann_is_name(ty, String_from("Vec")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)
             // Vec<(A, B)> params keep the tuple:<k,...> element spelling so

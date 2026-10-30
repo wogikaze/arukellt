@@ -5,25 +5,28 @@ use resolver::paths
 use typechecker::kinds
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
-use typechecker::builtins
 use typechecker::call_args
 use typechecker::closure_capture
 use typechecker::call_generic
+use typechecker::call_generic_fn_args
 use typechecker::call_method
 use typechecker::hashmap_methods
 use typechecker::call_unknown
 use typechecker::call_vec_ctor
 use typechecker::enum_expr
+use typechecker::contract_env_record
 use typechecker::contract_env_resolved_record
 use typechecker::contract_fn_sig
 use typechecker::contract_resolved_call
 use typechecker::contract_type_access
+use typechecker::name_display
 use typechecker::names
 use typechecker::ownership
 use typechecker::param_mode
 use typechecker::scope
 use typechecker::sigs
 use typechecker::unify
+use typechecker::unify_compat
 fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     if child_count < 1 {
@@ -455,8 +458,10 @@ fn infer_concrete_call_expr(
     sig: FnSig,
     arg_count: i32
 ) -> TypeInfo {
-    let param_count = contract_fn_sig::FnSig_param_count(sig)
-    let fname = contract_fn_sig::FnSig_name(sig)
+    let arg_types = infer_concrete_call_arg_types(env, scope, fn_sigs, enum_defs, node, arg_count)
+    let selected_sig = select_conversion_impl_sig(env, fn_sigs, sig, arg_types)
+    let param_count = contract_fn_sig::FnSig_param_count(selected_sig)
+    let fname = contract_fn_sig::FnSig_name(selected_sig)
     if arg_count != param_count {
         unify::type_error_bad_arity(
             env,
@@ -464,110 +469,284 @@ fn infer_concrete_call_expr(
                 fname.clone().concat(String_from("`: expected ").concat(param_count.to_string().concat(String_from(", found ").concat(arg_count.to_string()))))
             )
         )
-        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
     param_mode::check_call_parameter_modes(
         env,
         scope,
-        sig,
+        selected_sig,
         node,
         1,
         TypeInfo_simple(commands::TY_UNKNOWN())
     )
-    if builtins::is_concrete_prelude_builtin(fname.clone()) {
-        infer_prelude_concrete_call_args(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
-        return contract_fn_sig::FnSig_return_type(sig)
-    }
-    // Remaining concrete calls keep the unchecked path: the flat name index is
-    // not overload-aware, and their declared signatures are placeholders or
-    // overloads (`len`, `push`, `to_string`, `eq`, ...). `Test::assert_eq_i64`
-    // stays here too: it deliberately accepts widened i32 actuals.
-    // Checking them against the first flat signature would false-fail valid
-    // calls (#936). The argument inference still checks the function-type
-    // mode direction (ADR-088 §7), which does not depend on unification.
-    infer_concrete_call_args_with_fn_modes(env, scope, fn_sigs, enum_defs, node, sig, arg_count)
-    contract_fn_sig::FnSig_return_type(sig)
+    check_concrete_call_args(env, scope, fn_sigs, node, selected_sig, arg_types)
+    contract_fn_sig::FnSig_return_type(selected_sig)
 }
 
-fn infer_concrete_call_args_with_fn_modes(
+// Infer every argument once, before the arity and parameter checks, so a
+// conversion impl can be selected from the inferred source type without
+// re-running inference (ownership uses are not idempotent).
+fn infer_concrete_call_arg_types(
     mut env: TypeEnv,
     mut scope: LocalScope,
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     node: AstNode,
-    sig: FnSig,
     arg_count: i32
+) -> Vec<TypeInfo> {
+    let mut arg_types = Vec::new<TypeInfo>()
+    let mut i = 0
+    while i < arg_count {
+        let arg_node = ast_access::node_child_at(node, i + 1)
+        let mut arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+        // A bare function name infers TY_UNKNOWN because top-level functions
+        // are not scope bindings. Recover the declared signature so a concrete
+        // `fn(T) -> U` parameter receives a function value (#860).
+        if contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_UNKNOWN() &&
+        (ast_expr_predicates::node_is_ident(arg_node) || ast_expr_predicates::node_is_path(arg_node)) &&
+        !contract_env_record::type_env_is_const_name(env, ast_access::node_text(arg_node)) {
+            let fn_ty = sigs::fn_value_type_from_sig(env, fn_sigs, ast_access::node_text(arg_node))
+            if contract_type_access::TypeInfo_tag(fn_ty) == commands::TY_FN() {
+                arg_ty = fn_ty
+            }
+        }
+        arg_types.push(arg_ty)
+        i = i + 1
+    }
+    arg_types
+}
+
+// `FromIterator` / `TryFrom` impls register as `<source spelling>__<source
+// type>` because one associated name serves many source types. The flat index
+// keeps the first impl for the bare spelling (#934), so a call whose first
+// argument has another source type scans for the impl whose registration
+// suffix is that argument's mangled type. The scan compares the owner family
+// (`Vec` / `Vec_String`, `HashSet_i32` / `HashSet_String`) so one collection's
+// impl cannot answer another collection's call.
+fn select_conversion_impl_sig(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    sig: FnSig,
+    arg_types: Vec<TypeInfo>
+) -> FnSig {
+    if arg_types.len() < 1 {
+        return sig
+    }
+    let sig_name = contract_fn_sig::FnSig_name(sig)
+    let prefix = conversion_impl_prefix(sig_name.clone())
+    if prefix.len() == 0 {
+        return sig
+    }
+    let arg_ty = unify::resolve_type(env, arg_types.get_unchecked(0))
+    let arg_tag = contract_type_access::TypeInfo_tag(arg_ty)
+    if arg_tag == commands::TY_UNKNOWN() || arg_tag == commands::TY_TYPE_VAR() {
+        return sig
+    }
+    let arg_key = call_method::type_name_for_mangling(arg_ty)
+    if arg_key.len() == 0 {
+        return sig
+    }
+    // The candidate path already selected this source type; do not rescan and
+    // risk swapping to another family that registers the same source key.
+    if sig_name.clone().ends_with(String_from("__").concat(arg_key.clone())) {
+        return sig
+    }
+    find_conversion_impl_sig(fn_sigs, prefix, arg_key, sig)
+}
+
+fn find_conversion_impl_sig(
+    fn_sigs: Vec<FnSig>,
+    prefix: String,
+    arg_key: String,
+    fallback: FnSig
+) -> FnSig {
+    let owner = paths::path_module_part(prefix.clone())
+    let method = paths::path_symbol_part(prefix)
+    if owner.len() == 0 || method.len() == 0 {
+        return fallback
+    }
+    let family = conversion_owner_family(owner)
+    let suffix = String_from("::").concat(method.concat(String_from("__").concat(arg_key)))
+    let mut i = 0
+    while i < fn_sigs.len() {
+        let candidate = fn_sigs.get_unchecked(i)
+        let name = contract_fn_sig::FnSig_name(candidate)
+        if name.clone().ends_with(suffix.clone()) &&
+        conversion_owner_family(paths::path_module_part(name)).eq(family.clone()) {
+            return candidate
+        }
+        i = i + 1
+    }
+    fallback
+}
+
+// Impl owners carry their instantiation as an underscore suffix (`Vec_String`,
+// `HashSet_i32`); the family is the declared type name before that suffix.
+fn conversion_owner_family(owner: String) -> String {
+    let n = owner.len()
+    let mut i = 0
+    while i < n {
+        if owner.byte_at(i) == 95 {
+            return owner.slice(0, i)
+        }
+        i = i + 1
+    }
+    owner
+}
+
+// The registration suffix separates the source spelling from the concrete
+// source type (`Vec::from_iter__VecIter_i32`). A leading `__` is a compiler
+// intrinsic spelling, not a conversion suffix, and yields no prefix.
+fn conversion_impl_prefix(name: String) -> String {
+    let n = name.len()
+    let mut i = n - 2
+    while i >= 0 {
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
+            if i == 0 {
+                return String_new()
+            }
+            return name.slice(0, i)
+        }
+        i = i - 1
+    }
+    String_new()
+}
+
+// A resolved non-generic call carries the declaration's parameter types, so
+// every argument is checked against that contract instead of being inferred
+// for effects only. `unify_compat::is_type_compatible` supplies the recursive
+// identity answer for the diagnostic; `unify` still binds an open argument
+// type variable the same way the generic path does. A concrete mismatch is
+// E0200 at the argument position (#935).
+fn check_concrete_call_args(
+    mut env: TypeEnv,
+    mut scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    node: AstNode,
+    sig: FnSig,
+    arg_types: Vec<TypeInfo>
 ) {
-    let mut a = 0
-    while a < arg_count {
-        let arg_node = ast_access::node_child_at(node, a + 1)
-        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
+    let callee_name = contract_fn_sig::FnSig_name(sig)
+    let conversion_prefix = conversion_impl_prefix(callee_name.clone())
+    // A conversion registration is `Owner::method__<source>`; a mono or
+    // intrinsic spelling has no `::` before its `__` and is not one.
+    let is_conversion_impl = conversion_prefix.len() > 0 &&
+    conversion_prefix.clone().contains(String_from("::"))
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < arg_types.len() && i < param_count {
+        let arg_node = ast_access::node_child_at(node, i + 1)
+        let mut arg_ty = arg_types.get_unchecked(i).clone()
+        let param_ty = unify::resolve_type(env, contract_fn_sig::FnSig_param_at(sig, i))
+        // An unsuffixed integer literal takes the declared width, so
+        // `assert_eq_i64(value, 3)` stays valid; the emitter widens that
+        // literal at an i64 parameter from the signature spine.
+        arg_ty = call_generic_fn_args::adapt_int_literal_arg_type(arg_node, arg_ty, param_ty)
         param_mode::check_fn_type_value(
             env,
             scope,
             fn_sigs,
             arg_node,
-            contract_fn_sig::FnSig_param_at(sig, a),
+            param_ty,
             arg_ty,
             String_from("a function with a `mut` parameter cannot be passed where a shared function type is expected")
         )
-        a = a + 1
-    }
-}
-
-// Concrete prelude frees lower by name from their prelude signatures, so
-// checking only the arity lets a wrong argument reach the emitter:
-// `i32_to_i64(<i64>)` used to truncate silently, and `f64_bits_lo(<String>)`
-// emitted invalid Wasm caught only by the W0004 self-check. Polymorphic
-// prelude operations keep the unchecked path above because their declared
-// signatures are placeholders (#936).
-fn infer_prelude_concrete_call_args(
-    mut env: TypeEnv,
-    mut scope: LocalScope,
-    fn_sigs: Vec<FnSig>,
-    enum_defs: Vec<EnumInfo>,
-    node: AstNode,
-    sig: FnSig,
-    arg_count: i32
-) {
-    let callee_name = contract_fn_sig::FnSig_name(sig)
-    let mut i = 0
-    while i < arg_count {
-        let arg_node = ast_access::node_child_at(node, i + 1)
-        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
-        let param_ty = unify::resolve_type(env, contract_fn_sig::FnSig_param_at(sig, i))
         let resolved_arg_ty = unify::resolve_type(env, arg_ty)
-        if has_concrete_arg_conflict(param_ty, resolved_arg_ty) {
-            let mut message = String_from("type mismatch in call to `")
-            message = message.concat(callee_name.clone())
-            message = message.concat(String_from("`: argument "))
-            message = message.concat((i + 1).to_string())
-            message = message.concat(String_from(" has type "))
-            message = message.concat(names::type_display_name(resolved_arg_ty))
-            message = message.concat(String_from(", expected "))
-            message = message.concat(names::type_display_name(param_ty))
-            unify::type_error(env, message)
-        } else {
-            let _unified = unify::unify(env, param_ty, arg_ty)
+        let arg_tag = contract_type_access::TypeInfo_tag(resolved_arg_ty)
+        let is_deferred = arg_tag == commands::TY_UNKNOWN() || arg_tag == commands::TY_TYPE_VAR()
+        // An open source type cannot select a concrete conversion impl;
+        // #934 owns the source-typed resolution. Leaving the call
+        // unconstrained preserves the pre-check behavior instead of binding
+        // the caller's type variable to the first flat impl.
+        let is_open_conversion = i == 0 && is_conversion_impl && is_deferred
+        // The emitter applies these representation conversions at the call
+        // boundary; the declared parameter is already the target type.
+        let is_emitter_conversion = is_integer_widening_argument(param_ty, resolved_arg_ty) ||
+        is_char_codepoint_argument(param_ty, resolved_arg_ty)
+        if is_print_boundary_parameter(param_ty) {
+            if !is_deferred && !is_print_boundary_argument(resolved_arg_ty) {
+                report_concrete_call_arg_mismatch(env, callee_name.clone(), i + 1, resolved_arg_ty, param_ty)
+            }
+        } else if !is_open_conversion && !is_emitter_conversion {
+            if !unify_compat::is_type_compatible(env, param_ty, resolved_arg_ty) {
+                report_concrete_call_arg_mismatch(env, callee_name.clone(), i + 1, resolved_arg_ty, param_ty)
+            } else {
+                // Keep the if-expression unit: the unified type is deliberately
+                // unused, and the pinned checker unifies branch types even in
+                // statement position.
+                let _unified = unify::unify(env, param_ty, arg_ty)
+            }
         }
         i = i + 1
     }
 }
 
-// Unknown and type-variable arguments are left to `unify` so a generic caller
-// can still bind the parameter; only two concrete, different tags are a
-// definite mismatch.
-fn has_concrete_arg_conflict(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
+// `char` is represented as `i32` on both targets (spec §2.1), and ADR-091
+// keeps the i32-codepoint boundary for `char_to_string` / `push_char`. The
+// boundary is a property of the declared types, not of a callee name: an i32
+// codepoint may enter a `char` parameter, and the char value may leave through
+// an i32 parameter (`__core_char_to_string_impl`). It applies only to call
+// arguments; `let`, returns (#938) and operators keep the nominal types.
+fn is_char_codepoint_argument(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
     let param_tag = contract_type_access::TypeInfo_tag(param_ty)
     let arg_tag = contract_type_access::TypeInfo_tag(arg_ty)
-    if param_tag == commands::TY_UNKNOWN() || param_tag == commands::TY_TYPE_VAR() {
+    if param_tag == commands::TY_CHAR() && arg_tag == commands::TY_I32() {
+        return true
+    }
+    param_tag == commands::TY_I32() && arg_tag == commands::TY_CHAR()
+}
+
+// #923 makes the i32 -> i64 call-boundary widening part of the emitter
+// contract: a declared i32 local is a real Wasm i32 at a component-boundary
+// call and must be extended at an i64 parameter. Mirror that widening here;
+// the opposite (narrowing) direction stays a type error (ADR-067).
+fn is_integer_widening_argument(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
+    contract_type_access::TypeInfo_tag(param_ty) == commands::TY_I64() &&
+    contract_type_access::TypeInfo_tag(arg_ty) == commands::TY_I32()
+}
+
+// The `String<__Printable>` declaration marker is the print emitter's conversion
+// boundary: String, char, bool, i32, i64 and f64 arguments are converted to
+// String before the call. Structs, enums, vectors and other references are
+// not converted, so the checker keeps rejecting them.
+fn is_print_boundary_parameter(param_ty: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(param_ty) != commands::TY_STRING() {
         return false
     }
-    if arg_tag == commands::TY_UNKNOWN() || arg_tag == commands::TY_TYPE_VAR() {
+    if contract_type_access::TypeInfo_type_arg_count(param_ty) < 1 {
         return false
     }
-    param_tag != arg_tag
+    let marker = contract_type_access::TypeInfo_type_arg_at(param_ty, 0)
+    contract_type_access::TypeInfo_tag(marker) == commands::TY_STRUCT() &&
+    contract_type_access::TypeInfo_name(marker).eq(String_from("__Printable"))
+}
+
+fn is_print_boundary_argument(arg_ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(arg_ty)
+    if tag == commands::TY_STRING() || tag == commands::TY_CHAR() ||
+    tag == commands::TY_BOOL() {
+        return true
+    }
+    tag == commands::TY_I32() || tag == commands::TY_I64() ||
+    tag == commands::TY_F64()
+}
+
+fn report_concrete_call_arg_mismatch(
+    mut env: TypeEnv,
+    callee_name: String,
+    position: i32,
+    arg_ty: TypeInfo,
+    param_ty: TypeInfo
+) {
+    let mut message = String_from("type mismatch in call to `")
+    message = message.concat(callee_name)
+    message = message.concat(String_from("`: argument "))
+    message = message.concat(position.to_string())
+    message = message.concat(String_from(" has type "))
+    message = message.concat(name_display::type_display_name_with_args(arg_ty))
+    message = message.concat(String_from(", expected "))
+    message = message.concat(name_display::type_display_name_with_args(param_ty))
+    unify::type_error(env, message)
 }
 
 fn tc_strip_module_prefix(name: String) -> String {

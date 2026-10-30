@@ -10,65 +10,17 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-// Concrete prelude frees whose declared parameter types are the whole call
-// contract. The emitter lowers them by name (intrinsic aliases / CoreOp
-// fallbacks), so checking only arity lets a wrong argument reach the backend
-// and produce invalid Wasm. Polymorphic placeholders (`len`, `push`,
-// `to_string`, `get`, `unwrap*`, `is_*`, ...) and generic helpers stay off this
-// table because their flat signatures are not the call contract (#936).
-//
-// Excluded on purpose:
-// - `eq`: bare `eq(...)` is overloaded across the `Eq` impls (char/i32/i64/
-//   bool/f64) while the flat index only holds the String shim.
-// - `Test::assert_eq_i64`: call lowering widens i32 actuals at its i64
-//   parameters from the signature spine, and fixtures compare `len(...)`
-//   results through it. Do not add either spelling to this table.
-// - `char_to_string` / `push_char`: `char` is represented as i32 at the
-//   emitter boundary and existing stdlib code passes i32 codepoints
-//   (`char_to_string(48 + n)`, `push_char(text, 65)`).
-fn is_concrete_prelude_builtin(name: String) -> bool {
-    if is_text_prelude_builtin(name.clone()) {
-        return true
-    }
-    is_runtime_prelude_builtin(name.clone())
-}
-
-fn is_text_prelude_builtin(name: String) -> bool {
-    if name.clone().eq("String_from") || name.clone().eq("slice") {
-        return true
-    }
-    if name.clone().eq("substring") || name.clone().eq("contains") {
-        return true
-    }
-    if name.clone().eq("starts_with") || name.clone().eq("ends_with") {
-        return true
-    }
-    name.clone().eq("index_of") || name.clone().eq("byte_at")
-}
-
-// `assert` is the only runtime prelude builtin left: the four assertion
-// wrappers retired in wave/assertion-frees, so their bare names no longer
-// reach the typechecker as prelude calls.
-fn is_runtime_prelude_builtin(name: String) -> bool {
-    name.clone().eq("assert")
-}
-
+// Declaration-less compiler intrinsics have no FnSig the checker could read a
+// return type from, so this table (and the family derivations below) supplies
+// it. Every name that has an Ark declaration resolves through that signature
+// instead: an entry here for a declared name would only re-introduce the
+// name-keyed exemption the declaration already covers (#936).
 fn builtin_call_return_type(name: String) -> TypeInfo {
-    if name.clone().eq("String_from") ||
-    name.clone().eq("__intrinsic_string_from_bytes") ||
+    if name.clone().eq("__intrinsic_string_from_bytes") ||
     name.clone().eq("string_from_bytes") ||
     name.clone().eq("bytes::string_from_bytes") ||
-    name.clone().eq("i32_to_string") ||
-    name.clone().eq("i64_to_string") ||
-    name.clone().eq("f64_to_string") ||
-    name.clone().eq("bool_to_string") ||
-    name.clone().eq("char_to_string") ||
-    name.clone().eq("to_string") ||
     name.clone().eq("__intrinsic_stdin_read_to_string") {
         return simple_type(commands::TY_STRING())
-    }
-    if name.clone().eq("len") {
-        return simple_type(commands::TY_I32())
     }
     if name.clone().eq("__runtime_abi_fs_read_file") || name.clone().eq("__runtime_abi_fs_write_file") || name.clone().eq("__runtime_abi_fs_write_bytes") {
         return simple_type(commands::TY_RESULT())

@@ -1,0 +1,4 @@
+error[E0200|typecheck]: type mismatch in call to `add_one`: argument 1 has type bool, expected i32
+  --> tests/fixtures/diagnostics/concrete_call_arg_type_wasm32.ark
+error[E0200|typecheck]: type mismatch in call to `name_of`: argument 1 has type i32, expected P
+  --> tests/fixtures/diagnostics/concrete_call_arg_type_wasm32.ark

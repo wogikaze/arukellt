@@ -89,6 +89,14 @@ fn fn_param_local_type_name(
         return type_ann_node::type_ann_function_ref_name(ann)
     }
     if decl_ann_name::decl_ann_is_generic(ann) {
+        // `String<__Printable>` is the checker-only print boundary marker;
+        // MIR keeps the plain String local so the method ABI stays a String
+        // reference.
+        let ann_text = decl_ann_name::decl_ann_name(ann)
+        if ann_text.clone().eq(String_from("String")) ||
+        ann_text.clone().starts_with(String_from("String<")) {
+            return String_from("String")
+        }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ann, 1)
             let val = decl_ann_children::decl_ann_child_at(ann, 2)
@@ -180,6 +188,14 @@ fn method_param_local_type_name(
         return type_ann_node::type_ann_function_ref_name(ann)
     }
     if decl_ann_name::decl_ann_is_generic(ann) {
+        // `String<__Printable>` is the checker-only print boundary marker;
+        // MIR keeps the plain String local so the method ABI stays a String
+        // reference.
+        let ann_text = decl_ann_name::decl_ann_name(ann)
+        if ann_text.clone().eq(String_from("String")) ||
+        ann_text.clone().starts_with(String_from("String<")) {
+            return String_from("String")
+        }
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ann, 1)
             let val = decl_ann_children::decl_ann_child_at(ann, 2)
