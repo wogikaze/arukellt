@@ -42,9 +42,11 @@ fn mir_emit_method_call(mut ctx: LowerCtx, mut callee_name: String, arg_count: i
     // The bare `clone` shim is identity, but lowering it as a call resolves the
     // callee through the shared name cache; a concrete Vec receiver picked
     // `String::clone` and emitted invalid core Wasm (#928). Emit the identity
-    // copy directly instead. A registered `Clone` impl (e.g. the deep
-    // `impl<T: Clone> Clone for Vec<T>`) resolves to a mangled callee above and
-    // keeps its own call; generic receivers keep the existing deferred path.
+    // copy directly instead. The prelude now imports `std::core::clone`, so a
+    // Vec receiver resolves to the deep unbounded `Clone for Vec<T>` impl above
+    // and keeps its own call. This fallback remains for receivers without a
+    // `Clone` impl (structs, enums, Option) and for the bootstrap overlay, which
+    // strips the prelude import for the pinned compiler.
     if mir_should_emit_clone_identity(ctx, callee_name.clone(), bare_method.clone(), first_arg_idx) {
         return mir_emit_clone_identity(ctx, first_arg_idx)
     }

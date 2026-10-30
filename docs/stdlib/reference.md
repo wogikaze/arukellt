@@ -84,7 +84,7 @@
 | `V128` | - | no | experimental | Raw 128-bit vector bitwise associated operations. |
 | `V128Memory` | - | no | experimental | Raw v128 linear-memory load and store associated operations. |
 | `ValType` | - | no | experimental | Value-type constants matching the Wasm binary encoding, including the reference types. |
-| `Vec` | T | yes | - | Growable contiguous sequence. Import std::core::clone for a deep .clone() that allocates independent element storage; without the import, .clone() copies the header and shares storage. |
+| `Vec` | T | yes | - | Growable contiguous sequence. .clone() allocates independent element storage; elements with a Clone impl are cloned element-wise, and other element types take the compiler's identity copy. |
 | `WasmModuleBuilder` | - | no | experimental | Minimal Wasm module builder that counts signatures, functions, memories, and exports and encodes the module header. |
 | `Writer` | - | no | experimental | In-memory write handle over an owned byte image; implements Write. |
 

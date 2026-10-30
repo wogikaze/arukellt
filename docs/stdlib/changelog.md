@@ -16,6 +16,35 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `Vec<T>::clone` は import なしで deep (ADR-091, wave/clone-noimport)
+
+- **Changed**: `std/prelude.ark` が `std::core::clone` を import し、
+  `impl<T> Clone for Vec<T>` から `T: Clone` bound を外した。`.clone()` は
+  `use std::core::clone` なしで独立した element storage を確保する。element
+  type に `Clone` impl があれば element-wise に clone し、なければ compiler の
+  identity copy を使う。
+- **Contract**: Vec の storage は常に独立。element の深さは element type の
+  `Clone` impl に依存する。struct / enum / Option の `clone` は従来どおり
+  compiler identity fallback である。
+- **Fixed**: prelude の `Clone` 登録により `Option<i32>.clone()` が
+  `i32::clone(Option ref)` へ lower されていた MIR 解決を修正した。`option:`
+  receiver の bare `clone` は payload owner に再解決しない。また
+  `std::core::clone` / `std::core::eq` の module short name が bare symbol と
+  して登録されることで退役した `clone(x)` / `eq(a, b)` が解決されていたため、
+  `resolve_ident` は use-alias を持たない bare module symbol に retirement
+  hint を返す。明示 import（`use std::prelude::{filter_i32}` など）は alias を
+  持つので影響を受けない。
+- **Bootstrap**: overlay は prelude の clone import を strip し、pin 用の
+  shallow inherent `Vec::clone` bridge を維持する。pin の clone emitter が HEAD に
+  追いついたら両方を削除する。
+- **Fixtures**: `clone_no_import/vec_clone_deep`（gc runtime）と
+  `clone_no_import/vec_clone_deep_wasm32`（wasm32 `test:`）。`poly_clone` /
+  `poly_clone_wasm32` は Option receiver の回帰。
+- **Evidence**: `verify fixtures` PASS=1939 FAIL=0（112 runtime smoke、42/42
+  `test:`、2 runtime-unsupported）、`verify lane` PASS、`docs check` 6/6 PASS、
+  `selfhost diag-parity` PASS。ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `6c3aa713bc392c9630b74829020bfc8ace13cfd364771f96ffff0dbc623b7983`）。
+
 ## 2026-10-30 — `HashSet<String>` の bucket capacity 表面 (#917, wave/hashset-capacity)
 
 - **Changed**: `HashSet<String>` を独立した `Vec<String>` facade から、

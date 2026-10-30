@@ -52,6 +52,7 @@
 //
 // =============================================================================
 use std::collections::string
+use std::core::clone
 use std::core::eq
 use std::core::scalar_format
 
@@ -99,13 +100,13 @@ fn clone<T>(value: T) -> T {
     value
 }
 
-// `Vec<T>` has no prelude inherent `clone`: the deep impl is
-// `impl<T: Clone> Clone for Vec<T>` in `std::core::clone`. Without an imported
-// `Clone` impl, MIR lowers `.clone()` on a concrete receiver to an identity
-// local copy, so storage stays shared but the module remains valid (the bare
-// callee used to be mis-resolved to `String::clone`, #928). The flat bootstrap
-// overlay still adds the identity inherent method for the pin; see
-// `_patch_bootstrap_prelude_vector_clone_shallow_text`.
+// The deep `impl<T> Clone for Vec<T>` lives in `std::core::clone`, imported
+// above, so `.clone()` on a Vec allocates independent element storage without a
+// per-module import. Element types without a `Clone` impl still take the
+// compiler's identity copy (only the Vec storage is independent). The flat
+// bootstrap overlay adds a shallow inherent method for the pin, whose cache
+// mis-resolves the bare callee (#928); that bridge is not part of user-facing
+// semantics. See `_patch_bootstrap_prelude_vector_clone_shallow_text`.
 
 // `slice` / `substring` were retired under ADR-091; use `s.slice(start, end)`.
 // Conversion: to string

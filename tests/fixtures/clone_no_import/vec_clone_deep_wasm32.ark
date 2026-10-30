@@ -1,0 +1,29 @@
+// Linear-memory counterpart of vec_clone_deep: `.clone()` without
+// `use std::core::clone` allocates independent Vec storage on wasm32 too.
+use std::test::Test
+
+test "no-import Vec clone allocates independent storage" {
+    let mut strings: Vec<String> = Vec::new<String>()
+    strings.push(String_from("source"))
+    let mut strings_copy = strings.clone()
+    strings_copy.set(0, String_from("copy"))
+    Test::assert_eq_string(get_unchecked(strings, 0), "source")
+    Test::assert_eq_string(get_unchecked(strings_copy, 0), "copy")
+
+    let mut numbers: Vec<i32> = Vec::new<i32>()
+    numbers.push(7)
+    let mut numbers_copy = numbers.clone()
+    numbers_copy.set(0, 9)
+    Test::assert_eq_i32(get_unchecked(numbers, 0), 7)
+    Test::assert_eq_i32(get_unchecked(numbers_copy, 0), 9)
+
+    let option: Option<String> = Option::Some(String_from("payload"))
+    let option_copy = option.clone()
+    match option_copy {
+        Option::Some(text) => { Test::assert_eq_string(text, "payload") },
+        Option::None => { Test::assert_true(false) },
+    }
+}
+
+fn main() {
+}

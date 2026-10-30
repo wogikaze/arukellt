@@ -204,17 +204,25 @@ def _patch_bootstrap_prelude_structural_box_slice_text(text: str) -> str:
 
 
 def _patch_bootstrap_prelude_vector_clone_shallow_text(text: str) -> str:
-    """Add the identity Vec clone inherent method to the flat overlay prelude.
+    """Keep the pinned compiler on the shallow Vec clone it bootstrapped with.
 
-    The checked-in prelude has no inherent `Vec::clone`: the deep impl lives in
-    `std::core::clone` and s2 lowers the un-imported `.clone()` fallback to an
-    identity local copy. The pin predates that MIR fallback and mis-resolves the
-    bare callee for a Vec receiver to `String::clone` (#928), which traps in the
-    stage-2 compiler. The overlay therefore keeps the old identity inherent
-    method so the pin can build a working compiler. The checked-in prelude and
-    user-visible semantics are unchanged. Delete when the pin's generic Vec
-    clone lowering can build the compiler without the bridge.
+    The checked-in prelude imports `std::core::clone` so user programs get the
+    deep `impl<T> Clone for Vec<T>` without an explicit use. The pin was built
+    from a source that predates the clone emitter fixes: when the prelude
+    registers `String::clone`, the pin lowers the impl's `__intrinsic_clone`
+    helper to an unresolved-call stub (`drop; unreachable`), and the stage-2
+    compiler traps at startup in `__clone_string_helper`. The overlay therefore
+    drops the import and keeps an identity inherent `Vec::clone` for the
+    compiler's own `.clone()` calls. User programs run against the checked-in
+    prelude, so they still see the deep impl. Delete the bridge and this strip
+    when the pin's clone lowering can compile the compiler with the import.
     """
+    text = re.sub(
+        r"^use std::core::clone[ \t]*\n",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
     if re.search(r"^impl<T> Vec<T> \{", text, flags=re.MULTILINE):
         raise BootstrapOverlayError(
             "bootstrap overlay prelude already declares an inherent Vec<T> impl"
