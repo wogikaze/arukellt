@@ -8,32 +8,60 @@ Normative decision: [`../adr/ADR-029-selfhost-native-verification-contract.md`](
 Status summary: [`../state/compiler.md`](../state/compiler.md).  
 Structured SSOT: [`../data/bootstrap-contract.toml`](../data/bootstrap-contract.toml).
 
-The official pinned bootstrap is a direct `wasm32` / `wasi-p1` core module
-with memory32 (`bootstrap/arukellt-selfhost.wasm`). It is the current stage-2
-compiler and reproduces itself byte-for-byte. The previous core pin stays at
-`bootstrap/arukellt-selfhost-core.wasm` as the trust anchor and as an explicit
+The official pinned bootstrap is a `wasm32-gc` / `wasi-p2` command component
+(`bootstrap/arukellt-selfhost.wasm`), so the compiler itself runs on Wasmtime's
+GC. It emits the stage-2/stage-3 compiler as `wasm32` / `wasi-p1` core modules
+with memory32; the emitted compiler contract is unchanged. The core trust
+anchor stays at `bootstrap/arukellt-selfhost-core.wasm` as an explicit
 override. User-facing `wasm32-gc` / `wasi-p2` output is still packaged as an
 official WASI component with the checked-in WIT world.
-
-The 2026-10-26 gc-host component pin is retired: the current compiler does not
-emit a valid `wasm32-gc` self-build, so a refreshed gc component cannot be
-produced yet. `selfhost build-compiler` therefore runs the direct core pin
-(~27 min for a full compile). Restoring a gc-host pin needs a valid gc
-self-build first; do not package an invalid core module.
 
 The core override pin predates generic enum payload lowering used by the
 current `std/prelude.ark`. `selfhost build-compiler` keeps the structural
 `Box` / `Slice` retry for that path. The checked-in prelude, user source
 semantics, and emitted user artifacts are not rewritten.
 
-The bootstrap overlay ships its own `std/host/fs.ark` and `std/io/mod.ark` so
-the compiler's checked-in `Fs::*` calls resolve to the real host
-implementations. The isolated WIT parser closure in that overlay also
-normalizes qualified type names (`types::WitType`, `ast::WitNode`, and related
-record types) to the flat overlay namespace. Function calls remain qualified,
-and the checked-in `std/` sources are not rewritten. These are bootstrap
-namespace adapters only; they do not relax the language type identity or make
-an s2 build equivalent to an ADR-029 fixpoint.
+The pin's builtin host modules only expose the free `std::host::*` functions,
+so the flat overlay ships the namespace sources the compiler itself imports:
+`std/host/fs.ark`, `std/host/clock.ark`, and `std/io/mod.ark`. The checked-in
+`Fs::*`, `Clock::*`, and `toml::TomlText::*` spellings therefore compile to the
+real impls instead of the unresolved-call `drop; unreachable` fallback. The
+overlay no longer rewrites those call spellings or installs
+`bootstrap_toml_*` adapters.
+
+The core trust-anchor/override pins (`a2803831…`, `8df2698c…`) predate #917's
+MIR env call-result typing, so a reachable `Env::args` (a `Vec<String>` result)
+still produces invalid core Wasm under those pins.
+`_patch_bootstrap_host_env_paths` keeps the compiler's `Env::*` calls on the
+free builtin spelling, and the entry module uses the prelude `args` / `exit` /
+`println` host-intrinsic stubs. The official gc pin includes the #917 typing,
+but the shared overlay keeps the rewrite so the stage-2 source and emitted s2
+stay identical across pins. Delete both when the core pins are retired (or the
+overlay becomes pin-aware); the function docstrings carry the probe that must
+validate the lowering first.
+
+The flat overlay still strips the #951 parameter modes so the pre-#951 core
+trust-anchor/override pins can compile the same overlay as the official gc pin.
+`_strip_bootstrap_param_modes` removes the mode token from the overlay copies
+only; the checked-in source keeps the real modes, and s2 compiles the real tree
+for fixtures with the strict callee-side rule. The official gc pin includes
+#951 and understands modes, but the stripped overlay keeps the stage-2 build
+identical across pins.
+
+Both self-compile stages run the stripped overlay with
+`--bootstrap-allow-shared-param-mutation`, an internal self-compile option that
+restores the pre-#951 permissive body binding for that compilation only. User
+programs, fixtures, and the analysis pipeline never pass it and keep the
+strict rule. Delete both the overlay strip and the option when the core pins
+are retired (or the overlay becomes pin-aware); probe with
+`fn bump(mut p: Point)` and a shared-parameter assignment before removing them.
+
+The isolated WIT parser closure in that overlay also normalizes qualified type
+names (`types::WitType`, `ast::WitNode`, and related record types) to the flat
+overlay namespace. Function calls remain qualified, and the checked-in `std/`
+sources are not rewritten. This is a bootstrap namespace adapter only; it does
+not relax the language type identity or make an s2 build equivalent to an
+ADR-029 fixpoint.
 
 ## Which command?
 
@@ -41,9 +69,9 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | ~27 min with the official pin (`--fast` is a no-op) | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
-| Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist | Does not refresh the emitter by itself |
-| Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | stage-3 alone can be **tens of minutes** on the direct core pin | **Not** for routine iteration. gc-host ≤10s is [#851](../../issues/open/851-selfhost-compiler-core-rewrite.md) / [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md) |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~30–34 s** with the official gc component pin (AOT-cached, quiet host); 20–40 min with the core fallback pin | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist; ~34 s to build s3 with the gc pin | Does not refresh the emitter by itself |
+| Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | ~60 s with the gc pin | **Not** for routine iteration. The ≤10 s gc-host target is [#851](../../issues/open/851-selfhost-compiler-core-rewrite.md) / [ADR-053](../adr/ADR-053-selfhost-compiler-core-rewrite.md) |
 
 Aliases for `build-compiler`: `build-s2`, `rebuild-s2`.
 
@@ -54,19 +82,24 @@ Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 
 ### Bootstrap pin
 
-`bootstrap/arukellt-selfhost.wasm` is the official `wasm32` / `wasi-p1` core
-pin. It reproduces itself byte-for-byte (`8df2698c…`) in about 27 minutes and
-ships `std/host/fs.ark` / `std/io/mod.ark` in the overlay so the checked-in
-`Fs::*` spelling resolves:
+`bootstrap/arukellt-selfhost.wasm` is the official `wasm32-gc` / `wasi-p2`
+command component (8 540 660 bytes; sha256 `56ff0808…`). It runs on Wasmtime's
+GC and compiles the flat overlay through to the stage-2 `wasm32` / `wasi-p1`
+compiler in ~30–34 s warm (quiet host):
 
 ```bash
 python3 scripts/manager.py selfhost build-compiler
 ```
 
-The 2026-10-19 core pin is at `bootstrap/arukellt-selfhost-core.wasm` and can
-be selected with `ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`;
-that path also costs tens of minutes. The ADR-029 fixpoint is still required
-before a tag. Provenance and removal conditions:
+The component's p1 output is the fixed-point stage-2 s2 it was generated from
+(`61aa349b…`), and it reproduces its own gc core (`0ebeb365…`). The Python
+compile path AOT-caches the component and passes the permissive overlay binding
+described above. The previous core pin is recoverable from commit `fb5944edb`
+(see [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)); the 2026-10-19
+core trust anchor is at `bootstrap/arukellt-selfhost-core.wasm` and can be
+selected with `ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`
+(20-40 minutes per build). The ADR-029 fixpoint is still required before a
+tag. Provenance, the refresh procedure, and removal conditions:
 [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md).
 
 ### How to iterate without unnecessary rebuilds
@@ -76,13 +109,13 @@ before a tag. Provenance and removal conditions:
 rewrite; they do **not** skip that compile.
 
 **Do not rebuild once per one-line hypothesis.** That makes agents
-latency-bound (`8s × N` tries).
+latency-bound (`~32 s × N` tries).
 
 Recommended loop:
 
 1. Classify failures / read WAT with the **current** s2 (no rebuild).
 2. Batch all planned `src/compiler/**` edits.
-3. **One** `selfhost build-compiler --fast` (~60 s with the iteration pin).
+3. **One** `selfhost build-compiler` (~30–34 s with the gc pin, AOT-warm, quiet host).
 4. Re-validate **many** fixtures against that s2. Use
    `selfhost fixture-parity --filter-dir <area>` while a batch is in flight,
    and `ARUKELLT_FIXTURE_WORKERS=12 verify fixtures` at a checkpoint.
@@ -115,6 +148,45 @@ The bootstrap host emits a direct core module for the configured bootstrap
 profile. A command component is packaged from standard P2 core imports with
 the official `wasm-tools component embed` / `component new` commands; no
 adapter or bridge is permitted.
+
+### AOT image cache
+
+`wasmtime run` JIT-compiles the compiler on every invocation (~5 s), so the
+wrapper and the Python gates keep a precompiled image next to the compiler
+wasm. The official gc component pin uses the same cache: the Python
+`_compile_with_gc_pin` path AOT-compiles `bootstrap/arukellt-selfhost.wasm`
+on first use and then runs the image with `--allow-precompiled`.
+
+| Path | Role |
+|------|------|
+| `<compiler>.collector-copying.cwasm` | image produced by `wasmtime compile -C collector=copying` |
+| `<compiler>.collector-copying.cwasm.tag` | the cache key the image was built under (one line) |
+| `<compiler>.collector-copying.cwasm.lock` | `flock` target that serializes compiles |
+
+The key is:
+
+```
+aot-cache-v2;collector=copying;wt=<wasmtime identity>;wasm=<wasm identity>
+```
+
+An identity is `<size>-<seconds>.<nanoseconds>` from `stat`. Those are the only
+inputs that change the image: the wasm bytes, the Wasmtime binary (honouring
+`ARUKELLT_WASMTIME_BIN`), and the collector flags. A rebuild rewrites the
+wasm's size and/or nanosecond mtime, so the next invocation recompiles the
+image; an untouched compiler keeps hitting the cache. Do not narrow the key
+back to the Wasmtime identity alone (or to cwasm-mtime ordering): that is what
+silently ran the previous compiler after a rebuild.
+
+`scripts/run/arukellt-selfhost.sh` (`aot_cache_tag`) and
+`scripts/selfhost/checks.py` (`_aot_cache_key`) must emit the identical string
+because they share the one `.tag` file. Regression tests:
+`python3 -m unittest scripts.tests.test_aot_cache`.
+
+Invalidation is just deleting the sidecars:
+
+```bash
+rm -f .build/selfhost/arukellt-s2-runtime.collector-copying.cwasm*
+```
 
 ## Trust model
 

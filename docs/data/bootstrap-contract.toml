@@ -19,14 +19,14 @@ wasm_resolution_order = [
 [[stages]]
 id = "0"
 name = "trust_base"
-description = "Pinned wasm32/wasi-p1 memory32 core is the trust base; it reproduces itself byte-for-byte (8df2698c) in ~27 min and is the current stage-2 compiler"
+description = "Pinned wasm32-gc/wasi-p2 component is the trust base; it emits its own fixed-point wasm32/wasi-p1 memory32 s2 (61aa349b) in ~30-34 s and reproduces its own gc core (0ebeb365)"
 artifact = "bootstrap/arukellt-selfhost.wasm"
 comparison = "n/a"
 
 [[stages]]
 id = "build_s2"
 name = "current_selfhost"
-description = "Pinned core compiler compiles src/compiler/main.ark → s2 under the 8192-page memory32 contract (stage-2 only; use for emitter refresh)"
+description = "Pinned gc component compiles src/compiler/main.ark → s2 under the 8192-page memory32 contract in ~30-34 s warm (stage-2 only, AOT-cached; the mode-stripped overlay runs with --bootstrap-allow-shared-param-mutation)"
 artifact = ".build/selfhost/arukellt-s2.wasm"
 command = "python3 scripts/manager.py selfhost build-compiler"
 comparison = "build succeeds"
@@ -34,7 +34,7 @@ comparison = "build succeeds"
 [[stages]]
 id = "fixpoint"
 name = "s2_equals_s3"
-description = "sha256(s2) == sha256(s3) (ADR-029 gate; not for routine s2 refresh)"
+description = "sha256(s2) == sha256(s3); the gc component builds both stages in ~30 s each (ADR-029 gate; not for routine s2 refresh)"
 artifact = ".build/selfhost/arukellt-s3.wasm"
 command = "python3 scripts/manager.py selfhost fixpoint"
 comparison = "sha256"
