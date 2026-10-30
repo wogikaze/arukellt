@@ -74,8 +74,8 @@ impl Display for String {
 // `Debug` trait (issue #696).
 //
 // `Debug` is the diagnostic formatting trait. Unlike `Display` (human-readable),
-// `Debug` produces a developer-facing representation suitable for `assert_eq!`
-// failure messages and structured inspection.
+// `Debug` produces a developer-facing representation suitable for
+// `Test::assert_eq_debug` failure messages and structured inspection.
 //
 // For scalars the output mirrors `Display`, except for `String` which is
 // wrapped in double quotes (Rust `{:?}` parity).

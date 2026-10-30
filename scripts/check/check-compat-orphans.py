@@ -162,11 +162,11 @@ def main() -> int:
     for fn in (
         "deprecated_numeric_call_message",
         "deprecated_vec_call_message",
-        "deprecated_assert_call_message",
     ):
         call_warn_names += table_names(lint_text, fn)
     removed_names = table_names(removed_text, "removed_name_hint")
     removed_names += table_names(removed_text, "removed_name_specific_hint")
+    removed_names += table_names(removed_text, "removed_assertion_free_hint")
     removed_names += table_names(removed_text, "is_gated_prelude_name")
     stable_names = set(table_names(stable_text, "is_stable_prelude_name"))
 

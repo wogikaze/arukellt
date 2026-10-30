@@ -1,10 +1,10 @@
 // Typed map: i32->i32 remove, plus i32 HashSet wrappers.
 use std::collections::hash_set::HashSet
 use std::host::stdio
-use std::prelude::{assert_eq}
+use std::test::Test
 fn expect_some_i32(v: Option<i32>, expected: i32) {
     match v {
-        Option::Some(x) => assert_eq(x, expected),
+        Option::Some(x) => Test::assert_eq_i32(x, expected),
         None => assert(false),
     }
 }
@@ -21,12 +21,12 @@ fn main() {
     let mut m = HashMap::new<i32, i32>()
     let _ = m.insert(1, 10)
     let _ = m.insert(2, 20)
-    assert_eq(m.len(), 2)
+    Test::assert_eq_i32(m.len(), 2)
 
     expect_some_i32(m.remove(1), 10)
     assert(!m.contains_key(1))
     assert(m.contains_key(2))
-    assert_eq(m.len(), 1)
+    Test::assert_eq_i32(m.len(), 1)
 
     expect_none_i32(m.remove(999))
     assert(!m.is_empty())
@@ -37,27 +37,27 @@ fn main() {
     assert(s.insert(1))
     assert(s.insert(2))
     assert(s.insert(3))
-    assert_eq(s.len(), 3)
+    Test::assert_eq_i32(s.len(), 3)
 
     let cap_before = s.capacity()
     s.reserve(20)
     assert(s.capacity() > cap_before)
-    assert_eq(s.len(), 3)
+    Test::assert_eq_i32(s.len(), 3)
 
     let mut other: HashSet<i32> = HashSet::new<i32>()
     assert(other.insert(4))
     assert(other.insert(5))
     s.extend(other)
-    assert_eq(s.len(), 5)
+    Test::assert_eq_i32(s.len(), 5)
     assert(s.contains(4))
     assert(s.contains(5))
 
     s.shrink_to_fit()
-    assert_eq(s.len(), 5)
+    Test::assert_eq_i32(s.len(), 5)
 
     s.clear()
     assert(s.is_empty())
-    assert_eq(s.len(), 0)
+    Test::assert_eq_i32(s.len(), 0)
 
     stdio::println("OK")
 }

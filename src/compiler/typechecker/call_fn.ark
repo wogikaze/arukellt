@@ -481,7 +481,8 @@ fn infer_concrete_call_expr(
     }
     // Remaining concrete calls keep the unchecked path: the flat name index is
     // not overload-aware, and their declared signatures are placeholders or
-    // overloads (`len`, `push`, `to_string`, `eq`, `assert_eq_i64`, ...).
+    // overloads (`len`, `push`, `to_string`, `eq`, ...). `Test::assert_eq_i64`
+    // stays here too: it deliberately accepts widened i32 actuals.
     // Checking them against the first flat signature would false-fail valid
     // calls (#936). The argument inference still checks the function-type
     // mode direction (ADR-088 §7), which does not depend on unification.

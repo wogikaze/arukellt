@@ -11,7 +11,7 @@
 | `stable` | 13 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 1 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 3 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 24 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 20 | Superseded — see migration guidance. |
 
 ## Public Types
 
@@ -228,10 +228,6 @@
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `assert` | `(bool) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert` | - |
-| ~~`assert_eq`~~ ⚠️ Deprecated → `Test::assert_eq_i32` | `(i32, i32) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` | - |
-| ~~`assert_eq_i64`~~ ⚠️ Deprecated → `Test::assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` | - |
-| ~~`assert_eq_str`~~ ⚠️ Deprecated → `Test::assert_eq_string` | `(String, String) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` | - |
-| ~~`assert_ne`~~ ⚠️ Deprecated → `Test::assert_ne_i32` | `(i32, i32) -> ()` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` | - |
 
 ## Collections
 
@@ -358,15 +354,11 @@ let input = stdio::read_stdin()
 
 ## Deprecated APIs
 
-> ⚠️ **24 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **20 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq`~~ | `Test::assert_eq_i32` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_str`~~ | `Test::assert_eq_string` | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_ne`~~ | `Test::assert_ne_i32` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | [migration-guidance.md](migration-guidance.md) |

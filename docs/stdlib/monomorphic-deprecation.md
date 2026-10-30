@@ -11,10 +11,6 @@ helpers are included alongside any other deprecated public entry.
 | API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |
 |-----|--------|-----------|-------------|------------------|------------------|--------|
 | `as_slice` | `prelude` | `deprecated` | `Vec::as_slice` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq` | `prelude` | `deprecated` | `Test::assert_eq_i32` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_i64` | `prelude` | `deprecated` | `Test::assert_eq_i64` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_eq_str` | `prelude` | `deprecated` | `Test::assert_eq_string` | `0.1.0` | `1.0.0` | Superseded API |
-| `assert_ne` | `prelude` | `deprecated` | `Test::assert_ne_i32` | `0.1.0` | `1.0.0` | Superseded API |
 | `get` | `prelude` | `deprecated` | `Vec::get` | `0.1.0` | `1.0.0` | Superseded API |
 | `get_unchecked` | `prelude` | `deprecated` | `Vec::get_unchecked` | `0.1.0` | `1.0.0` | Superseded API |
 | `len` | `prelude` | `deprecated` | `Vec::len` | `0.1.0` | `1.0.0` | Return the number of elements in a Vec. |
@@ -35,4 +31,4 @@ helpers are included alongside any other deprecated public entry.
 | `deque_push_front` | `std::collections::linear` | `deprecated` | `Deque::push_front` | `0.1.0` | `1.0.0` | Prepend a value to the front of the deque. |
 | `deque_to_vec` | `std::collections::linear` | `deprecated` | `Deque::iter` | `0.1.0` | `1.0.0` | Copy all deque elements (front to back) into a new Vec<i32>. |
 
-Total deprecated public entries: **24**.
+Total deprecated public entries: **20**.

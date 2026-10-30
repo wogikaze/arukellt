@@ -221,8 +221,9 @@ converted on 2026-10-28 after `i8::to_i32` landed, so the numeric family is now
 resolvable; the gated prelude names also need an explicit
 `use std::prelude::{name}` before the warning can fire. `remove_in` is an upper
 bound under ADR-087, not the earliest removal. Wave 2 (2026-10-27) deleted the
-31 seq/combinator entries from that set; the numeric, `vec` intrinsic-compat,
-and assertion families remain deprecated for their own waves. The `i64` /
+31 seq/combinator entries from that set; the numeric conversion and assertion
+families completed their Wave 2 deletion on 2026-10-30, and the `vec`
+intrinsic-compat family remains deprecated for its own wave. The `i64` /
 `f64` / `String` iterator consumer lanes listed as *planned* below are still
 not callable for every row, so the removal table names the reachable loop or
 `v.sort()` / `v.sort_by(cmp)` replacement alongside the target method shape.
@@ -294,13 +295,17 @@ through the `__intrinsic_*` conversion bridges (ADR-067).
 | `slice_len(view)` | `view.len()` |
 | `slice_get(view, i)` | `view.get(i)` |
 
-### Assertion frees (4)
+### Assertion frees (4) — retired 2026-10-30
 
-The replacement is the `std::test::Test` associated surface; import it with
-`use std::test::Test`.
+The four deprecated prelude wrappers were deleted by the
+[#917](https://github.com/wogikaze/arukellt/issues/917) `wave/assertion-frees`
+after the ADR-087 window. The replacement is the `std::test::Test` associated
+surface; import it with `use std::test::Test`. A bare call or a selective
+`use std::prelude::{...}` import now fails with **E0100** and a hint naming the
+Test method. `assert(cond)` remains the ADR-091 §3 prelude exception.
 
-| Deprecated API | Replacement |
-|----------------|-------------|
+| Retired API | Replacement |
+|-------------|-------------|
 | `assert_eq(a, b)` | `Test::assert_eq_i32(a, b)` |
 | `assert_ne(a, b)` | `Test::assert_ne_i32(a, b)` |
 | `assert_eq_i64(a, b)` | `Test::assert_eq_i64(a, b)` |

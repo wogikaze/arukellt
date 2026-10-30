@@ -1,1 +1,0 @@
-warning[W0009|typecheck]: use `std::Test::assert_eq_i32(actual, expected)` instead

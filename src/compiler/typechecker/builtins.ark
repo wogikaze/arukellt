@@ -20,9 +20,9 @@ fn simple_type(tag: i32) -> TypeInfo {
 // Excluded on purpose:
 // - `eq`: bare `eq(...)` is overloaded across the `Eq` impls (char/i32/i64/
 //   bool/f64) while the flat index only holds the String shim.
-// - `assert_eq_i64`: the emitter widens i32 arguments at its i64 parameters,
-//   and existing fixtures compare `len(...)` results and unsuffixed literals
-//   through it.
+// - `Test::assert_eq_i64`: call lowering widens i32 actuals at its i64
+//   parameters from the signature spine, and fixtures compare `len(...)`
+//   results through it. Do not add either spelling to this table.
 // - `char_to_string` / `push_char`: `char` is represented as i32 at the
 //   emitter boundary and existing stdlib code passes i32 codepoints
 //   (`char_to_string(48 + n)`, `push_char(text, 65)`).
@@ -46,11 +46,11 @@ fn is_text_prelude_builtin(name: String) -> bool {
     name.clone().eq("index_of") || name.clone().eq("byte_at")
 }
 
+// `assert` is the only runtime prelude builtin left: the four assertion
+// wrappers retired in wave/assertion-frees, so their bare names no longer
+// reach the typechecker as prelude calls.
 fn is_runtime_prelude_builtin(name: String) -> bool {
-    if name.clone().eq("assert") || name.clone().eq("assert_eq") {
-        return true
-    }
-    name.clone().eq("assert_ne") || name.clone().eq("assert_eq_str")
+    name.clone().eq("assert")
 }
 
 fn builtin_call_return_type(name: String) -> TypeInfo {

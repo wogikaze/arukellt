@@ -761,10 +761,10 @@ stdio::print(String_from("no newline"))
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-use std::prelude::{assert_eq}
+use std::test::Test
 
-assert(x > 0, String_from("x must be positive"))
-assert_eq(actual, expected, String_from("values differ"))
+assert(x > 0)
+Test::assert_eq_i32(actual, expected)
 ```
 
 ---

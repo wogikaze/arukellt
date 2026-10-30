@@ -50,6 +50,10 @@ fn try_reject_retired_prelude_import(ctx: ResolveCtx, d: AstNode) -> bool {
 // public, and the shim is found by name in the module graph rather than
 // through a source import.
 fn retired_prelude_import_hint(name: String) -> String {
+    let assertion = removed_names::removed_assertion_free_hint(name.clone())
+    if len(assertion.clone()) > 0 {
+        return assertion
+    }
     if eq(name.clone(), "Box_new") {
         return String_from("use `Box::new(value)` instead")
     }

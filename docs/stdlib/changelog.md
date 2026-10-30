@@ -16,6 +16,49 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — prelude assertion free function 4 個の退役 (ADR-046, ADR-087, ADR-091, #917, wave/assertion-frees)
+
+- **Removed**: prelude の assertion free function 4 個（`assert_eq`、
+  `assert_ne`、`assert_eq_i64`、`assert_eq_str`）。ADR-087 Wave 1 で
+  deprecated だったものの Wave 2 削除。manifest entry と
+  `std/prelude.ark` 宣言を削除し、bare call は W0009 ではなく **E0100** と
+  `Test` associated method hint を返す。明示的な
+  `use std::prelude::{name}` も同じ hint で拒否する。`assert(cond)` は
+  ADR-091 §3 の prelude 例外として残る。
+- **Replacement**: `std::test::Test` の associated function
+  （`Test::assert_eq_i32`、`Test::assert_ne_i32`、`Test::assert_eq_i64`、
+  `Test::assert_eq_string`）。`use std::test::Test` が必要。
+- **Compiler**: `lint/deprecated_table.ark` の W0009 assertion 表を削除し、
+  `resolver::removed_names` の assertion hint と `register_use` の import
+  拒否を追加した。`typechecker/builtins.ark` の runtime prelude builtin 表は
+  `assert` だけにし、`Test::assert_eq_i64` の i32→i64 widening は signature
+  spine 経由のまま concrete-signature 表へ入れない
+  （`is_concrete_prelude_builtin` の除外を維持）。
+- **Migration**: `docs/stdlib/migration-guidance.md` の assertion 表を
+  removed section に移し、`docs/language/spec.md` の 9.13 と testing 一覧を
+  `Test::` surface へ更新した。`docs/language/guide.md` の assertion 例も
+  同じ surface へ直した。
+- **Fixtures**: 19 個の run fixture（hashmap / path / random / test / time）の
+  bare assertion call site を `Test::` へ移行した。
+  `diagnostics/deprecated_assertion_free*` の W0009 golden を
+  `removed_assertion_free*`（bare call）と `removed_assertion_import`
+  （selective import）の E0100 golden に置換した。
+- **Scorecard**: 41 → **37** public free symbols（`must delete` 25 → **21**）、
+  manifest public entries 41 → **37**、`pub fn` declarations 41 → **37**、
+  `prelude_wrapper` entries 9 → **5**、monomorphic helpers 4 → **2**、
+  deprecated entries 24 → **20**。
+- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
+  （112 runtime、43/43 `test:` PASS、2 runtime-unsupported、0 FAIL）、
+  `verify lane` PASS、`docs check` **6/6**、`selfhost diag-parity`
+  **267/267** PASS、ADR-029 fixpoint PASS（s2 == s3 sha256
+  `51a655b81befe68e35a07f9edeaa297889c1cd98c44ad684790803f29973241a`、
+  pinned base `56ff0808…`）。changed run fixture は wasm32-gc と
+  `--target wasm32` の両方で compile+validate した。
+- **Residual**: assertion free は残っていない。残る `must delete` family
+  （vec intrinsic-compat / deque / seq combinator など）は #917 の後続 wave
+  が所有する。pinned bootstrap は退役前の hint を返すが、現行 s2 の
+  diagnostic が正本で、overlay 追加は不要だった。
+
 ## 2026-10-30 — 数値変換 free function 17 個の退役 (ADR-046, ADR-067, ADR-087, #917, wave/numeric-conv)
 
 - **Removed**: prelude の数値変換 free function 17 個

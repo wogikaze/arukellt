@@ -1,0 +1,6 @@
+// E0100: a selective import of a retired prelude assertion wrapper points at
+// the Test associated method (wave/assertion-frees).
+use std::prelude::{assert_eq, assert_eq_i64, assert_eq_str, assert_ne}
+
+fn main() {
+}

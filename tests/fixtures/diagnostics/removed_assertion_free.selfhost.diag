@@ -1,0 +1,8 @@
+error[E0100|resolve]: undefined name: assert_eq; use `Test::assert_eq_i32(actual, expected)` from `use std::test::Test` instead
+  --> tests/fixtures/diagnostics/removed_assertion_free.ark:4:5
+error[E0100|resolve]: undefined name: assert_ne; use `Test::assert_ne_i32(actual, unexpected)` from `use std::test::Test` instead
+  --> tests/fixtures/diagnostics/removed_assertion_free.ark:5:5
+error[E0100|resolve]: undefined name: assert_eq_i64; use `Test::assert_eq_i64(actual, expected)` from `use std::test::Test` instead
+  --> tests/fixtures/diagnostics/removed_assertion_free.ark:6:5
+error[E0100|resolve]: undefined name: assert_eq_str; use `Test::assert_eq_string(actual, expected)` from `use std::test::Test` instead
+  --> tests/fixtures/diagnostics/removed_assertion_free.ark:7:5

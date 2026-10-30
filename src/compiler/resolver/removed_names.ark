@@ -81,6 +81,10 @@ fn is_retired_hashset_adapter_name(name: String) -> bool {
 }
 
 fn removed_name_specific_hint(name: String) -> String {
+    let assertion_hint = removed_assertion_free_hint(name.clone())
+    if len(assertion_hint.clone()) > 0 {
+        return assertion_hint
+    }
     let test_hint = removed_test_free_hint(name.clone())
     if len(test_hint.clone()) > 0 {
         return test_hint
@@ -796,6 +800,26 @@ fn removed_seq_member_hint(name: String) -> String {
     }
     if name.clone().eq("max_by_key") {
         return "removed free function; use `v.max_by_key(key)` via `use std::collections::vec`"
+    }
+    String_new()
+}
+
+// The four deprecated prelude assertion wrappers were deleted by #917
+// (wave/assertion-frees) after the ADR-087 window. Bare calls and selective
+// `use std::prelude::{...}` imports name the Test associated method;
+// `assert(cond)` stays as the ADR-091 §3 prelude exception.
+fn removed_assertion_free_hint(name: String) -> String {
+    if name.clone().eq("assert_eq") {
+        return String_from("use `Test::assert_eq_i32(actual, expected)` from `use std::test::Test` instead")
+    }
+    if name.clone().eq("assert_ne") {
+        return String_from("use `Test::assert_ne_i32(actual, unexpected)` from `use std::test::Test` instead")
+    }
+    if name.clone().eq("assert_eq_i64") {
+        return String_from("use `Test::assert_eq_i64(actual, expected)` from `use std::test::Test` instead")
+    }
+    if name.clone().eq("assert_eq_str") {
+        return String_from("use `Test::assert_eq_string(actual, expected)` from `use std::test::Test` instead")
     }
     String_new()
 }
@@ -1622,10 +1646,7 @@ fn is_gated_prelude_name(name: String) -> bool {
     if name.clone().eq("Box") || name.clone().eq("Slice") {
         return true
     }
-    if name.clone().eq("as_slice") || name.clone().eq("assert_eq") || name.clone().eq("assert_eq_i64") {
-        return true
-    }
-    if name.clone().eq("assert_eq_str") || name.clone().eq("assert_ne") {
+    if name.clone().eq("as_slice") {
         return true
     }
     if name.clone().eq("slice_get") || name.clone().eq("slice_len") {
@@ -2046,6 +2067,13 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint("test", "assert_msg")) > 0)
         assert(len(removed_module_member_hint("std::test", "assert_eq_snapshot")) > 0)
         assert(len(removed_module_member_hint("test", "unrelated")) == 0)
+    }
+    test "removed prelude assertion frees have E0100 hints" {
+        assert(len(removed_name_hint("assert_eq")) > 0)
+        assert(len(removed_name_hint("assert_ne")) > 0)
+        assert(len(removed_name_hint("assert_eq_i64")) > 0)
+        assert(len(removed_name_hint("assert_eq_str")) > 0)
+        assert(len(removed_name_hint("assert")) == 0)
     }
     test "live names have no hint" {
         assert(len(removed_name_hint("len")) == 0)

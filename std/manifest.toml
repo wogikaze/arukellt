@@ -409,57 +409,11 @@ prelude = true
 stability = "stable"
 doc_category = "assert"
 
-[[functions]]
-name = "assert_eq"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_assert_eq"
-params = ["i32", "i32"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Test::assert_eq_i32"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "assert"
-
-[[functions]]
-name = "assert_ne"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_assert_ne"
-params = ["i32", "i32"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Test::assert_ne_i32"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "assert"
-
-[[functions]]
-name = "assert_eq_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_assert_eq_i64"
-params = ["i64", "i64"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Test::assert_eq_i64"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "assert"
-
-[[functions]]
-name = "assert_eq_str"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_assert_eq_str"
-params = ["String", "String"]
-returns = "()"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Test::assert_eq_string"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "assert"
+# The four deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
+# `assert_eq_i64`, `assert_eq_str`) were deleted by #917
+# (wave/assertion-frees) after the ADR-087 window. Their replacement is the
+# `Test` associated surface; `assert(cond)` remains as the ADR-091 §3 prelude
+# exception.
 
 # ── Intrinsics (no public wrapper) ───────────
 # __intrinsic_string_is_empty is in PRELUDE_FUNCTIONS but has no

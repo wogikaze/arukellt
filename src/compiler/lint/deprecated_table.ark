@@ -27,10 +27,6 @@ pub fn deprecated_call_message(name: String) -> String {
     if len(vec) > 0 {
         return vec
     }
-    let assertion = deprecated_assert_call_message(name.clone())
-    if len(assertion) > 0 {
-        return assertion
-    }
     String_new()
 }
 
@@ -62,22 +58,6 @@ fn deprecated_vec_call_message(name: String) -> String {
     }
     if name.clone().eq("slice_get") {
         return "use the Slice method `view.get(idx)` instead"
-    }
-    String_new()
-}
-
-fn deprecated_assert_call_message(name: String) -> String {
-    if name.clone().eq("assert_eq") {
-        return "use `std::Test::assert_eq_i32(actual, expected)` instead"
-    }
-    if name.clone().eq("assert_ne") {
-        return "use `std::Test::assert_ne_i32(actual, unexpected)` instead"
-    }
-    if name.clone().eq("assert_eq_i64") {
-        return "use `std::Test::assert_eq_i64(actual, expected)` instead"
-    }
-    if name.clone().eq("assert_eq_str") {
-        return "use `std::Test::assert_eq_string(actual, expected)` instead"
     }
     String_new()
 }
@@ -166,11 +146,13 @@ test mod "deprecated" {
         assert(len(deprecated_call_message("slice_len")) > 0)
         assert(len(deprecated_call_message("slice_get")) > 0)
     }
-    test "assert_frees_warn_w0009" {
-        assert(len(deprecated_call_message("assert_eq")) > 0)
-        assert(len(deprecated_call_message("assert_ne")) > 0)
-        assert(len(deprecated_call_message("assert_eq_i64")) > 0)
-        assert(len(deprecated_call_message("assert_eq_str")) > 0)
+    test "retired_assertion_frees_have_no_w0009_entry" {
+        // The four prelude assertion wrappers were deleted with E0100 hints
+        // (wave/assertion-frees); resolver::removed_names owns them now.
+        assert(len(deprecated_call_message("assert_eq")) == 0)
+        assert(len(deprecated_call_message("assert_ne")) == 0)
+        assert(len(deprecated_call_message("assert_eq_i64")) == 0)
+        assert(len(deprecated_call_message("assert_eq_str")) == 0)
     }
     test "retired_io_tagged_writers_have_no_w0009_entry" {
         // The tagged writer pair was deleted with E0100 hints once the typed

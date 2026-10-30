@@ -115,13 +115,13 @@ class = "must delete"
 owner = "917"
 replacement = "Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly."
 
-[[rules]]
-label = "assertion frees"
-module_less = true
-name = ["assert_eq", "assert_ne", "assert_eq_i64", "assert_eq_str"]
-class = "must delete"
-owner = "917"
-replacement = "`std::test::Test` associated functions: Test::assert_eq_i32(actual, expected), Test::assert_ne_i32(actual, unexpected), Test::assert_eq_i64(...), Test::assert_eq_string(...); the deprecated prelude wrappers delegate to the same assertions"
+# The 4 deprecated prelude assertion wrappers (`assert_eq`, `assert_ne`,
+# `assert_eq_i64`, `assert_eq_str`) completed their ADR-087 Wave 2 deletion on
+# 2026-10-30 (wave/assertion-frees). Their replacement is the
+# `std::test::Test` associated surface (assert_eq_i32 / assert_ne_i32 /
+# assert_eq_i64 / assert_eq_string); bare and selectively imported old
+# spellings fail with E0100 hints. `assert(cond)` remains in the prelude frees
+# (default) rule as the ADR-091 §3 exception, so no assertion rule remains.
 
 [[rules]]
 label = "monomorphic seq/combinator frees"

@@ -1959,3 +1959,45 @@ classified there, in dependency-safe waves.
   the pin refresh. `raw.f64_bits_*` stays a `planned` native-c capability;
   `f64::to_bits_*` lowers through the scalar handler. No numeric conversion
   free remains user-reachable.
+
+### Landed slice (wave/assertion-frees, 2026-10-30)
+
+- **Feasibility**: yes. The four deprecated prelude assertion wrappers were the
+  last assertion family and the `std::test::Test` associated surface already
+  owned the runtime semantics (`assert_eq_i32` lowers to the same
+  `runtime.assert_eq` CoreOp; the `_i64`/`_string` methods are callable on both
+  targets). Nothing required a new intrinsic.
+- **Landed**: `std/prelude.ark` no longer declares `assert_eq`, `assert_ne`,
+  `assert_eq_i64`, or `assert_eq_str`, and their four manifest entries are
+  deleted. `assert(cond)` stays as the ADR-091 §3 prelude exception.
+- **E0100**: `resolver::removed_names` owns the four names with hints naming
+  the `Test` method, and `register_use` rejects selective
+  `use std::prelude::{...}` imports with the same hint. The
+  `assert_eq_i64` hint takes precedence over the older `std::test` free hint.
+  The gated-prelude classification is dropped because the names no longer
+  resolve.
+- **Widening contract**: `Test::assert_eq_i64` keeps the i32→i64 widening
+  fixtures rely on (`Test::assert_eq_i64(parts.len(), 3i64)`): call lowering
+  widens i32 actuals at i64 parameters from the signature spine, and
+  `assert_eq_i64` deliberately stays off `is_concrete_prelude_builtin`, so the
+  typechecker does not reject or truncate the widened actual.
+- **Fixtures**: 19 run fixtures (hashmap / path / random / stdlib_test / time)
+  moved to `Test::`; the two W0009 `deprecated_assertion_free*` diagnostics
+  became `removed_assertion_free*` E0100 goldens, plus a
+  `removed_assertion_import` golden for the selective-import rejection.
+- **Scorecard**: 41 → **37** public free symbols (`must delete` 25 → **21**),
+  manifest public entries 41 → **37**, `pub fn` declarations 41 → **37**,
+  `prelude_wrapper` entries 9 → **5**, monomorphic helpers 4 → **2**,
+  deprecated entries 24 → **20**.
+- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
+  (112 runtime, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `verify lane` PASS; `docs check` **6/6**; `selfhost diag-parity`
+  **267/267** PASS; ADR-029 fixpoint PASS, s2 == s3 sha256
+  `51a655b81befe68e35a07f9edeaa297889c1cd98c44ad684790803f29973241a`
+  (pinned base `56ff0808…`). Changed run fixtures were checked on both
+  `wasm32-gc` and `--target wasm32`.
+- **Residuals**: no assertion free remains user-reachable. The other
+  `must delete` families (vec intrinsic-compat, deque, seq combinator) stay
+  with the remaining #917 waves. The pinned bootstrap still reports the
+  pre-retirement gated/import hints; the current s2 diagnostics are canonical
+  and no bootstrap overlay was needed.

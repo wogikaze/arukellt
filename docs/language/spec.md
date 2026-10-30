@@ -1858,15 +1858,21 @@ The current view API does not provide full lifetime or mutation-exclusion
 checking. Those rules are separate from the owned ADT contract and are tracked
 by the subsequent borrow/closure work.
 
-### 9.13 Assertions (prelude)
+### 9.13 Assertions
+
+`assert(cond)` is the only assert-family prelude exception (ADR-091 §3). The
+typed assertions are associated functions on `std::test::Test`; import the
+namespace with `use std::test::Test`. The former `assert_eq`, `assert_ne`,
+`assert_eq_i64`, and `assert_eq_str` prelude wrappers were retired with
+**E0100** hints (ADR-046, #917).
 
 | Signature | Description |
 |-----------|-------------|
-| `assert(cond: bool)` | Assert true |
-| `assert_eq(a: i32, b: i32)` | Assert equal (i32) |
-| `assert_ne(a: i32, b: i32)` | Assert not equal (i32) |
-| `assert_eq_i64(a: i64, b: i64)` | Assert equal (i64) |
-| `assert_eq_str(a: String, b: String)` | Assert equal (String) |
+| `assert(cond: bool)` | Assert true (prelude) |
+| `Test::assert_eq_i32(actual: i32, expected: i32)` | Assert equal (i32) |
+| `Test::assert_ne_i32(actual: i32, unexpected: i32)` | Assert not equal (i32) |
+| `Test::assert_eq_i64(actual: i64, expected: i64)` | Assert equal (i64) |
+| `Test::assert_eq_string(actual: String, expected: String)` | Assert equal (String) |
 
 ### 9.14 HashMap (generic public API)
 
@@ -2132,20 +2138,20 @@ with `v.get_field(key)` / `v.table_keys()` and decode with `v.as_string()` /
 `parse_string_array`. The former `toml::toml_parse` / `toml::toml_stringify`
 frees are retired (E0100).
 
-**Testing (non-prelude)**:
-`assert_true(b: bool)`,
-`assert_false(b: bool)`,
-`assert_eq_i32(a: i32, b: i32)`,
-`assert_eq_i64(a: i64, b: i64)`,
-`assert_eq_f64(a: f64, b: f64)`,
-`assert_eq_bool(a: bool, b: bool)`,
-`assert_eq_string(a: String, b: String)`,
-`assert_ne_i32(a: i32, b: i32)`,
-`assert_ne_string(a: String, b: String)`,
-`expect_some_i32(o: Option<i32>) -> i32`,
-`expect_none_i32(o: Option<i32>)`,
-`expect_ok_i32(r: Result<i32, String>) -> i32`,
-`expect_err_string(r: Result<i32, String>) -> String`
+**Testing (`std::test::Test`, import with `use std::test::Test`)**:
+`Test::assert_true(b: bool)`,
+`Test::assert_false(b: bool)`,
+`Test::assert_eq_i32(a: i32, b: i32)`,
+`Test::assert_eq_i64(a: i64, b: i64)`,
+`Test::assert_eq_f64(a: f64, b: f64)`,
+`Test::assert_eq_bool(a: bool, b: bool)`,
+`Test::assert_eq_string(a: String, b: String)`,
+`Test::assert_ne_i32(a: i32, b: i32)`,
+`Test::assert_ne_string(a: String, b: String)`,
+`Test::expect_some_i32(o: Option<i32>) -> i32`,
+`Test::expect_none_i32(o: Option<i32>)`,
+`Test::expect_ok_i32(r: Result<i32, String>) -> i32`,
+`Test::expect_err_string(r: Result<i32, String>) -> String`
 
 **Wasm Introspection**:
 `wasm_magic() -> Vec<i32>`,

@@ -256,8 +256,9 @@ diag:diagnostics/prelude_vec_method_arg_type.ark
 diag:diagnostics/prelude_vec_method_arg_type_wasm32.ark
 diag:diagnostics/deprecated_vec_intrinsic.ark
 diag:diagnostics/deprecated_vec_intrinsic_wasm32.ark
-diag:diagnostics/deprecated_assertion_free.ark
-diag:diagnostics/deprecated_assertion_free_wasm32.ark
+diag:diagnostics/removed_assertion_free.ark
+diag:diagnostics/removed_assertion_free_wasm32.ark
+diag:diagnostics/removed_assertion_import.ark
 diag:diagnostics/removed_test_free.ark
 diag:diagnostics/removed_test_free_wasm32.ark
 diag:diagnostics/removed_hashset_free.ark

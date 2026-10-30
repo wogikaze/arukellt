@@ -1,12 +1,11 @@
 // Duration receiver surface (ADR-046); wasm32-gc lane.
 use std::host::stdio
 use std::time::Duration
-use std::prelude::assert_eq_i64
-
+use std::test::Test
 fn main() {
-    assert_eq_i64(Duration::between(0i64, 5000000i64).as_ms(), 5i64)
-    assert_eq_i64(Duration::between(0i64, 5000000i64).as_us(), 5000i64)
-    assert_eq_i64(Duration::between(1i64, 3i64).as_ns(), 2i64)
-    assert_eq_i64(Duration::between(10i64, 5i64).as_ns(), 0i64)
+    Test::assert_eq_i64(Duration::between(0i64, 5000000i64).as_ms(), 5i64)
+    Test::assert_eq_i64(Duration::between(0i64, 5000000i64).as_us(), 5000i64)
+    Test::assert_eq_i64(Duration::between(1i64, 3i64).as_ns(), 2i64)
+    Test::assert_eq_i64(Duration::between(10i64, 5i64).as_ns(), 0i64)
     stdio::println("duration methods ok")
 }
