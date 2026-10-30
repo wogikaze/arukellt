@@ -6,6 +6,6 @@ fn main() {
     let res: Result<i32, io::IoError> = w.write_string("hello")
     match res {
         Result::Ok(n) => Test::assert_eq_i32(n, 5),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

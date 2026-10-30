@@ -7,7 +7,7 @@ fn main() {
     let res: Result<i32, io::IoError> = w.write_string("test")
     match res {
         Result::Ok(n) => Test::assert_eq_i32(n, 4),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let b: Vec<i32> = w.into_bytes()
     Test::assert_eq_string(String::from_utf8_lossy(b), "test")

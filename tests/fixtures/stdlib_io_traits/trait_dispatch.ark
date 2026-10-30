@@ -105,7 +105,7 @@ fn bufread_report<T: io::BufRead>(mut source: T) -> Result<BufReadReport, io::Io
     }
     let consume_err: String = match source.consume(99) {
         Result::Ok(_) => String_new(),
-        Result::Err(err) => io::io_error_message(err),
+        Result::Err(err) => err.message(),
     }
     Ok(BufReadReport {
             pending_len: len(pending),
@@ -156,11 +156,11 @@ fn seek_report<T: io::Seek>(mut source: T) -> Result<SeekReport, io::IoError> {
     }
     let negative_err: String = match source.seek(io::SeekFrom::Start(0i64 - 1i64)) {
         Result::Ok(_) => String_new(),
-        Result::Err(err) => io::io_error_message(err),
+        Result::Err(err) => err.message(),
     }
     let overflow_err: String = match source.seek(io::SeekFrom::Start(2147483648i64)) {
         Result::Ok(_) => String_new(),
-        Result::Err(err) => io::io_error_message(err),
+        Result::Err(err) => err.message(),
     }
     let past_end: i64 = match source.seek(io::SeekFrom::End(0i64)) {
         Result::Ok(pos) => pos,
@@ -207,7 +207,7 @@ fn main() {
             stdio::println((report.rest_byte).to_string())
             stdio::println((report.eof_len).to_string())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match bufread_report(io::Reader::from_bytes(sample_data())) {
@@ -218,7 +218,7 @@ fn main() {
             stdio::println((report.line_eof).to_string())
             stdio::println(report.consume_err)
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut newline: Vec<i32> = Vec::new<i32>()
@@ -228,7 +228,7 @@ fn main() {
             stdio::println((report.first_has_line).to_string())
             stdio::println((report.second_has_line).to_string())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match seek_report(Reader::from_bytes(sample_data())) {
@@ -241,7 +241,7 @@ fn main() {
             stdio::println(report.negative_err)
             stdio::println(report.overflow_err)
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match write_report(Writer::new(), sample_data()) {
@@ -249,6 +249,6 @@ fn main() {
             stdio::println((report.written).to_string())
             stdio::println((report.empty_written).to_string())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }

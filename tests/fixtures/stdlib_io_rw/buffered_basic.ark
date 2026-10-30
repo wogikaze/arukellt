@@ -29,7 +29,7 @@ fn main() {
             Option::Some(line) => stdio::println(line),
             Option::None => stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     let l2: Result<Option<String>, io::IoError> = br.read_line()
     match l2 {
@@ -37,7 +37,7 @@ fn main() {
             Option::Some(line) => stdio::println(line),
             Option::None => stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     let l3: Result<Option<String>, io::IoError> = br.read_line()
     match l3 {
@@ -45,7 +45,7 @@ fn main() {
             Option::Some(line) => stdio::println(line),
             Option::None => stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     // The tagged stdout handle cannot be a generic Write sink yet, so the
     // adapter writes into a memory Writer and the fixture prints the flushed
@@ -55,7 +55,7 @@ fn main() {
     let _: Result<(), io::IoError> = bw.flush()
     match bw.into_inner() {
         Result::Ok(inner) => stdio::println(String::from_utf8_lossy(inner.into_bytes())),
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     stdio::println("done")
 }

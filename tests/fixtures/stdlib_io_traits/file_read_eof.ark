@@ -18,21 +18,21 @@ fn print_read<T: io::Read>(mut source: T, max_bytes: i32) {
                 i = i + 1
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 
 fn print_position<T: io::Seek>(source: T) {
     match source.position() {
         Result::Ok(position) => stdio::println((position).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 
 fn print_seek<T: io::Seek>(mut source: T, from: SeekFrom) {
     match source.seek(from) {
         Result::Ok(position) => stdio::println((position).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 
@@ -82,21 +82,21 @@ fn main() {
             print_seek(file, SeekFrom::Start(2147483648i64))
             match file.close() {
                 Result::Ok(_) => stdio::println("closed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             print_read(file, 1)
             print_position(file)
             match file.close() {
                 Result::Ok(_) => stdio::println("closed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/missing_image.bin") {
         Result::Ok(_) => stdio::println("unexpected open"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let missing_result: Result<Vec<i32>, String> = Fs::read_bytes("tests/fixtures/stdlib_io_traits/missing_image.bin")
     match missing_result {

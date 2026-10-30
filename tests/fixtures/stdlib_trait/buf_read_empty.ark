@@ -5,11 +5,11 @@ fn main() {
     let mut r: io::Reader = io::Reader::new()
     match r.fill_buf() {
         Result::Ok(filled) => Test::assert_eq_i32(len(filled), 0),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 
     match r.position() {
         Result::Ok(pos) => Test::assert_eq_i64(pos, 0),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

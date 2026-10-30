@@ -17,7 +17,7 @@ fn main() {
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
     match res {
         Result::Ok(n) => Test::assert_eq_i64(n, 300),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let b: Vec<i32> = dst.into_bytes()
     Test::assert_eq_i32(b.len(), 300)

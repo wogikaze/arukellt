@@ -3,10 +3,10 @@ use std::test::Test
 
 fn main() {
     let err = io::IoError::UnexpectedEof("need 5 have 3")
-    let msg = io::io_error_message(err)
+    let msg = err.message()
     Test::assert_eq_string(msg, "need 5 have 3")
 
     let err2 = io::IoError::Other("disk full")
-    let msg2 = io::io_error_message(err2)
+    let msg2 = err2.message()
     Test::assert_eq_string(msg2, "disk full")
 }

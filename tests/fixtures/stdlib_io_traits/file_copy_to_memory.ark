@@ -18,7 +18,7 @@ fn print_byte_values(bytes: Vec<i32>) {
 fn print_copy_count<T: io::Read, U: io::Write>(mut from: T, mut to: U) {
     match Io::copy(from, to) {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 
@@ -26,7 +26,7 @@ fn print_seek<T: io::Seek>(mut source: T, from: SeekFrom) {
     match source.seek(from) {
         Result::Ok(_) => {
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 
@@ -40,7 +40,7 @@ fn main() {
             print_copy_count(file, writer)
             print_byte_values(writer.into_bytes())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
@@ -51,7 +51,7 @@ fn main() {
             print_copy_count(file, writer)
             print_byte_values(writer.into_bytes())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/file_image.bin") {
@@ -61,11 +61,11 @@ fn main() {
             let mut writer: Writer = Writer::new()
             print_copy_count(file, writer)
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match fs::File::open("tests/fixtures/stdlib_io_traits/missing_image.bin") {
         Result::Ok(_) => stdio::println("unexpected open"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }

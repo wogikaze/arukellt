@@ -13,7 +13,7 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, ""),
             Option::None => Std::panic("expected an empty line"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let res2: Result<Option<String>, io::IoError> = r.read_line()
     match res2 {
@@ -21,6 +21,6 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, "X"),
             Option::None => Std::panic("expected the trailing line"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

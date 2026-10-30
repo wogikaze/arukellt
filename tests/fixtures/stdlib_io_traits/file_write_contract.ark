@@ -33,7 +33,7 @@ fn main() {
             let mut file: fs::File = file
             match file.write("new".to_utf8_bytes()) {
                 Result::Ok(count) => stdio::println((count).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match Fs::read_bytes(".build/file_write_contract.bin") {
                 Result::Ok(image) => stdio::println(String::from_utf8_lossy(image)),
@@ -41,7 +41,7 @@ fn main() {
             }
             match file.flush() {
                 Result::Ok(_) => stdio::println("flushed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match Fs::read_bytes(".build/file_write_contract.bin") {
                 Result::Ok(image) => stdio::println(String::from_utf8_lossy(image)),
@@ -50,11 +50,11 @@ fn main() {
             let payload: Vec<i32> = "XYZ".to_utf8_bytes()
             match Io::write_all(file, payload) {
                 Result::Ok(_) => stdio::println("write_all ok"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.flush() {
                 Result::Ok(_) => stdio::println("flushed2"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match Fs::read_bytes(".build/file_write_contract.bin") {
                 Result::Ok(image) => stdio::println(String::from_utf8_lossy(image)),
@@ -62,14 +62,14 @@ fn main() {
             }
             match file.close() {
                 Result::Ok(_) => stdio::println("closed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.write("z".to_utf8_bytes()) {
                 Result::Ok(_) => stdio::println("write after close unexpectedly ok"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match fs::File::open(".build/file_write_contract.bin") {
@@ -77,14 +77,14 @@ fn main() {
             let mut file: fs::File = file
             match file.write("x".to_utf8_bytes()) {
                 Result::Ok(_) => stdio::println("read-only write unexpectedly ok"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.flush() {
                 Result::Ok(_) => stdio::println("read-only flush ok"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match fs::File::create(".build/file_write_contract.bin") {
@@ -92,14 +92,14 @@ fn main() {
             let mut file: fs::File = file
             match file.read(1) {
                 Result::Ok(_) => stdio::println("write-only read unexpectedly ok"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.close() {
                 Result::Ok(_) => stdio::println("truncated"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     print_image(".build/file_write_contract.bin")
 
@@ -108,22 +108,22 @@ fn main() {
             let mut file: fs::File = file
             match file.seek(SeekFrom::Start(2i64)) {
                 Result::Ok(position) => stdio::println((position).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.write("A".to_utf8_bytes()) {
                 Result::Ok(count) => stdio::println((count).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.flush() {
                 Result::Ok(_) => stdio::println("gap flushed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.close() {
                 Result::Ok(_) => stdio::println("gap closed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     print_image(".build/file_write_gap.bin")
 }

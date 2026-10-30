@@ -13,30 +13,30 @@ fn main() {
     let r2: Result<i32, io::IoError> = bw2.write_string("x")
     match r1 {
         Result::Ok(n) => Test::assert_eq_i32(n, 1),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     match r2 {
         Result::Ok(n) => Test::assert_eq_i32(n, 1),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let first_result: Result<(), io::IoError> = bw1.flush()
     match first_result {
         Result::Ok(_) => (),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let second_result: Result<(), io::IoError> = bw2.flush()
     match second_result {
         Result::Ok(_) => (),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let first_inner: Result<Writer, io::IoError> = bw1.into_inner()
     match first_inner {
         Result::Ok(inner) => Test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let second_inner: Result<Writer, io::IoError> = bw2.into_inner()
     match second_inner {
         Result::Ok(inner) => Test::assert_eq_string(String::from_utf8_lossy(inner.into_bytes()), "x"),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

@@ -69,18 +69,21 @@ pub enum IoError {
     Other(String),
 }
 
-/// Convert an `IoError` to a human-readable message.
-pub fn io_error_message(err: IoError) -> String {
-    match err {
-        IoError::UnexpectedEof(msg) => msg,
-        IoError::Other(msg) => msg,
+impl IoError {
+    /// Return the human-readable payload without the `IoError:` display
+    /// prefix.
+    fn message(self: IoError) -> String {
+        match self {
+            IoError::UnexpectedEof(msg) => msg,
+            IoError::Other(msg) => msg,
+        }
     }
 }
 
 /// Display implementation for the typed I/O error surface.
 impl Display for IoError {
     fn to_string(self: IoError) -> String {
-        "IoError: ".concat(io_error_message(self))
+        "IoError: ".concat(self.message())
     }
 }
 
@@ -98,7 +101,7 @@ impl Error for IoError {
 /// `match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }`.
 impl From<IoError> for String {
     fn from(err: IoError) -> String {
-        io_error_message(err)
+        err.message()
     }
 }
 

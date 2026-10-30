@@ -13,7 +13,7 @@ fn show(value: Result<Option<String>, io::IoError>) {
             Option::Some(line) => stdio::println(line),
             Option::None => stdio::println("<eof>"),
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 

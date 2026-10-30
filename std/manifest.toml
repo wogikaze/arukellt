@@ -1459,7 +1459,8 @@ module = "std::io"
 stability = "stable"
 prelude = false
 kind = "enum"
-doc = "Typed I/O error with UnexpectedEof and Other variants; implements Display and Error."
+doc = "Typed I/O error with UnexpectedEof and Other variants. message() returns the human-readable payload, Display adds the `IoError:` prefix, and the type implements Error."
+methods = ["message"]
 trait_impls = ["Display", "Error"]
 
 [[types]]

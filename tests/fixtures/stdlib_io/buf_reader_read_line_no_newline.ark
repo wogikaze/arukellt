@@ -15,6 +15,6 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, "XYZ"),
             Option::None => Std::panic("expected line XYZ"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

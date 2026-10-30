@@ -25,26 +25,26 @@ fn main() {
             let mut file: fs::File = file
             match file.write("hello\nworld".to_utf8_bytes()) {
                 Result::Ok(count) => stdio::println((count).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.seek(SeekFrom::Start(6i64)) {
                 Result::Ok(position) => stdio::println((position).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.write("W".to_utf8_bytes()) {
                 Result::Ok(count) => stdio::println((count).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.flush() {
                 Result::Ok(_) => stdio::println("flushed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.close() {
                 Result::Ok(_) => stdio::println("closed"),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match Fs::read_bytes(".build/file_write_roundtrip.bin") {
@@ -63,27 +63,27 @@ fn main() {
                     let bytes: Vec<i32> = bytes
                     print_byte_values(bytes)
                 },
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.read(20) {
                 Result::Ok(bytes) => {
                     let bytes: Vec<i32> = bytes
                     print_byte_values(bytes)
                 },
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.read(1) {
                 Result::Ok(bytes) => {
                     let bytes: Vec<i32> = bytes
                     print_byte_values(bytes)
                 },
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
             match file.position() {
                 Result::Ok(position) => stdio::println((position).to_string()),
-                Result::Err(err) => stdio::println(io::io_error_message(err)),
+                Result::Err(err) => stdio::println(err.message()),
             }
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }

@@ -10,7 +10,7 @@ fn main() {
     let res: Result<Vec<i32>, io::IoError> = r.read(0)
     match res {
         Result::Ok(chunk) => Test::assert_eq_i32(chunk.len(), 0),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     Test::assert_false(r.is_eof())
 }

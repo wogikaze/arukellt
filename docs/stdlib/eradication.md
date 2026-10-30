@@ -15,18 +15,18 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 83 `pub fn` declarations under
+**Real surface denominator:** 82 `pub fn` declarations under
 `std/**/*.ark`; 82 map to a manifest entry and
-1 are unregistered. Eradication scope = 82 manifest
-public entries + 1 unregistered declarations = **83 symbols**.
+0 are unregistered. Eradication scope = 82 manifest
+public entries + 0 unregistered declarations = **82 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 83 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 83 | — |
-| Unregistered std declarations (no manifest entry) | 1 | 0 |
+| Eradication-scope symbols (real std surface) | 82 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 82 | — |
+| Unregistered std declarations (no manifest entry) | 0 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
 | Manifest public entries (registered scope) | 82 | 0 |
 | `prelude_wrapper` entries | 26 | 0 |
@@ -38,7 +38,7 @@ public entries + 1 unregistered declarations = **83 symbols**.
 | Class | Meaning | Symbols |
 |-------|---------|---------|
 | `must delete` | Replacement already exists or functionality retires | 66 |
-| `associated-or-method` | Replacement must land as method/associated first | 17 |
+| `associated-or-method` | Replacement must land as method/associated first | 16 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
 ## Execution Rules
@@ -58,7 +58,7 @@ registered entries and unregistered `pub fn` declarations.
 | legacy linked_list frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | LinkedList<T> methods (new/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear/iter); ADR-086 §8 |
 | deprecated std::seq helpers | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 13 | 0 | Iterator adapters / Vec methods (#691); the query wrappers delegate to the `Vec` receiver surface (`v.binary_search(target)`, `v.min()`, `v.max()`) |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | method / associated equivalent on the receiver or namespace type |
-| std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 1 | Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles. writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693). |
+| std::io and host stdio frees | `associated-or-method` | [#693](../../issues/open/693-read-write-traits-io-unification.md) | 9 | 0 | Read / Write / BufRead / Seek trait methods and the typed std::io Stdout / Stderr Write handles; `IoError::message()` returns an error's human-readable payload (the former free `io_error_message` retired with an E0100 hint). writer_write / writer_write_str were deleted with E0100 hints pointing at io::Stdout::new().write(...) / io::Stderr::new().write(...); the remaining free functions are the host-backed compatibility surface (stdin / stdout / stderr / read_stdin_line / print_bytes / print / println / eprintln), not the target API (#693). |
 | experimental host fd frees | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 3 | 0 | No public replacement: the fd_* helpers are experimental, `wasm32` / WASI P1 only, and have no wasm32-gc parity fixture; moving them onto `Fs` would claim a surface that does not lower on the primary target. The non-public `__intrinsic_fd_*` bridges remain (ADR-046 D2). Recorded as the retained exception in docs/stdlib/migration-guidance.md. |
 
 ## Inventory (manifest entries)
@@ -159,4 +159,3 @@ manifest-only scorecard could not see before #703.
 
 | Declaration | Source | Module | Class | Rule | Owner |
 |-------------|--------|--------|-------|------|-------|
-| `io_error_message` | `std/io/mod.ark:73` | `std::io` | `associated-or-method` | std::io and host stdio frees | [#693](../../issues/open/693-read-write-traits-io-unification.md) |

@@ -11,7 +11,7 @@ fn main() {
     let res: Result<Vec<i32>, io::IoError> = io::Io::read_exact(r, 3)
     match res {
         Result::Ok(_) => (),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     Test::assert_true(r.is_eof())
 }

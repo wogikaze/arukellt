@@ -17,7 +17,7 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, "A"),
             Option::None => Std::panic("expected line A"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let l2: Result<Option<String>, io::IoError> = br.read_line()
     match l2 {
@@ -25,7 +25,7 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, "B"),
             Option::None => Std::panic("expected line B"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let l3: Result<Option<String>, io::IoError> = br.read_line()
     match l3 {
@@ -33,6 +33,6 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, "C"),
             Option::None => Std::panic("expected line C"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

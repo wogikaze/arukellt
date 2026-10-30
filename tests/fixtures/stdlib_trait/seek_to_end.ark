@@ -12,11 +12,11 @@ fn main() {
     Test::assert_eq_i32(r.len(), 3)
     match r.seek(SeekFrom::Start(3i64)) {
         Result::Ok(pos) => Test::assert_eq_i64(pos, 3),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 
     match r.read(1) {
         Result::Ok(one) => Test::assert_eq_i32(len(one), 0),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

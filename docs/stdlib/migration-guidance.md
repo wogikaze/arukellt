@@ -1231,6 +1231,12 @@ The Phase F completion wave removed the remaining fully-replaced wrappers
 | `io::write_string(w, s)` | `w.write_string(s)` on a memory `Writer` |
 | `io::writer_flush(w)` | `w.flush()` on a memory `Writer` |
 | `io::writer_to_bytes(w)` | `w.into_bytes()` on a memory `Writer` |
+| `io::io_error_message(err)` | `err.message()` on the `IoError` value |
+
+`io_error_message` was the last unregistered `pub fn` under `std/**/*.ark`
+(2026-10-30, [#693](https://github.com/wogikaze/arukellt/issues/693)). It was
+never a manifest entry, so ADR-014 D4 allowed direct deletion; qualified calls
+fail with E0100 and the `err.message()` hint.
 
 Behavior differences to account for while migrating:
 

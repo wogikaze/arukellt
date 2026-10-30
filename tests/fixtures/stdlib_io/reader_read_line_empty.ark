@@ -11,7 +11,7 @@ fn main() {
             Option::Some(_) => Std::panic("expected EOF"),
             Option::None => (),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     Test::assert_true(r.is_eof())
 }

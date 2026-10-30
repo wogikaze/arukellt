@@ -93,7 +93,7 @@
 | Name | Generic Params | Prelude | Stability | Summary |
 |------|----------------|---------|-----------|---------|
 | `Error` | - | no | stable | Portable error category for fallible APIs. |
-| `IoError` | - | no | stable | Typed I/O error with UnexpectedEof and Other variants; implements Display and Error. |
+| `IoError` | - | no | stable | Typed I/O error with UnexpectedEof and Other variants. message() returns the human-readable payload, Display adds the IoError: prefix, and the type implements Error. |
 | `JsonValue` | - | no | experimental | JSON DOM value. Construct with the associated functions (JsonValue::null / bool / int / string / raw / array / object), parse with JsonValue::parse(text), inspect with the is_ / as_ methods, traverse with get_field / get_index, and serialize with to_text. |
 | `Option` | T | yes | stable | Optional value: either Some(T) or None. |
 | `Ordering` | - | no | stable | Result of an ordering comparison: Less, Equal, or Greater. |
@@ -165,7 +165,7 @@
 | `Interner` | `new`, `intern`, `lookup`, `len` | - |
 | `IntoIterator` | `into_iter` | - |
 | `Io` | `copy`, `read_exact`, `read_to_end`, `read_to_string`, `write_all` | - |
-| `IoError` | - | `Display`, `Error` |
+| `IoError` | `message` | `Display`, `Error` |
 | `Iterator` | `next`, `collect`, `count` | - |
 | `IteratorFold` | `fold` | - |
 | `IteratorSum` | `sum` | - |

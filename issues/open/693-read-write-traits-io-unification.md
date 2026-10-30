@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-10-27
+Updated: 2026-10-30
 ID: 693
 Track: stdlib-api
 Depends on: "688, 692"
@@ -45,8 +45,12 @@ The design is fixed by [ADR-085](../../docs/adr/ADR-085-io-trait-unification.md)
   and `BufWriter` are the canonical generic adapters; the legacy `Vec<i32>`
   buffered wrappers are gone and their fixtures exercise the generic adapters
   directly.
-- `IoError` enum (`UnexpectedEof`, `Other`) is stable and implements `Display`
-  and `std::error::Error`.
+- `IoError` enum (`UnexpectedEof`, `Other`) is stable, implements `Display`
+  and `std::error::Error`, and exposes `IoError::message(self)` for the raw
+  human-readable payload (the `Display` prefix stays out of the message). The
+  former free `io_error_message` — the last unregistered std declaration —
+  retired on 2026-10-30 with an E0100 hint; `Display` and
+  `From<IoError> for String` delegate to the method.
 - The initial #693 scaffolding (non-`pub` traits, `new_memory_buffer` /
   `read_bytes` / `write_bytes` helpers, and the monomorphic `copy_trait`
   workaround) is no longer the public shape. Those helpers and `copy_trait`

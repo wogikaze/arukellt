@@ -16,12 +16,12 @@ fn main() {
             Test::assert_eq_i32(get_unchecked(filled, 0), 1)
             Test::assert_eq_i32(get_unchecked(filled, 4), 5)
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 
     // fill_buf does not consume
     match r.position() {
         Result::Ok(pos) => Test::assert_eq_i64(pos, 0),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

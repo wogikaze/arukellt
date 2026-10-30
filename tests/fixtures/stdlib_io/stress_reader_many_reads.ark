@@ -15,7 +15,7 @@ fn main() {
         let res: Result<Vec<i32>, io::IoError> = r.read(3)
         match res {
             Result::Ok(chunk) => total = total + chunk.len(),
-            Result::Err(e) => Std::panic(io::io_error_message(e)),
+            Result::Err(e) => Std::panic(e.message()),
         }
     }
     Test::assert_eq_i32(total, 50)

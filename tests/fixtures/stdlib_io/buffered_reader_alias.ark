@@ -23,13 +23,13 @@ fn main() {
             Option::Some(line) => Test::assert_eq_string(line, "A"),
             Option::None => Std::panic("expected line A from capacity 64"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     match l2 {
         Result::Ok(found) => match found {
             Option::Some(line) => Test::assert_eq_string(line, "A"),
             Option::None => Std::panic("expected line A from capacity 1"),
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

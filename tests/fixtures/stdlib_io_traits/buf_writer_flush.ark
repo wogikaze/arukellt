@@ -54,22 +54,22 @@ fn main() {
     let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, "AB".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let flush_result: Result<(), io::IoError> = flush_sink(buffered)
     match flush_result {
         Result::Ok(_) => stdio::println("flush ok"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let text_result: Result<i32, io::IoError> = buffered.write_string("cd")
     match text_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let write_result: Result<i32, io::IoError> = write_bytes_to(buffered, "EFG".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let inner_result: Result<Writer, io::IoError> = buffered.into_inner()
     match inner_result {
@@ -79,43 +79,43 @@ fn main() {
             stdio::println((get_unchecked(bytes, 0)).to_string())
             stdio::println((get_unchecked(bytes, 6)).to_string())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut zero: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 0)
     let write_result: Result<i32, io::IoError> = write_bytes_to(zero, "HI".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let write_result: Result<i32, io::IoError> = write_bytes_to(zero, "J".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let zero_result: Result<Writer, io::IoError> = zero.into_inner()
     match zero_result {
         Result::Ok(inner) => stdio::println((len(inner.into_bytes())).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut pending: BufWriter<Writer> = BufWriter::new<Writer>(Writer::new(), 100)
     let write_result: Result<i32, io::IoError> = write_bytes_to(pending, "K".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let pending_result: Result<Writer, io::IoError> = pending.into_inner()
     match pending_result {
         Result::Ok(inner) => stdio::println((len(inner.into_bytes())).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut text_writer: Writer = Writer::new()
     let writer_text_result: Result<i32, io::IoError> = text_writer.write_string("hé")
     match writer_text_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     stdio::println((len(text_writer.into_bytes())).to_string())
 
@@ -123,7 +123,7 @@ fn main() {
     let flush_result: Result<(), io::IoError> = flush_sink(empty)
     match flush_result {
         Result::Ok(_) => stdio::println("empty flush ok"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut rejected: BufWriter<RejectingWriter> =
@@ -131,7 +131,7 @@ fn main() {
     let write_result: Result<i32, io::IoError> = write_bytes_to(rejected, "A".to_utf8_bytes())
     match write_result {
         Result::Ok(_) => stdio::println("unexpected buffered write"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut partial: BufWriter<OneByteWriter> =
@@ -139,16 +139,16 @@ fn main() {
     let write_result: Result<i32, io::IoError> = write_bytes_to(partial, "ABC".to_utf8_bytes())
     match write_result {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let flush_result: Result<(), io::IoError> = flush_sink(partial)
     match flush_result {
         Result::Ok(_) => stdio::println("partial flush ok"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let partial_result: Result<OneByteWriter, io::IoError> = partial.into_inner()
     match partial_result {
         Result::Ok(inner) => stdio::println((len(inner.bytes)).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }

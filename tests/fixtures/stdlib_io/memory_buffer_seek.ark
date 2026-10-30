@@ -11,11 +11,11 @@ fn main() {
     let mut r: io::Reader = io::Reader::from_bytes(data)
     match r.seek(SeekFrom::Start(1i64)) {
         Result::Ok(pos) => Test::assert_eq_i64(pos, 1),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     match r.position() {
         Result::Ok(pos) => Test::assert_eq_i64(pos, 1),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let read: Result<Vec<i32>, io::IoError> = r.read(2)
     match read {
@@ -23,6 +23,6 @@ fn main() {
             Test::assert_eq_i32(chunk.get_unchecked(0), 20)
             Test::assert_eq_i32(chunk.get_unchecked(1), 30)
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

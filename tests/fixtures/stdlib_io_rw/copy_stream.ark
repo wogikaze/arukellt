@@ -20,7 +20,7 @@ fn main() {
     let res: Result<i64, io::IoError> = io::Io::copy(src, dst)
     match res {
         Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     let out: Vec<i32> = dst.into_bytes()
     stdio::println(String::from_utf8_lossy(out))

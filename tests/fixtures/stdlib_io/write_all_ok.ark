@@ -10,7 +10,7 @@ fn main() {
     let res: Result<(), io::IoError> = io::Io::write_all(w, data)
     match res {
         Result::Ok(_) => (),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
     let b: Vec<i32> = w.into_bytes()
     Test::assert_eq_i32(b.len(), 2)

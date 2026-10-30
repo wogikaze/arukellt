@@ -21,9 +21,9 @@ fn main() {
 
     // Module-qualified IoError constructors.
     let eof = io::IoError::UnexpectedEof("short")
-    Test::assert_eq_string(io::io_error_message(eof), "short")
+    Test::assert_eq_string(eof.message(), "short")
     let other = io::IoError::Other("disk")
-    Test::assert_eq_string(io::io_error_message(other), "disk")
+    Test::assert_eq_string(other.message(), "disk")
 
     // Result nesting with Error payload.
     match nest_ok(3) {

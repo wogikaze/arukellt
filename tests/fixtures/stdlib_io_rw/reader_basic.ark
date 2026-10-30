@@ -20,7 +20,7 @@ fn main() {
     let res: Result<Vec<i32>, io::IoError> = r.read(5)
     match res {
         Result::Ok(chunk) => stdio::println(String::from_utf8_lossy(chunk)),
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     // After reading "Hello", cursor sits on the newline. The first read_line
     // consumes it (empty line); the second returns the remainder "World".
@@ -29,14 +29,14 @@ fn main() {
             Option::Some(line) => stdio::println(line),
             Option::None => stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     match r.read_line() {
         Result::Ok(found) => match found {
             Option::Some(line) => stdio::println(line),
             Option::None => stdio::println("<eof>"),
         },
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     stdio::println((r.is_eof()).to_string())
 }

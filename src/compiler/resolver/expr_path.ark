@@ -79,7 +79,7 @@ fn resolve_qualified_path(mut ctx: ResolveCtx, mut node: AstNode, path: String) 
         return
     }
 
-    // Module head: `io::IoError::Other` or `io::io_error_message`.
+    // Module head: `io::IoError::Other` or `text::concat`.
     if head_idx >= 0 && head_kind == commands::SYM_MODULE() {
         if path_has_nested_qualifier(symbol_part.clone()) {
             if resolve_module_qualified_enum_variant(ctx, node, symbol_part.clone(), full_idx, full_kind) {

@@ -7,18 +7,18 @@ fn main() {
     let r1: Result<i32, io::IoError> = w.write_string("hello")
     match r1 {
         Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     let r2: Result<i32, io::IoError> = w.write_string(" world")
     match r2 {
         Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
     let b: Vec<i32> = w.into_bytes()
     stdio::println(String::from_utf8_lossy(b))
     let rf: Result<(), io::IoError> = w.flush()
     match rf {
         Result::Ok(_) => stdio::println("flush ok"),
-        Result::Err(e) => stdio::println(io::io_error_message(e)),
+        Result::Err(e) => stdio::println(e.message()),
     }
 }

@@ -56,7 +56,7 @@ fn read_some<T: io::Read>(mut source: T, max_bytes: i32) -> Result<Vec<i32>, io:
 fn print_copy_count(mut from: Reader, mut to: Writer) {
     match Io::copy(from, to) {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }
 
@@ -73,7 +73,7 @@ fn main() {
     let mut partial: Reader = Reader::from_bytes(payload())
     match read_some(partial, 2) {
         Result::Ok(head) => stdio::println((len(head)).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let mut rest_writer: Writer = Writer::new()
     print_copy_count(partial, rest_writer)
@@ -83,7 +83,7 @@ fn main() {
 
     match Io::read_to_end(Reader::from_bytes(payload())) {
         Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut small: Vec<i32> = Vec::new<i32>()
@@ -91,26 +91,26 @@ fn main() {
     push(small, 66)
     match Io::read_exact(Reader::from_bytes(small), 3) {
         Result::Ok(bytes) => stdio::println((len(bytes)).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     match Io::read_exact(Reader::from_bytes(small), 4) {
         Result::Ok(_) => stdio::println("unexpected exact read"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     match Io::read_exact(Reader::from_bytes(small), 0 - 1) {
         Result::Ok(_) => stdio::println("unexpected negative read"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     match Io::read_to_string(Reader::from_bytes(payload())) {
         Result::Ok(text) => stdio::println(text),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
     let mut invalid: Vec<i32> = Vec::new<i32>()
     push(invalid, 255)
     match Io::read_to_string(Reader::from_bytes(invalid)) {
         Result::Ok(_) => stdio::println("unexpected utf8 success"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut all_writer: Writer = Writer::new()
@@ -120,18 +120,18 @@ fn main() {
             stdio::println((len(all)).to_string())
             stdio::println((get_unchecked(all, 0)).to_string())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut rejected: RejectingWriter = RejectingWriter { calls: 0 }
     match Io::copy(Reader::from_bytes(payload()), rejected) {
         Result::Ok(_) => stdio::println("unexpected copy success"),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut partial_sink: OneByteWriter = OneByteWriter { bytes: Vec::new<i32>() }
     match Io::copy(Reader::from_bytes(payload()), partial_sink) {
         Result::Ok(count) => stdio::println((count).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 }

@@ -1746,3 +1746,36 @@ classified there, in dependency-safe waves.
   （111 runtime executed、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、
   `selfhost diag-parity` PASS、`docs check` 6/6、`verify lane` PASS、
   ADR-029 fixpoint PASS（s2 == s3 = `35913e9d…`、pinned base `56ff0808…`）。
+
+### Landed slice (wave/io-error-message, 2026-10-30)
+
+- **Group**: `std::io` — `std/**/*.ark` の最後の unregistered declaration
+  `pub fn io_error_message(err)`。manifest entry を持たないため、ADR-014 D4
+  により直接削除した（deprecation window、W0009 row、削除対象の
+  `[[functions]]` entry はいずれも不要）。
+- **Replacement surface**: `std/io/mod.ark` の
+  `impl IoError { fn message(self: IoError) -> String }`。
+  `Display::to_string` は `"IoError: "` + `self.message()`、
+  `From<IoError> for String` は `err.message()` へ委譲する。
+  `std/manifest.toml` の `IoError` type entry は
+  `methods = ["message"]` を登録した。qualified
+  `io::io_error_message(...)` は E0100 と
+  ``use `e.message()` on the `IoError` value instead`` を返す
+  （`resolver::removed_names.removed_io_free_hint`）。
+- **Fixtures**: 82 ファイル・234 call site を `err.message()` へ移した
+  （selective import の
+  `stdlib_io/{stdout,stderr}_writer_to_bytes_empty` を含む）。E0100 golden は
+  `diagnostics/removed_io_error_message`。
+- **Scorecard**: eradication scope 83 -> **82**、`pub fn` declarations 83 ->
+  **82**、unregistered 1 -> **0**、`associated-or-method` 17 -> **16**、
+  `std::io and host stdio frees` rule の Source 1 -> **0**。
+  `docs/stdlib/eradication.md` の unregistered inventory は空になった。
+- **Verification**: `verify fixtures` **1931/1931** compile+validate PASS（111
+  runtime executed、39/39 `test:` PASS、2 runtime-unsupported、0 FAIL）、
+  `selfhost diag-parity` PASS（新規 golden 含む）、`docs check` 6/6、
+  `verify lane` PASS、ADR-029 fixpoint PASS（s2 == s3 =
+  `6042638ea518406a296e7cc2bd1b26416ae84325c8a2296534c999c958671268`、pinned
+  base `56ff0808…`）。変更した io fixture 7 本は pinned / current ×
+  `--target wasm32` でも compile+validate+run PASS。
+- **Residuals**: 残る 82 はすべて manifest 登録済みの free function で、#917 の
+  各 family が継続して所有する。この slice はそれらを変更しない。

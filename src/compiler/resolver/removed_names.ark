@@ -93,6 +93,10 @@ fn removed_name_specific_hint(name: String) -> String {
     if len(core_hint.clone()) > 0 {
         return core_hint
     }
+    let io_hint = removed_io_free_hint(name.clone())
+    if len(io_hint.clone()) > 0 {
+        return io_hint
+    }
     let compiler_hint = removed_compiler_member_hint(name.clone())
     if len(compiler_hint.clone()) > 0 {
         return compiler_hint
@@ -937,6 +941,10 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     if !module.clone().eq("io") {
         return String_new()
     }
+    let io_free_hint = removed_io_free_hint(name.clone())
+    if len(io_free_hint.clone()) > 0 {
+        return io_free_hint
+    }
     if name.clone().eq("reader_eof") { return "use `r.is_eof()` on `Reader` instead" }
     if name.clone().eq("reader_read") { return "use `r.read(n)` on `Reader` instead" }
     if name.clone().eq("reader_read_exact") { return "use `Io::read_exact(r, n)` from `use std::io::Io` instead" }
@@ -1613,6 +1621,11 @@ fn removed_raw_member_hint(name: String) -> String {
     String_new()
 }
 
+fn removed_io_free_hint(name: String) -> String {
+    if name.clone().eq("io_error_message") { return String_from("use `e.message()` on the `IoError` value instead") }
+    String_new()
+}
+
 fn removed_core_free_hint(name: String) -> String {
     if name.clone().eq("range_new") { return String_from("use `Range::new(start, end)` from `use std::core::{Range}` instead") }
     if name.clone().eq("range_contains") { return String_from("use `r.contains(value)` on the `Range` value instead") }
@@ -1768,6 +1781,10 @@ test mod "removed_names" {
         assert(len(removed_module_member_hint("std::collections::string", "eq")) > 0)
         assert(len(removed_private_member_hint("string", "eq")) > 0)
         assert(len(removed_private_member_hint("std::collections::string", "eq")) > 0)
+    }
+    test "retired io error message free has method hints" {
+        assert(len(removed_name_hint("io_error_message")) > 0)
+        assert(len(removed_module_member_hint("io", "io_error_message")) > 0)
     }
     test "retired text prelude frees have method hints" {
         assert(len(removed_name_hint("byte_at")) > 0)

@@ -12,7 +12,7 @@ fn main() {
     // Consume 2 bytes
     match r.read(2) {
         Result::Ok(_) => (),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 
     // fill_buf returns the remaining 2 bytes
@@ -22,12 +22,12 @@ fn main() {
             Test::assert_eq_i32(get_unchecked(filled, 0), 30)
             Test::assert_eq_i32(get_unchecked(filled, 1), 40)
         },
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 
     // Cursor is still at 2
     match r.position() {
         Result::Ok(pos) => Test::assert_eq_i64(pos, 2),
-        Result::Err(e) => Std::panic(io::io_error_message(e)),
+        Result::Err(e) => Std::panic(e.message()),
     }
 }

@@ -11,7 +11,7 @@ enum AppError {
 
 impl From<IoError> for AppError {
     fn from(err: IoError) -> AppError {
-        AppError::Io(io::io_error_message(err))
+        AppError::Io(err.message())
     }
 }
 
@@ -50,7 +50,7 @@ fn read_exact(data: Vec<i32>) -> Result<Vec<i32>, IoError> {
 fn read_and_parse(data: Vec<i32>, text: String) -> Result<i32, AppError> {
     let bytes: Vec<i32> = match read_exact(data) {
         Ok(value) => value,
-        Err(err) => return Err(AppError::Io(io::io_error_message(err))),
+        Err(err) => return Err(AppError::Io(err.message())),
     }
     let parsed: i32 = parse_count(text)?
     Ok(get_unchecked(bytes, 0) + parsed)

@@ -1,0 +1,6 @@
+use std::io
+
+fn main() {
+    let err: io::IoError = io::IoError::Other("disk full")
+    let _message = io::io_error_message(err)
+}

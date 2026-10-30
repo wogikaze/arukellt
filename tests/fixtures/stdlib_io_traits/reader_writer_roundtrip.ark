@@ -85,7 +85,7 @@ fn main() {
     let count: Result<i32, io::IoError> = write_once(count_writer, payload())
     match count {
         Result::Ok(written) => stdio::println((written).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let mut bytes_writer: Writer = Writer::new()
@@ -115,7 +115,7 @@ fn main() {
             stdio::println((report.rest_byte0).to_string())
             stdio::println((report.eof_len).to_string())
         },
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     let from_bytes: Reader = Reader::from_bytes(payload())
@@ -129,7 +129,7 @@ fn main() {
     stdio::println((empty.is_eof()).to_string())
     match read_report(empty) {
         Result::Ok(report) => stdio::println((report.eof_len).to_string()),
-        Result::Err(err) => stdio::println(io::io_error_message(err)),
+        Result::Err(err) => stdio::println(err.message()),
     }
 
     stdio::println("done")
