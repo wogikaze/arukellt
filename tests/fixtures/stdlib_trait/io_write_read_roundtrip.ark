@@ -17,7 +17,7 @@ fn main() {
     let mut r: io::Reader = w.into_reader()
     match r.read(5) {
         Result::Ok(read) => {
-            Test::assert_eq_i32(len(read), 5)
+            Test::assert_eq_i32(read.len(), 5)
             Test::assert_eq_i32(get_unchecked(read, 0), 72)
             Test::assert_eq_i32(get_unchecked(read, 1), 101)
             Test::assert_eq_i32(get_unchecked(read, 2), 108)

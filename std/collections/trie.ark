@@ -160,7 +160,7 @@ impl Trie {
             current = alloc_node(self.nodes)
             set_header_root(self.nodes, current)
         }
-        let key_len = len(key)
+        let key_len = key.len()
         let mut i = 0
         while i < key_len {
             let byte = key.byte_at(i)
@@ -184,7 +184,7 @@ impl Trie {
             return Option::None
         }
         let mut current = root
-        let key_len = len(key)
+        let key_len = key.len()
         let mut i = 0
         while i < key_len {
             let byte = key.byte_at(i)
@@ -216,7 +216,7 @@ impl Trie {
             return false
         }
         let mut current = root
-        let prefix_len = len(prefix)
+        let prefix_len = prefix.len()
         let mut i = 0
         while i < prefix_len {
             let byte = prefix.byte_at(i)
@@ -240,7 +240,7 @@ impl Trie {
             return false
         }
         let mut current = root
-        let key_len = len(key)
+        let key_len = key.len()
         let mut i = 0
         while i < key_len {
             let byte = key.byte_at(i)
@@ -267,7 +267,7 @@ impl Trie {
             return 0
         }
         let mut current = root
-        let prefix_len = len(prefix)
+        let prefix_len = prefix.len()
         let mut i = 0
         while i < prefix_len {
             let byte = prefix.byte_at(i)

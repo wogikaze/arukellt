@@ -12,11 +12,11 @@ fn main() {
     push(v, b)
     let mut result: Vec<i64> = Vec::new<i64>()
     let mut map_index: i32 = 0
-    while map_index < len(v) {
+    while map_index < v.len() {
         push(result, double(get_unchecked(v, map_index)))
         map_index = map_index + 1
     }
-    Test::assert_eq_i32(len(result), 2)
+    Test::assert_eq_i32(result.len(), 2)
     Test::assert_eq_i64(get_unchecked(result, 0), 20i64)
     Test::assert_eq_i64(get_unchecked(result, 1), 40i64)
 }

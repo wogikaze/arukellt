@@ -21,12 +21,12 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // method that exists on the owning enum (Error::message) instead of
     // falling through the ambiguous bare-name fallback; the payload value is
     // a subtype/pointer-compatible receiver on both targets.
-    if len(struct_name.clone()) > 0 {
+    if struct_name.clone().len() > 0 {
         let variant = ctx_api_variants::ctx_canonical_variant_name(ctx, struct_name.clone())
         if ctx_api_variants::ctx_variant_tag(ctx, variant.clone()) >= 0 {
             let owner = ctx_api_variants::ctx_variant_owner_name(variant.clone())
             let enum_name = ctx_struct_layout::ctx_struct_basename(owner.clone())
-            if len(enum_name.clone()) > 0 {
+            if enum_name.clone().len() > 0 {
                 let candidate = enum_name.clone().concat(String_from("::").concat(method_name.clone()))
                 if ctx_has_fn_name(ctx, candidate.clone()) {
                     return candidate
@@ -38,10 +38,10 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // resolve it to a concrete type via the monomorphization type
     // parameter mapping. This enables `x.method()` inside generic
     // functions `<T: Trait>` to resolve to `ConcreteType::method`.
-    if len(struct_name) > 0 && struct_name.clone().starts_with("?") {
-        let bare_name = struct_name.clone().slice(1, len(struct_name))
+    if struct_name.len() > 0 && struct_name.clone().starts_with("?") {
+        let bare_name = struct_name.clone().slice(1, struct_name.len())
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, bare_name)
-        if len(resolved) > 0 {
+        if resolved.len() > 0 {
             struct_name = resolved
         }
     }
@@ -52,7 +52,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     if receiver_idx >= 0 && (method_name.clone().eq(String_from("iter")) ||
         method_name.clone().eq(String_from("retain"))) {
         let set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)
-        if len(set_family) > 0 {
+        if set_family.len() > 0 {
             return String_from("HashSet::").concat(method_name)
         }
     }
@@ -81,7 +81,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // (`pop(v).unwrap()`) resolves instead of lowering to the unresolved-call
     // trap stub. Falling through keeps generic `impl<T> Option<T>` methods.
     if struct_name.clone().starts_with("option:") {
-        let some_type = struct_name.clone().slice(7, len(struct_name))
+        let some_type = struct_name.clone().slice(7, struct_name.len())
         let concrete_method = String_from("Option_").concat(
             some_type.concat(String_from("::").concat(method_name.clone()))
         )
@@ -97,7 +97,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // methods under the per-instantiation owner (GenTakeIter_VecIter), the
     // same collision rule as HashMap_K_V.
     struct_name = method_resolve::mir_inst_owner_name(struct_name.clone())
-    if len(struct_name) > 0 {
+    if struct_name.len() > 0 {
         return struct_name.clone().concat("::".concat(method_name.clone()))
     }
     method_name

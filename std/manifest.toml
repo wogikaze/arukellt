@@ -45,7 +45,6 @@ stable_functions = [
     "char_to_string",
 ]
 intrinsic_compatibility_functions = [
-    "len",
     "push",
     "pop",
     "get",
@@ -295,21 +294,6 @@ remove_in = "1.0.0"
 doc_category = "collections"
 doc = "Remove and return the last element of a Vec. Returns None if the Vec is empty."
 availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "len"
-kind = "builtin"
-params = ["Vec<T>"]
-returns = "i32"
-prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::len"
-deprecated_since = "0.1.0"
-remove_in = "1.0.0"
-doc_category = "collections"
-doc = "Return the number of elements in a Vec."
-availability = { t1 = true, t3 = true }
-examples = [{code = "let v = Vec::new<i32>()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
 
 [[functions]]
 name = "get"

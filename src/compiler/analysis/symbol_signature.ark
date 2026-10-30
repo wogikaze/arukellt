@@ -66,7 +66,7 @@ pub fn render_signature(decl: AstNode) -> String {
         }
         sig = sig.concat(")")
         let ret = fn_return_type_text(decl)
-        if len(ret) > 0 { sig = sig.concat(" -> ".concat(ret)) }
+        if ret.len() > 0 { sig = sig.concat(" -> ".concat(ret)) }
         return sig
     }
     if node_is_struct_decl(decl) { return "struct ".concat(node_text(decl)) }
@@ -78,7 +78,7 @@ pub fn render_signature(decl: AstNode) -> String {
 pub fn enrich_signature_for_decl(decl: AstNode, name: String, kind: i32, base_sig: String) -> String {
     if kind == AT_NK_LET() {
         let ty = infer_let_type(decl)
-        if len(ty) > 0 {
+        if ty.len() > 0 {
             return "let ".concat(name.clone()).concat(": ".concat(ty))
         }
     }
@@ -88,7 +88,7 @@ pub fn enrich_signature_for_decl(decl: AstNode, name: String, kind: i32, base_si
 pub fn use_site_signature(decl: AstNode, name: String) -> String {
     if node_is_let(decl) {
         let ty = infer_let_type(decl)
-        if len(ty) > 0 {
+        if ty.len() > 0 {
             return name.clone().concat(": ").concat(ty)
         }
     }

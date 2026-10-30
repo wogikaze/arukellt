@@ -56,19 +56,19 @@ fn writer_begin_function_locals(mut w: WasmWriter, local_ref_types: Vec<i32>) {
 
 fn writer_note_ref_top(mut w: WasmWriter, type_idx: i32) {
     w.ref_top_type = type_idx
-    w.ref_top_end = if type_idx >= 0 { len(w.bytes) } else { 0 - 1 }
+    w.ref_top_end = if type_idx >= 0 { w.bytes.len() } else { 0 - 1 }
 }
 
 // True when the value on top of the stack is statically `(ref null type_idx)`,
 // so a `ref.cast` to that type can only succeed and may be omitted.
 fn writer_ref_top_is(w: WasmWriter, type_idx: i32) -> bool {
-    type_idx >= 0 && w.ref_top_end == len(w.bytes) && w.ref_top_type == type_idx
+    type_idx >= 0 && w.ref_top_end == w.bytes.len() && w.ref_top_type == type_idx
 }
 
 fn emit_local_get(mut w: WasmWriter, local_idx: i32) {
     emit_byte(w, opcodes::OP_LOCAL_GET())
     emit_leb128_u(w, local_idx)
-    let type_idx = if local_idx >= 0 && local_idx < len(w.local_ref_types) {
+    let type_idx = if local_idx >= 0 && local_idx < w.local_ref_types.len() {
         get_unchecked(w.local_ref_types, local_idx)
     } else {
         0 - 1
@@ -79,14 +79,14 @@ fn emit_local_get(mut w: WasmWriter, local_idx: i32) {
 // Concrete type index of a `(ref null $t)` valtype starting at `pos`, or -1
 // for scalars and abstract heap types (which encode as negative s33).
 fn writer_ref_null_type_at(w: WasmWriter, pos: i32) -> i32 {
-    if pos < 0 || pos >= len(w.bytes) || get_unchecked(w.bytes, pos) != constants::WASM_REF_NULL() {
+    if pos < 0 || pos >= w.bytes.len() || get_unchecked(w.bytes, pos) != constants::WASM_REF_NULL() {
         return 0 - 1
     }
     let mut value = 0
     let mut shift = 1
     let mut i = pos + 1
     let mut byte = 128
-    while byte >= 128 && i < len(w.bytes) {
+    while byte >= 128 && i < w.bytes.len() {
         byte = get_unchecked(w.bytes, i)
         value = value + byte % 128 * shift
         shift = shift * 128
@@ -170,7 +170,7 @@ fn writer_set_linear_root_frame_local(mut w: WasmWriter, local_idx: i32) {
 }
 
 fn writer_linear_root_slot_offset(w: WasmWriter, local_idx: i32) -> i32 {
-    if local_idx < 0 || local_idx >= len(w.linear_root_slot_offsets) {
+    if local_idx < 0 || local_idx >= w.linear_root_slot_offsets.len() {
         return 0 - 1
     }
     get_unchecked(w.linear_root_slot_offsets, local_idx)
@@ -196,7 +196,7 @@ fn emit_u32_le(mut w: WasmWriter, v: i32) {
 }
 
 fn emit_bytes(mut w: WasmWriter, src: Vec<i32>) {
-    let count = len(src)
+    let count = src.len()
     let mut i = 0
     while i < count {
         let b = get_unchecked(src, i)
@@ -206,7 +206,7 @@ fn emit_bytes(mut w: WasmWriter, src: Vec<i32>) {
 }
 
 fn writer_size(w: WasmWriter) -> i32 {
-    len(w.bytes)
+    w.bytes.len()
 }
 
 fn writer_bytes(w: WasmWriter) -> Vec<i32> {
@@ -214,7 +214,7 @@ fn writer_bytes(w: WasmWriter) -> Vec<i32> {
 }
 
 fn writer_set_byte_at(mut w: WasmWriter, idx: i32, b: i32) {
-    if idx < 0 || idx >= len(w.bytes) {
+    if idx < 0 || idx >= w.bytes.len() {
         return
     }
     set(w.bytes, idx, b % 256)

@@ -8,7 +8,7 @@ fn main() {
         Result::Ok(table) => match table.get_field("empty") {
             Option::Some(e) => {
                 let keys = e.table_keys()
-                Test::assert_eq_i32(len(keys), 0)
+                Test::assert_eq_i32(keys.len(), 0)
             },
             None => assert(false),
         },

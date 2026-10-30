@@ -11,10 +11,10 @@ fn index_import_neighbors(mut state: LspState, file_path: String, project_root: 
         Result::Ok(text) => {
             let decls = session_parse::session_parse_decls(text.clone())
             let base_dir = loader::parent_dir(file_path.clone())
-            let root_dir = loader::module_package_root::find_package_root(if len(project_root) > 0 { project_root.clone() } else { base_dir.clone() })
+            let root_dir = loader::module_package_root::find_package_root(if project_root.len() > 0 { project_root.clone() } else { base_dir.clone() })
             let imports = symbol_index_project::collect_import_file_paths(decls, base_dir, root_dir, project_root.clone())
             let indexed_uris = state_record::lsp_state_symbol_indexed_uris(state)
-            let n = len(imports)
+            let n = imports.len()
             let mut i = 0
             while i < n {
                 let import_path = get_unchecked(imports, i)
@@ -38,7 +38,7 @@ fn index_import_neighbors(mut state: LspState, file_path: String, project_root: 
 pub fn symbol_index_update_open_file_with_imports(mut state: LspState, uri: String, text: String, project_root: String) {
     symbol_index_update::symbol_index_update_uri(state, uri.clone(), text.clone())
     let file_path = symbol_index_paths::uri_to_file_path(uri.clone())
-    if len(file_path) > 0 {
+    if file_path.len() > 0 {
         index_import_neighbors(state, file_path, project_root.clone())
     }
 }

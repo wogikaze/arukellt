@@ -5,7 +5,7 @@ pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnost
     let mut out = "{\"file\":\""
     out = out.concat(file.clone().concat("\",\"phase\":"))
     out = out.concat(phase.to_string().concat(",\"diagnostics\":["))
-    let count = len(diagnostics_vec)
+    let count = diagnostics_vec.len()
     let mut i = 0
     while i < count {
         if i > 0 {

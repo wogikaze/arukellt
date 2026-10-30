@@ -128,7 +128,7 @@ fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
 
 fn hashmap_ensure_storage_len(mut m: Vec<i32>, cap: i32) {
     let need: i32 = hashmap_required_vec_len(cap)
-    while len(m) < need {
+    while m.len() < need {
         push(m, 0)
     }
 }
@@ -165,7 +165,7 @@ fn hashmap_min_capacity_for_entries(entries: i32) -> i32 {
 fn hashmap_rehash_to_capacity(mut m: Vec<i32>, new_cap: i32) {
     let old_keys: Vec<i32> = hashmap_keys(m)
     let old_values: Vec<i32> = hashmap_values(m)
-    let cap: i32 = hashmap_min_capacity_for_entries(len(old_keys))
+    let cap: i32 = hashmap_min_capacity_for_entries(old_keys.len())
     let mut target_cap: i32 = new_cap
     if target_cap < cap {
         target_cap = cap
@@ -183,7 +183,7 @@ fn hashmap_rehash_to_capacity(mut m: Vec<i32>, new_cap: i32) {
         set(m, hashmap_flag_index(target_cap, i), 0)
         i = i + 1
     }
-    let n: i32 = len(old_keys)
+    let n: i32 = old_keys.len()
     let mut j: i32 = 0
     while j < n {
         let _stored: bool = hashmap_set_no_resize(m, get_unchecked(old_keys, j), get_unchecked(old_values, j))
@@ -389,7 +389,7 @@ fn hashmap_remove(mut m: Vec<i32>, key: i32) -> Option<i32> {
         let ks: Vec<i32> = hashmap_keys(m)
         let vs: Vec<i32> = hashmap_values(m)
         hashmap_clear(m)
-        let n: i32 = len(ks)
+        let n: i32 = ks.len()
         let mut i: i32 = 0
         while i < n {
             let k: i32 = get_unchecked(ks, i)
@@ -418,7 +418,7 @@ fn hashmap_remove_entry_pair(mut m: Vec<i32>, key: i32) -> Option<(i32, i32)> {
 /// keys in `m` are overwritten by the corresponding entry in `other`.
 fn hashmap_extend(mut m: Vec<i32>, other: Vec<i32>) {
     let entries: Vec<i32> = hashmap_entries(other)
-    let n: i32 = len(entries)
+    let n: i32 = entries.len()
     let mut i: i32 = 0
     while i + 1 < n {
         let _stored: bool = hashmap_set(m, get_unchecked(entries, i), get_unchecked(entries, i + 1))
@@ -476,14 +476,14 @@ fn hashset_to_vec(s: Vec<i32>) -> Vec<i32> {
 fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
-    let na: i32 = len(ak)
+    let na: i32 = ak.len()
     let mut i: i32 = 0
     while i < na {
         let _ = hashset_insert(result, get_unchecked(ak, i))
         i = i + 1
     }
     let bk: Vec<i32> = hashmap_keys(b)
-    let nb: i32 = len(bk)
+    let nb: i32 = bk.len()
     let mut j: i32 = 0
     while j < nb {
         let _ = hashset_insert(result, get_unchecked(bk, j))
@@ -496,7 +496,7 @@ fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
-    let n: i32 = len(ak)
+    let n: i32 = ak.len()
     let mut i: i32 = 0
     while i < n {
         let k: i32 = get_unchecked(ak, i)
@@ -512,7 +512,7 @@ fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     let mut result: Vec<i32> = hashset_new()
     let ak: Vec<i32> = hashmap_keys(a)
-    let n: i32 = len(ak)
+    let n: i32 = ak.len()
     let mut i: i32 = 0
     while i < n {
         let k: i32 = get_unchecked(ak, i)
@@ -555,7 +555,7 @@ fn hashset_clear(mut s: Vec<i32>) {
 /// Mirrors Rust's `HashSet::extend`.
 fn hashset_extend(mut s: Vec<i32>, other: Vec<i32>) {
     let keys: Vec<i32> = hashmap_keys(other)
-    let n: i32 = len(keys)
+    let n: i32 = keys.len()
     let mut i: i32 = 0
     while i < n {
         let _ = hashset_insert(s, get_unchecked(keys, i))
@@ -570,7 +570,7 @@ fn hashmap_retain(mut map: Vec<i32>, keep: fn((i32, i32)) -> bool) {
     let values: Vec<i32> = hashmap_values(map)
     let mut drop_indices: Vec<i32> = Vec::new<i32>()
     let mut index: i32 = 0
-    while index < len(keys) {
+    while index < keys.len() {
         let key: i32 = get_unchecked(keys, index)
         let value: i32 = get_unchecked(values, index)
         if keep((key, value)) == false {
@@ -579,7 +579,7 @@ fn hashmap_retain(mut map: Vec<i32>, keep: fn((i32, i32)) -> bool) {
         index = index + 1
     }
     let mut drop_index: i32 = 0
-    while drop_index < len(drop_indices) {
+    while drop_index < drop_indices.len() {
         let removed_index: i32 = get_unchecked(drop_indices, drop_index)
         let key: i32 = get_unchecked(keys, removed_index)
         let _ = hashmap_remove(map, key)

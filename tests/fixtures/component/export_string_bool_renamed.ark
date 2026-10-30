@@ -1,7 +1,7 @@
 // Export with renamed String parameter and bool result maps to WIT string -> bool.
 
 export fn has_text(text: String) -> bool {
-    len(text) > 0
+    text.len() > 0
 }
 
 fn main() {

@@ -153,14 +153,14 @@ fn SelfEmitCtx_new(
     memory64: bool,
     source_file: String
 ) -> SelfEmitCtx {
-    let fn_count = len(functions)
+    let fn_count = functions.len()
     let mut name_lengths = Vec::new<i32>()
     let mut function_name_index = name_index::NameIndex_new(fn_count)
     let mut function_name_counts = name_index::NameIndex_new(fn_count)
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(name_lengths, len(fname.clone()))
+        push(name_lengths, fname.clone().len())
         name_index::name_index_insert_first(function_name_index, fname.clone(), fi)
         name_index::name_index_increment(function_name_counts, fname)
         fi = fi + 1
@@ -270,12 +270,12 @@ fn SelfEmitCtx_new(
 // complete, and correct for a still-growing functions vec.
 fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
     let functions = ctx.functions
-    let n = len(functions)
+    let n = functions.len()
     let fid_live = ctx.fid_chains_live
     while ctx.fn_index_watermark < n {
         let fi = ctx.fn_index_watermark
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(ctx.function_name_lengths, len(fname.clone()))
+        push(ctx.function_name_lengths, fname.clone().len())
         name_index::name_index_insert_first(
             ctx.function_name_index, fname.clone(), fi)
         name_index::name_index_increment(ctx.function_name_counts, fname)
@@ -287,7 +287,7 @@ fn SelfEmitCtx_fn_index_drain(mut ctx: SelfEmitCtx) {
             let raw = name_index::name_index_get(
                 ctx.fid_chain_heads, fname.clone())
             if raw >= 0 {
-                if raw < len(ctx.fid_to_mir) {
+                if raw < ctx.fid_to_mir.len() {
                     if get_unchecked(ctx.fid_to_mir, raw) < 0 {
                         set(ctx.fid_to_mir, raw, fi)
                     }
@@ -452,14 +452,14 @@ fn SelfEmitCtx_set_code_section_offsets(mut ctx: SelfEmitCtx, offsets: Vec<i32>)
 
 fn SelfEmitCtx_code_section_offset_at(ctx: SelfEmitCtx, func_idx: i32) -> i32 {
     let offsets = ctx.code_section_offsets
-    if func_idx < 0 || func_idx >= len(offsets) {
+    if func_idx < 0 || func_idx >= offsets.len() {
         return 0 - 1
     }
     get_unchecked(offsets, func_idx)
 }
 
 fn SelfEmitCtx_function_count(ctx: SelfEmitCtx) -> i32 {
-    len(ctx.functions)
+    ctx.functions.len()
 }
 
 fn SelfEmitCtx_function_at(ctx: SelfEmitCtx, idx: i32) -> MirFunction {
@@ -498,7 +498,7 @@ fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(mut ctx: SelfEmitCtx) {
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let mut max_type_idx = 0 - 1
     let mut i = 0
-    while i < len(map) {
+    while i < map.len() {
         let type_idx = get_unchecked(map, i)
         if type_idx > max_type_idx {
             max_type_idx = type_idx
@@ -512,9 +512,9 @@ fn SelfEmitCtx_rebuild_gc_enum_variant_type_flags(mut ctx: SelfEmitCtx) {
         fi = fi + 1
     }
     i = 0
-    while i < len(map) {
+    while i < map.len() {
         let type_idx = get_unchecked(map, i)
-        if type_idx >= 0 && type_idx < len(flags) {
+        if type_idx >= 0 && type_idx < flags.len() {
             set(flags, type_idx, 1)
         }
         i = i + 1
@@ -537,11 +537,11 @@ fn SelfEmitCtx_gc_enum_variant_name_index(ctx: SelfEmitCtx) -> NameIndex {
 fn SelfEmitCtx_rebuild_gc_enum_variant_name_index(mut ctx: SelfEmitCtx) {
     let names = ctx.gc_enum_variant_names
     let map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
-    let count = len(names)
+    let count = names.len()
     let mut index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
-        let type_idx = if i < len(map) {
+        let type_idx = if i < map.len() {
             get_unchecked(map, i)
         } else {
             0 - 1
@@ -583,7 +583,7 @@ fn SelfEmitCtx_gc_struct_name_index(ctx: SelfEmitCtx) -> NameIndex {
 }
 
 fn SelfEmitCtx_bare_suffix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {
@@ -599,7 +599,7 @@ fn SelfEmitCtx_bare_suffix(name: String) -> String {
 
 // Name after the last `::`; the name itself when it has no module path.
 fn SelfEmitCtx_module_stripped_name(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut index = name_len - 2
     while index >= 0 {
         if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {
@@ -618,7 +618,7 @@ fn SelfEmitCtx_gc_struct_index_by_module_stripped_name(ctx: SelfEmitCtx, strippe
 fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
     let names = ctx.gc_struct_names
     let map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
-    let count = len(names)
+    let count = names.len()
     let mut index = name_index::NameIndex_new(count)
     let mut stripped_index = name_index::NameIndex_new(count)
     let mut i = 0
@@ -628,7 +628,7 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
             SelfEmitCtx_module_stripped_name(get_unchecked(names, i).clone()),
             i
         )
-        let type_idx = if i < len(map) {
+        let type_idx = if i < map.len() {
             get_unchecked(map, i)
         } else {
             0 - 1
@@ -637,7 +637,7 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(mut ctx: SelfEmitCtx) {
             let full_name = get_unchecked(names, i).clone()
             name_index::name_index_insert_first(index, full_name, type_idx)
             let bare = SelfEmitCtx_bare_suffix(full_name)
-            if len(bare) > 0 && !bare.clone().eq(full_name.clone()) {
+            if bare.len() > 0 && !bare.clone().eq(full_name.clone()) {
                 name_index::name_index_insert_first(index, bare, type_idx)
             }
         }
@@ -809,14 +809,14 @@ fn SelfEmitCtx_set_fid_to_mir(mut ctx: SelfEmitCtx, fid_to_mir: Vec<i32>) {
 }
 
 fn SelfEmitCtx_mir_index_for_func_id(ctx: SelfEmitCtx, func_id_raw: i32) -> i32 {
-    if func_id_raw < 0 || func_id_raw >= len(ctx.fid_to_mir) {
+    if func_id_raw < 0 || func_id_raw >= ctx.fid_to_mir.len() {
         return 0 - 1
     }
     get_unchecked(ctx.fid_to_mir, func_id_raw)
 }
 
 fn SelfEmitCtx_note_emit_census(mut ctx: SelfEmitCtx, rung: i32) {
-    while len(ctx.emit_census_rungs) <= rung {
+    while ctx.emit_census_rungs.len() <= rung {
         push(ctx.emit_census_rungs, 0)
     }
     set(ctx.emit_census_rungs, rung, get_unchecked(ctx.emit_census_rungs, rung) + 1)

@@ -4,15 +4,15 @@ use component::contract_record_shape
 
 fn component_record_shape_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
     let point_error = component_record_point_signature_error(f, allows)
-    if len(point_error) > 0 {
+    if point_error.len() > 0 {
         return point_error
     }
     let color_error = component_record_color_signature_error(f, allows)
-    if len(color_error) > 0 {
+    if color_error.len() > 0 {
         return color_error
     }
     let shape_error = component_record_shape_kind_signature_error(f, allows)
-    if len(shape_error) > 0 {
+    if shape_error.len() > 0 {
         return shape_error
     }
     String_new()

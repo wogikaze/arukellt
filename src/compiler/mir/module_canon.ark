@@ -11,7 +11,7 @@ fn MirModule_canon_ensure(mut m: MirModule, sig: String) -> i32 {
     if found >= 0 {
         return found
     }
-    let canon_idx = len(m.canon_sigs)
+    let canon_idx = m.canon_sigs.len()
     push(m.canon_sigs, sig.clone())
     name_index::name_index_insert_first(m.canon_index, sig, canon_idx)
     canon_idx

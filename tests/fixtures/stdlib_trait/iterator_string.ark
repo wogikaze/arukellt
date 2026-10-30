@@ -43,7 +43,7 @@ fn main() {
     let mut collect_source: Vec<String> = Vec::new<String>()
     push(collect_source, String_from("gamma"))
     let collected = collect_values(collect_source.into_iter())
-    Test::assert_eq_i32(len(collected), 1)
+    Test::assert_eq_i32(collected.len(), 1)
     Test::assert_eq_string(get_unchecked(collected, 0), "gamma")
 
     let mut count_source: Vec<String> = Vec::new<String>()
@@ -65,7 +65,7 @@ fn main() {
     push(take_source, String_from("kappa"))
     push(take_source, String_from("lambda"))
     let take_collected = take_source.iter().take(1).collect()
-    Test::assert_eq_i32(len(take_collected), 1)
+    Test::assert_eq_i32(take_collected.len(), 1)
     Test::assert_eq_string(get_unchecked(take_collected, 0), "kappa")
 
     let mut skip_take_source: Vec<String> = Vec::new<String>()
@@ -73,7 +73,7 @@ fn main() {
     push(skip_take_source, String_from("nu"))
     push(skip_take_source, String_from("xi"))
     let skip_take_collected = skip_take_source.iter().skip(1).take(1).collect()
-    Test::assert_eq_i32(len(skip_take_collected), 1)
+    Test::assert_eq_i32(skip_take_collected.len(), 1)
     Test::assert_eq_string(get_unchecked(skip_take_collected, 0), "nu")
 
     let mut for_source: Vec<String> = Vec::new<String>()

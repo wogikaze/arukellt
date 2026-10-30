@@ -68,7 +68,7 @@ fn closure_split_packed(packed: String) -> Vec<String> {
     let mut out = Vec::new<String>()
     let mut start = 0
     let mut i = 0
-    let L = len(packed)
+    let L = packed.len()
     while i <= L {
         if i == L || packed.byte_at(i) == 44 {
             // Skip empty segments: an empty packed string must yield no
@@ -77,7 +77,7 @@ fn closure_split_packed(packed: String) -> Vec<String> {
             // makes the env trampoline append one extra call argument the
             // synthetic function does not declare (#872).
             let piece = packed.slice(start, i)
-            if len(piece) > 0 {
+            if piece.len() > 0 {
                 push(out, piece)
             }
             start = i + 1
@@ -91,12 +91,12 @@ fn closure_split_packed(packed: String) -> Vec<String> {
 // struct-field mapping so capture types land on the same GC layouts as
 // declared struct fields (fn captures become __fnpair refs).
 fn closure_register_env_type(mut ctx: LowerCtx, env_name: String, cap_types: Vec<String>) {
-    if !ctx.is_gc_target || len(cap_types) == 0 {
+    if !ctx.is_gc_target || cap_types.len() == 0 {
         return
     }
     let mut sig = String_from("GS")
     let mut i = 0
-    while i < len(cap_types) {
+    while i < cap_types.len() {
         // Capture types arrive as local spellings (struct:Name:size); the
         // layout registry and named GC slots key on the bare name.
         let cap_type = ctx_struct_layout::strip_struct_type_prefix(get_unchecked(cap_types, i).clone())
@@ -110,7 +110,7 @@ fn closure_register_env_type(mut ctx: LowerCtx, env_name: String, cap_types: Vec
 // supply capture into its field. Returns -1 for zero captures: the pair
 // env slot then stays null and the trampoline never reads it.
 fn closure_emit_env_alloc(mut ctx: LowerCtx, env_name: String, cap_names: Vec<String>, cap_vts: Vec<i32>) -> i32 {
-    let cap_n = len(cap_names)
+    let cap_n = cap_names.len()
     if cap_n == 0 {
         return 0 - 1
     }
@@ -231,7 +231,7 @@ fn closure_trampoline_frame_begin(mut ctx: LowerCtx, tramp_name: String) -> Lowe
 fn closure_trampoline_frame_finish(mut ctx: LowerCtx, saved: LowerCtxLocalFrame, tramp_name: String, ret_vt: i32, ret_name: String) {
     let mut f = ctx_api_local_frame::ctx_current_function(ctx)
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)
-    if len(ret_name) > 0 {
+    if ret_name.len() > 0 {
         function_return_mutation::MirFunction_set_return_type_name(f, ret_name.clone())
     }
     // Canonical edge-frame order: restore the parent frame first, then push
@@ -255,7 +255,7 @@ fn closure_trampoline_push_params(mut ctx: LowerCtx, mf: MirFunction, count: i32
         let pt = local_access::MirLocal_type_name(p)
         let pname = local_access::MirLocal_name(p)
         let li = ctx_api_local_alloc::ctx_alloc_local(ctx, pname.clone(), pvt)
-        if len(pt) > 0 {
+        if pt.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, li, pt.clone())
         }
         ctx_api_function_frame::ctx_push_func_param(ctx, local_factory::MirLocal_new(pname, pvt, pt))
@@ -272,7 +272,7 @@ fn closure_trampoline_return_call(mut ctx: LowerCtx, callee: String, arg_count: 
         return
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, ret_vt)
-    if len(ret_name) > 0 {
+    if ret_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, ret_name.clone())
     }
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(callee, arg_count, dest))
@@ -288,10 +288,10 @@ fn closure_synth_env_trampoline(mut ctx: LowerCtx, synth: String, mf: MirFunctio
     let tramp = closure_tramp_name(synth)
     let saved = closure_trampoline_frame_begin(ctx, tramp.clone())
     let param_lis = closure_trampoline_push_params(ctx, mf, closure_param_count)
-    let cap_n = len(cap_vts)
+    let cap_n = cap_vts.len()
     let env_li = ctx_api_local_alloc::ctx_lookup_local(ctx, "__env")
     let mut pi = 0
-    while pi < len(param_lis) {
+    while pi < param_lis.len() {
         let li = get_unchecked(param_lis, pi)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(li, li))
         pi = pi + 1
@@ -334,7 +334,7 @@ fn closure_synth_fn_thunk(mut ctx: LowerCtx, fn_name: String, target: MirFunctio
     let param_count = function_param_view::MirFunction_param_count(target)
     let param_lis = closure_trampoline_push_params(ctx, target, param_count)
     let mut pi = 0
-    while pi < len(param_lis) {
+    while pi < param_lis.len() {
         let li = get_unchecked(param_lis, pi)
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(li, li))
         pi = pi + 1
@@ -364,7 +364,7 @@ fn closure_find_module_function(ctx: LowerCtx, fn_name: String) -> i32 {
 fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
     let thunk = closure_thunk_name(fn_name)
     let mut i = 0
-    while i < len(ctx.closure_thunk_names) {
+    while i < ctx.closure_thunk_names.len() {
         if get_unchecked(ctx.closure_thunk_names, i).eq(fn_name.clone()) {
             return thunk
         }
@@ -398,7 +398,7 @@ fn closure_ensure_fn_thunk(mut ctx: LowerCtx, fn_name: String) -> String {
 // each shim's own edge frame still lands in the recorded-edge stream.
 fn closure_flush_pending_fn_thunks(mut ctx: LowerCtx) {
     let mut i = 0
-    while i < len(ctx.pending_fn_thunks) {
+    while i < ctx.pending_fn_thunks.len() {
         let fn_name = get_unchecked(ctx.pending_fn_thunks, i).clone()
         let fi = closure_find_module_function(ctx, fn_name.clone())
         if fi >= 0 {
@@ -421,16 +421,16 @@ fn closure_flush_pending_fn_thunks(mut ctx: LowerCtx) {
 // return and matches them; an empty call-site return segment is a
 // wildcard for ignored results.
 fn closure_pair_seg_norm(name: String, vt: i32) -> String {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return "~".concat((vt).to_string())
     }
     // Normalize container spellings toward the fnsig segment form so a
     // fnsig:vec:i32;i32 callee matches a Vec<i32>-typed producer param.
     if name.clone().starts_with("Vec<") && name.clone().ends_with(">") {
-        return "vec:".concat(name.slice(4, len(name) - 1))
+        return "vec:".concat(name.slice(4, name.len() - 1))
     }
     if name.clone().starts_with("Option<") && name.clone().ends_with(">") {
-        return "option:".concat(name.slice(7, len(name) - 1))
+        return "option:".concat(name.slice(7, name.len() - 1))
     }
     name
 }
@@ -441,7 +441,7 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
     let mut nk = String_from("nk:")
     let mut vk = String_from("vk:")
     let mut i = 0
-    while i < len(arg_lis) {
+    while i < arg_lis.len() {
         if i > 0 {
             nk = nk.concat(",")
             vk = vk.concat(",")
@@ -466,7 +466,7 @@ fn closure_pair_call_hint(ctx: LowerCtx, type_name: String, arg_lis: Vec<i32>, d
     if dest >= 0 {
         let dvt = ctx_api_local_types::ctx_local_vt(ctx, dest)
         let dname = ctx_api_local_types::ctx_get_local_type(ctx, dest)
-        if len(dname) > 0 {
+        if dname.len() > 0 {
             // Only assert a return segment when the dest local carries a real
             // type name. Bucketed callee spellings (fnref*, fn) have no
             // return info, so the indirect temp keeps vt without a name —

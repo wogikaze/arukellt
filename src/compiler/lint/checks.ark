@@ -21,7 +21,7 @@ use diagnostics::mod as diag_mod
 use std::text
 fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
     let mut uses = Vec::new<UseDeclInfo>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let node = get_unchecked(decls, i)
@@ -40,7 +40,7 @@ fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
         } else {
             String_new()
         }
-        let effective_name = if len(alias_name.clone()) > 0 { alias_name } else { short }
+        let effective_name = if alias_name.clone().len() > 0 { alias_name } else { short }
         push(uses, UseDeclInfo_new(effective_name, path, ast_access::node_span_start(node), ast_access::node_span_end(node)))
         let child_count = ast_access::node_child_count(node)
         let mut ci = 0
@@ -66,7 +66,7 @@ fn collect_use_decls_in_node(node: AstNode, mut uses: Vec<UseDeclInfo>) {
 }
 
 fn collect_referenced_modules(decls: Vec<AstNode>, mut referenced: Vec<String>) {
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         collect_referenced_modules_in_node(get_unchecked(decls, i), referenced)
@@ -78,7 +78,7 @@ fn collect_referenced_modules_in_node(node: AstNode, mut referenced: Vec<String>
     if ast_expr_predicates::node_is_path(node) {
         let path = ast_access::node_text(node)
         let mod_part = paths::path_module_part(path.clone())
-        if len(mod_part.clone()) > 0 {
+        if mod_part.clone().len() > 0 {
             push(referenced, mod_part)
         }
         return
@@ -92,7 +92,7 @@ fn collect_referenced_modules_in_node(node: AstNode, mut referenced: Vec<String>
 }
 
 fn name_in_vec(name: String, vec: Vec<String>) -> bool {
-    let count = len(vec)
+    let count = vec.len()
     let mut i = 0
     while i < count {
         if get_unchecked(vec, i).clone().eq(name.clone()) {
@@ -108,7 +108,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let uses = collect_use_decls(decls)
     let mut referenced = Vec::new<String>()
     collect_referenced_modules(decls, referenced)
-    let use_count = len(uses)
+    let use_count = uses.len()
     let mut i = 0
     while i < use_count {
         let info = get_unchecked(uses, i)

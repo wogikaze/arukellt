@@ -1,5 +1,5 @@
 fn mir_block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
-    let count = len(ids)
+    let count = ids.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ids, i) == block_id {

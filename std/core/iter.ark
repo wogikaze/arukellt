@@ -236,7 +236,7 @@ pub struct VecIter<T> {
 /// selected; the element type must stay a parameter here.
 impl<T> Vec<T> {
     fn iter(self: Vec<T>) -> VecIter<T> {
-        VecIter { vec: self, index: 0, length: len(self) }
+        VecIter { vec: self, index: 0, length: self.len() }
     }
 }
 
@@ -427,7 +427,7 @@ impl IntoIterator for Vec<i32> {
 impl Vec<String> {
     /// Return the canonical lazy iterator for a `Vec<String>`.
     fn iter(self: Vec<String>) -> VecIter<String> {
-        VecIter { vec: self, index: 0, length: len(self) }
+        VecIter { vec: self, index: 0, length: self.len() }
     }
 }
 
@@ -1132,7 +1132,7 @@ impl<T> Iterator for FlatMapIter<T> {
         let mut out: Option<T> = None
         let mut done: bool = false
         while !done {
-            if self.inner_index < len(self.inner) {
+            if self.inner_index < self.inner.len() {
                 let v: T = get_unchecked(self.inner, self.inner_index)
                 self.inner_index = self.inner_index + 1
                 out = Some(v)
@@ -1192,11 +1192,11 @@ impl<T> PeekIter<T> {
     /// Repeated `peek` calls return the same cached item until `next`
     /// drains it.
     fn peek(mut self: PeekIter<T>) -> Option<T> {
-        if len(self.peeked) == 0 && self.index < self.length {
+        if self.peeked.len() == 0 && self.index < self.length {
             push(self.peeked, get_unchecked(self.vec, self.index))
             self.index = self.index + 1
         }
-        if len(self.peeked) > 0 {
+        if self.peeked.len() > 0 {
             Some(get_unchecked(self.peeked, 0))
         } else {
             None
@@ -1213,7 +1213,7 @@ impl<T> Iterator for PeekIter<T> {
     type Item = T
 
     fn next(mut self: PeekIter<T>) -> Option<T> {
-        if len(self.peeked) > 0 {
+        if self.peeked.len() > 0 {
             let v: T = get_unchecked(self.peeked, 0)
             self.peeked = Vec::new<T>()
             Some(v)
@@ -1375,7 +1375,7 @@ pub struct UniqueIter {
 }
 
 fn unique_seen_contains(seen: Vec<i32>, value: i32) -> bool {
-    let n: i32 = len(seen)
+    let n: i32 = seen.len()
     let mut i: i32 = 0
     let mut found: bool = false
     while i < n {

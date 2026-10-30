@@ -19,7 +19,7 @@ fn lower_core_struct_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-    let struct_name = if len(canon) > 0 {
+    let struct_name = if canon.len() > 0 {
         canon
     } else {
         raw_name
@@ -71,7 +71,7 @@ fn lower_core_struct_lit(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
         struct_lit::mir_copy_struct_base_fields(ctx, inst_name.clone(), dest, base_idx)
     }
     let mut emit_i = 0
-    while emit_i < len(field_names) {
+    while emit_i < field_names.len() {
         struct_lit::mir_emit_struct_field_set(
             ctx,
             inst_name.clone(),

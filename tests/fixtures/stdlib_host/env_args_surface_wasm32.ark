@@ -8,7 +8,7 @@ use std::host::stdio::Stdio
 
 fn main() {
     let values = Env::args()
-    Stdio::println((len(values)).to_string())
+    Stdio::println((values.len()).to_string())
     Stdio::println((Env::arg_count()).to_string())
     match Env::var("ARUKELLT_ENV_ARGS_PROBE_917") {
         Option::Some(value) => Stdio::println(value),

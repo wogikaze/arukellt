@@ -67,7 +67,7 @@ fn corehir_body_artifact_valid(table: CoreHirBodyTable) -> bool {
         let kind = body_table::corehir_body_table_contract_kind_flat_at(table, i)
         let result_name = body_table::corehir_body_table_contract_result_name_flat_at(table, i)
         if kind.clone().eq("requires") {
-            if len(result_name) != 0 {
+            if result_name.len() != 0 {
                 return false
             }
         } else {

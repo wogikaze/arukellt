@@ -28,7 +28,7 @@ fn build_checked_program_bundle(
 ) -> FrontendBundle {
     let mut module_names = Vec::new<String>()
     let mut module_decl_counts = Vec::new<i32>()
-    let module_count = len(modules)
+    let module_count = modules.len()
     let mut mi = 0
     while mi < module_count {
         let md = get_unchecked(modules, mi)

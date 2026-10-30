@@ -3,7 +3,7 @@
 use resolver::wit_import_bind
 
 fn wit_import_count(bindings: Vec<wit_import_bind::WitImportBinding>) -> i32 {
-    return len(bindings)
+    return bindings.len()
 }
 
 fn wit_import_type_sig(bindings: Vec<wit_import_bind::WitImportBinding>, index: i32) -> String {

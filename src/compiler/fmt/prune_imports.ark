@@ -27,7 +27,7 @@ fn prune_import_sort_group(path: String, has_alias: bool) -> i32 {
 }
 
 fn prune_import_line_end(text: String, line_start: i32) -> i32 {
-    let n = len(text)
+    let n = text.len()
     let mut i = line_start
     while i < n && text.byte_at(i) != 10 {
         i = i + 1
@@ -43,7 +43,7 @@ fn path_symbol_part(path: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    path.slice(pos + 2, len(path))
+    path.slice(pos + 2, path.len())
 }
 
 fn is_ident_char(ch: i32) -> bool {
@@ -54,11 +54,11 @@ fn is_ident_char(ch: i32) -> bool {
 }
 
 fn contains_ident_usage(body: String, name: String) -> bool {
-    let name_len = len(name)
+    let name_len = name.len()
     if name_len == 0 {
         return false
     }
-    let n = len(body)
+    let n = body.len()
     let mut i = 0
     while i <= n - name_len {
         if body.clone().slice(i, i + name_len) == name {
@@ -75,7 +75,7 @@ fn contains_ident_usage(body: String, name: String) -> bool {
 
 fn import_is_used(path: String, body: String) -> bool {
     let sym = path_symbol_part(path.clone())
-    if len(sym) > 0 {
+    if sym.len() > 0 {
         return contains_ident_usage(body.clone(), sym)
     }
     let short = resolver::use_module_short_name(path.clone())
@@ -88,7 +88,7 @@ fn import_is_used(path: String, body: String) -> bool {
 
 fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneImportEntry> {
     let mut out = Vec::new<PruneImportEntry>()
-    let n = len(decls)
+    let n = decls.len()
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
@@ -110,7 +110,7 @@ fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneI
 }
 
 fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
-    let en = len(entries)
+    let en = entries.len()
     if en == 0 {
         return text.clone()
     }
@@ -123,12 +123,12 @@ fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
         }
         i = i + 1
     }
-    text.slice(last_end, len(text))
+    text.slice(last_end, text.len())
 }
 
 fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
     let body = body_after_imports(text.clone(), entries)
-    let en = len(entries)
+    let en = entries.len()
     let mut out = String_new()
     let mut group = 0
     while group <= 2 {
@@ -147,7 +147,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
 }
 
 fn import_block_bounds(entries: Vec<PruneImportEntry>) -> ImportBlockSpan {
-    let en = len(entries)
+    let en = entries.len()
     let mut first_start = get_unchecked(entries, 0).line_start
     let mut last_end = get_unchecked(entries, 0).line_end
     let mut i = 1
@@ -167,7 +167,7 @@ fn import_block_bounds(entries: Vec<PruneImportEntry>) -> ImportBlockSpan {
 fn apply_pruned_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
     let block = import_block_bounds(entries)
     let pruned = pruned_import_text(text.clone(), entries)
-    text.clone().slice(0, import_block::ImportBlockSpan_start(block)).concat(pruned).concat(text.slice(import_block::ImportBlockSpan_end(block), len(text)))
+    text.clone().slice(0, import_block::ImportBlockSpan_start(block)).concat(pruned).concat(text.slice(import_block::ImportBlockSpan_end(block), text.len()))
 }
 
 fn pruned_import_block(input: String) -> Option<String> {
@@ -176,7 +176,7 @@ fn pruned_import_block(input: String) -> Option<String> {
         return Option::None
     }
     let entries = collect_prune_import_entries(input.clone(), parse_gate::fmt_parse_gate_decls(gate))
-    if len(entries) == 0 {
+    if entries.len() == 0 {
         return Option::Some(String_new())
     }
     Option::Some(pruned_import_text(input, entries))
@@ -188,7 +188,7 @@ fn import_block_span_value(input: String) -> Option<import_block::ImportBlockSpa
         return Option::None
     }
     let entries = collect_prune_import_entries(input.clone(), parse_gate::fmt_parse_gate_decls(gate))
-    if len(entries) == 0 {
+    if entries.len() == 0 {
         return Option::None
     }
     Option::Some(import_block_bounds(entries))
@@ -200,7 +200,7 @@ fn prune_imports_source(input: String) -> Option<String> {
         return Option::None
     }
     let entries = collect_prune_import_entries(input.clone(), parse_gate::fmt_parse_gate_decls(gate))
-    if len(entries) == 0 {
+    if entries.len() == 0 {
         return Option::Some(input.clone())
     }
     Option::Some(apply_pruned_imports(input, entries))

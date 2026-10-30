@@ -33,7 +33,7 @@ struct Outer {
 impl Hash for Outer {
     fn hash(self: Outer) -> i32 {
         let mut h = 37
-        let n = len(self.label)
+        let n = self.label.len()
         h = h * 31 + n
         if h < 0 {
             h = 0 - h

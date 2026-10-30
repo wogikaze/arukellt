@@ -26,7 +26,7 @@ fn HirModule_push_function(mut module: HirModule, func: HirFunction) {
 }
 
 fn HirModule_function_count(module: HirModule) -> i32 {
-    len(module.functions)
+    module.functions.len()
 }
 
 fn HirModule_function_at(module: HirModule, index: i32) -> HirFunction {

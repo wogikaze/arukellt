@@ -80,7 +80,7 @@ fn check_proof_contracts(
     sig: FnSig
 ) {
     let contracts = proof_contract_nodes(node)
-    let count = len(contracts)
+    let count = contracts.len()
     if count == 0 {
         return
     }

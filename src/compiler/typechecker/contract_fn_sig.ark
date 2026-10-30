@@ -79,11 +79,11 @@ fn FnSig_name(sig: FnSig) -> String {
 }
 
 fn FnSig_has_name(sig: FnSig) -> bool {
-    len(FnSig_name(sig)) > 0
+    FnSig_name(sig).len() > 0
 }
 
 fn FnSig_param_count(sig: FnSig) -> i32 {
-    len(sig.param_types)
+    sig.param_types.len()
 }
 
 fn FnSig_param_at(sig: FnSig, index: i32) -> TypeInfo {
@@ -91,7 +91,7 @@ fn FnSig_param_at(sig: FnSig, index: i32) -> TypeInfo {
 }
 
 fn FnSig_param_is_mut(sig: FnSig, index: i32) -> bool {
-    if index < 0 || index >= len(sig.param_modes) {
+    if index < 0 || index >= sig.param_modes.len() {
         return false
     }
     get_unchecked(sig.param_modes, index)
@@ -102,7 +102,7 @@ fn FnSig_return_type(sig: FnSig) -> TypeInfo {
 }
 
 fn FnSig_type_param_count(sig: FnSig) -> i32 {
-    len(sig.type_params)
+    sig.type_params.len()
 }
 
 fn FnSig_type_param_at(sig: FnSig, index: i32) -> String {
@@ -110,7 +110,7 @@ fn FnSig_type_param_at(sig: FnSig, index: i32) -> String {
 }
 
 fn FnSig_type_param_bound_count(sig: FnSig) -> i32 {
-    len(sig.type_param_bounds)
+    sig.type_param_bounds.len()
 }
 
 fn FnSig_type_param_bound_at(sig: FnSig, index: i32) -> TypeParamBounds {

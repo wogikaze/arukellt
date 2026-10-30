@@ -27,7 +27,7 @@ fn closure_next_synth_name(mut ctx: LowerCtx) -> String {
 }
 
 fn closure_flush_pending_bind(mut ctx: LowerCtx, bind_name: String) {
-    if len(closure_storage::closure_storage_pending_synth(ctx)) == 0 && !ctx.closure_last_identity {
+    if closure_storage::closure_storage_pending_synth(ctx).len() == 0 && !ctx.closure_last_identity {
         return
     }
     closure_storage::closure_storage_push_bind(ctx, bind_name)
@@ -47,7 +47,7 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
     let mut cap_vts = Vec::new<i32>()
     let mut cap_types = Vec::new<String>()
     let mut ci = 0
-    while ci < len(cap_names) {
+    while ci < cap_names.len() {
         let li = ctx_api_local_alloc::ctx_lookup_local(ctx, get_unchecked(cap_names, ci).clone())
         if li >= 0 {
             push(cap_vts, ctx_api_local_types::ctx_local_vt(ctx, li))
@@ -75,9 +75,9 @@ fn closure_register_synth_fn(mut ctx: LowerCtx, mut mf: MirFunction, packed: Str
         let env_total = closure_env_layout::closure_env_byte_size(cap_vts)
         let mut wb_off = 0
         let mut wi = 0
-        while wi < len(cap_names) {
+        while wi < cap_names.len() {
             let cvt = get_unchecked(cap_vts, wi)
-            if wi < len(wb_rebinds) && get_unchecked(wb_rebinds, wi) != 0 {
+            if wi < wb_rebinds.len() && get_unchecked(wb_rebinds, wi) != 0 {
                 let src_li = ctx_api_local_alloc::ctx_lookup_local(
                     ctx,
                     get_unchecked(wb_caps, wi).clone()
@@ -128,7 +128,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
         // spells fnsig:<params>;<ret> so indirect-call dests carry the real
         // type instead of collapsing to i32 (and i64 on GC) (#874/#881).
         let ret_seg_multi = function_return_view::MirFunction_return_type_name(mf)
-        if len(ret_seg_multi) > 0 && !type_ann_node::fn_sig_segment_is_i32_family(ret_seg_multi.clone()) {
+        if ret_seg_multi.len() > 0 && !type_ann_node::fn_sig_segment_is_i32_family(ret_seg_multi.clone()) {
             let mut params = String_new()
             let mut pi = 0
             while pi < closure_params {
@@ -136,7 +136,7 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
                     params = params.concat(String_from(","))
                 }
                 let mut pseg = local_access::MirLocal_type_name(function_param_view::MirFunction_param_at(mf, pi))
-                if len(pseg) == 0 {
+                if pseg.len() == 0 {
                     pseg = String_from("i32")
                 }
                 params = params.concat(pseg)
@@ -152,20 +152,20 @@ fn closure_funcref_type_name(mf: MirFunction, cap_count: i32) -> String {
     // spelling rules. Zero-param closures spell fnsig:;<return> so a
     // ref-returning thunk still types its call result (#872).
     let mut ret_seg = function_return_view::MirFunction_return_type_name(mf)
-    if len(ret_seg) == 0 {
+    if ret_seg.len() == 0 {
         // No name means the signature never carried one; keep the legacy
         // bucket rather than emitting a fnsig with an empty segment.
         return "fnref"
     }
     if closure_params == 0 {
-        if len(ret_seg) == 0 || type_ann_node::fn_sig_segment_is_i32_family(ret_seg.clone()) {
+        if ret_seg.len() == 0 || type_ann_node::fn_sig_segment_is_i32_family(ret_seg.clone()) {
             return "fnref"
         }
         return String_from("fnsig:;").concat(ret_seg)
     }
     let param = function_param_view::MirFunction_param_at(mf, 0)
     let mut param_seg = local_access::MirLocal_type_name(param)
-    if len(param_seg) == 0 {
+    if param_seg.len() == 0 {
         param_seg = "i32"
     }
     if param_seg.clone().eq(String_from("String")) && ret_seg.clone().eq(String_from("String")) {

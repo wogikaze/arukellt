@@ -11,9 +11,9 @@ use std::io::{Read, Seek, SeekFrom}
 fn print_read<T: io::Read>(mut source: T, max_bytes: i32) {
     match source.read(max_bytes) {
         Result::Ok(bytes) => {
-            Stdio::println((len(bytes)).to_string())
+            Stdio::println((bytes.len()).to_string())
             let mut i: i32 = 0
-            while i < len(bytes) {
+            while i < bytes.len() {
                 Stdio::println((get_unchecked(bytes, i)).to_string())
                 i = i + 1
             }
@@ -49,7 +49,7 @@ fn main() {
             // array.get temp with the size-class struct layout placeholder
             // (the 0x1813 validation mismatch).
             let image: Vec<i32> = image
-            Stdio::println((len(image)).to_string())
+            Stdio::println((image.len()).to_string())
             Stdio::println((get_unchecked(image, 0)).to_string())
             Stdio::println((get_unchecked(image, 3)).to_string())
             Stdio::println((get_unchecked(image, 6)).to_string())

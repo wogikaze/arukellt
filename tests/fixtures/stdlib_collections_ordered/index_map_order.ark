@@ -12,7 +12,7 @@ fn main() {
     Stdio::println((m.get(99)).to_string())
     let keys = m.keys()
     let mut i: i32 = 0
-    while i < len(keys) {
+    while i < keys.len() {
         Stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }

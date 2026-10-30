@@ -24,7 +24,7 @@ fn is_ident_char(ch: i32) -> bool {
 }
 
 fn read_ident_backward(text: String, pos: i32) -> IdentSlice {
-    let n = len(text)
+    let n = text.len()
     let mut end = pos
     while end < n && is_ident_char(text.byte_at(end)) {
         end = end + 1
@@ -63,10 +63,10 @@ pub fn lookup_name_at_offset(text: String, offset: i32) -> String {
             more = false
         } else {
             let part = read_ident_backward(text.clone(), colon_pos)
-            if len(part.text) == 0 {
+            if part.text.len() == 0 {
                 more = false
             } else {
-                if len(qual) == 0 {
+                if qual.len() == 0 {
                     qual = part.text
                 } else {
                     qual = (part.text).concat("::".concat(qual))
@@ -75,7 +75,7 @@ pub fn lookup_name_at_offset(text: String, offset: i32) -> String {
             }
         }
     }
-    if len(qual) > 0 {
+    if qual.len() > 0 {
         return qual.concat("::".concat(name))
     }
     name

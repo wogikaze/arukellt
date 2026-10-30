@@ -4,13 +4,13 @@ use lsp::import_graph
 use lsp::state_record
 use lsp::symbol_index_record
 fn starts_with_prefix(label: String, prefix: String) -> bool {
-    if len(prefix) == 0 {
+    if prefix.len() == 0 {
         return true
     }
-    if len(label) < len(prefix) {
+    if label.len() < prefix.len() {
         return false
     }
-    label.clone().slice(0, len(prefix)) == prefix
+    label.clone().slice(0, prefix.len()) == prefix
 }
 
 fn push_keyword(items: String, text: String, prefix: String, label: String) -> String {
@@ -36,20 +36,20 @@ fn push_keywords(items: String, text: String, prefix: String) -> String {
 
 fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> String {
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
-    let sn = len(stdlib)
+    let sn = stdlib.len()
     let mut j = 0
     let mut out = items
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         let name = symbol_index_record::stdlib_indexed_symbol_name(sym)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
-        let label = if len(module_path) > 0 {
+        let label = if module_path.len() > 0 {
             module_path.clone().concat("::").concat(name.clone())
         } else {
             name.clone()
         }
         if starts_with_prefix(label.clone(), prefix.clone()) || starts_with_prefix(name.clone(), prefix.clone()) {
-            let import_path = if len(module_path) > 0 {
+            let import_path = if module_path.len() > 0 {
                 import_graph::stdlib_import_path(module_path.clone(), name.clone())
             } else {
                 name.clone()
@@ -74,7 +74,7 @@ fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> 
 
 fn push_project(items: String, text: String, prefix: String, state: LspState) -> String {
     let symbols = state_record::lsp_state_symbol_symbols(state)
-    let n = len(symbols)
+    let n = symbols.len()
     let mut i = 0
     let mut out = items
     while i < n {
@@ -118,10 +118,10 @@ fn dot_completion_items(text: String, offset: i32) -> String {
     }
     let prefix = prefix_at_offset(text.clone(), offset)
     let mut out = String_new()
-    if len(prefix) == 0 || starts_with_prefix("x", prefix.clone()) {
+    if prefix.len() == 0 || starts_with_prefix("x", prefix.clone()) {
         out = completion_items::append_item(out, completion_items::completion_item_json("x", 5, "field", text.clone(), String_new(), false))
     }
-    if len(prefix) == 0 || starts_with_prefix("y", prefix.clone()) {
+    if prefix.len() == 0 || starts_with_prefix("y", prefix.clone()) {
         out = completion_items::append_item(out, completion_items::completion_item_json("y", 5, "field", text.clone(), String_new(), false))
     }
     out
@@ -160,17 +160,17 @@ fn use_completion_items(state: LspState, text: String, offset: i32, prefix: Stri
         pos = pos - 1
     }
     let line_prefix = text.clone().slice(pos, offset)
-    if len(line_prefix) < 4 || !line_prefix.clone().slice(0, 4).eq("use ") {
+    if line_prefix.len() < 4 || !line_prefix.clone().slice(0, 4).eq("use ") {
         return String_new()
     }
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
-    let sn = len(stdlib)
+    let sn = stdlib.len()
     let mut out = String_new()
     let mut j = 0
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
-        if len(module_path) > 0 && starts_with_prefix(module_path.clone(), prefix.clone()) {
+        if module_path.len() > 0 && starts_with_prefix(module_path.clone(), prefix.clone()) {
             out = completion_items::append_item(out, completion_items::completion_item_json(module_path, 9, "module", text.clone(), String_new(), false))
         }
         j = j + 1
@@ -186,7 +186,7 @@ fn is_ident_char(ch: i32) -> bool {
 }
 
 fn prefix_at_offset(text: String, offset: i32) -> String {
-    let n = len(text)
+    let n = text.len()
     let mut end = offset
     if end > n { end = n }
     let mut start = end
@@ -198,15 +198,15 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
 
 pub fn collect_completion_items(state: LspState, text: String, offset: i32, prefix: String) -> String {
     let dot_items = dot_completion_items(text.clone(), offset)
-    if len(dot_items) > 0 {
+    if dot_items.len() > 0 {
         return dot_items
     }
     let type_items = type_completion_items(state, text.clone(), offset, prefix.clone())
-    if len(type_items) > 0 {
+    if type_items.len() > 0 {
         return type_items
     }
     let use_items = use_completion_items(state, text.clone(), offset, prefix.clone())
-    if len(use_items) > 0 {
+    if use_items.len() > 0 {
         return use_items
     }
     let mut items = String_new()

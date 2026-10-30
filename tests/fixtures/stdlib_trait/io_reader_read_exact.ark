@@ -10,7 +10,7 @@ fn main() {
 
     match io::Io::read_exact(reader, 2) {
         Result::Ok(bytes) => {
-            Test::assert_eq_i32(len(bytes), 2)
+            Test::assert_eq_i32(bytes.len(), 2)
             Test::assert_eq_i32(get_unchecked(bytes, 0), 10)
             Test::assert_eq_i32(get_unchecked(bytes, 1), 20)
         },

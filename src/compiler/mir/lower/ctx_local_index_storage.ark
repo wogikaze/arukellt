@@ -5,7 +5,7 @@ fn ctx_local_index_push(mut ctx: LowerCtx, name: String, index: i32) {
 }
 
 fn ctx_local_index_count(ctx: LowerCtx) -> i32 {
-    len(ctx.local_names)
+    ctx.local_names.len()
 }
 
 fn ctx_local_index_name_at(ctx: LowerCtx, index: i32) -> String {
@@ -37,7 +37,7 @@ fn ctx_local_index_restore(mut ctx: LowerCtx, local_names: Vec<String>, local_in
 }
 
 fn ctx_local_hash_clear(mut ctx: LowerCtx) {
-    let capacity = len(ctx.local_name_buckets)
+    let capacity = ctx.local_name_buckets.len()
     if capacity <= 0 {
         ctx.local_name_buckets = ctx_local_hash_fresh_buckets(32)
         return
@@ -50,7 +50,7 @@ fn ctx_local_hash_clear(mut ctx: LowerCtx) {
 }
 
 fn ctx_local_hash_rebuild(mut ctx: LowerCtx) {
-    let count = len(ctx.local_names)
+    let count = ctx.local_names.len()
     let mut capacity = 32
     let required = count * 2
     while capacity < required {
@@ -71,11 +71,11 @@ fn ctx_local_hash_set(mut ctx: LowerCtx, name: String, _value: i32) {
     }
     // Newest stack slot wins, same as scan-from-end. Leave older entries intact
     // so frame snapshots still restore the pre-shadow index.
-    set(ctx.local_name_buckets, slot, len(ctx.local_names))
+    set(ctx.local_name_buckets, slot, ctx.local_names.len())
 }
 
 fn ctx_local_hash_grow(mut ctx: LowerCtx) {
-    let capacity = len(ctx.local_name_buckets)
+    let capacity = ctx.local_name_buckets.len()
     let mut next = 64
     if capacity > 0 {
         next = capacity * 2
@@ -85,7 +85,7 @@ fn ctx_local_hash_grow(mut ctx: LowerCtx) {
 }
 
 fn ctx_local_hash_reinsert_all(mut ctx: LowerCtx) {
-    let count = len(ctx.local_names)
+    let count = ctx.local_names.len()
     let mut i = 0
     while i < count {
         let slot = ctx_local_hash_probe_slot(ctx, get_unchecked(ctx.local_names, i))
@@ -107,14 +107,14 @@ fn ctx_local_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
 }
 
 fn ctx_local_hash_probe_slot(ctx: LowerCtx, name: String) -> i32 {
-    let capacity = len(ctx.local_name_buckets)
+    let capacity = ctx.local_name_buckets.len()
     if capacity <= 0 {
         return 0 - 1
     }
     let fnv_offset = 216613626
     let fnv_prime = 16777619
     let mut hash = fnv_offset
-    let name_len = len(name)
+    let name_len = name.len()
     let mut hi = 0
     while hi < name_len {
         hash = hash * fnv_prime ^ name.byte_at(hi)
@@ -134,7 +134,7 @@ fn ctx_local_hash_probe_slot(ctx: LowerCtx, name: String) -> i32 {
             return slot
         }
         let key = get_unchecked(ctx.local_names, bucket - 1)
-        let mut same = len(key) == name_len
+        let mut same = key.len() == name_len
         if same {
             let mut i = 0
             while i < name_len {

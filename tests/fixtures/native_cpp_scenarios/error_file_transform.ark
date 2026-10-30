@@ -3,7 +3,7 @@ use std::host::process::Process
 use std::host::stdio::Stdio
 use std::text
 fn transform_line(line: String) -> Result<String, String> {
-    if len(line) == 0 {
+    if line.len() == 0 {
         Err(String_from("empty-line"))
     } else {
         Ok(String_from("OK:").concat(line))

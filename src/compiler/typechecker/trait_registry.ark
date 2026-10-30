@@ -20,7 +20,7 @@ use diagnostics::mod as diag_mod
 // the same local trait registry as obligation solving.
 
 fn register_trait_decls(mut env: TypeEnv, decls: Vec<AstNode>) {
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let node = get_unchecked(decls, i)
@@ -115,7 +115,7 @@ fn register_trait_impl_entry(
     display_self_ty: String,
     type_param_bounds: Vec<TypeParamBounds>
 ) {
-    let count = len(env.trait_impls)
+    let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
         let existing = get_unchecked(env.trait_impls, i)
@@ -130,7 +130,7 @@ fn register_trait_impl_entry(
             existing_self.clone(),
             self_ty
         ) {
-            let shown = if len(display_self_ty) > 0 {
+            let shown = if display_self_ty.len() > 0 {
                 display_self_ty.clone()
             } else {
                 names::type_display_name(self_ty)
@@ -150,7 +150,7 @@ fn register_trait_impl_entry(
             trait_name.clone()
         ) && (type_contains_var(existing_self) || type_contains_var(self_ty)) &&
         impl_self_head_matches(existing_self, self_ty) {
-            let shown = if len(display_self_ty) > 0 {
+            let shown = if display_self_ty.len() > 0 {
                 display_self_ty.clone()
             } else {
                 names::type_display_name(self_ty)
@@ -196,7 +196,7 @@ fn maybe_register_impl_decl(mut env: TypeEnv, node: AstNode, known_type_names: V
     let self_ty = types::resolve_type_ann_node_generic(self_node, type_params.clone())
     let trait_name = ast_access::node_text(trait_node)
     let trait_args = type_args(trait_ref)
-    if !validate_trait_arity(env, trait_name.clone(), len(trait_args)) {
+    if !validate_trait_arity(env, trait_name.clone(), trait_args.len()) {
         return
     }
     if !validate_impl_param_constraints(env, node, self_ty.clone()) {
@@ -247,7 +247,7 @@ fn maybe_register_impl_decl(mut env: TypeEnv, node: AstNode, known_type_names: V
 // E0222 and aborts registration.
 fn report_undefined_impl_head_types(mut env: TypeEnv, node: AstNode, known_type_names: Vec<String>) -> bool {
     let undefined = decl_impl_target::undefined_impl_head_type_names(node, known_type_names)
-    let count = len(undefined)
+    let count = undefined.len()
     if count == 0 {
         return false
     }
@@ -306,7 +306,7 @@ fn trait_diagnostic(code: String, severity: i32, node: AstNode, message: String)
 fn validate_impl_param_constraints(mut env: TypeEnv, node: AstNode, self_ty: TypeInfo) -> bool {
     let declared = impl_generics::declared_type_param_names(node)
     let mut i = 0
-    while i < len(declared) {
+    while i < declared.len() {
         let name = get_unchecked(declared, i)
         if !type_contains_named_var(self_ty, name.clone()) {
             report_trait_error(
@@ -341,7 +341,7 @@ fn type_contains_named_var(ty: TypeInfo, name: String) -> bool {
 }
 
 fn validate_trait_supertraits(mut env: TypeEnv) {
-    let impl_count = len(env.trait_impls)
+    let impl_count = env.trait_impls.len()
     let mut i = 0
     while i < impl_count {
         let impl_info = get_unchecked(env.trait_impls, i)
@@ -470,7 +470,7 @@ fn associated_type_impl_exists(
     self_ty: TypeInfo,
     assoc_name: String
 ) -> bool {
-    let count = len(env.associated_types)
+    let count = env.associated_types.len()
     let mut i = 0
     while i < count {
         let entry = get_unchecked(env.associated_types, i)
@@ -515,7 +515,7 @@ fn validate_trait_arity(mut env: TypeEnv, trait_name: String, actual: i32) -> bo
 }
 
 fn trait_info_index(env: TypeEnv, trait_name: String) -> i32 {
-    let count = len(env.trait_defs)
+    let count = env.trait_defs.len()
     let mut i = 0
     while i < count {
         if names::same_type_name(
@@ -538,7 +538,7 @@ fn trait_info_at(env: TypeEnv, trait_name: String) -> TraitInfo {
 }
 
 fn string_vec_contains(names: Vec<String>, name: String) -> bool {
-    let count = len(names)
+    let count = names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(names, i).eq(name.clone()) {
@@ -584,7 +584,7 @@ fn type_contains_var(ty: TypeInfo) -> bool {
 fn impl_self_head_matches(a: TypeInfo, b: TypeInfo) -> bool {
     let a_name = contract_type_access::TypeInfo_name(a)
     let b_name = contract_type_access::TypeInfo_name(b)
-    if len(a_name) == 0 || len(b_name) == 0 {
+    if a_name.len() == 0 || b_name.len() == 0 {
         return contract_type_access::TypeInfo_tag(a) == contract_type_access::TypeInfo_tag(b)
     }
     names::same_type_name(a_name, b_name)
@@ -602,7 +602,7 @@ fn is_legal_parametric_impl(trait_ref: TypeInfo, self_ty: TypeInfo) -> bool {
     collect_type_var_names(self_ty, self_vars)
     let mut trait_vars = Vec::new<String>()
     collect_type_var_names(trait_ref, trait_vars)
-    let count = len(trait_vars)
+    let count = trait_vars.len()
     let mut i = 0
     while i < count {
         if !string_vec_contains(self_vars, get_unchecked(trait_vars, i)) {
@@ -644,11 +644,11 @@ fn same_type(a: TypeInfo, b: TypeInfo) -> bool {
 }
 
 fn type_vec_equal(a: Vec<TypeInfo>, b: Vec<TypeInfo>) -> bool {
-    if len(a) != len(b) {
+    if a.len() != b.len() {
         return false
     }
     let mut i = 0
-    while i < len(a) {
+    while i < a.len() {
         if !same_type(get_unchecked(a, i), get_unchecked(b, i)) {
             return false
         }

@@ -14,7 +14,7 @@ fn main() {
     push(v, 40)
     push(v, 50)
     let shuffled = Rng::new(42).shuffle(v)
-    Test::assert_eq_i32(len(shuffled), 5)
+    Test::assert_eq_i32(shuffled.len(), 5)
     Test::assert_eq_i32(get_unchecked(shuffled, 0), 30)
     Test::assert_eq_i32(get_unchecked(shuffled, 4), 10)
     Stdio::println("rng methods ok")

@@ -30,7 +30,7 @@ fn SelfEmitCtx_apply_call_relocs(
     mut ctx: SelfEmitCtx,
     wit_import_count: i32
 ) {
-    let n = len(ctx.call_reloc_offs)
+    let n = ctx.call_reloc_offs.len()
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let mut i = 0
     while i < n {

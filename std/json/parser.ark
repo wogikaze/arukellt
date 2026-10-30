@@ -53,7 +53,7 @@ fn json_value_null_text() -> String {
 
 /// Parse a decimal integer from a JSON number string.
 fn json_value_parse_i32(s: String) -> i32 {
-    let n: i32 = len(s)
+    let n: i32 = s.len()
     let mut result: i32 = 0
     let mut i: i32 = 0
     let mut neg: bool = false
@@ -286,7 +286,7 @@ impl JsonValue {
     fn get_field(self: JsonValue, key: String) -> Option<JsonValue> {
         match self {
             JsonValue::Object(fields) => {
-                let n = len(fields)
+                let n = fields.len()
                 let mut i = 0
                 while i < n {
                     let f = get_unchecked(fields, i)
@@ -309,7 +309,7 @@ impl JsonValue {
     fn get_index(self: JsonValue, index: i32) -> Option<JsonValue> {
         match self {
             JsonValue::Array(items) => {
-                if index < 0 || index >= len(items) {
+                if index < 0 || index >= items.len() {
                     return None
                 }
                 Some(get_unchecked(items, index))
@@ -432,7 +432,7 @@ impl JsonField {
 }
 
 fn find_closing(s: String, pos: i32, open_ch: i32, close_ch: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = pos
     let mut depth = 1
     let mut in_str = false
@@ -475,7 +475,7 @@ fn find_closing(s: String, pos: i32, open_ch: i32, close_ch: i32) -> i32 {
 /// Returns the index after the closing quote, or `-1` when the string is
 /// unterminated (no unescaped `"` before EOF).
 fn find_string_end(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = pos
     let mut esc = false
     while i < n {
@@ -497,7 +497,7 @@ fn find_string_end(s: String, pos: i32) -> i32 {
 }
 
 fn find_number_end(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = pos
     while i < n {
         let c = s.byte_at(i)
@@ -567,7 +567,7 @@ fn json_number_is_valid(s: String, start: i32, end: i32) -> bool {
 }
 
 fn find_value_end(s: String, pos: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     if pos >= n {
         return n
     }
@@ -642,7 +642,7 @@ impl JsonParseStep {
 /// characters after the first top-level value cause an error.
 fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     let pos = json::JsonText::skip_ws(s, pos)
-    let n = len(s)
+    let n = s.len()
     if pos >= n {
         return JsonParseStep::err(JsonParseError::EmptyInput, pos)
     }
@@ -768,7 +768,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
 
 fn json_parse_document(s: String) -> Result<JsonValue, JsonParseError> {
     let pos = json::JsonText::skip_ws(s, 0)
-    let n = len(s)
+    let n = s.len()
     if pos >= n {
         return Err(JsonParseError::EmptyInput)
     }
@@ -808,7 +808,7 @@ fn json_stringify_value(v: JsonValue) -> String {
 }
 
 fn json_stringify_array(items: Vec<JsonValue>) -> String {
-    let n = len(items)
+    let n = items.len()
     let mut out = "["
     let mut i = 0
     while i < n {
@@ -822,7 +822,7 @@ fn json_stringify_array(items: Vec<JsonValue>) -> String {
 }
 
 fn stringify_object(fields: Vec<JsonField>) -> String {
-    let n = len(fields)
+    let n = fields.len()
     let mut out = "{"
     let mut i = 0
     while i < n {
@@ -869,13 +869,13 @@ fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
 }
 
 fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> String {
-    if len(items) == 0 {
+    if items.len() == 0 {
         return "[]"
     }
     let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "[\n"
-    let n = len(items)
+    let n = items.len()
     let mut i = 0
     while i < n {
         if i > 0 {
@@ -889,13 +889,13 @@ fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> Str
 }
 
 fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> String {
-    if len(fields) == 0 {
+    if fields.len() == 0 {
         return "{}"
     }
     let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "{\n"
-    let n = len(fields)
+    let n = fields.len()
     let mut i = 0
     while i < n {
         if i > 0 {
@@ -912,7 +912,7 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
 }
 
 fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
-    let n = len(raw)
+    let n = raw.len()
     let i0 = json::JsonText::skip_ws(raw, 1)
     if i0 < n && raw.byte_at(i0) == 93 {
         return "[]"
@@ -953,7 +953,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
 }
 
 fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
-    let n = len(raw)
+    let n = raw.len()
     let i0 = json::JsonText::skip_ws(raw, 1)
     if i0 < n && raw.byte_at(i0) == 125 {
         return "{}"
@@ -1076,7 +1076,7 @@ fn json_value_arr_string(items: Vec<JsonValue>) -> String {
 
 // ─── String encoding ─────────────────────────────────────────────────────────
 fn json_decode_string(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut result = ""
     let mut i = 0
     while i < n {
@@ -1145,7 +1145,7 @@ fn json_decode_string(s: String) -> String {
 /// placed within the quotation marks except for the characters that must
 /// be escaped".
 fn json_value_encode_string(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut result = "\""
     let mut i = 0
     while i < n {

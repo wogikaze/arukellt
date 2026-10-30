@@ -58,10 +58,10 @@ fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32
 // container has no single element segment.
 fn gc_layout_plan_vec_elem_name(name: String) -> String {
     if name.clone().starts_with(String_from("vec:")) {
-        return name.clone().slice(4, len(name))
+        return name.clone().slice(4, name.len())
     }
     if name.clone().starts_with(String_from("Vec<")) && name.clone().ends_with(String_from(">")) {
-        return name.clone().slice(4, len(name) - 1)
+        return name.clone().slice(4, name.len() - 1)
     }
     String_new()
 }
@@ -71,7 +71,7 @@ fn gc_layout_plan_vec_elem_name(name: String) -> String {
 // unsubstituted-type-param spelling, so a registered struct/enum name
 // must win over the dead-shell i32 fallback.
 fn gc_layout_plan_elem_is_declared_aggregate(table: TypeTable, elem: String) -> bool {
-    if len(elem) == 0 {
+    if elem.len() == 0 {
         return false
     }
     let count = type_table::TypeTable_entry_count(table)

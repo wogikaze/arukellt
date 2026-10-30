@@ -8,7 +8,7 @@ struct GenVecIter<T> {
 }
 
 fn gen_vec_iter<T>(v: Vec<T>) -> GenVecIter<T> {
-    GenVecIter { vec: v, index: 0, length: len(v) }
+    GenVecIter { vec: v, index: 0, length: v.len() }
 }
 
 impl<T> Iterator for GenVecIter<T> {

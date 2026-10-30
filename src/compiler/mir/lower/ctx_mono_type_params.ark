@@ -46,7 +46,7 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     }
     if tag == lower_kinds::TY_VEC() {
         let vec_name = return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
-        if len(vec_name) > 0 {
+        if vec_name.len() > 0 {
             return vec_name
         }
         return "vec:i32"
@@ -92,7 +92,7 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         return String_from("fnref")
     }
     let name = type_contracts::TypeInfo_name(ty)
-    if len(name) > 0 {
+    if name.len() > 0 {
         return name
     }
     String_new()
@@ -108,7 +108,7 @@ fn ctx_set_mono_type_params(mut ctx: LowerCtx, names: Vec<String>, types: Vec<St
 // key; splitting it into ordinary type-variable segments would lose the
 // projection boundary and could resolve an unrelated `T` instead.
 fn ctx_set_mono_type_projection(mut ctx: LowerCtx, generic_name: String, concrete_name: String) {
-    if len(generic_name) == 0 || len(concrete_name) == 0 || generic_name.clone().eq(concrete_name.clone()) {
+    if generic_name.len() == 0 || concrete_name.len() == 0 || generic_name.clone().eq(concrete_name.clone()) {
         return
     }
     push(ctx.mono_type_param_names, generic_name.clone())
@@ -130,8 +130,8 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
     concrete_name.clone().starts_with(String_from("vec:")) {
         ctx_register_projection_segment(
             ctx,
-            generic_name.clone().slice(4, len(generic_name)),
-            concrete_name.clone().slice(4, len(concrete_name))
+            generic_name.clone().slice(4, generic_name.len()),
+            concrete_name.clone().slice(4, concrete_name.len())
         )
         return
     }
@@ -139,8 +139,8 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
     concrete_name.clone().starts_with(String_from("Option_")) {
         ctx_register_projection_segment(
             ctx,
-            generic_name.clone().slice(7, len(generic_name)),
-            concrete_name.clone().slice(7, len(concrete_name))
+            generic_name.clone().slice(7, generic_name.len()),
+            concrete_name.clone().slice(7, concrete_name.len())
         )
         return
     }
@@ -157,16 +157,16 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
         return
     }
     let g_args = ctx_split_top_level_type_args(
-        generic_name.clone().slice(glt + 1, len(generic_name) - 1)
+        generic_name.clone().slice(glt + 1, generic_name.len() - 1)
     )
     let c_args = ctx_split_top_level_type_args(
-        concrete_name.clone().slice(clt + 1, len(concrete_name) - 1)
+        concrete_name.clone().slice(clt + 1, concrete_name.len() - 1)
     )
-    if len(g_args) != len(c_args) {
+    if g_args.len() != c_args.len() {
         return
     }
     let mut i = 0
-    while i < len(g_args) {
+    while i < g_args.len() {
         ctx_register_projection_segment(
             ctx,
             get_unchecked(g_args, i),
@@ -185,22 +185,22 @@ fn ctx_register_projection_arg_pairs(mut ctx: LowerCtx, generic_name: String, co
 fn ctx_projection_canonical_wrapper(name: String) -> String {
     if name.clone().starts_with(String_from("Vec<")) &&
     name.clone().ends_with(String_from(">")) {
-        return String_from("vec:").concat(name.clone().slice(4, len(name) - 1))
+        return String_from("vec:").concat(name.clone().slice(4, name.len() - 1))
     }
     if name.clone().starts_with(String_from("Option<")) &&
     name.clone().ends_with(String_from(">")) {
-        return String_from("Option_").concat(name.clone().slice(7, len(name) - 1))
+        return String_from("Option_").concat(name.clone().slice(7, name.len() - 1))
     }
     // Local-type spellings use option:payload; canonicalizing lets declared
     // Option_Pair / option:Pair pairs share the Option_ segment path (#860).
     if name.clone().starts_with(String_from("option:")) {
-        return String_from("Option_").concat(name.clone().slice(7, len(name)))
+        return String_from("Option_").concat(name.clone().slice(7, name.len()))
     }
     name
 }
 
 fn ctx_register_projection_segment(mut ctx: LowerCtx, generic_seg: String, concrete_seg: String) {
-    if len(generic_seg) == 0 || len(concrete_seg) == 0 {
+    if generic_seg.len() == 0 || concrete_seg.len() == 0 {
         return
     }
     if is_plain_type_var_name(generic_seg.clone()) ||
@@ -215,7 +215,7 @@ fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
     let mut args = Vec::new<String>()
     let mut depth = 0
     let mut seg_start = 0
-    let n = len(inner)
+    let n = inner.len()
     let mut i = 0
     while i <= n {
         let at_end = i == n
@@ -238,7 +238,7 @@ fn ctx_split_top_level_type_args(inner: String) -> Vec<String> {
 }
 
 fn ctx_clear_mono_type_params(mut ctx: LowerCtx) {
-    if len(ctx.mono_type_param_names) == 0 && len(ctx.mono_type_param_types) == 0 {
+    if ctx.mono_type_param_names.len() == 0 && ctx.mono_type_param_types.len() == 0 {
         return
     }
     ctx.mono_type_param_names = Vec::new<String>()
@@ -246,7 +246,7 @@ fn ctx_clear_mono_type_params(mut ctx: LowerCtx) {
 }
 
 fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
-    let count = len(ctx.mono_type_param_names)
+    let count = ctx.mono_type_param_names.len()
     let mut i = 0
     while i < count {
         let stored_name = get_unchecked(ctx.mono_type_param_names, i).clone()
@@ -274,8 +274,8 @@ fn ctx_mono_type_match_segment_index(stored_name: String, query_name: String) ->
     let mut segment_start = 0
     let mut seg_index = 0
     let mut i = 0
-    while i <= len(stored_name) {
-        let at_end = i == len(stored_name)
+    while i <= stored_name.len() {
+        let at_end = i == stored_name.len()
         if at_end || stored_name.clone().byte_at(i) == 58 {
             let segment = stored_name.clone().slice(segment_start, i)
             if ctx_mono_type_var_bare_name(segment.clone()).eq(query.clone()) {
@@ -304,7 +304,7 @@ fn ctx_mono_type_segment_value(stored_name: String, stored_type: String, seg_idx
 fn ctx_mono_count_colon_segments(name: String) -> i32 {
     let mut count = 1
     let mut i = 0
-    while i < len(name) {
+    while i < name.len() {
         if name.clone().byte_at(i) == 58 {
             count = count + 1
         }
@@ -317,8 +317,8 @@ fn ctx_mono_colon_segment_at(name: String, want: i32) -> String {
     let mut segment_start = 0
     let mut seg_index = 0
     let mut i = 0
-    while i <= len(name) {
-        if i == len(name) || name.clone().byte_at(i) == 58 {
+    while i <= name.len() {
+        if i == name.len() || name.clone().byte_at(i) == 58 {
             if seg_index == want {
                 return name.clone().slice(segment_start, i)
             }
@@ -332,13 +332,13 @@ fn ctx_mono_colon_segment_at(name: String, want: i32) -> String {
 
 fn ctx_mono_type_var_bare_name(name: String) -> String {
     if name.clone().starts_with("?") {
-        return name.slice(1, len(name))
+        return name.slice(1, name.len())
     }
     name
 }
 
 fn ctx_has_mono_type_params(ctx: LowerCtx) -> bool {
-    len(ctx.mono_type_param_names) > 0
+    ctx.mono_type_param_names.len() > 0
 }
 
 // Collect type variable names (strings starting with "?") from the
@@ -356,7 +356,7 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
         // "?Option:T", extract the inner "T". For plain type vars like "?T",
         // use the name as-is.
         let local_vars = ctx_type_var_names_from_local_type(ty_name.clone())
-        let local_var_count = len(local_vars)
+        let local_var_count = local_vars.len()
         let mut vi = 0
         while vi < local_var_count {
             let var_name = get_unchecked(local_vars, vi)
@@ -370,7 +370,7 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
                 continue
             }
             let mut found = false
-            let rcount = len(result)
+            let rcount = result.len()
             let mut k = 0
             while k < rcount {
                 if get_unchecked(result, k).eq(var_name.clone()) {
@@ -391,7 +391,7 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
 fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     let mut result = Vec::new<String>()
     if ty_name.clone().starts_with("?") {
-        let stripped = ty_name.clone().slice(1, len(ty_name))
+        let stripped = ty_name.clone().slice(1, ty_name.len())
         if !stripped.clone().contains(String_from(":")) {
             push(result, stripped)
             return result
@@ -438,17 +438,17 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
     // the body cannot derive their instantiated layout.
     let lt = ty_name.clone().index_of(String_from("<"))
     if lt > 0 && ty_name.clone().ends_with(String_from(">")) {
-        let inner = ty_name.clone().slice(lt + 1, len(ty_name) - 1)
+        let inner = ty_name.clone().slice(lt + 1, ty_name.len() - 1)
         let args = ctx_split_top_level_type_args(inner)
         let mut ai = 0
-        while ai < len(args) {
+        while ai < args.len() {
             let arg = get_unchecked(args, ai)
             if is_plain_type_var_name(arg.clone()) {
                 push(result, arg.clone())
             } else {
                 let nested = ctx_type_var_names_from_local_type(arg.clone())
                 let mut ni = 0
-                while ni < len(nested) {
+                while ni < nested.len() {
                     push(result, get_unchecked(nested, ni))
                     ni = ni + 1
                 }
@@ -463,9 +463,9 @@ fn ctx_type_var_names_from_local_type(ty_name: String) -> Vec<String> {
 // segment is a type position (unlike colon wrappers whose first segment
 // is the wrapper name), so each one contributes its variables.
 fn ctx_push_fnsig_var_segments(ty_name: String, mut result: Vec<String>) {
-    let rest = ty_name.clone().slice(6, len(ty_name))
+    let rest = ty_name.clone().slice(6, ty_name.len())
     let mut seg_start = 0
-    let n = len(rest)
+    let n = rest.len()
     let mut i = 0
     while i <= n {
         if i == n || rest.clone().byte_at(i) == 59 {
@@ -499,7 +499,7 @@ fn ctx_local_type_is_var_wrapper(ty_name: String) -> bool {
 fn ctx_push_colon_var_segments(stripped: String, mut result: Vec<String>) {
     let mut segment_start = 0
     let mut i = 0
-    let n = len(stripped)
+    let n = stripped.len()
     let mut depth = 0
     while i <= n {
         let at_end = i == n
@@ -529,14 +529,14 @@ fn ctx_push_var_segment(segment: String, is_arg: bool, mut result: Vec<String>) 
     }
     let nested = ctx_type_var_names_from_local_type(segment)
     let mut i = 0
-    while i < len(nested) {
+    while i < nested.len() {
         push(result, get_unchecked(nested, i))
         i = i + 1
     }
 }
 
 fn is_plain_type_var_name(name: String) -> bool {
-    if len(name) != 1 {
+    if name.len() != 1 {
         return false
     }
     let c = name.byte_at(0)
@@ -547,34 +547,34 @@ fn is_plain_type_var_name(name: String) -> bool {
 // selection. For example, `T` becomes `i32` and `vec:T` becomes `vec:i32`
 // inside a monomorphized `Box<i32>`/`Slice<i32>` body.
 fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return type_name
     }
     if !ctx_has_mono_type_params(ctx) {
         return type_name
     }
     let direct = ctx_resolve_mono_type_param(ctx, type_name.clone())
-    if len(direct) > 0 {
+    if direct.len() > 0 {
         return direct
     }
     // Generic-wrapper spellings: ?Pair:T -> Pair<String>, Pair<T> ->
     // Pair<String>. Each argument segment resolves through the mono map.
     if type_name.clone().starts_with("?") {
-        let wrapped = ctx_resolve_wrapper_type_vars(ctx, type_name.clone().slice(1, len(type_name)))
-        if len(wrapped) > 0 {
+        let wrapped = ctx_resolve_wrapper_type_vars(ctx, type_name.clone().slice(1, type_name.len()))
+        if wrapped.len() > 0 {
             return wrapped
         }
     }
     if type_name.clone().contains(String_from("<")) && type_name.clone().ends_with(String_from(">")) {
         let wrapped = ctx_resolve_angle_type_vars(ctx, type_name.clone())
-        if len(wrapped) > 0 {
+        if wrapped.len() > 0 {
             return wrapped
         }
     }
     if type_name.clone().starts_with("vec:") {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         let concrete_elem = ctx_resolve_mono_type_param(ctx, elem.clone())
-        if len(concrete_elem) > 0 {
+        if concrete_elem.len() > 0 {
             return "vec:".concat(concrete_elem)
         }
     }
@@ -583,7 +583,7 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
     // enclosing monomorphization (#860).
     if type_name.clone().starts_with("fnsig:") {
         let resolved_fnsig = ctx_resolve_fnsig_type_vars(ctx, type_name.clone())
-        if len(resolved_fnsig) > 0 {
+        if resolved_fnsig.len() > 0 {
             return resolved_fnsig
         }
     }
@@ -594,10 +594,10 @@ fn ctx_resolve_mono_type_name(ctx: LowerCtx, type_name: String) -> String {
 // type variables use ctx_resolve_mono_type_param; composite segments
 // (vec:/option:/Name<..>) recurse. Returns empty when nothing changed.
 fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
-    let rest = type_name.clone().slice(6, len(type_name))
+    let rest = type_name.clone().slice(6, type_name.len())
     let mut out = String_from("fnsig:")
     let mut seg_start = 0
-    let n = len(rest)
+    let n = rest.len()
     let mut i = 0
     let mut changed = false
     while i <= n {
@@ -622,11 +622,11 @@ fn ctx_resolve_fnsig_type_vars(ctx: LowerCtx, type_name: String) -> String {
 }
 
 fn ctx_resolve_fnsig_segment(ctx: LowerCtx, seg: String) -> String {
-    if len(seg) == 0 {
+    if seg.len() == 0 {
         return seg
     }
     let direct = ctx_resolve_mono_type_param(ctx, seg.clone())
-    if len(direct) > 0 {
+    if direct.len() > 0 {
         return direct
     }
     if seg.clone().contains(String_from(":")) || seg.clone().contains(String_from("<")) {
@@ -634,7 +634,7 @@ fn ctx_resolve_fnsig_segment(ctx: LowerCtx, seg: String) -> String {
         // `X::Item` projections resolve through the owner's Iterator::next
         // signature once the head is concrete (#860/#691).
         let assoc = ctx_resolve_assoc_projection_type(ctx, seg.clone())
-        if len(assoc) > 0 {
+        if assoc.len() > 0 {
             return assoc
         }
         return resolved_name
@@ -646,7 +646,7 @@ fn ctx_resolve_fnsig_segment(ctx: LowerCtx, seg: String) -> String {
 // a concrete type. The first segment is the wrapper name, not a variable.
 fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
     let mut seg_start = 0
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     let mut out = String_new()
     let mut seg_index = 0
@@ -657,7 +657,7 @@ fn ctx_resolve_wrapper_type_vars(ctx: LowerCtx, name: String) -> String {
                 out = seg.clone().concat(String_from("<"))
             } else {
                 let concrete = ctx_resolve_mono_type_param(ctx, seg.clone())
-                if len(concrete) == 0 {
+                if concrete.len() == 0 {
                     return String_new()
                 }
                 if seg_index > 1 {
@@ -691,21 +691,21 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
     // option:Pair -> option:Pair<i32,i32>, resolves Pair<i32,I::Item>
     // whose projection argument never bound by ordinal (#860).
     let base_inst = ctx_resolve_mono_base_projection(ctx, base.clone())
-    if len(base_inst) > 0 {
+    if base_inst.len() > 0 {
         return base_inst
     }
     let args = ctx_split_top_level_type_args(
-        type_name.clone().slice(lt + 1, len(type_name) - 1)
+        type_name.clone().slice(lt + 1, type_name.len() - 1)
     )
     let mut out = base.concat(String_from("<"))
     let mut arg_index = 0
-    while arg_index < len(args) {
+    while arg_index < args.len() {
         let arg = ctx_trim_type_arg_ws(get_unchecked(args, arg_index))
         let mut concrete = ctx_resolve_mono_type_param(ctx, arg.clone())
-        if len(concrete) == 0 && arg.clone().contains(String_from("<")) {
+        if concrete.len() == 0 && arg.clone().contains(String_from("<")) {
             concrete = ctx_resolve_angle_type_vars(ctx, arg.clone())
         }
-        if len(concrete) == 0 {
+        if concrete.len() == 0 {
             concrete = arg
         }
         if arg_index > 0 {
@@ -727,7 +727,7 @@ fn ctx_resolve_angle_type_vars(ctx: LowerCtx, type_name: String) -> String {
 // Exact matching only: the segment matching in ctx_resolve_mono_type_param
 // would bind a Pair query to the option:Pair wrapper entry itself (#860).
 fn ctx_resolve_mono_base_projection(ctx: LowerCtx, base: String) -> String {
-    let count = len(ctx.mono_type_param_names)
+    let count = ctx.mono_type_param_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.mono_type_param_names, i).eq(base.clone()) {
@@ -740,13 +740,13 @@ fn ctx_resolve_mono_base_projection(ctx: LowerCtx, base: String) -> String {
         let stored = get_unchecked(ctx.mono_type_param_names, i).clone()
         let concrete = get_unchecked(ctx.mono_type_param_types, i).clone()
         let mut hit = ctx_wrapper_payload_projection(stored.clone(), concrete.clone(), String_from("option:"), base.clone())
-        if len(hit) == 0 {
+        if hit.len() == 0 {
             hit = ctx_wrapper_payload_projection(stored.clone(), concrete.clone(), String_from("Option_"), base.clone())
         }
-        if len(hit) == 0 {
+        if hit.len() == 0 {
             hit = ctx_wrapper_payload_projection(stored.clone(), concrete.clone(), String_from("vec:"), base.clone())
         }
-        if len(hit) > 0 {
+        if hit.len() > 0 {
             return hit
         }
         i = i + 1
@@ -760,18 +760,18 @@ fn ctx_wrapper_payload_projection(stored: String, concrete: String, prefix: Stri
     if !stored.clone().starts_with(prefix.clone()) || !concrete.clone().starts_with(prefix.clone()) {
         return String_new()
     }
-    let plen = len(prefix)
-    if !stored.slice(plen, len(stored)).eq(base.clone()) {
+    let plen = prefix.len()
+    if !stored.slice(plen, stored.len()).eq(base.clone()) {
         return String_new()
     }
-    concrete.slice(plen, len(concrete))
+    concrete.slice(plen, concrete.len())
 }
 
 // Type argument lists are split on raw commas, so annotation spellings
 // such as "Pair<i32, I::Item>" keep a leading space on later segments.
 fn ctx_trim_type_arg_ws(seg: String) -> String {
     let mut start = 0
-    let mut end = len(seg)
+    let mut end = seg.len()
     while start < end && seg.clone().byte_at(start) == 32 {
         start = start + 1
     }
@@ -810,14 +810,14 @@ fn ctx_setup_mono_type_params_by_ordinal_declared(
         return
     }
     let mut type_var_names = declared_names
-    if len(type_var_names) == 0 {
+    if type_var_names.len() == 0 {
         type_var_names = ctx_collect_type_var_names(ctx)
     }
     ctx_setup_mono_type_params_by_ordinal_names(ctx, mangled_name, type_var_names)
 }
 
 fn ctx_mono_name_has_separator(name: String) -> bool {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut i = 0
     while i < name_len - 1 {
         if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
@@ -833,7 +833,7 @@ fn ctx_setup_mono_type_params_by_ordinal_names(
     mangled_name: String,
     type_var_names: Vec<String>
 ) {
-    if len(type_var_names) == 0 {
+    if type_var_names.len() == 0 {
         ctx_clear_mono_type_params(ctx)
         return
     }
@@ -846,7 +846,7 @@ fn ctx_setup_mono_type_params_by_ordinal_names(
     let mut names = Vec::new<String>()
     let mut types = Vec::new<String>()
     let mut j = 0
-    while j < arg_count && j < len(type_var_names) {
+    while j < arg_count && j < type_var_names.len() {
         let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
         let ty_name = mir_type_info_to_mono_key(ty)
         push(names, get_unchecked(type_var_names, j).clone())
@@ -865,12 +865,12 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
     let leaf_sep = find_last_double_colon(leaf_name.clone())
     let mut query_leaf = leaf_name.clone()
     if leaf_sep >= 0 {
-        query_leaf = leaf_name.slice(leaf_sep + 2, len(leaf_name))
+        query_leaf = leaf_name.slice(leaf_sep + 2, leaf_name.len())
     }
     let mut matched_index = 0 - 1
     let mut matched_mangled = String_new()
     let mut ambiguous = false
-    let count = len(ctx.mono_instances)
+    let count = ctx.mono_instances.len()
     let mut i = 0
     while i < count {
         let inst = get_unchecked(ctx.mono_instances, i)
@@ -886,16 +886,16 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
         let inst_sep = find_last_double_colon(inst_name.clone())
         let mut inst_leaf = inst_name.clone()
         if inst_sep >= 0 {
-            inst_leaf = inst_name.slice(inst_sep + 2, len(inst_name))
+            inst_leaf = inst_name.slice(inst_sep + 2, inst_name.len())
         }
         if !inst_leaf.eq(query_leaf.clone()) {
             continue
         }
         let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        if len(matched_mangled) > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
+        if matched_mangled.len() > 0 && !inst_mangled.clone().eq(matched_mangled.clone()) {
             ambiguous = true
         }
-        if len(matched_mangled) == 0 {
+        if matched_mangled.len() == 0 {
             matched_index = i - 1
         }
         matched_mangled = inst_mangled
@@ -915,7 +915,7 @@ fn ctx_find_leaf_mono_instance_index(ctx: LowerCtx, leaf_name: String) -> i32 {
 // variables; zero or multiple matches leave the map untouched.
 fn ctx_setup_mono_type_params_leaf_instance(mut ctx: LowerCtx, emit_name: String) {
     let type_var_names = ctx_collect_type_var_names(ctx)
-    if len(type_var_names) == 0 {
+    if type_var_names.len() == 0 {
         return
     }
     let matched_index = ctx_find_leaf_mono_instance_index(ctx, emit_name)
@@ -927,7 +927,7 @@ fn ctx_setup_mono_type_params_leaf_instance(mut ctx: LowerCtx, emit_name: String
     let mut names = Vec::new<String>()
     let mut types = Vec::new<String>()
     let mut j = 0
-    while j < arg_count && j < len(type_var_names) {
+    while j < arg_count && j < type_var_names.len() {
         let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
         push(names, get_unchecked(type_var_names, j).clone())
         push(types, mir_type_info_to_mono_key(ty))
@@ -947,21 +947,21 @@ fn ctx_setup_mono_type_params_leaf_instance(mut ctx: LowerCtx, emit_name: String
 // function index (#860/#691).
 fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
     let owner = ctx_assoc_owner_base_name(owner_name)
-    if len(owner) == 0 {
+    if owner.len() == 0 {
         return String_new()
     }
     let mut rt = ctx_assoc_next_return_type_name(ctx, owner.clone().concat(String_from("::next")))
-    if len(rt) == 0 {
+    if rt.len() == 0 {
         rt = ctx_assoc_next_return_type_name(ctx, owner.clone().concat(String_from("__next")))
     }
-    if len(rt) == 0 {
+    if rt.len() == 0 {
         let candidates = ctx_assoc_mono_next_names(owner.clone())
         let mut ci = 0
-        while ci < len(candidates) {
+        while ci < candidates.len() {
             let found = ctx_assoc_next_return_type_name(ctx, get_unchecked(candidates, ci))
-            if len(found) > 0 {
+            if found.len() > 0 {
                 rt = found
-                ci = len(candidates)
+                ci = candidates.len()
             }
             ci = ci + 1
         }
@@ -975,10 +975,10 @@ fn ctx_resolve_iterator_item_type(ctx: LowerCtx, owner_name: String) -> String {
 fn ctx_assoc_owner_base_name(owner_name: String) -> String {
     let mut name = owner_name.clone()
     if name.clone().starts_with(String_from("?")) {
-        name = name.slice(1, len(name))
+        name = name.slice(1, name.len())
     }
     if name.clone().starts_with(String_from("struct:")) || name.clone().starts_with(String_from("enum:")) {
-        let inner = name.clone().slice(name.clone().index_of(String_from(":")) + 1, len(name))
+        let inner = name.clone().slice(name.clone().index_of(String_from(":")) + 1, name.len())
         let tail = inner.clone().index_of(String_from(":"))
         if tail > 0 {
             return inner.slice(0, tail)
@@ -1008,10 +1008,10 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
     let lt = owner.clone().index_of(String_from("<"))
     if lt > 0 && owner.clone().ends_with(String_from(">")) {
         let base = owner.clone().slice(0, lt)
-        let args = ctx_split_top_level_type_args(owner.clone().slice(lt + 1, len(owner) - 1))
+        let args = ctx_split_top_level_type_args(owner.clone().slice(lt + 1, owner.len() - 1))
         let mut mangled = base.concat(String_from("__next"))
         let mut ai = 0
-        while ai < len(args) {
+        while ai < args.len() {
             let arg = ctx_trim_type_arg_ws(get_unchecked(args, ai))
             mangled = mangled.concat(String_from("__").concat(mono::mono_safe_name(arg)))
             ai = ai + 1
@@ -1022,13 +1022,13 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
     let us = owner.clone().index_of(String_from("_"))
     if us > 0 {
         let base = owner.clone().slice(0, us)
-        let rest = owner.clone().slice(us + 1, len(owner))
+        let rest = owner.clone().slice(us + 1, owner.len())
         push(names, base.concat(String_from("__next__")).concat(rest.clone()))
         // An underscore owner can hide a `__` argument boundary inside a
         // single `_` run (MapIter_String_i32 -> MapIter__next__String__i32).
         let mut separated = String_new()
         let mut i = 0
-        let n = len(rest)
+        let n = rest.len()
         while i < n {
             if rest.clone().byte_at(i) == 95 {
                 separated = separated.concat(String_from("__"))
@@ -1046,16 +1046,16 @@ fn ctx_assoc_mono_next_names(owner: String) -> Vec<String> {
 // else returns empty so non-Option signatures never resolve.
 fn ctx_option_payload_type_name(rt: String) -> String {
     if rt.clone().starts_with(String_from("option:")) {
-        return rt.slice(7, len(rt))
+        return rt.slice(7, rt.len())
     }
     if rt.clone().starts_with(String_from("Option<")) && rt.clone().ends_with(String_from(">")) {
-        return rt.slice(7, len(rt) - 1)
+        return rt.slice(7, rt.len() - 1)
     }
     if rt.clone().starts_with(String_from("Option_")) {
-        return rt.slice(7, len(rt))
+        return rt.slice(7, rt.len())
     }
     if rt.clone().starts_with(String_from("Option:")) {
-        return rt.slice(7, len(rt))
+        return rt.slice(7, rt.len())
     }
     String_new()
 }
@@ -1069,13 +1069,13 @@ fn ctx_resolve_assoc_projection_type(ctx: LowerCtx, seg: String) -> String {
     if sep < 0 {
         return String_new()
     }
-    let assoc = seg.clone().slice(sep + 2, len(seg))
+    let assoc = seg.clone().slice(sep + 2, seg.len())
     if !assoc.clone().eq(String_from("Item")) {
         return String_new()
     }
     let mut owner = seg.clone().slice(0, sep)
     let head = ctx_resolve_mono_type_param(ctx, owner.clone())
-    if len(head) > 0 {
+    if head.len() > 0 {
         owner = head
     }
     ctx_resolve_iterator_item_type(ctx, owner)
@@ -1084,7 +1084,7 @@ fn ctx_resolve_assoc_projection_type(ctx: LowerCtx, seg: String) -> String {
 fn find_last_double_colon(name: String) -> i32 {
     let mut found = 0 - 1
     let mut i = 0
-    while i + 1 < len(name) {
+    while i + 1 < name.len() {
         if name.clone().byte_at(i) == 58 && name.clone().byte_at(i + 1) == 58 {
             found = i
             i = i + 2
@@ -1110,7 +1110,7 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
     if !ft.clone().contains(String_from("::")) {
         return ft
     }
-    let n = len(ft)
+    let n = ft.len()
     // out_start: first un-emitted byte. outer_start: start of the current
     // depth-0 type segment (after the last top-level `:`/`;`). inner_start:
     // start of the current angle-bracket argument (after `<`/`,`).
@@ -1156,7 +1156,7 @@ fn ctx_resolve_field_type_projections(ctx: LowerCtx, ft: String) -> String {
                 resolved = ctx_resolve_iterator_item_type(ctx, owner.clone())
             }
             out = out.concat(ft.clone().slice(out_start, owner_start))
-            if len(resolved) > 0 {
+            if resolved.len() > 0 {
                 out = out.concat(resolved)
             } else {
                 out = out.concat(owner.clone())

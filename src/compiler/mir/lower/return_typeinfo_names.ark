@@ -4,7 +4,7 @@ use mir::lower_kinds
 fn mir_mono_key_for_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_tag(ty) == lower_kinds::TY_VEC() {
         let vec_name = mir_vec_return_type_name_from_type_info(ty)
-        if len(vec_name) > 0 {
+        if vec_name.len() > 0 {
             return vec_name
         }
         return String_from("vec:i32")
@@ -36,7 +36,7 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
         // bare vec:Vec collapse made Vec<Vec<String>>-style receivers
         // indistinguishable and pushed consumers onto a vec:String guess.
         let inner = mir_vec_return_type_name_from_type_info(vec_elem)
-        if len(inner) > 0 {
+        if inner.len() > 0 {
             return String_from("vec:").concat(inner)
         }
         return String_from("vec:Vec")
@@ -68,7 +68,7 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     // their names — collapsing to vec:i32 breaks Result::Ok(Vec) match
     // payload typing (#726 toml/json).
     let n = typeinfo_shape::mir_type_info_name(vec_elem)
-    if len(n) > 0 {
+    if n.len() > 0 {
         return String_from("vec:").concat(n)
     }
     String_from("vec:i32")
@@ -252,7 +252,7 @@ fn mir_struct_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if name.clone().eq(String_from("HashMap")) {
         return mir_hashmap_return_type_name_from_type_info(ty)
     }
-    if len(name) == 0 {
+    if name.len() == 0 {
         return name
     }
     let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
@@ -345,7 +345,7 @@ fn mir_generic_inst_arg_type_name(ty: TypeInfo) -> String {
     if tag == 20 {
         return String_from("fnref")
     }
-    if len(name) > 0 {
+    if name.len() > 0 {
         return name
     }
     if tag == lower_kinds::TY_I32() { return String_from("i32") }

@@ -1,7 +1,7 @@
 // Component interop smoke test: string parameter canonical ABI with u8 result.
 
 export fn byte_text(text: String) -> u8 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 7u8
     }
     9u8

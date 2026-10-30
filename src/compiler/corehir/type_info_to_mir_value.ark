@@ -32,7 +32,7 @@ fn type_info_nullability_approx(tag: i32) -> i32 {
 }
 
 fn vt_to_mir_value(mut table: TypeTable, val_type: i32, type_name: String) -> MirValueType {
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         return mir_value_type_from_type_name(table, type_name.clone(), val_type)
     }
     let tag = vt_tag_from_mir_vt(val_type)
@@ -143,7 +143,7 @@ fn mir_value_type_vec_single(mut table: TypeTable, ty: TypeInfo) -> Vec<MirValue
 // Concreteness is checked by attempting to produce a type alias string: if the
 // type tree contains a TYPE_VAR entry, mvt_to_type_name returns empty.
 fn mvt_is_concrete(table: TypeTable, mvt: MirValueType) -> bool {
-    len(mvt_to_type_name(table, mvt)) > 0
+    mvt_to_type_name(table, mvt).len() > 0
 }
 
 // Return a GC-layout alias string only when the MirValueType is a concrete
@@ -180,7 +180,7 @@ fn mvt_gc_layout_alias_is_bare_container(name: String) -> bool {
 
 // True when a CoreHIR-shaped local type must be kept over a tag-only MVT alias.
 fn concrete_type_outranks_mvt_alias(local_type: String, alias: String) -> bool {
-    if len(local_type) == 0 {
+    if local_type.len() == 0 {
         return false
     }
     if !mvt_gc_layout_alias_is_bare_container(alias.clone()) {
@@ -238,7 +238,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
     if kind == kinds::TYPE_KIND_VEC() && arg_count == 1 {
         let elem = type_table::type_entry_type_param_at(entry, 0)
         let elem_name = type_id_to_type_name(table, elem, depth + 1)
-        if len(elem_name) == 0 {
+        if elem_name.len() == 0 {
             return String_new()
         }
         return String_from("vec:").concat(elem_name)
@@ -246,7 +246,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
     if kind == kinds::TYPE_KIND_OPTION() && arg_count == 1 {
         let inner = type_table::type_entry_type_param_at(entry, 0)
         let inner_name = type_id_to_type_name(table, inner, depth + 1)
-        if len(inner_name) == 0 {
+        if inner_name.len() == 0 {
             return String_new()
         }
         return String_from("option:").concat(inner_name)
@@ -256,7 +256,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         let err = type_table::type_entry_type_param_at(entry, 1)
         let ok_name = type_id_to_type_name(table, ok, depth + 1)
         let err_name = type_id_to_type_name(table, err, depth + 1)
-        if len(ok_name) == 0 || len(err_name) == 0 {
+        if ok_name.len() == 0 || err_name.len() == 0 {
             return String_new()
         }
         return String_from("result:").concat(ok_name).concat(String_from(":").concat(err_name))
@@ -266,7 +266,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         let v = type_table::type_entry_type_param_at(entry, 1)
         let k_name = type_id_to_type_name(table, k, depth + 1)
         let v_name = type_id_to_type_name(table, v, depth + 1)
-        if len(k_name) == 0 || len(v_name) == 0 {
+        if k_name.len() == 0 || v_name.len() == 0 {
             return String_new()
         }
         return String_from("hashmap:").concat(hashmap_type_name::hashmap_type_alias(k_name, v_name))
@@ -279,7 +279,7 @@ fn type_params_are_concrete(table: TypeTable, entry: TypeEntry, depth: i32) -> b
     let mut ai = 0
     while ai < arg_count {
         let arg = type_table::type_entry_type_param_at(entry, ai)
-        if len(type_id_to_type_name(table, arg, depth + 1)) == 0 {
+        if type_id_to_type_name(table, arg, depth + 1).len() == 0 {
             return false
         }
         ai = ai + 1
@@ -288,7 +288,7 @@ fn type_params_are_concrete(table: TypeTable, entry: TypeEntry, depth: i32) -> b
 }
 
 fn string_contains_char(s: String, c: i32) -> bool {
-    let n = len(s)
+    let n = s.len()
     let mut i = 0
     while i < n {
         if s.byte_at(i) == c {

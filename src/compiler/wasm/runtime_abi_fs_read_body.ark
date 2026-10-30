@@ -276,15 +276,15 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
     let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    let count = len(names)
+    let count = names.len()
     let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
         if get_unchecked(names, i).clone().eq(variant_name.clone()) {
-            if i < len(type_map) {
+            if i < type_map.len() {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && get_unchecked(sigs, i).clone().ends_with(String_from("_f1_ref0")) {
+                    if i < sigs.len() && get_unchecked(sigs, i).clone().ends_with(String_from("_f1_ref0")) {
                         return variant_type
                     }
                     if fallback < 0 {

@@ -16,8 +16,8 @@ fn issue499_parser_pipepipe_self_check() -> String {
     if error_count != 0 {
         return "issue499 pipepipe fail: parse errors=".concat(error_count.to_string())
     }
-    if len(decls) != 1 {
-        return "issue499 pipepipe fail: decl count=".concat(len(decls).to_string())
+    if decls.len() != 1 {
+        return "issue499 pipepipe fail: decl count=".concat(decls.len().to_string())
     }
     let fn_decl = get_unchecked(decls, 0)
     if ast_kind_fields::AstNode_kind(fn_decl) != kinds::NK_FN_DECL() {

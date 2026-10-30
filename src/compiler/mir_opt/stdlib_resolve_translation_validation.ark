@@ -26,7 +26,7 @@ fn stdlib_resolve_validator_receiver_local(
         return 0 - 1
     }
     let staged_index = call_index - argc
-    if staged_index < 0 || staged_index >= len(before) {
+    if staged_index < 0 || staged_index >= before.len() {
         return 0 - 1
     }
     let staged = get_unchecked(before, staged_index)
@@ -38,7 +38,7 @@ fn stdlib_resolve_validator_receiver_local(
 
 fn stdlib_resolve_validator_vec_suffix(type_name: String) -> String {
     if type_name.clone().starts_with(String_from("vec:")) {
-        return type_name.clone().slice(4, len(type_name))
+        return type_name.clone().slice(4, type_name.len())
     }
     String_new()
 }
@@ -79,7 +79,7 @@ fn stdlib_resolve_validator_expected_target(
     call: MirInst
 ) -> String {
     let fallback = core_op_call::mir_call_normal_fallback_symbol(m, call)
-    if len(fallback) == 0 {
+    if fallback.len() == 0 {
         return String_new()
     }
     if !fallback.clone().starts_with(String_from("__core_vec_")) ||
@@ -98,7 +98,7 @@ fn stdlib_resolve_validator_expected_target(
         function_locals_view::MirFunction_local_at(f, recv)
     )
     let suffix = stdlib_resolve_validator_vec_suffix(type_name)
-    if len(suffix) == 0 {
+    if suffix.len() == 0 {
         if !stdlib_resolve_validator_fallback_matches_elem(fallback.clone(), suffix) {
             return String_new()
         }
@@ -174,7 +174,7 @@ fn stdlib_resolve_rewrite_valid(
         before
     )
     let target_name = inst_accessors_literals::MirInst_str_val(after)
-    if len(expected_target) == 0 || !target_name.clone().eq(expected_target) {
+    if expected_target.len() == 0 || !target_name.clone().eq(expected_target) {
         return false
     }
 
@@ -202,11 +202,11 @@ fn stdlib_resolve_block_translation_valid(
     before: Vec<MirInst>,
     after: Vec<MirInst>
 ) -> bool {
-    if len(before) != len(after) {
+    if before.len() != after.len() {
         return false
     }
     let mut i = 0
-    while i < len(before) {
+    while i < before.len() {
         if !stdlib_resolve_rewrite_valid(
             m,
             registry,

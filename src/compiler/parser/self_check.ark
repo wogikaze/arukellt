@@ -42,7 +42,7 @@ fn main() {
     let tokens = scan::tokenize(src)
     let mut p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
-    let n = len(decls)
+    let n = decls.len()
     Stdio::println("Parsed ".concat(n.to_string().concat(" declaration(s)")))
     let mut i = 0
     while i < n {

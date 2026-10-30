@@ -5,5 +5,5 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    Test::assert_eq_i32(len(v), 3)
+    Test::assert_eq_i32(v.len(), 3)
 }

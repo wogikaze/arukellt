@@ -12,7 +12,7 @@ fn main() {
     let it = v.iter()
     let mut scanned = it.scan(String_from(""), concat_str)
     let out = scanned.collect()
-    Test::assert_eq_i32(len(out), 2)
+    Test::assert_eq_i32(out.len(), 2)
     Test::assert_eq_string(get_unchecked(out, 0), "a")
     Test::assert_eq_string(get_unchecked(out, 1), "ab")
 }

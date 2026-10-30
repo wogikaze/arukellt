@@ -137,7 +137,7 @@ fn is_container_return_type_name(ret_name: String) -> bool {
 }
 
 fn strip_module_prefix_type_name(type_name: String) -> String {
-    let n = len(type_name)
+    let n = type_name.len()
     let mut i = n - 2
     while i >= 0 {
         if type_name.byte_at(i) == 58 && type_name.byte_at(i + 1) == 58 {
@@ -174,9 +174,9 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
     let mut elem = String_new()
     if vec_tn.clone().starts_with("vec:") {
-        elem = vec_tn.clone().slice(4, len(vec_tn))
+        elem = vec_tn.clone().slice(4, vec_tn.len())
     } else if vec_tn.clone().starts_with("Vec_") {
-        elem = vec_tn.clone().slice(4, len(vec_tn))
+        elem = vec_tn.clone().slice(4, vec_tn.len())
     } else {
         return Option::None
     }
@@ -251,7 +251,7 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
     if dest < 0 {
         return Option::None
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -356,7 +356,7 @@ fn call_result_is_last_call_arg(block: MirBlock, call_ii: i32, dest: i32) -> boo
 fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -515,7 +515,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     }
     if op == opcodes::MIR_STRUCT_NEW() {
         let struct_name = inst_record::mir_inst_str_val(inst)
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone()))
         }
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst)))
@@ -528,12 +528,12 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         let type_slot = inst_accessors_operands::MirInst_arg0(inst)
         let field_idx = inst_accessors_literals::MirInst_int_val(inst)
         let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-        if type_slot >= 0 && type_slot < len(sigs) {
+        if type_slot >= 0 && type_slot < sigs.len() {
             let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(get_unchecked(sigs, type_slot))
-            if field_idx >= 0 && field_idx < len(fields) {
+            if field_idx >= 0 && field_idx < fields.len() {
                 let field_sig = get_unchecked(fields, field_idx)
                 if field_sig.clone().starts_with("ref") {
-                    let offset_str = field_sig.clone().slice(3, len(field_sig))
+                    let offset_str = field_sig.clone().slice(3, field_sig.len())
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)
                     return Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
                 }
@@ -565,7 +565,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         // A named user struct may have a GC type index that also appears in
         // the enum-variant table. Its declared field ABI is authoritative;
         // only nameless bases need the open-enum fallback below.
-        if len(base_tn) > 0 {
+        if base_tn.len() > 0 {
             return Option::None
         }
         let base_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base)

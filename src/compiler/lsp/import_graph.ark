@@ -2,7 +2,7 @@ use std::text
 use compiler::session_parse
 use loader::module_import_paths
 fn path_is_imported(paths: Vec<String>, import_path: String) -> bool {
-    let n = len(paths)
+    let n = paths.len()
     let mut i = 0
     while i < n {
         if get_unchecked(paths, i).eq(import_path.clone()) {
@@ -34,7 +34,7 @@ pub fn first_use_insert_offset(text: String) -> i32 {
     if use_pos < 0 {
         return 0
     }
-    let n = len(text)
+    let n = text.len()
     let mut line_end = use_pos
     while line_end < n && text.byte_at(line_end) != 10 {
         line_end = line_end + 1

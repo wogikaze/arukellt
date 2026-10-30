@@ -231,18 +231,21 @@ The stable prelude collection frees `push<T>(mut Vec<T>, T)`,
 `get<T>(Vec<T>, i32) -> Option<T>`, and `pop<T>(mut Vec<T>) -> Option<T>` now
 declare the generic contract already recorded in `std/manifest.toml`, and the
 typechecker unifies their arguments with those signatures; `get_unchecked<T>`
-and `set<T>` already did. `push(Vec<i32>, String)` and `len(42)` are E0200 on
-both published Wasm targets instead of compiling into reinterpretation or
-invalid Wasm. `len` has two owners (`String`, `Vec<T>`): its declaration keeps
-the String spelling because the committed pin compiles the source tree, and
-the checker selects the receiver's owner contract, rejecting any other
-concrete receiver with `argument 1 has type …, expected String or Vec<T>`.
-The emitter still selects intrinsics through callee-name tables
-(`data/core-ops.toml` binds bare `len` to `string.len`; MIR rewrites Vec
-operations from the first argument's local type), so the
+and `set<T>` already did. `push(Vec<i32>, String)` is E0200 on both published
+Wasm targets instead of compiling into reinterpretation or invalid Wasm.
+
+`len` retired from the prelude on 2026-10-30 (`wave/vec-intrinsic-len`): bare
+`len(x)` and `use std::prelude::{len}` fail with E0100 and a receiver-method
+hint. `s.len()` and `v.len()` own the surface, including inline
+`s.slice(start, end).len()` results. The emitter resolves the owner-qualified
+`String::len` / `Vec::len` spellings in `data/core-ops.toml`; MIR still
+rewrites Vec operations from the first argument's local type, so the
 `FunctionId` → `CoreOpId` dispatch and the remaining placeholder bodies stay
-open in #936. Evidence: `diagnostics/prelude_vec_push_arg_type`,
-`diagnostics/prelude_len_arg_type` (with `_wasm32` companions) and
+open in #936. The bootstrap flat overlay keeps an overlay-only `len`
+declaration because the committed pin lowers a String `.len()` through that
+name; user programs do not see it. Evidence:
+`diagnostics/removed_len_free` (with `_wasm32`), `diagnostics/removed_len_import`,
+`stdlib_vec/len_method_surface` (both targets) and
 `stdlib_vec/prelude_generic_signatures`.
 
 ### Language v2 conversion and error boundary (#857 / ADR-063)
@@ -389,8 +392,8 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Observed quick gate: `python3 scripts/manager.py verify quick` — 151/151 checks pass.
 - Coverage: not exhaustive runtime or pinned/reference parity; not a release-readiness receipt. Historical failures are not individually resolved by this observation.
 - Historical fixture harness (2026-07-15): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 3622 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 2034 registry entries (not proof they fail)
+- Fixture registry: 3624 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 2036 registry entries (not proof they fail)
 - Accounting note: Historical pinned/reference snapshot: 57+1089+442=1588 outcomes from 2026-07-15 at 982f3102; the historical registry size was 2871 and the 1283 remainder were not part of that run (not proof they fail). The current registry has 3575 entries after the v2 ownership, closure-capture, trait-core, conversion-boundary, Error-trait, operator-trait, generic-HashMap, numeric-conversion, arithmetic-evaluation, Unicode-semantics, let-generalization/value-restriction, import/use syntax, Prelude, boolean literal, keyword policy, multi-clause grammar, target capability, ADT fallback runtime, hygienic desugaring, iterator capability diagnostics, linear GC entry-collection, linear GC HashMap-survival, HashMap for-in iteration, generic for-source diagnostic, parametric trait impl, generic struct field-method, generic inherent struct-literal, enum struct-payload field-access, generic struct-item iterator, nested generic iterator adapter, desugared-iteration equivalence, generic struct Vec-field, generic fn-field iterator, item-generic iterator adapter migration, generic Ord seq-algorithm, unbound-typevar clone, HashMap keys/fn-valued-map iteration, closure capture-escape diagnostic, closure copy-capture snapshot, generic inferred struct-literal, generic fn-field Option-step, struct fn-field call, zero-param fn-valued HashMap call, struct option vec fn fields, generic scan iterator, flat-map adapter, peek adapter, and step+scan iterator, and String-lane generic scan iterator, and borrow-rebind write-through, and Option-tuple-payload, and method-level-generics iterator map type-change plus unresolved method type-parameter diagnostic, and zero-param fn-value ref-return, and payload-enum unit-variant match arm, and cyclic graph walk, and spec-example normative-doc, and migration-diagnostic, and match-exhaustiveness, and or-pattern variant-alternative, and nested-closure capture-through, and variant-payload sub-pattern plus variant-payload struct-subpattern diagnostic, and untyped-option-scrutinee fixtures were added, and the untyped-None-scrutinee-bind compile-error fixture was added, plus the prelude-enum name-shadow run fixture and the generic struct-enum shadow diagnostic fixture, and the nested-closure mark-propagation diagnostics and shadow-scope guard fixtures, plus the hashmap-unsupported-pair diagnostic reclassification from t3-compile to diag and the duplicate numeric-implicit-promotion t3-compile removal, and the two-bound distinct-layout GC fixture and the prelude concrete/conversion argument-type diagnostic fixtures were added, so the current registry remainder is 1987, after the stdlib_deque run/t3 fixtures, the typed stdio handle fixtures, and the empty-struct lowering fixture, the ADR-088 mut-parameter fixtures were added, and the ADR-088 §6 Box-escape and §7 function-type-position fixtures were added, and the ADR-089 associated generic-return fixture was added, and the E0212 non-call read-position fixtures were added, and the Vec<T: Ord> i64/String sort fixtures were added (#965), and the HashMap flat-store method-surface migration plus the dual-target deprecated/removed HashMap diagnostics were added (#917), and the #936 prelude Vec signature and owner-receiver fixtures were added. These counts and the recorded 166/166 quick checks are historical, not current ADR-057 results. The separate current observation does not resolve individual historical failures or reclassify CLI/diagnostic parity and release readiness.
 - Wasm validation is a hard error (W0004)
 - Historical verification: `python3 scripts/manager.py verify quick` — **166/166 checks pass**

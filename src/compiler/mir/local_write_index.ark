@@ -61,18 +61,18 @@ fn LocalWriteIndex_build(f: MirFunction, local_count: i32) -> LocalWriteIndex {
 }
 
 fn local_write_index_is_active(index: LocalWriteIndex) -> bool {
-    len(index.offsets) > 1
+    index.offsets.len() > 1
 }
 
 fn local_write_index_begin(index: LocalWriteIndex, local_idx: i32) -> i32 {
-    if local_idx < 0 || local_idx + 1 >= len(index.offsets) {
+    if local_idx < 0 || local_idx + 1 >= index.offsets.len() {
         return 0
     }
     get_unchecked(index.offsets, local_idx)
 }
 
 fn local_write_index_end(index: LocalWriteIndex, local_idx: i32) -> i32 {
-    if local_idx < 0 || local_idx + 1 >= len(index.offsets) {
+    if local_idx < 0 || local_idx + 1 >= index.offsets.len() {
         return 0
     }
     get_unchecked(index.offsets, local_idx + 1)

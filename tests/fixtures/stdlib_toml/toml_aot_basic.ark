@@ -7,7 +7,7 @@ fn main() {
     match t {
         Result::Ok(table) => match table.get_field("items") {
             Option::Some(v) => match v.as_array() {
-                Option::Some(arr) => Test::assert_eq_i32(len(arr), 2),
+                Option::Some(arr) => Test::assert_eq_i32(arr.len(), 2),
                 None => assert(false),
             },
             None => assert(false),

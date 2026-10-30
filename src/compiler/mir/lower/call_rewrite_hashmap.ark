@@ -66,14 +66,14 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
         return String_new()
     }
     let family = hashmap_family_for_type(ctx_api_local_types::ctx_get_local_type(ctx, receiver_idx))
-    if len(family) == 0 {
+    if family.len() == 0 {
         family = hashmap_family_for_callee(callee_name.clone())
     }
-    if len(family) == 0 {
+    if family.len() == 0 {
         return String_new()
     }
     let method = hashmap_method_name(callee_name.clone())
-    if len(method) == 0 {
+    if method.len() == 0 {
         return String_new()
     }
     // `iter` and `entry` are source-level methods on the concrete pair impls,
@@ -110,7 +110,7 @@ fn hashmap_source_method_owner(family: String, method: String) -> String {
     } else {
         String_new()
     }
-    if len(owner) == 0 {
+    if owner.len() == 0 {
         return String_new()
     }
     owner.concat(String_from("::").concat(method))
@@ -284,10 +284,10 @@ fn hashmap_method_name(callee_name: String) -> String {
         return strip_hashmap_method_suffix(callee_name.clone())
     }
     if callee_name.clone().starts_with(String_from("HashMap::")) {
-        return strip_hashmap_method_suffix(callee_name.slice(9, len(callee_name)))
+        return strip_hashmap_method_suffix(callee_name.slice(9, callee_name.len()))
     }
     if callee_name.clone().starts_with(String_from("HashMap__")) {
-        return strip_hashmap_method_suffix(callee_name.slice(9, len(callee_name)))
+        return strip_hashmap_method_suffix(callee_name.slice(9, callee_name.len()))
     }
     // The capacity / bulk methods are declared on the concrete
     // `impl HashMap<i32, i32>`; impl-method resolution can hand the call
@@ -300,7 +300,7 @@ fn hashmap_method_name(callee_name: String) -> String {
     callee_name.clone().starts_with(String_from("HashMap<")) {
         let separator = callee_name.clone().index_of(String_from("::"))
         if separator > 0 {
-            return strip_hashmap_method_suffix(callee_name.slice(separator + 2, len(callee_name)))
+            return strip_hashmap_method_suffix(callee_name.slice(separator + 2, callee_name.len()))
         }
     }
     String_new()
@@ -374,14 +374,14 @@ fn hashmap_pair_alias_for_type_name(type_name: String) -> String {
     !type_name.clone().ends_with(String_from(">")) {
         return type_name
     }
-    let inner = type_name.clone().slice(8, len(type_name) - 1)
+    let inner = type_name.clone().slice(8, type_name.len() - 1)
     let comma = hashmap_angle_comma_index(inner.clone())
     if comma < 0 {
         return type_name
     }
     let key = hashmap_angle_key_tag(inner.clone().slice(0, comma))
-    let val = hashmap_angle_val_tag(inner.clone().slice(comma + 1, len(inner)))
-    if len(key) == 0 || len(val) == 0 {
+    let val = hashmap_angle_val_tag(inner.clone().slice(comma + 1, inner.len()))
+    if key.len() == 0 || val.len() == 0 {
         return type_name
     }
     String_from("hashmap:").concat(key.concat(val))
@@ -392,7 +392,7 @@ fn hashmap_pair_alias_for_type_name(type_name: String) -> String {
 fn hashmap_angle_comma_index(inner: String) -> i32 {
     let mut depth = 0
     let mut i = 0
-    let n = len(inner)
+    let n = inner.len()
     while i < n {
         let ch = inner.clone().byte_at(i)
         if ch == 60 || ch == 40 {
@@ -410,7 +410,7 @@ fn hashmap_angle_comma_index(inner: String) -> i32 {
 }
 
 fn hashmap_angle_seg_trim(seg: String) -> String {
-    let n = len(seg)
+    let n = seg.len()
     let mut i = 0
     while i < n && seg.clone().byte_at(i) == 32 {
         i = i + 1

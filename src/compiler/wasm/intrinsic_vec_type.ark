@@ -32,7 +32,7 @@ fn resolve_array_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_name.clone().starts_with(String_from("array:")) {
         // Array literals use a separate marker because their value is the
         // backing array itself, unlike Vec<T>'s one-field header.
-        tname = String_from("vec:").concat(local_name.slice(6, len(local_name)))
+        tname = String_from("vec:").concat(local_name.slice(6, local_name.len()))
     }
     let resolved = array_type_from_type_name(ctx, tname.clone())
     if resolved >= 0 {
@@ -103,7 +103,7 @@ fn array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
         return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
     }
     if tname.clone().starts_with(String_from("vec:")) {
-        let elem = tname.clone().slice(4, len(tname))
+        let elem = tname.clone().slice(4, tname.len())
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
         }
@@ -148,12 +148,12 @@ fn vec_element_type_name_for_call(ctx: SelfEmitCtx, callee: String, inst: MirIns
     let src_local = find_call_source_local(ctx, callee.clone(), inst)
     let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, src_local))
     if tname.clone().starts_with(String_from("array:")) {
-        return tname.slice(6, len(tname))
+        return tname.slice(6, tname.len())
     }
     if !tname.clone().starts_with(String_from("vec:")) {
         return String_new()
     }
-    tname.clone().slice(4, len(tname))
+    tname.clone().slice(4, tname.len())
 }
 
 fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur_arg_count: i32) -> i32 {
@@ -175,7 +175,7 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
         look = look + 1
     }
     // arg_srcs is nearest-first; reverse-scan for arg0 vec.
-    let mut ai = len(arg_srcs) - 1
+    let mut ai = arg_srcs.len() - 1
     while ai >= 0 {
         let src = get_unchecked(arg_srcs, ai)
         let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, src))
@@ -189,8 +189,8 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
         }
     }
     // type_name may be missing after typed-sync; farthest LOCAL_GET is arg0 (the vec).
-    if found < 0 && len(arg_srcs) > 0 {
-        found = get_unchecked(arg_srcs, len(arg_srcs) - 1)
+    if found < 0 && arg_srcs.len() > 0 {
+        found = get_unchecked(arg_srcs, arg_srcs.len() - 1)
     }
     found
 }
@@ -308,7 +308,7 @@ fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
         return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     }
     if type_name.clone().starts_with("vec:") {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         if elem.clone().eq("String") || elem.clone().eq("string") || elem.clone().eq("Vec_String") {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
@@ -335,7 +335,7 @@ fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
     // Angle-bracket Vec<T>: route through the vec: spelling so Vec<i32>
     // resolves to the i32-vec layout instead of falling through to -1.
     if type_name.clone().starts_with(String_from("Vec<")) && type_name.clone().ends_with(String_from(">")) {
-        let inner = type_name.clone().slice(4, len(type_name) - 1)
+        let inner = type_name.clone().slice(4, type_name.len() - 1)
         return resolve_container_elem_gc_type(ctx, String_from("vec:").concat(inner))
     }
     0 - 1

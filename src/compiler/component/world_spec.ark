@@ -16,7 +16,7 @@ fn world_spec_world_name(world: String) -> String {
 }
 
 fn world_spec_parse_error(world: String) -> String {
-    if len(world) == 0 { return String_new() }
+    if world.len() == 0 { return String_new() }
     if world_spec_kind(world.clone()) != constants_world_spec::WORLD_KIND_NONE() { return String_new() }
     "unknown world `".concat(world.clone().concat("` (supported: wasi:cli/command)"))
 }
@@ -51,9 +51,9 @@ fn world_spec_wasi_imports() -> String {
 }
 
 fn world_target_error(world: String, target: String, emit_mode: String) -> String {
-    if len(world) == 0 { return String_new() }
+    if world.len() == 0 { return String_new() }
     let unknown = world_spec_parse_error(world.clone())
-    if len(unknown) > 0 { return unknown }
+    if unknown.len() > 0 { return unknown }
     if !target.clone().eq("wasm32-gc") { return "--world requires --target wasm32-gc" }
     String_new()
 }

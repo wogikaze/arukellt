@@ -17,11 +17,11 @@ fn main() {
     push(v, 4)
     push(v, 5)
     let doubled: Vec<i32> = v.iter().map(double).collect()
-    Stdio::println((len(doubled)).to_string())
+    Stdio::println((doubled.len()).to_string())
     Stdio::println((get_unchecked(doubled, 0)).to_string())
     Stdio::println((get_unchecked(doubled, 4)).to_string())
     let evens: Vec<i32> = v.iter().filter(is_even).collect()
-    Stdio::println((len(evens)).to_string())
+    Stdio::println((evens.len()).to_string())
     Stdio::println((get_unchecked(evens, 0)).to_string())
     Stdio::println((get_unchecked(evens, 1)).to_string())
 }

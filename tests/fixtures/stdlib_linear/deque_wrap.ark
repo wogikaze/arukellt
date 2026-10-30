@@ -35,7 +35,7 @@ fn main() {
 
     // Phase 5: deque_to_vec after wrap
     let v: Vec<i32> = linear::deque_to_vec(d)
-    Stdio::println((len(v)).to_string())  // 4
+    Stdio::println((v.len()).to_string())  // 4
     Stdio::println((get_unchecked(v, 0)).to_string())  // 10
     Stdio::println((get_unchecked(v, 1)).to_string())  // 3
     Stdio::println((get_unchecked(v, 2)).to_string())  // 4

@@ -102,7 +102,7 @@ fn invalid_node() -> AstNode {
 // Err means the input was not a well-formed v2 cache — callers must treat
 // it as a cache miss, never as an empty AST.
 pub fn deserialize_ast_nodes(data: String) -> Result<Vec<AstNode>, String> {
-    let data_len = len(data)
+    let data_len = data.len()
     if data_len < ASTC_HEADER_LEN {
         return Result::Err(String_from("astc: file smaller than header"))
     }
@@ -178,7 +178,7 @@ fn deserialize_node(data: String, pos: i32, limit: i32) -> (AstNode, i32) {
     }
     // The writer always emits the decimal form, so an empty slot means the
     // file was hand-crafted or corrupt.
-    if len(float_text) == 0 {
+    if float_text.len() == 0 {
         return (invalid_node(), -1)
     }
     let mut float_val = 0.0

@@ -11,11 +11,11 @@ fn path_symbol_part(path: String) -> String {
     if pos < 0 {
         return String_new()
     }
-    path.slice(pos + 2, len(path))
+    path.slice(pos + 2, path.len())
 }
 
 fn use_module_short_name(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
@@ -33,7 +33,7 @@ fn use_module_short_name(path: String) -> String {
 }
 
 fn use_module_parent_path(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {

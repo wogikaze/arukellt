@@ -1,7 +1,7 @@
 // Export with renamed String parameter and scalar result maps to WIT string -> s32.
 
 export fn measure_text(text: String) -> i32 {
-    len(text) + 1
+    text.len() + 1
 }
 
 fn main() {

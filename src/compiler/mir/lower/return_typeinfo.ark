@@ -51,28 +51,28 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
     match tag {
         1 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if len(name) > 0 {
+            if name.len() > 0 {
                 return name
             }
             "i32"
         },
         2 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if len(name) > 0 {
+            if name.len() > 0 {
                 return name
             }
             "i64"
         },
         3 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if len(name) > 0 {
+            if name.len() > 0 {
                 return name
             }
             "f64"
         },
         4 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if len(name) > 0 {
+            if name.len() > 0 {
                 return name
             }
             "bool"
@@ -80,14 +80,14 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         6 => "char",
         9 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if len(name) > 0 {
+            if name.len() > 0 {
                 return name
             }
             "f32"
         },
         5 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if len(name) == 0 {
+            if name.len() == 0 {
                 return "String"
             }
             name
@@ -124,7 +124,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let ret_seg_zero = return_typeinfo_names::mir_generic_inst_arg_type_name(
             typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
         )
-        if len(ret_seg_zero) == 0 || type_ann_node::fn_sig_segment_is_i32_family(ret_seg_zero.clone()) {
+        if ret_seg_zero.len() == 0 || type_ann_node::fn_sig_segment_is_i32_family(ret_seg_zero.clone()) {
             return String_from("fnref")
         }
         return String_from("fnsig:;").concat(ret_seg_zero)
@@ -155,7 +155,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let ret_seg_multi = return_typeinfo_names::mir_generic_inst_arg_type_name(
             typeinfo_shape::mir_type_info_type_arg_at(ty, argc - 1)
         )
-        if len(ret_seg_multi) > 0 &&
+        if ret_seg_multi.len() > 0 &&
         !type_ann_node::fn_sig_segment_is_i32_family(ret_seg_multi.clone()) {
             let mut params = String_new()
             let mut pi = 0
@@ -167,7 +167,7 @@ fn mir_fn_return_type_name_from_type_info(ty: TypeInfo) -> String {
                 let pseg = return_typeinfo_names::mir_generic_inst_arg_type_name(
                     typeinfo_shape::mir_type_info_type_arg_at(ty, pi)
                 )
-                if len(pseg) == 0 {
+                if pseg.len() == 0 {
                     unresolved = true
                 }
                 params = params.concat(pseg)

@@ -4,7 +4,7 @@ use std::text
 fn main() {
     match json::JsonValue::parse("\"a\\fb\"") {
         Result::Ok(v) => match v.as_string() {
-            Option::Some(s) => Test::assert_eq_i32(len(s), 3),
+            Option::Some(s) => Test::assert_eq_i32(s.len(), 3),
             None => Std::panic("expected string"),
         },
         Result::Err(e) => Std::panic("parse formfeed failed: ".concat(e.message())),

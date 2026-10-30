@@ -11,7 +11,7 @@ fn main() {
     push(v, 4.0)
     let mut result: Vec<f64> = Vec::new<f64>()
     let mut map_index: i32 = 0
-    while map_index < len(v) {
+    while map_index < v.len() {
         push(result, square(get_unchecked(v, map_index)))
         map_index = map_index + 1
     }

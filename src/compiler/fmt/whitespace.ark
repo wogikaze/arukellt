@@ -1,7 +1,7 @@
 use std::text
 
 fn fmt_normalize_line(line: String) -> String {
-    let n = len(line.clone())
+    let n = line.clone().len()
     let mut end = n
     while end > 0 {
         let c = line.clone().byte_at(end - 1)
@@ -25,14 +25,14 @@ fn fmt_normalize_line(line: String) -> String {
 }
 
 fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
-    let line_count = len(lines)
+    let line_count = lines.len()
     let mut out_lines = Vec::new<String>()
     let mut prev_blank = false
     let mut j = 0
     while j < line_count {
         let raw = get_unchecked(lines, j)
         let processed = fmt_normalize_line(raw)
-        let is_blank = len(processed) == 0
+        let is_blank = processed.len() == 0
         if !(is_blank && prev_blank) {
             push(out_lines, processed)
         }
@@ -43,10 +43,10 @@ fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
 }
 
 fn fmt_join_lines(lines: Vec<String>) -> String {
-    let mut end = len(lines)
+    let mut end = lines.len()
     while end > 0 {
         let last = get_unchecked(lines, end - 1)
-        if len(last) == 0 {
+        if last.len() == 0 {
             end = end - 1
         } else {
             break
@@ -67,7 +67,7 @@ fn fmt_join_lines(lines: Vec<String>) -> String {
 
 fn fmt_split_lines(input: String) -> Vec<String> {
     let mut lines = Vec::new<String>()
-    let n = len(input.clone())
+    let n = input.clone().len()
     let mut start = 0
     let mut i = 0
     while i < n {

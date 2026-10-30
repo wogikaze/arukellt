@@ -32,7 +32,7 @@ fn MatchCoverage_has_result_err(coverage: MatchCoverage) -> bool {
 }
 
 fn MatchCoverage_variant_count(coverage: MatchCoverage) -> i32 {
-    len(coverage.covered_variants)
+    coverage.covered_variants.len()
 }
 
 fn MatchCoverage_variant_at(coverage: MatchCoverage, index: i32) -> String {

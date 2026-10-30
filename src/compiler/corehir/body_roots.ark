@@ -37,7 +37,7 @@ fn lower_fn_contracts(mut builder: CoreHirBodyTable, decl: AstNode) -> i32 {
 
 fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
     let mut builder = body::CoreHirBodyTable_new()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)

@@ -2,7 +2,7 @@ use collections::name_index
 use corehir::frontend_decl_kind
 use corehir::frontend_ast_node
 fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
-    len(ctx.fn_names)
+    ctx.fn_names.len()
 }
 
 fn ctx_fn_index_name_at(ctx: LowerCtx, index: i32) -> String {
@@ -39,7 +39,7 @@ fn ctx_fn_index_replace(
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
     ctx.fn_return_type_names = fn_return_type_names
-    let count = len(fn_names)
+    let count = fn_names.len()
     let mut index = name_index::NameIndex_new(count)
     // Entry-module generic decls claim their bare names before the in-order
     // pass. Loaded modules are listed first and insert_first keeps the first
@@ -47,7 +47,7 @@ fn ctx_fn_index_replace(
     // (std::core::identity(i32) vs fn identity<T>) would own the slot and
     // bare-name return lookups would read the imported signature. This
     // mirrors the typechecker's build_fn_sig_index priority (#914).
-    let priority_count = len(priority_fn_indices)
+    let priority_count = priority_fn_indices.len()
     let mut p = 0
     while p < priority_count {
         let priority_index = get_unchecked(priority_fn_indices, p)
@@ -64,7 +64,7 @@ fn ctx_fn_index_replace(
     let mut i = 0
     while i < count {
         let name = get_unchecked(fn_names, i).clone()
-        push(lengths, len(name.clone()))
+        push(lengths, name.clone().len())
         name_index::name_index_insert_first(index, name, i)
         i = i + 1
     }
@@ -81,7 +81,7 @@ fn ctx_qualified_fn_index_replace(
     ctx.qualified_fn_names = names
     ctx.qualified_fn_return_vts = return_vts
     ctx.qualified_fn_return_type_names = return_type_names
-    let count = len(names)
+    let count = names.len()
     let mut index = name_index::NameIndex_new(count)
     let mut i = 0
     while i < count {
@@ -92,9 +92,9 @@ fn ctx_qualified_fn_index_replace(
 }
 
 fn ctx_fn_index_push(mut ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
-    let index = len(ctx.fn_names)
+    let index = ctx.fn_names.len()
     name_index::name_index_insert_first(ctx.fn_name_index, name.clone(), index)
-    push(ctx.fn_name_lengths, len(name.clone()))
+    push(ctx.fn_name_lengths, name.clone().len())
     push(ctx.fn_names, name)
     push(ctx.fn_return_vts, return_vt)
     push(ctx.fn_return_type_names, return_type_name)
@@ -103,7 +103,7 @@ fn ctx_fn_index_push(mut ctx: LowerCtx, name: String, return_vt: i32, return_typ
 fn ctx_set_const_names(mut ctx: LowerCtx, decls: Vec<AstNode>) {
     ctx.const_names = Vec::new<String>()
     let mut i = 0
-    while i < len(decls) {
+    while i < decls.len() {
         let decl = get_unchecked(decls, i)
         if frontend_decl_kind::corehir_kind_is_decl_const(frontend_ast_node::corehir_node_kind(decl)) {
             push(ctx.const_names, frontend_ast_node::corehir_node_text(decl))
@@ -113,7 +113,7 @@ fn ctx_set_const_names(mut ctx: LowerCtx, decls: Vec<AstNode>) {
 }
 
 fn ctx_is_const_name(ctx: LowerCtx, name: String) -> bool {
-    let mut i = len(ctx.const_names) - 1
+    let mut i = ctx.const_names.len() - 1
     while i >= 0 {
         if get_unchecked(ctx.const_names, i).eq(name.clone()) {
             return true

@@ -21,7 +21,7 @@ fn lower_core_closure(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     // keep env-cell/write-back flags only for unpromoted captures (#891).
     let mut eff_rebinds = Vec::new<i32>()
     let mut pi = 0
-    while pi < len(caps) {
+    while pi < caps.len() {
         let mut eff = get_unchecked(rebind_flags, pi)
         if eff != 0 &&
         closure_pcells::ctx_promote_capture_cell(ctx, get_unchecked(caps, pi).clone()) >= 0 {
@@ -32,7 +32,7 @@ fn lower_core_closure(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     }
     let supply_caps = body_closure_capture::mir_closure_snapshot_copy_captures(ctx, caps, synth.clone())
     let packed = closure_capture_args::closure_pack_caps(supply_caps)
-    let extra = len(caps)
+    let extra = caps.len()
     let mut mf = core_closure_emit::core_emit_closure_fn(ctx, exprs, synth, expr, caps, eff_rebinds)
     closure_registry::closure_register_synth_fn(ctx, mf, packed, extra, ctx_env_cells::ctx_has_env_cell(eff_rebinds), caps, eff_rebinds, 0)
 }

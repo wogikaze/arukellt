@@ -4,7 +4,7 @@ use typechecker::contract_type_access
 use typechecker::contract_type_mutation
 fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> TypeInfo {
     if contract_type_access::TypeInfo_tag(ty) == commands::TY_TYPE_VAR() {
-        let count = len(names)
+        let count = names.len()
         let mut i = 0
         while i < count {
             let n = get_unchecked(names, i)

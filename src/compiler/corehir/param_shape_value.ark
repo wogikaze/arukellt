@@ -97,13 +97,13 @@ fn param_ann_value_type(
 // declared nominal-type table mentions: keep the historical single-letter
 // convention. A declared struct/enum is handled before this predicate.
 fn param_ann_name_is_type_param(name: String) -> bool {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return false
     }
     if name.clone().starts_with("?") {
-        return param_ann_name_is_type_param(name.slice(1, len(name)))
+        return param_ann_name_is_type_param(name.slice(1, name.len()))
     }
-    if len(name) == 1 {
+    if name.len() == 1 {
         let ch = name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true

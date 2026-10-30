@@ -280,13 +280,20 @@ through the `__intrinsic_*` conversion bridges (ADR-067).
 | `f64_bits_lo(x)` | `(x).to_bits_lo()` |
 | `f64_bits_hi(x)` | `(x).to_bits_hi()` |
 
-### Vec intrinsic-compat frees (10)
+### Vec intrinsic-compat frees (10; `len` retired 2026-10-30)
+
+`len` retired in `wave/vec-intrinsic-len`. Bare calls and selective
+`use std::prelude::{len}` imports now fail with **E0100** and the
+receiver-method hint; the same wave migrated 5,701 in-tree call sites
+(compiler, std, fixtures, benchmarks) to the method spelling. `len`
+served both `String` and `Vec` receivers; the checker selected the
+owner, so both are covered by one method name.
 
 | Deprecated API | Replacement |
 |----------------|-------------|
 | `push(v, x)` | `v.push(x)` |
 | `pop(v)` | `v.pop()` |
-| `len(v)` | `v.len()` |
+| `len(v)` / `len(s)` | `v.len()` / `s.len()` (retired 2026-10-30) |
 | `get(v, i)` | `v.get(i)` |
 | `set(v, i, x)` | `v.set(i, x)` |
 | `get_unchecked(v, i)` | `v.get_unchecked(i)` |

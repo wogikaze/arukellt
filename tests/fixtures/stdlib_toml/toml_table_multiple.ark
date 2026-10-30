@@ -7,7 +7,7 @@ fn main() {
     match t {
         Result::Ok(table) => {
             let keys = table.table_keys()
-            Test::assert_eq_i32(len(keys), 2)
+            Test::assert_eq_i32(keys.len(), 2)
             match table.get_field("a") {
                 Option::Some(a) => match a.get_field("x") {
                     Option::Some(v) => match v.as_int() {

@@ -6,5 +6,5 @@ fn main() -> i32 {
         acc = acc.concat(String_from("y"))
         i = i + 1
     }
-    if len(acc) == 25 { 0 } else { 1 }
+    if acc.len() == 25 { 0 } else { 1 }
 }

@@ -108,7 +108,7 @@ fn symbol_index_mark_indexed(mut indexed_uris: Vec<String>, uri: String) {
 }
 
 fn symbol_index_uri_index(indexed_uris: Vec<String>, uri: String) -> i32 {
-    let n = len(indexed_uris)
+    let n = indexed_uris.len()
     let mut i = 0
     while i < n {
         if get_unchecked(indexed_uris, i).clone().eq(uri.clone()) {

@@ -87,7 +87,7 @@ fn mir_fn_index_source_typed_param_count(source: MirLowerFnIndexSource, typed_in
     let type_source = source.type_source
     if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
-        return len(tf.param_types)
+        return tf.param_types.len()
     }
     0
 }

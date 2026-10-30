@@ -29,7 +29,7 @@ fn type_info_set_name(mut ty: TypeInfo, name: String) {
 }
 
 fn type_info_type_arg_count(ty: TypeInfo) -> i32 {
-    len(ty.type_args)
+    ty.type_args.len()
 }
 
 fn type_info_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
@@ -41,11 +41,11 @@ fn type_info_push_type_arg(mut ty: TypeInfo, arg: TypeInfo) {
 }
 
 fn type_info_param_mode_count(ty: TypeInfo) -> i32 {
-    len(ty.param_modes)
+    ty.param_modes.len()
 }
 
 fn type_info_param_is_mut(ty: TypeInfo, index: i32) -> bool {
-    if index < 0 || index >= len(ty.param_modes) {
+    if index < 0 || index >= ty.param_modes.len() {
         return false
     }
     get_unchecked(ty.param_modes, index)

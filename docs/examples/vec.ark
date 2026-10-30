@@ -5,7 +5,7 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    Stdio::println((len(v)).to_string())
+    Stdio::println((v.len()).to_string())
     match get(v, 0) {
         Option::Some(val) => Stdio::println((val).to_string()),
         None => Stdio::println("out of bounds"),

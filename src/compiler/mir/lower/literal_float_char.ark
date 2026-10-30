@@ -15,7 +15,7 @@ fn lower_char_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
 
 fn lower_float_literal(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_text = ast_node::node_text(node)
-    let raw_len = len(raw_text)
+    let raw_len = raw_text.len()
     if mir_float_literal_has_f32_suffix(raw_text, raw_len) {
         let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F32())
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f32"))

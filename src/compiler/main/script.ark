@@ -11,12 +11,12 @@ pub fn cmd_script(opts: CliOptions) {
         Result::Ok(content) => {
             let script_name = args_record::cli_input_file(opts)
             let scripts_content = toml::TomlText::find_section(content.clone(), String_from("scripts"))
-            if len(script_name) == 0 {
+            if script_name.len() == 0 {
                 script_list::print_script_list(scripts_content)
                 return
             }
             let found = toml::TomlText::find_value(scripts_content.clone(), script_name.clone())
-            if len(found) > 0 {
+            if found.len() > 0 {
                 Stdio::println(found.clone())
                 return
             }

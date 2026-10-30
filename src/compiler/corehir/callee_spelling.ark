@@ -18,7 +18,7 @@ use std::prelude::{byte_at, substring}
 use corehir::name_match
 
 fn callee_spelling_segment_count(name: String) -> i32 {
-    let n = len(name)
+    let n = name.len()
     let mut separators = 0
     let mut i = 0
     while i + 1 < n {
@@ -33,7 +33,7 @@ fn callee_spelling_segment_count(name: String) -> i32 {
 }
 
 fn callee_spelling_after_first_segment(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     while i + 1 < n {
         if byte_at(name, i) == 58 && byte_at(name, i + 1) == 58 {
@@ -45,7 +45,7 @@ fn callee_spelling_after_first_segment(name: String) -> String {
 }
 
 fn callee_spelling_last_two_segments(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut previous = 0 - 1
     let mut last = 0 - 1
     let mut i = 0
@@ -72,9 +72,9 @@ fn callee_spelling_last_two_segments(name: String) -> String {
 // place: building `"::" + name` or `name + "__" + method` here allocated per
 // check and dominated the overlay GC churn.
 fn starts_with_mono_tail(callee: String, owner_name: String, method_name: String) -> bool {
-    let owner_len = len(owner_name)
-    let method_len = len(method_name)
-    if len(callee) < owner_len + 2 + method_len + 2 {
+    let owner_len = owner_name.len()
+    let method_len = method_name.len()
+    if callee.len() < owner_len + 2 + method_len + 2 {
         return false
     }
     name_match::NameMatch::region_equal(callee, 0, owner_name, 0, owner_len) &&
@@ -86,10 +86,10 @@ fn starts_with_mono_tail(callee: String, owner_name: String, method_name: String
 }
 
 fn contains_mono_qualified(callee: String, owner_name: String, method_name: String) -> bool {
-    let owner_len = len(owner_name)
-    let method_len = len(method_name)
+    let owner_len = owner_name.len()
+    let method_len = method_name.len()
     let pattern_len = 2 + owner_len + 2 + method_len + 2
-    let callee_len = len(callee)
+    let callee_len = callee.len()
     let mut i = 0
     while i + pattern_len <= callee_len {
         if byte_at(callee, i) == 58 &&
@@ -140,17 +140,17 @@ fn callee_spelling_variants(name: String) -> Vec<String> {
         return variants
     }
     let last_two = callee_spelling_last_two_segments(name.clone())
-    if len(last_two) > 0 && !last_two.clone().eq(name.clone()) {
+    if last_two.len() > 0 && !last_two.clone().eq(name.clone()) {
         push(variants, last_two.clone())
     }
     let after_first = callee_spelling_after_first_segment(name.clone())
-    if len(after_first) > 0 && !after_first.clone().eq(name.clone()) {
+    if after_first.len() > 0 && !after_first.clone().eq(name.clone()) {
         let mut seen = false
         let mut i = 0
-        while i < len(variants) {
+        while i < variants.len() {
             if get_unchecked(variants, i).clone().eq(after_first.clone()) {
                 seen = true
-                i = len(variants)
+                i = variants.len()
             } else {
                 i = i + 1
             }

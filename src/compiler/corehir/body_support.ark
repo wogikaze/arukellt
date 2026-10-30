@@ -2,7 +2,7 @@ use corehir::expr_access_children
 use corehir::expr_predicates
 
 fn expr_tree_is_supported(exprs: Vec<CoreHirExpr>, root: i32) -> bool {
-    if root < 0 || root >= len(exprs) {
+    if root < 0 || root >= exprs.len() {
         return false
     }
     let expr = get_unchecked(exprs, root)

@@ -54,7 +54,7 @@ fn decl_layout_field_type_name(field: AstNode) -> String {
         return type_ann_node::type_ann_function_ref_name(fty)
     }
     let type_name = decl_layout_type_name(fty)
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         return type_name
     }
     ""
@@ -68,7 +68,7 @@ fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
         return type_ann_node::type_ann_function_ref_name(pfield)
     }
     let type_name = decl_layout_type_name(pfield)
-    if len(type_name) > 0 {
+    if type_name.len() > 0 {
         return type_name
     }
     ""
@@ -112,7 +112,7 @@ fn decl_layout_type_name(ann: AstNode) -> String {
         // with substituted field types. Args reuse the same canonical names
         // as field types (vec:/option:/result:/plain names).
         let generic_name = decl_layout_generic_inst_name(ann)
-        if len(generic_name) > 0 {
+        if generic_name.len() > 0 {
             return generic_name
         }
         return ann_name
@@ -130,7 +130,7 @@ fn decl_layout_type_name(ann: AstNode) -> String {
 // annotations. Child 0 is the base name; children 1.. are the arguments.
 fn decl_layout_generic_inst_name(ann: AstNode) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
-    if len(ann_name) == 0 {
+    if ann_name.len() == 0 {
         return String_new()
     }
     let arg_count = type_ann_node::type_ann_child_count(ann)
@@ -141,7 +141,7 @@ fn decl_layout_generic_inst_name(ann: AstNode) -> String {
     let mut i = 1
     while i < arg_count {
         let arg_name = decl_layout_type_name(type_ann_node::type_ann_child_at(ann, i))
-        if len(arg_name) == 0 {
+        if arg_name.len() == 0 {
             return String_new()
         }
         if i > 1 {

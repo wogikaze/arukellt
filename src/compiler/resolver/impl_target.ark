@@ -50,7 +50,7 @@ fn push_declared_type_name(mut names: Vec<String>, node: AstNode) {
 
 fn collect_declared_type_names(decls: Vec<AstNode>) -> Vec<String> {
     let mut names = Vec::new<String>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         push_declared_type_name(names, get_unchecked(decls, i))
@@ -94,7 +94,7 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
         let value_node = ast_access::node_child_at(target, 2)
         let key_key = impl_inst_arg_key(key_node, declared.clone())
         let value_key = impl_inst_arg_key(value_node, declared.clone())
-        if len(key_key) > 0 && len(value_key) > 0 {
+        if key_key.len() > 0 && value_key.len() > 0 {
             return String_from("HashMap_").concat(key_key.clone().concat(String_from("_").concat(value_key.clone())))
         }
     }
@@ -107,7 +107,7 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
     !target_name.clone().eq(String_from("Vec")) &&
     !target_name.clone().eq(String_from("HashMap")) {
         let inst_suffix = impl_inst_arg_suffix(target, declared.clone())
-        if len(inst_suffix) > 0 {
+        if inst_suffix.len() > 0 {
             return target_name.clone().concat(String_from("_").concat(inst_suffix))
         }
     }
@@ -115,7 +115,7 @@ fn impl_target_type_name(target: AstNode, declared: Vec<String>) -> String {
 }
 
 fn is_declared_impl_param(name: String, declared: Vec<String>) -> bool {
-    let count = len(declared)
+    let count = declared.len()
     let mut i = 0
     while i < count {
         if get_unchecked(declared, i).eq(name.clone()) {
@@ -141,10 +141,10 @@ fn impl_inst_arg_suffix(target: AstNode, declared: Vec<String>) -> String {
             ast_access::node_child_at(target, i),
             declared.clone()
         )
-        if len(key) == 0 {
+        if key.len() == 0 {
             return String_new()
         }
-        if len(suffix) > 0 {
+        if suffix.len() > 0 {
             suffix = suffix.concat(String_from("_"))
         }
         suffix = suffix.concat(key)
@@ -164,7 +164,7 @@ fn impl_inst_arg_key(arg: AstNode, declared: Vec<String>) -> String {
     if ast_access::node_kind_is(arg, kinds::NK_TYPE_GENERIC()) {
         let base = ast_access::node_text(arg)
         let inner = impl_inst_arg_suffix(arg, declared)
-        if len(inner) == 0 {
+        if inner.len() == 0 {
             return String_new()
         }
         return base.clone().concat(String_from("_").concat(inner))

@@ -14,7 +14,7 @@ fn lower_atomic_path_variant(mut ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_PATH()) {
         let raw_name = ast_node::node_text(node)
         let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-        let variant_name = if len(canon) > 0 {
+        let variant_name = if canon.len() > 0 {
             canon
         } else {
             raw_name
@@ -58,7 +58,7 @@ fn lower_function_value(mut ctx: LowerCtx, fn_name: String) -> i32 {
 fn lower_atomic_ident_variant(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let raw_name = ast_node::node_text(node)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-    let variant_name = if len(canon) > 0 {
+    let variant_name = if canon.len() > 0 {
         canon
     } else {
         raw_name

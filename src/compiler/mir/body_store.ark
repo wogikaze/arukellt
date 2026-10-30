@@ -60,21 +60,21 @@ fn MirModule_compact_before_emission(mut m: MirModule) {
 }
 
 fn MirModule_body_store_block_count(m: MirModule, idx: i32) -> i32 {
-    if idx < 0 || idx >= len(m.body_store_block_counts) {
+    if idx < 0 || idx >= m.body_store_block_counts.len() {
         return 0
     }
     get_unchecked(m.body_store_block_counts, idx)
 }
 
 fn MirModule_body_store_inst_count(m: MirModule, idx: i32) -> i32 {
-    if idx < 0 || idx >= len(m.body_store_inst_counts) {
+    if idx < 0 || idx >= m.body_store_inst_counts.len() {
         return 0
     }
     get_unchecked(m.body_store_inst_counts, idx)
 }
 
 fn MirModule_body_store_has_opcode(m: MirModule, idx: i32, opcode: i32) -> bool {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_starts.len() {
         return false
     }
     let mut reader = MirBodyReader_new(
@@ -103,7 +103,7 @@ fn MirModule_body_store_has_opcode(m: MirModule, idx: i32, opcode: i32) -> bool 
 }
 
 fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_starts.len() {
         return false
     }
     let mut reader = MirBodyReader_new(
@@ -133,7 +133,7 @@ fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool {
         let result_count = mir_body_read_i32(reader)
         mir_body_skip_result_types(reader, result_count)
         if op == opcodes::MIR_CALL() &&
-        len(core_op_call::mir_call_normal_fallback_symbol_from_fid(m, func_id_raw)) > 0 {
+        core_op_call::mir_call_normal_fallback_symbol_from_fid(m, func_id_raw).len() > 0 {
             return true
         }
         hid = hid + 1
@@ -142,7 +142,7 @@ fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool {
 }
 
 fn MirModule_body_store_sole_call_target(m: MirModule, idx: i32) -> String {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_starts.len() {
         return String_new()
     }
     let mut reader = MirBodyReader_new(
@@ -186,12 +186,12 @@ fn MirModule_body_store_sole_call_target(m: MirModule, idx: i32) -> String {
         let mut ii = 0
         while ii < instruction_count {
             let hid = mir_body_read_i32(reader)
-            if hid >= 0 && hid < len(table_ops) {
+            if hid >= 0 && hid < table_ops.len() {
                 let op = get_unchecked(table_ops, hid)
                 let string_id = get_unchecked(table_string_ids, hid)
                 if op == opcodes::MIR_CALL() {
                     call_count = call_count + 1
-                    if string_id >= 0 && string_id < len(strings) {
+                    if string_id >= 0 && string_id < strings.len() {
                         sole_target = get_unchecked(strings, string_id).clone()
                     } else {
                         sole_target = String_new()
@@ -237,7 +237,7 @@ fn MirModule_body_store_has_invalid_local_operand(
     idx: i32,
     local_count: i32
 ) -> bool {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_starts.len() {
         return false
     }
     let mut reader = MirBodyReader_new(
@@ -263,7 +263,7 @@ fn MirModule_body_store_has_invalid_local_operand(
         let mut ii = 0
         while ii < instruction_count {
             let hid = mir_body_read_i32(reader)
-            if hid >= 0 && hid < len(table_ops) {
+            if hid >= 0 && hid < table_ops.len() {
                 let op = get_unchecked(table_ops, hid)
                 let operand = get_unchecked(table_arg0s, hid)
                 if mir_body_has_invalid_local_operand(op, operand, local_count) {
@@ -375,7 +375,7 @@ fn mir_body_has_invalid_local_operand(op: i32, operand: i32, local_count: i32) -
 }
 
 fn MirModule_store_function_body(mut m: MirModule, idx: i32, mut f: MirFunction) {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.functions) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.functions.len() {
         return
     }
     let block_count = function_block_queries::MirFunction_block_count(f)
@@ -392,7 +392,7 @@ fn MirModule_store_function_body(mut m: MirModule, idx: i32, mut f: MirFunction)
         encoded_floats,
         0
     )
-    let has_slot = idx < len(m.body_store_starts)
+    let has_slot = idx < m.body_store_starts.len()
     let old_start = if has_slot { get_unchecked(m.body_store_starts, idx) } else { 0 }
     let old_length = if has_slot { get_unchecked(m.body_store_lengths, idx) } else { 0 }
     let old_float_start = if has_slot {
@@ -405,15 +405,15 @@ fn MirModule_store_function_body(mut m: MirModule, idx: i32, mut f: MirFunction)
     } else {
         0
     }
-    let encoded_float_count = len(encoded_floats) / 2
-    if has_slot && len(encoded_bytes) <= old_length && encoded_float_count <= old_float_count {
+    let encoded_float_count = encoded_floats.len() / 2
+    if has_slot && encoded_bytes.len() <= old_length && encoded_float_count <= old_float_count {
         mir_body_copy_i32(m.body_store_bytes, old_start, encoded_bytes)
         mir_body_copy_f64(m.body_store_float_values, old_float_start, encoded_floats)
         mir_body_set_slot(
             m,
             idx,
             old_start,
-            len(encoded_bytes),
+            encoded_bytes.len(),
             old_float_start,
             encoded_float_count,
             block_count,
@@ -421,17 +421,17 @@ fn MirModule_store_function_body(mut m: MirModule, idx: i32, mut f: MirFunction)
             return_variant_slot
         )
     } else {
-        let start = len(m.body_store_bytes)
-        let float_start = len(m.body_store_float_values) / 2
+        let start = m.body_store_bytes.len()
+        let float_start = m.body_store_float_values.len() / 2
         mir_body_append_i32(m.body_store_bytes, encoded_bytes)
         mir_body_append_f64(m.body_store_float_values, encoded_floats)
         mir_body_set_slot(
             m,
             idx,
             start,
-            len(m.body_store_bytes) - start,
+            m.body_store_bytes.len() - start,
             float_start,
-            len(m.body_store_float_values) / 2 - float_start,
+            m.body_store_float_values.len() / 2 - float_start,
             block_count,
             inst_count,
             return_variant_slot
@@ -447,14 +447,14 @@ fn MirModule_store_function_body(mut m: MirModule, idx: i32, mut f: MirFunction)
 
 fn mir_body_copy_i32(mut dst: Vec<i32>, start: i32, src: Vec<i32>) {
     let mut i = 0
-    while i < len(src) {
+    while i < src.len() {
         set(dst, start + i, get_unchecked(src, i))
         i = i + 1
     }
 }
 
 fn mir_body_clear_i32(mut values: Vec<i32>) {
-    while len(values) > 0 {
+    while values.len() > 0 {
         pop(values)
     }
 }
@@ -465,14 +465,14 @@ fn mir_body_copy_f64(
     src: Vec<i32>
 ) {
     let mut i = 0
-    while i < len(src) {
+    while i < src.len() {
         set(dst, start * 2 + i, get_unchecked(src, i))
         i = i + 1
     }
 }
 
 fn mir_body_clear_f64(mut values: Vec<i32>) {
-    while len(values) > 0 {
+    while values.len() > 0 {
         pop(values)
     }
 }
@@ -508,7 +508,7 @@ fn mir_body_copy_f64_in_place(
 
 fn mir_body_append_i32(mut dst: Vec<i32>, src: Vec<i32>) {
     let mut i = 0
-    while i < len(src) {
+    while i < src.len() {
         push(dst, get_unchecked(src, i))
         i = i + 1
     }
@@ -519,7 +519,7 @@ fn mir_body_append_f64(
     src: Vec<i32>
 ) {
     let mut i = 0
-    while i < len(src) {
+    while i < src.len() {
         push(dst, get_unchecked(src, i))
         i = i + 1
     }
@@ -564,7 +564,7 @@ fn MirModule_decode_function_body(
     mut function: MirFunction,
     header: MirFunction
 ) -> MirFunction {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_starts.len() {
         return header
     }
     let mut reader = MirBodyReader_new(
@@ -602,7 +602,7 @@ fn MirModule_decode_function_body_for_emit(
     mut function: MirFunction,
     header: MirFunction
 ) -> MirFunction {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_starts.len() {
         return header
     }
     let mut reader = MirBodyReader_new(
@@ -661,7 +661,7 @@ fn mir_body_prepare_emit_blocks(
     // Reuse the emitter's scratch blocks. The emitter decoder skips phis and
     // CFG vectors, so only scalar instruction handles need clearing.
     let mut blocks = function_core_record::MirFunction_blocks(function)
-    let mut bi = len(blocks)
+    let mut bi = blocks.len()
     while bi < block_count {
         let new_block = block_record::MirBlock_new_with_table(0, table)
         push(blocks, new_block)
@@ -680,7 +680,7 @@ fn mir_body_prepare_emit_blocks(
 }
 
 fn MirModule_body_store_return_variant_slot(m: MirModule, idx: i32) -> i32 {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_return_variant_slots) {
+    if !m.body_store_enabled || idx < 0 || idx >= m.body_store_return_variant_slots.len() {
         return 0 - 1
     }
     get_unchecked(m.body_store_return_variant_slots, idx)
@@ -697,7 +697,7 @@ fn mir_body_set_slot(
     inst_count: i32,
     return_variant_slot: i32
 ) {
-    if idx == len(m.body_store_starts) {
+    if idx == m.body_store_starts.len() {
         push(m.body_store_starts, start)
         push(m.body_store_lengths, length)
         push(m.body_store_float_starts, float_start)
@@ -707,7 +707,7 @@ fn mir_body_set_slot(
         push(m.body_store_return_variant_slots, return_variant_slot)
         return
     }
-    if idx < 0 || idx >= len(m.body_store_starts) {
+    if idx < 0 || idx >= m.body_store_starts.len() {
         return
     }
     set(m.body_store_starts, idx, start)
@@ -764,9 +764,9 @@ fn mir_body_function_inst_count(f: MirFunction) -> i32 {
 }
 
 fn mir_body_write_i32_vec(mut bytes: Vec<i32>, values: Vec<i32>) {
-    push(bytes, len(values))
+    push(bytes, values.len())
     let mut i = 0
-    while i < len(values) {
+    while i < values.len() {
         push(bytes, get_unchecked(values, i))
         i = i + 1
     }
@@ -813,7 +813,7 @@ fn mir_body_write_table(
         push(bytes, inst_table::mir_inst_table_arg1(table, hid))
         push(bytes, inst_table::mir_inst_table_int_val(table, hid))
         mir_body_append_f64_value(floats, inst_table::mir_inst_table_float_val(table, hid))
-        push(bytes, len(floats) / 2 - 1 - float_start)
+        push(bytes, floats.len() / 2 - 1 - float_start)
         // Lowering tables share the module string pool, so the metadata ID is
         // already the durable module ID. Re-interning the cloned string here
         // turns body serialization into a linear scan over every prior name.
@@ -918,7 +918,7 @@ fn MirBodyReader_new(
 }
 
 fn mir_body_read_i32(mut reader: MirBodyReader) -> i32 {
-    if reader.pos >= reader.end || reader.pos < 0 || reader.pos >= len(reader.bytes) {
+    if reader.pos >= reader.end || reader.pos < 0 || reader.pos >= reader.bytes.len() {
         return 0
     }
     let value = get_unchecked(reader.bytes, reader.pos)
@@ -929,7 +929,7 @@ fn mir_body_read_i32(mut reader: MirBodyReader) -> i32 {
 fn mir_body_read_float_bits(mut reader: MirBodyReader) -> inst_table::MirFloatBits {
     let relative_index = mir_body_read_i32(reader)
     let index = (reader.float_start + relative_index) * 2
-    if index < 0 || index + 1 >= len(reader.floats) {
+    if index < 0 || index + 1 >= reader.floats.len() {
         return inst_table::MirFloatBits_from_parts(0, 0)
     }
     inst_table::MirFloatBits_from_parts(
@@ -1102,7 +1102,7 @@ fn block_successor_set_values(mut block: MirBlock, succ0: i32, succ1: i32) {
 fn block_pred_restore(mut block: MirBlock, preds: Vec<i32>) {
     block_pred_mutation::MirBlock_reset_preds(block)
     let mut i = 0
-    while i < len(preds) {
+    while i < preds.len() {
         block_pred_mutation::MirBlock_push_pred_unique(block, get_unchecked(preds, i))
         i = i + 1
     }
@@ -1111,7 +1111,7 @@ fn block_pred_restore(mut block: MirBlock, preds: Vec<i32>) {
 fn block_dominance_restore_frontier(mut block: MirBlock, frontier: Vec<i32>) {
     block_dominance_mutation::MirBlock_reset_dom_frontier(block)
     let mut i = 0
-    while i < len(frontier) {
+    while i < frontier.len() {
         block_dominance_mutation::MirBlock_push_dom_frontier_unique(
             block,
             get_unchecked(frontier, i)
@@ -1157,15 +1157,15 @@ fn MirModule_reindex_body_store(mut m: MirModule, mut new_functions: Vec<MirFunc
     let mut new_inst_counts = Vec::new<i32>()
     let mut new_return_variant_slots = Vec::new<i32>()
     let mut ni = 0
-    while ni < len(new_functions) {
+    while ni < new_functions.len() {
         let mut new_function = get_unchecked(new_functions, ni)
-        let byte_start = len(new_bytes)
-        let float_start = len(new_floats) / 2
+        let byte_start = new_bytes.len()
+        let float_start = new_floats.len() / 2
         mir_body_write_function(m, new_function, new_bytes, new_floats, float_start)
         push(new_starts, byte_start)
-        push(new_lengths, len(new_bytes) - byte_start)
+        push(new_lengths, new_bytes.len() - byte_start)
         push(new_float_starts, float_start)
-        push(new_float_counts, len(new_floats) / 2 - float_start)
+        push(new_float_counts, new_floats.len() / 2 - float_start)
         let new_block_count = function_block_queries::MirFunction_block_count(new_function)
         let new_inst_count = mir_body_function_inst_count(new_function)
         let new_return_variant_slot = mir_body_compute_return_variant_slot(new_function)
@@ -1203,7 +1203,7 @@ fn MirModule_prune_reachable(mut m: MirModule, reachable: Vec<i32>) -> i32 {
     if !m.body_store_enabled {
         return 0
     }
-    let fn_count = len(m.functions)
+    let fn_count = m.functions.len()
     let mut kept = Vec::new<MirFunction>()
     let mut pruned = 0
     let mut compact_byte_start = 0
@@ -1235,7 +1235,7 @@ fn MirModule_prune_reachable(mut m: MirModule, reachable: Vec<i32>) -> i32 {
             compact_float_start,
             float_count
         )
-        let kept_index = len(kept) - 1
+        let kept_index = kept.len() - 1
         set(m.body_store_starts, kept_index, compact_byte_start)
         set(m.body_store_lengths, kept_index, byte_length)
         set(m.body_store_float_starts, kept_index, compact_float_start)
@@ -1249,19 +1249,19 @@ fn MirModule_prune_reachable(mut m: MirModule, reachable: Vec<i32>) -> i32 {
     }
     mir_body_truncate_i32(m.body_store_bytes, compact_byte_start)
     mir_body_truncate_i32(m.body_store_float_values, compact_float_start * 2)
-    mir_body_truncate_i32(m.body_store_starts, len(kept))
-    mir_body_truncate_i32(m.body_store_lengths, len(kept))
-    mir_body_truncate_i32(m.body_store_float_starts, len(kept))
-    mir_body_truncate_i32(m.body_store_float_counts, len(kept))
-    mir_body_truncate_i32(m.body_store_block_counts, len(kept))
-    mir_body_truncate_i32(m.body_store_inst_counts, len(kept))
-    mir_body_truncate_i32(m.body_store_return_variant_slots, len(kept))
+    mir_body_truncate_i32(m.body_store_starts, kept.len())
+    mir_body_truncate_i32(m.body_store_lengths, kept.len())
+    mir_body_truncate_i32(m.body_store_float_starts, kept.len())
+    mir_body_truncate_i32(m.body_store_float_counts, kept.len())
+    mir_body_truncate_i32(m.body_store_block_counts, kept.len())
+    mir_body_truncate_i32(m.body_store_inst_counts, kept.len())
+    mir_body_truncate_i32(m.body_store_return_variant_slots, kept.len())
     m.functions = kept
     pruned
 }
 
 fn mir_body_truncate_i32(mut values: Vec<i32>, new_length: i32) {
-    while len(values) > new_length {
+    while values.len() > new_length {
         pop(values)
     }
 }

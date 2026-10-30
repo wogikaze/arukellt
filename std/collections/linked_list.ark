@@ -205,7 +205,7 @@ impl<T> LinkedList<T> {
     // do not lower when T is a reference type on wasm32-gc, and the i32-index
     // write below is safe for every T.
     fn allocate_node(mut self: LinkedList<T>, value: T) -> i32 {
-        let value_index: i32 = len(self.values)
+        let value_index: i32 = self.values.len()
         push(self.values, value)
         if self.free_head != NIL {
             let node: i32 = self.free_head
@@ -215,7 +215,7 @@ impl<T> LinkedList<T> {
             set(self.node_values, node, value_index)
             return node
         }
-        let node: i32 = len(self.node_values)
+        let node: i32 = self.node_values.len()
         push(self.node_values, value_index)
         push(self.prev_links, NIL)
         push(self.next_links, NIL)
@@ -234,7 +234,7 @@ fn linked_list_value_at<T>(list: LinkedList<T>, node: i32) -> T {
 }
 
 fn drop_values<T>(mut values: Vec<T>) {
-    while len(values) > 0 {
+    while values.len() > 0 {
         match pop(values) {
             Option::Some(_) => {},
             Option::None => { break },
@@ -341,7 +341,7 @@ impl<T> LinkedListIterMut<T> {
         if self.stopped || self.current < 0 {
             return Option::None
         }
-        if self.current >= len(self.list.values) {
+        if self.current >= self.list.values.len() {
             return Option::None
         }
         let old: T = linked_list_value_at(self.list, self.current)
@@ -471,7 +471,7 @@ impl<T: Debug> Debug for LinkedList<T> {
 impl<T> FromIterator<VecIter<T>> for LinkedList<T> {
     fn from_iter(mut it: VecIter<T>) -> LinkedList<T> {
         let values: Vec<T> = it.collect()
-        let count: i32 = len(values)
+        let count: i32 = values.len()
         let mut node_values: Vec<i32> = Vec::new<i32>()
         let mut prev_links: Vec<i32> = Vec::new<i32>()
         let mut next_links: Vec<i32> = Vec::new<i32>()
@@ -596,7 +596,7 @@ test mod "linked_list" {
         list.push_back(4)
         list.push_front(2)
         let values: Vec<i32> = list.iter().collect()
-        assert(len(values) == 3)
+        assert(values.len() == 3)
         assert(values.get_unchecked(0) == 2)
         assert(values.get_unchecked(1) == 3)
         assert(values.get_unchecked(2) == 4)

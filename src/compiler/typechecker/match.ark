@@ -147,7 +147,7 @@ fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_def
     let variant_index = contract_enum_info::EnumInfo_variant_index(enum_info, variant_name.clone())
     let type_params = contract_enum_info::EnumInfo_type_params(enum_info)
     let inst_args = enum_scrutinee_type_args(enum_info, scrutinee_ty)
-    let has_declared_payloads = len(contract_enum_info::EnumInfo_name(enum_info)) > 0
+    let has_declared_payloads = contract_enum_info::EnumInfo_name(enum_info).len() > 0
     let bind_count = ast_access::node_child_count(pat)
     let mut i = 0
     while i < bind_count {
@@ -162,7 +162,7 @@ fn bind_variant_payload_idents(mut env: TypeEnv, mut scope: LocalScope, enum_def
             // would hand MIR a type the checker never proved (#933).
             builtin_variant_payload_type(scrutinee_ty.clone(), variant_name.clone(), i)
         }
-        let bind_ty = if len(inst_args) > 0 {
+        let bind_ty = if inst_args.len() > 0 {
             instantiate::instantiate_type(declared_ty, type_params, inst_args)
         } else {
             declared_ty
@@ -203,7 +203,7 @@ fn enum_scrutinee_type_args(enum_info: EnumInfo, scrutinee_ty: TypeInfo) -> Vec<
     let mut args = Vec::new<TypeInfo>()
     let params = contract_enum_info::EnumInfo_type_params(enum_info)
     let arg_count = contract_type_access::TypeInfo_type_arg_count(scrutinee_ty)
-    if len(params) == 0 || arg_count != len(params) {
+    if params.len() == 0 || arg_count != params.len() {
         return args
     }
     let mut i = 0
@@ -342,7 +342,7 @@ fn check_tuple_elem_or_alts(mut env: TypeEnv, sub: AstNode) {
 fn match_enum_info(enum_defs: Vec<EnumInfo>, scrutinee_ty: TypeInfo) -> EnumInfo {
     let enum_name = contract_type_access::TypeInfo_name(scrutinee_ty)
     let mut i = 0
-    while i < len(enum_defs) {
+    while i < enum_defs.len() {
         let info = get_unchecked(enum_defs, i)
         let declared = contract_enum_info::EnumInfo_name(info)
         if declared.clone().eq(enum_name.clone()) || declared.clone().ends_with("::".concat(enum_name.clone())) {

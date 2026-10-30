@@ -59,7 +59,7 @@ fn doc_site_card(e: manifest_doc_record::DocFnEntry) -> String {
     out = out.concat(String_from("</div><pre><code>"))
     out = out.concat(sig)
     out = out.concat(String_from("</code></pre><p>"))
-    if len(doc) > 0 {
+    if doc.len() > 0 {
         out = out.concat(doc)
     } else {
         out = out.concat(String_from("No manifest documentation yet."))

@@ -39,7 +39,7 @@ fn TypeInfo_name(ty: TypeInfo) -> String {
 }
 
 fn TypeInfo_type_arg_count(ty: TypeInfo) -> i32 {
-    len(ty.type_args)
+    ty.type_args.len()
 }
 
 fn TypeInfo_type_arg_at(ty: TypeInfo, index: i32) -> TypeInfo {
@@ -59,7 +59,7 @@ fn MonoInstance_mangled_name(instance: MonoInstance) -> String {
 }
 
 fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
-    len(instance.type_args)
+    instance.type_args.len()
 }
 
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {

@@ -24,7 +24,7 @@ fn corehir_int_lit_is_decimal_i32_with_separators(text: String, n: i32) -> bool 
 }
 
 fn corehir_int_lit_is_simple_i32(text: String) -> bool {
-    let n = len(text)
+    let n = text.len()
     if n > 9 {
         return false
     }

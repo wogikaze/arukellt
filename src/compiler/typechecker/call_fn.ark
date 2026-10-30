@@ -121,13 +121,13 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
         // spellings before falling back to the last segment.
         let variants = callee_spelling::callee_spelling_variants(callee_name.clone())
         let mut vi = 0
-        while vi < len(variants) {
+        while vi < variants.len() {
             let variant = get_unchecked(variants, vi).clone()
             let variant_sig = sigs::lookup_fn_sig(env, fn_sigs, variant.clone())
             if contract_fn_sig::FnSig_has_name(variant_sig) {
                 sig = variant_sig
                 mono_fn_name = variant
-                vi = len(variants)
+                vi = variants.len()
             } else {
                 vi = vi + 1
             }
@@ -162,7 +162,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
             node,
             callee_name.clone()
         )
-        if len(conversion_name.clone()) > 0 {
+        if conversion_name.clone().len() > 0 {
             let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, conversion_name)
             if contract_fn_sig::FnSig_has_name(conversion_sig) {
                 return infer_concrete_call_expr(
@@ -184,7 +184,7 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
             node,
             callee_name.clone()
         )
-        if len(hashmap_conversion.clone()) > 0 {
+        if hashmap_conversion.clone().len() > 0 {
             let conversion_sig = sigs::lookup_fn_sig(env, fn_sigs, hashmap_conversion)
             if contract_fn_sig::FnSig_has_name(conversion_sig) {
                 return infer_concrete_call_expr(
@@ -227,12 +227,12 @@ fn infer_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>,
     call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, mono_fn_name)
 }
 
-// `len` is the one stable prelude free that serves two owners: `String` and
-// `Vec<T>`. The committed pin can only compile the String declaration, so the
-// checker selects the receiver's owner contract instead of checking every
-// receiver against that spelling or skipping the arguments because the
-// emitter lowers by name (#936). A user generic `len` does not have this
-// concrete String parameter and keeps the ordinary generic checking path.
+// `len` retired from the user surface in wave/vec-intrinsic-len; `s.len()` /
+// `v.len()` own it now. The flat bootstrap overlay still declares the
+// signature-only String form so the pinned compiler can lower `.len()` on a
+// String receiver, and this path keeps that declaration's receiver-owner
+// contract (#936). A user generic `len` has no concrete String parameter and
+// keeps the ordinary generic checking path.
 fn is_prelude_len_signature(sig: FnSig) -> bool {
     if !eq(contract_fn_sig::FnSig_name(sig.clone()), String_from("len")) {
         return false
@@ -387,7 +387,7 @@ fn hashset_from_iter_candidate(
         ast_access::node_child_at(node, 1)
     )
     let source_name = call_method::type_name_for_mangling(source_ty)
-    if len(source_name.clone()) == 0 {
+    if source_name.clone().len() == 0 {
         return String_new()
     }
     let i32_name = String_from("HashSet_i32::from_iter__").concat(source_name.clone())
@@ -435,7 +435,7 @@ fn hashmap_from_iter_candidate(
     push(owners, String_from("HashMap_i32_fnref"))
     push(owners, String_from("HashMap_String_fnref"))
     let mut index: i32 = 0
-    while index < len(owners) {
+    while index < owners.len() {
         let owner = get_unchecked(owners, index)
         let candidate = owner.concat(String_from("::from_iter__").concat(source_name.clone()))
         if contract_fn_sig::FnSig_has_name(sigs::lookup_fn_sig(env, fn_sigs, candidate.clone())) {
@@ -571,7 +571,7 @@ fn has_concrete_arg_conflict(param_ty: TypeInfo, arg_ty: TypeInfo) -> bool {
 }
 
 fn tc_strip_module_prefix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {

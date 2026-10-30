@@ -4,7 +4,7 @@ use std::test
 fn main() {
     let s = String_from("a::b::c")
     let parts = s.split(String_from("::"))
-    Test::assert_eq_i32(len(parts), 3)
+    Test::assert_eq_i32(parts.len(), 3)
     Test::assert_eq_string(get_unchecked(parts, 0), "a")
     Test::assert_eq_string(get_unchecked(parts, 1), "b")
     Test::assert_eq_string(get_unchecked(parts, 2), "c")

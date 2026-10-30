@@ -17,7 +17,7 @@ fn ctx_mark_hashset_local(mut ctx: LowerCtx, local_idx: i32, family: String) {
     if local_idx < 0 {
         return
     }
-    while len(ctx.hashset_locals) <= local_idx {
+    while ctx.hashset_locals.len() <= local_idx {
         push(ctx.hashset_locals, 0)
     }
     if family.clone().eq(String_from("String")) {
@@ -28,7 +28,7 @@ fn ctx_mark_hashset_local(mut ctx: LowerCtx, local_idx: i32, family: String) {
 }
 
 fn ctx_hashset_local_family(ctx: LowerCtx, local_idx: i32) -> String {
-    if local_idx < 0 || local_idx >= len(ctx.hashset_locals) {
+    if local_idx < 0 || local_idx >= ctx.hashset_locals.len() {
         return String_new()
     }
     let code = get_unchecked(ctx.hashset_locals, local_idx)

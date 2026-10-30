@@ -171,7 +171,7 @@ fn VarBinding_set_has_borrow_captures(mut binding: VarBinding, has_borrow_caps: 
 }
 
 fn LocalScope_binding_count(scope: LocalScope) -> i32 {
-    len(scope.bindings)
+    scope.bindings.len()
 }
 
 fn LocalScope_binding_at(scope: LocalScope, index: i32) -> VarBinding {

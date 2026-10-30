@@ -30,7 +30,7 @@ fn constrain_turbofish_type_args(
         return
     }
     let type_arg_count = child_count - 1
-    let var_count = len(var_types)
+    let var_count = var_types.len()
     let mut i = 0
     while i < type_arg_count && i < var_count {
         constrain_turbofish_type_arg(callee, infer_env, var_types, i)

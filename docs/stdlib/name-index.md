@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 8
-- **Historical/deprecated names:** 20
-- **Total entries:** 28
+- **Historical/deprecated names:** 19
+- **Total entries:** 27
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -52,7 +52,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`deque_to_vec`~~ | `Deque::iter` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get`~~ | `Vec::get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_unchecked`~~ | `Vec::get_unchecked` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`len`~~ | `Vec::len` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`pop`~~ | `Vec::pop` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`push`~~ | `Vec::push` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`set`~~ | `Vec::set` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -87,7 +86,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `filter_i32` | ✅ `provisional` | `prelude` | Collections |
 | ~~`get`~~ | ⚠️ deprecated | `prelude` | → `Vec::get` · [migration guide](migration-guidance.md) |
 | ~~`get_unchecked`~~ | ⚠️ deprecated | `prelude` | → `Vec::get_unchecked` · [migration guide](migration-guidance.md) |
-| ~~`len`~~ | ⚠️ deprecated | `prelude` | → `Vec::len` · [migration guide](migration-guidance.md) |
 | ~~`pop`~~ | ⚠️ deprecated | `prelude` | → `Vec::pop` · [migration guide](migration-guidance.md) |
 | ~~`push`~~ | ⚠️ deprecated | `prelude` | → `Vec::push` · [migration guide](migration-guidance.md) |
 | ~~`set`~~ | ⚠️ deprecated | `prelude` | → `Vec::set` · [migration guide](migration-guidance.md) |

@@ -10,7 +10,7 @@ fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
 }
 
 fn MirModule_function_count(m: MirModule) -> i32 {
-    len(m.functions)
+    m.functions.len()
 }
 
 fn MirModule_function_at(m: MirModule, idx: i32) -> MirFunction {
@@ -37,7 +37,7 @@ fn MirModule_has_export_name(m: MirModule, name: String) -> bool {
         return true
     }
     let mut i = 0
-    while i < len(m.export_names) {
+    while i < m.export_names.len() {
         if get_unchecked(m.export_names, i).clone().eq(name.clone()) {
             return true
         }
@@ -61,14 +61,14 @@ fn mir_return_variant_slot_unrecorded() -> i32 {
 }
 
 fn MirModule_return_variant_slot_at(m: MirModule, idx: i32) -> i32 {
-    if idx < 0 || idx >= len(m.return_variant_slots) {
+    if idx < 0 || idx >= m.return_variant_slots.len() {
         return mir_return_variant_slot_unrecorded()
     }
     get_unchecked(m.return_variant_slots, idx)
 }
 
 fn MirModule_set_return_variant_slot_at(mut m: MirModule, idx: i32, slot: i32) {
-    if idx < 0 || idx >= len(m.return_variant_slots) {
+    if idx < 0 || idx >= m.return_variant_slots.len() {
         return
     }
     set(m.return_variant_slots, idx, slot)
@@ -98,7 +98,7 @@ fn MirModule_discovery_fn_ret_names(m: MirModule) -> Vec<String> {
 // can be visited by several lowering paths in one module.
 fn MirModule_record_diagnostic(mut m: MirModule, message: String) {
     let mut i = 0
-    while i < len(m.diagnostics) {
+    while i < m.diagnostics.len() {
         if get_unchecked(m.diagnostics, i).eq(message.clone()) {
             return
         }

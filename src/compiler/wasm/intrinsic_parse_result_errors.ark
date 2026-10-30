@@ -76,7 +76,7 @@ fn emit_invalid_float_error_record(mut w: WasmWriter, enum_local: i32, str_ptr_l
 
 fn emit_invalid_integer_error_string(mut w: WasmWriter, base_local: i32, str_ptr_local: i32) {
     let err_msg = "parse error: invalid integer"
-    let err_len = len(err_msg)
+    let err_len = err_msg.len()
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, err_len + 4)
     helpers_core_heap::emit_heap_alloc_from_stack(w)

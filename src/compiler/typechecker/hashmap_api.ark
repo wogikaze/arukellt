@@ -12,7 +12,7 @@ fn validate_hashmap_constructor(mut env: TypeEnv, fn_name: String, type_args: Ve
     if !is_hashmap_api_name(fn_name.clone()) {
         return true
     }
-    if len(type_args) < 2 {
+    if type_args.len() < 2 {
         return true
     }
     let key_ty = get_unchecked(type_args, 0)
@@ -61,7 +61,7 @@ fn is_deferred_hashmap_type(ty: TypeInfo) -> bool {
         return true
     }
     let name = contract_type_access::TypeInfo_name(ty)
-    len(name) == 1 && name.byte_at(0) >= 65 && name.byte_at(0) <= 90
+    name.len() == 1 && name.byte_at(0) >= 65 && name.byte_at(0) <= 90
 }
 
 fn is_supported_hashmap_key(ty: TypeInfo) -> bool {
@@ -86,7 +86,7 @@ fn hashmap_type_name(ty: TypeInfo) -> String {
     if tag == commands::TY_STRING() { return String_from("String") }
     if tag == kinds::TY_FN() { return String_from("fn(i32) -> i32") }
     let name = contract_type_access::TypeInfo_name(ty)
-    if len(name) > 0 {
+    if name.len() > 0 {
         return name
     }
     names::type_tag_name(tag)

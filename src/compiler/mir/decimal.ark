@@ -1,5 +1,5 @@
 fn parse_decimal_as_i64(text: String) -> i64 {
-    let n = len(text)
+    let n = text.len()
     let mut result: i64 = 0i64
     let mut i = 0
     let mut neg = false

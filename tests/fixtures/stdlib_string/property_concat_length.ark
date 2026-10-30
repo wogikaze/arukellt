@@ -4,5 +4,5 @@ fn main() {
     let a = String_from("hello")
     let b = String_from("world")
     let c = a.concat(b)
-    Test::assert_eq_i32(len(c), len(a) + len(b))
+    Test::assert_eq_i32(c.len(), a.len() + b.len())
 }

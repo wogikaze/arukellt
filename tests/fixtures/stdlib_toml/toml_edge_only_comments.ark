@@ -7,7 +7,7 @@ fn main() {
     match t {
         Result::Ok(table) => {
             let keys = table.table_keys()
-            Test::assert_eq_i32(len(keys), 0)
+            Test::assert_eq_i32(keys.len(), 0)
         },
         Result::Err(_) => assert(false),
     }

@@ -44,7 +44,7 @@ fn mir_core_call_i32_result_name(name: String) -> bool {
 }
 
 fn mir_core_call_short_name(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {
@@ -105,5 +105,5 @@ fn mir_core_call_callee_returns_string(ctx: LowerCtx, name: String) -> bool {
     if !mir_core_call_string_result_name(name.clone()) {
         return false
     }
-    len(ctx_fn_return_type::ctx_fn_return_type_name(ctx, name.clone())) == 0
+    ctx_fn_return_type::ctx_fn_return_type_name(ctx, name.clone()).len() == 0
 }

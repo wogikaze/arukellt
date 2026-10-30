@@ -22,7 +22,7 @@ fn try_lower_overloaded_binary(mut ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_i
     }
     if !ov_is_primitive {
         let ov_method = binary_method::mir_operator_method_name(mir_op)
-        if len(ov_method) > 0 {
+        if ov_method.len() > 0 {
             let ov_callee = ov_ltype.clone().concat("::".concat(ov_method.clone()))
             if ctx_fn_exists(ctx, ov_callee.clone()) != 0 {
                 let ov_r_idx = lower_expr(ctx, rhs)

@@ -10,7 +10,7 @@ fn main() {
     Stdio::println(("hello".len_bytes()).to_string())
     Stdio::println(("".len_bytes()).to_string())
     let parts = "a,b,c".split(",")
-    Stdio::println((len(parts)).to_string())
+    Stdio::println((parts.len()).to_string())
     Stdio::println(parts.join("-"))
     Stdio::println("foo".concat("bar"))
     Stdio::println(("hello".starts_with("hel")).to_string())

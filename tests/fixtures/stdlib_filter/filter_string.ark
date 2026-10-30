@@ -2,7 +2,7 @@ use std::host::stdio::Stdio
 use std::core::iter
 
 fn is_long(s: String) -> bool {
-    len(s) > 3
+    s.len() > 3
 }
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
     push(v, String_from("no"))
     let result: Vec<String> = v.iter().filter(is_long).collect()
     let mut i: i32 = 0
-    while i < len(result) {
+    while i < result.len() {
         Stdio::println(get_unchecked(result, i))
         i = i + 1
     }

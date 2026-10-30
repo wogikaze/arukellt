@@ -14,7 +14,7 @@ fn Block_new() -> Block {
 }
 
 fn add_pred(mut block: Block, pred_id: i32) {
-    let count = len(block.preds)
+    let count = block.preds.len()
     let mut i = 0
     while i < count {
         if get_unchecked(block.preds, i) == pred_id {
@@ -29,7 +29,7 @@ fn add_pred_edge(blocks: Vec<Block>, pred_id: i32, succ_id: i32) {
     if succ_id < 0 {
         return
     }
-    if succ_id >= len(blocks) {
+    if succ_id >= blocks.len() {
         return
     }
     let mut succ = get_unchecked(blocks, succ_id)
@@ -37,7 +37,7 @@ fn add_pred_edge(blocks: Vec<Block>, pred_id: i32, succ_id: i32) {
 }
 
 fn compute_predecessors(blocks: Vec<Block>) {
-    let count = len(blocks)
+    let count = blocks.len()
     let mut i = 0
     while i < count {
         let mut block = get_unchecked(blocks, i)
@@ -57,7 +57,7 @@ fn compute_predecessors(blocks: Vec<Block>) {
 
 fn format_preds(preds: Vec<i32>) -> String {
     let mut out = String_from("[")
-    let count = len(preds)
+    let count = preds.len()
     let mut i = 0
     while i < count {
         if i > 0 {
@@ -84,7 +84,7 @@ fn main() {
     else_bb.succ0 = 3
     compute_predecessors(blocks)
     let mut i = 0
-    while i < len(blocks) {
+    while i < blocks.len() {
         let block = get_unchecked(blocks, i)
         Stdio::println(String_from("bb").concat(i.to_string()).concat(String_from(" preds=").concat(format_preds(block.preds))))
         i = i + 1

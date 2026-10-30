@@ -30,7 +30,7 @@ impl WitName {
     ///   `my-func`   → `my-func` (already kebab)
     fn to_kebab(name: String) -> String {
         let mut out = String_from("")
-        let n = len(name)
+        let n = name.len()
         let mut i = 0
         while i < n {
             let ch = name.byte_at(i)
@@ -39,8 +39,8 @@ impl WitName {
                 out = String::concat(out, String_from("-"))
             } else if ch >= 65 && ch <= 90 {
                 // A-Z: insert hyphen before (unless at start or previous is hyphen)
-                if len(out) > 0 {
-                    let prev = out.byte_at(len(out) - 1)
+                if out.len() > 0 {
+                    let prev = out.byte_at(out.len() - 1)
                     if prev != 45 {
                         out = String::concat(out, String_from("-"))
                     }
@@ -64,7 +64,7 @@ impl WitName {
     ///   `parse-markdown` → `parse_markdown`
     fn to_snake(name: String) -> String {
         let mut out = String_from("")
-        let n = len(name)
+        let n = name.len()
         let mut i = 0
         while i < n {
             let ch = name.byte_at(i)
@@ -86,7 +86,7 @@ impl WitName {
     ///   `document`  → `Document`
     fn to_pascal(name: String) -> String {
         let mut out = String_from("")
-        let n = len(name)
+        let n = name.len()
         let mut i = 0
         let mut capitalize_next = true
         while i < n {
@@ -116,12 +116,12 @@ impl WitName {
     ///   `document`  → `Document`
     ///   `Document`  → `Document`
     fn capitalize(name: String) -> String {
-        if len(name) == 0 {
+        if name.len() == 0 {
             return String_new()
         }
         let first = name.byte_at(0)
         if first >= 97 && first <= 122 {
-            String::concat(char_to_string(first - 32), name.slice(1, len(name)))
+            String::concat(char_to_string(first - 32), name.slice(1, name.len()))
         } else {
             name.clone()
         }

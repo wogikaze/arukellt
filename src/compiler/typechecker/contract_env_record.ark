@@ -116,7 +116,7 @@ fn type_env_track_binding(mut env: TypeEnv, name: String, span_start: i32, span_
 }
 
 fn type_env_mark_binding_used(mut env: TypeEnv, name: String) {
-    let count = len(env.tracked_binding_names)
+    let count = env.tracked_binding_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(env.tracked_binding_names, i).eq(name.clone()) {
@@ -144,7 +144,7 @@ fn type_env_register_const(mut env: TypeEnv, name: String, const_type: TypeInfo)
 }
 
 fn type_env_const_type(env: TypeEnv, name: String) -> TypeInfo {
-    let count = len(env.const_names)
+    let count = env.const_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(env.const_names, i).eq(name.clone()) {
@@ -156,7 +156,7 @@ fn type_env_const_type(env: TypeEnv, name: String) -> TypeInfo {
 }
 
 fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
-    let count = len(env.const_names)
+    let count = env.const_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(env.const_names, i).eq(name.clone()) {
@@ -168,7 +168,7 @@ fn type_env_is_const_name(env: TypeEnv, name: String) -> bool {
 }
 
 fn type_env_finalize_unused_bindings(mut env: TypeEnv) {
-    let count = len(env.tracked_binding_names)
+    let count = env.tracked_binding_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(env.tracked_binding_used, i) == 0 {

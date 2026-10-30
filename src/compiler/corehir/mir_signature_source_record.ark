@@ -15,7 +15,7 @@ fn CoreHirMirSignatureSource_new(fn_infos: Vec<CoreHirFnInfo>, method_infos: Vec
 }
 
 fn fn_info_decl_slots(fn_infos: Vec<CoreHirFnInfo>) -> Vec<i32> {
-    let count = len(fn_infos)
+    let count = fn_infos.len()
     let mut max_decl = 0
     let mut i = 0
     while i < count {

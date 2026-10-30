@@ -5,7 +5,7 @@ fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String
     if return_type_name.clone().starts_with("struct:") {
         let mut first_colon = 0 - 1
         let mut last_colon = 0 - 1
-        let n = len(return_type_name)
+        let n = return_type_name.len()
         let mut i = 0
         while i < n {
             if return_type_name.byte_at(i) == 58 {
@@ -21,7 +21,7 @@ fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String
         }
         return String_new()
     }
-    if len(return_type_name) > 0 && module_gc_struct::MirModule_gc_struct_slot(mir, return_type_name.clone()) >= 0 {
+    if return_type_name.len() > 0 && module_gc_struct::MirModule_gc_struct_slot(mir, return_type_name.clone()) >= 0 {
         return return_type_name
     }
     String_new()

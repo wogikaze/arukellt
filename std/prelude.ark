@@ -29,7 +29,8 @@
 //     Std::panic  (associated control operation)
 //     String_from, String_new
 //     char_to_string  (essential conversion)
-//     plus len, push, pop, get, set, get_unchecked
+//     plus push, pop, get, set, get_unchecked
+//       (`len` is a receiver method only: `s.len()` / `v.len()`)
 //
 // ## Legacy / explicit-import section
 //
@@ -185,7 +186,7 @@ impl Std {
 // Core-op fallback for seq.sort_i32 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i32_impl(mut v: Vec<i32>) {
     let mut index = 1
-    while index < len(v) {
+    while index < v.len() {
         let value = get_unchecked(v, index)
         let mut insertion = index
         while insertion > 0 && get_unchecked(v, insertion - 1) > value {
@@ -203,7 +204,7 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 // Core-op fallback for seq.sort_i64 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
     let mut index = 1
-    while index < len(v) {
+    while index < v.len() {
         let value = get_unchecked(v, index)
         let mut insertion = index
         while insertion > 0 && get_unchecked(v, insertion - 1) > value {
@@ -217,7 +218,7 @@ fn __core_seq_sort_i64_impl(mut v: Vec<i64>) {
 // Core-op fallback for seq.sort_f64 (public wrapper deleted in ADR-087 Wave 2).
 fn __core_seq_sort_f64_impl(mut v: Vec<f64>) {
     let mut index = 1
-    while index < len(v) {
+    while index < v.len() {
         let value = get_unchecked(v, index)
         let mut insertion = index
         while insertion > 0 && get_unchecked(v, insertion - 1) > value {
@@ -333,7 +334,7 @@ fn __core_vec_reverse_i32_impl(mut v: Vec<i32>) {
     }
 }
 fn __core_vec_reverse_string_impl(mut v: Vec<String>) {
-    let n: i32 = len(v)
+    let n: i32 = v.len()
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
     while lo < hi {
@@ -358,7 +359,7 @@ fn __core_vec_remove_i32_impl(mut v: Vec<i32>, index: i32) {
 fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut i: i32 = 0
-    while i < len(v) {
+    while i < v.len() {
         total = total + get_unchecked(v, i)
         i = i + 1
     }
@@ -367,7 +368,7 @@ fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
 fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 1
     let mut i: i32 = 0
-    while i < len(v) {
+    while i < v.len() {
         total = total * get_unchecked(v, i)
         i = i + 1
     }
@@ -387,14 +388,6 @@ fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
 // (#936). Each body is the operation's sealed fallback on the raw API
 // (ADR-042 D2); MIR lowering still defers it under RFC-005 D3, so call sites
 // bind the owner-qualified CoreOp instead of this declaration.
-// `len` takes its contract from the receiver's owner (`String::len` or
-// `Vec::len`); the String spelling below is the committed pin's bootstrap
-// contract and cannot be replaced by the Vec signature until the pin is
-// refreshed.
-pub fn len(s: String) -> i32 {
-    raw_string_len_bytes(s)
-}
-
 pub fn push<T>(mut v: Vec<T>, val: T) {
     let count: i32 = raw_array_len(v)
     let mut grown: Vec<T> = raw_array_grow(v, count + 1)

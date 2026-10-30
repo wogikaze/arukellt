@@ -4,7 +4,7 @@
 // (`expected ref, found i32` at wit_trim_txt).
 
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = from
     while i < n {
         if s.byte_at(i) == ch {
@@ -16,7 +16,7 @@ fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
 }
 
 fn wit_trim_txt(s: String) -> String {
-    let n = len(s)
+    let n = s.len()
     let mut start = 0
     while start < n {
         let ch = s.byte_at(start)
@@ -58,7 +58,7 @@ fn wit_extract_package_version(text: String) -> String {
     if at < 0 {
         return String_new()
     }
-    let version = package.slice(at + 1, len(package))
+    let version = package.slice(at + 1, package.len())
     version
 }
 
@@ -87,12 +87,12 @@ fn wit_split_param_txt(param: String) -> String {
     if colon < 0 {
         return wit_trim_txt(param)
     }
-    wit_trim_txt(param.slice(colon + 1, len(param)))
+    wit_trim_txt(param.slice(colon + 1, param.len()))
 }
 
 fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
     let mut items = Vec::new<String>()
-    let n = len(inner)
+    let n = inner.len()
     let mut start = 0
     let mut depth = 0
     let mut i = 0
@@ -151,7 +151,7 @@ fn wit_extract_interface_body(text: String) -> String {
     }
     let mut depth = 0
     let mut i = open
-    let n = len(text)
+    let n = text.len()
     while i < n {
         let ch = text.byte_at(i)
         if ch == 123 {
@@ -180,7 +180,7 @@ fn wit_line_start_txt(text: String, pos: i32) -> i32 {
 }
 
 fn wit_line_end_txt(text: String, pos: i32) -> i32 {
-    let n = len(text)
+    let n = text.len()
     let mut i = pos
     while i < n {
         if text.byte_at(i) == 10 {

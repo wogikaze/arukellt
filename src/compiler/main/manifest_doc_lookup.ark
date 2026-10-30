@@ -1,6 +1,6 @@
 use main::manifest_doc_record
 fn doc_last_segment(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut i = n - 1
     while i >= 0 {
         if i + 1 < n && path.byte_at(i) == 58 && path.byte_at(i + 1) == 58 {
@@ -88,16 +88,16 @@ pub fn doc_resolve_query(table: DocManifestTable, symbol: String) -> DocQuery {
     if symbol.clone().contains("::") {
         let parts = manifest_doc_record::doc_split_module_and_name(symbol.clone())
         hits = doc_find_by_module_name(table, manifest_doc_record::DocModuleNameParts_module(parts), manifest_doc_record::DocModuleNameParts_name(parts))
-        if len(hits) == 0 && (doc_find_module(table, symbol.clone()) >= 0 || doc_module_has_functions(table, symbol.clone())) {
+        if hits.len() == 0 && (doc_find_module(table, symbol.clone()) >= 0 || doc_module_has_functions(table, symbol.clone())) {
             show_module = 1
         }
     } else {
         hits = doc_find_by_name(table, symbol.clone())
-        if len(hits) == 0 && (doc_find_module(table, symbol.clone()) >= 0 || doc_module_has_functions(table, symbol.clone())) {
+        if hits.len() == 0 && (doc_find_module(table, symbol.clone()) >= 0 || doc_module_has_functions(table, symbol.clone())) {
             show_module = 1
         }
     }
-    if doc_symbol_is_module_query(symbol.clone()) && len(hits) == 0 {
+    if doc_symbol_is_module_query(symbol.clone()) && hits.len() == 0 {
         show_module = 1
     }
     manifest_doc_record::DocQuery_new(hits, show_module)

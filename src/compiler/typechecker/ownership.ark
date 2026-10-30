@@ -340,7 +340,7 @@ fn report_ownership_error_once(mut env: TypeEnv, code: String, node: AstNode, me
 
 fn diagnostic_exists_at(env: TypeEnv, code: String, start: i32, end: i32) -> bool {
     let mut i = 0
-    while i < len(env.diagnostics) {
+    while i < env.diagnostics.len() {
         let diag = get_unchecked(env.diagnostics, i)
         if diag_record::diagnostic_code(diag).eq(code.clone()) &&
         diag_record::diagnostic_start(diag) == start &&

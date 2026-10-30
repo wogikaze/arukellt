@@ -12,7 +12,7 @@ fn main() {
     push(v, 10.5)
     let mut large: Vec<f64> = Vec::new<f64>()
     let mut filter_index: i32 = 0
-    while filter_index < len(v) {
+    while filter_index < v.len() {
         let filter_value = get_unchecked(v, filter_index)
         if is_large(filter_value) {
             push(large, filter_value)
@@ -20,7 +20,7 @@ fn main() {
         filter_index = filter_index + 1
     }
     let mut i: i32 = 0
-    while i < len(large) {
+    while i < large.len() {
         Stdio::println((get_unchecked(large, i)).to_string())
         i = i + 1
     }

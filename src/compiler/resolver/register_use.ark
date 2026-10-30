@@ -35,7 +35,7 @@ fn try_reject_retired_prelude_import(ctx: ResolveCtx, d: AstNode) -> bool {
     }
     let name = paths::use_module_short_name(use_path)
     let hint = retired_prelude_import_hint(name.clone())
-    if len(hint) == 0 {
+    if hint.len() == 0 {
         return false
     }
     scope_error::resolve_error(
@@ -51,7 +51,7 @@ fn try_reject_retired_prelude_import(ctx: ResolveCtx, d: AstNode) -> bool {
 // through a source import.
 fn retired_prelude_import_hint(name: String) -> String {
     let assertion = removed_names::removed_assertion_free_hint(name.clone())
-    if len(assertion.clone()) > 0 {
+    if assertion.clone().len() > 0 {
         return assertion
     }
     if eq(name.clone(), "Box_new") {
@@ -63,8 +63,11 @@ fn retired_prelude_import_hint(name: String) -> String {
     if eq(name.clone(), "clone") {
         return String_from("use `x.clone()` on the value instead")
     }
+    if eq(name.clone(), "len") {
+        return String_from("use `s.len()` on `String` or `v.len()` on `Vec<T>` instead")
+    }
     let numeric = removed_names::removed_numeric_conversion_hint(name.clone())
-    if len(numeric.clone()) > 0 {
+    if numeric.clone().len() > 0 {
         return numeric
     }
     String_new()
@@ -126,11 +129,11 @@ fn register_type_use_alias(mut ctx: ResolveCtx, full_path: String, short_name: S
         return
     }
     let parent_path = paths::use_module_parent_path(full_path.clone())
-    if len(parent_path.clone()) == 0 {
+    if parent_path.clone().len() == 0 {
         return
     }
     let parent_short = paths::use_module_short_name(parent_path.clone())
-    if len(parent_short.clone()) == 0 {
+    if parent_short.clone().len() == 0 {
         return
     }
     if !modules::module_registered(loaded_modules, parent_short.clone()) {
@@ -199,11 +202,11 @@ fn register_use_func_alias(mut ctx: ResolveCtx, child_path: String, child_short:
         return
     }
     let parent_path = paths::use_module_parent_path(child_path.clone())
-    if len(parent_path.clone()) == 0 {
+    if parent_path.clone().len() == 0 {
         return
     }
     let parent_short = paths::use_module_short_name(parent_path.clone())
-    if len(parent_short.clone()) == 0 {
+    if parent_short.clone().len() == 0 {
         return
     }
     let alias_target = parent_short.clone().concat("::".concat(child_short.clone()))

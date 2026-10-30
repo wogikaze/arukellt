@@ -1,6 +1,6 @@
 use lsp::framing_record
 fn parse_frame(input: String, pos: i32) -> FrameResult {
-    let n = len(input)
+    let n = input.len()
     let mut p = pos
     while p < n {
         let c = input.byte_at(p)
@@ -21,7 +21,7 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
     if cl_idx < 0 {
         return framing_record::FrameResult_new(String_new(), n, false)
     }
-    let block_len = len(header_block)
+    let block_len = header_block.len()
     let mut q = cl_idx + 15
     while q < block_len {
         let c = header_block.byte_at(q)

@@ -21,7 +21,7 @@ fn mir_peek_core_expr_vt(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         }
         // CoreHIR may leave val_type as i32 for 2147483648; text still needs i64 (#807).
         let text = core_expr_shape_accessors::mir_core_expr_text(expr)
-        if len(text) > 0 && mir_core_int_text_needs_i64(text) {
+        if text.len() > 0 && mir_core_int_text_needs_i64(text) {
             return value_types::VT_I64()
         }
         return value_types::VT_I32()
@@ -31,7 +31,7 @@ fn mir_peek_core_expr_vt(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
 
 fn mir_core_int_text_needs_i64(text: String) -> bool {
     // Match literal_int::mir_int_literal_needs_i64 for plain decimals.
-    if len(text) >= 2 && text.byte_at(0) == 48 && (text.byte_at(1) == 120 || text.byte_at(1) == 88 || text.byte_at(1) == 98 || text.byte_at(1) == 66) {
+    if text.len() >= 2 && text.byte_at(0) == 48 && (text.byte_at(1) == 120 || text.byte_at(1) == 88 || text.byte_at(1) == 98 || text.byte_at(1) == 66) {
         return false
     }
     if text.clone().ends_with(String_from("i64")) || text.clone().ends_with(String_from("u64")) {

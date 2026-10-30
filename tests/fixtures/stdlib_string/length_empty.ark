@@ -2,7 +2,7 @@ use std::test::Test
 
 fn main() {
     let s = String_new()
-    Test::assert_eq_i32(len(s), 0)
+    Test::assert_eq_i32(s.len(), 0)
     let e = String_from("")
-    Test::assert_eq_i32(len(e), 0)
+    Test::assert_eq_i32(e.len(), 0)
 }

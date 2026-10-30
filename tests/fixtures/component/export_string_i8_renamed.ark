@@ -1,7 +1,7 @@
 // Export with renamed String parameter and i8 result maps to WIT string -> s8.
 
 export fn tiny_delta(text: String) -> i8 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 0i8 - 5i8
     }
     6i8

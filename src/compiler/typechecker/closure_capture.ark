@@ -203,7 +203,7 @@ fn add_capture(env: TypeEnv, scope: LocalScope, closure: AstNode, node: AstNode,
 
 fn capture_name_index(summary: ClosureCaptureSummary, name: String) -> i32 {
     let mut i = 0
-    while i < len(summary.names) {
+    while i < summary.names.len() {
         if get_unchecked(summary.names, i).eq(name.clone()) {
             return i
         }
@@ -252,7 +252,7 @@ fn apply_closure_capture_summary(mut env: TypeEnv, mut scope: LocalScope, summar
         return
     }
     let mut i = 0
-    while i < len(summary.names) {
+    while i < summary.names.len() {
         let name = get_unchecked(summary.names, i).clone()
         let mode = get_unchecked(summary.modes, i)
         let node = get_unchecked(summary.nodes, i)
@@ -300,7 +300,7 @@ fn value_borrow_mode(env: TypeEnv, scope: LocalScope, node: AstNode) -> i32 {
         let summary = closure_capture_summary(env, scope, node)
         let mut mode = 0
         let mut i = 0
-        while i < len(summary.modes) {
+        while i < summary.modes.len() {
             let capture_mode = get_unchecked(summary.modes, i)
             if capture_mode == capture_mutable_borrow() &&
             get_unchecked(summary.rebinds, i) == 0 {
@@ -353,7 +353,7 @@ fn value_borrow_is_mutable(mode: i32) -> bool {
 fn value_has_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
     if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
         let summary = closure_escape_summary(env, scope, node)
-        return len(summary.names) > 0
+        return summary.names.len() > 0
     }
     if ast_access::node_kind_is(node, kinds::NK_IDENT()) {
         let name = ast_access::node_text(node)
@@ -387,7 +387,7 @@ fn value_has_captures(env: TypeEnv, scope: LocalScope, node: AstNode) -> bool {
 
 fn closure_summary_has_borrow(summary: ClosureCaptureSummary) -> bool {
     let mut i = 0
-    while i < len(summary.modes) {
+    while i < summary.modes.len() {
         let mode = get_unchecked(summary.modes, i)
         if mode == capture_shared_borrow() ||
         (mode == capture_mutable_borrow() && get_unchecked(summary.rebinds, i) == 0) {
@@ -519,7 +519,7 @@ fn capture_escape_witness(env: TypeEnv, scope: LocalScope, node: AstNode) -> Cap
 
 fn summary_escape_witness(summary: ClosureCaptureSummary) -> CaptureEscape {
     let mut i = 0
-    while i < len(summary.modes) {
+    while i < summary.modes.len() {
         let mode = get_unchecked(summary.modes, i)
         // Only borrow captures block escape: move/Copy captures are packed
         // into the managed env record (#872), and a mutable-borrow rebind

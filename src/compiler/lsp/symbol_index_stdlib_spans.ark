@@ -31,7 +31,7 @@ pub fn source_span_end(span: SourceSpan) -> i32 {
 
 pub fn lookup_stdlib_source_span(uri: String, name: String) -> SourceSpan {
     let mut path = symbol_index_paths::uri_to_file_path(uri.clone())
-    if len(path) == 0 {
+    if path.len() == 0 {
         return SourceSpan_none()
     }
     let read_result = Fs::read_to_string(path)
@@ -39,7 +39,7 @@ pub fn lookup_stdlib_source_span(uri: String, name: String) -> SourceSpan {
         Result::Ok(text) => {
             let decls = session_parse::session_parse_decls(text.clone())
             let extracted = symbol_index_extract::extract_symbols_from_decls(uri.clone(), decls)
-            let n = len(extracted)
+            let n = extracted.len()
             let mut i = 0
             while i < n {
                 let sym = get_unchecked(extracted, i)

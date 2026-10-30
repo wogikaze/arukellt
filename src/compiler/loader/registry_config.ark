@@ -11,11 +11,11 @@ pub fn read_package_manifest(package_root: String) -> String {
 
 pub fn registry_url_for_root(package_root: String) -> String {
     let content = read_package_manifest(package_root.clone())
-    if len(content) == 0 {
+    if content.len() == 0 {
         return String_new()
     }
     let registry_section = toml::TomlText::find_section(content.clone(), String_from("registry"))
-    if len(registry_section) == 0 {
+    if registry_section.len() == 0 {
         return String_new()
     }
     toml::TomlText::find_value(registry_section.clone(), String_from("url"))
@@ -23,16 +23,16 @@ pub fn registry_url_for_root(package_root: String) -> String {
 
 pub fn dependency_version_for_package(package_root: String, package_name: String) -> String {
     let content = read_package_manifest(package_root.clone())
-    if len(content) == 0 {
+    if content.len() == 0 {
         return String_new()
     }
     let deps_section = toml::TomlText::find_section(content.clone(), String_from("dependencies"))
-    if len(deps_section) == 0 {
+    if deps_section.len() == 0 {
         return String_new()
     }
     toml::TomlText::find_value(deps_section.clone(), package_name.clone())
 }
 
 pub fn is_registry_dependency(package_root: String, package_name: String) -> bool {
-    len(dependency_version_for_package(package_root.clone(), package_name.clone())) > 0
+    dependency_version_for_package(package_root.clone(), package_name.clone()).len() > 0
 }

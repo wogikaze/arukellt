@@ -14,7 +14,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     // last-segment fallback so call destinations get the constructed type.
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
-    while vi < len(variants) {
+    while vi < variants.len() {
         let variant = get_unchecked(variants, vi).clone()
         let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if variant_found >= 0 {
@@ -29,7 +29,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, base_found)
         }
     }
-    let nlen = len(name)
+    let nlen = name.len()
     let mut colon_pos = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
@@ -48,7 +48,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     }
     // Export-style mangling: module_path__FnName (not a mono suffix).
     let dunder_short = short_name_after_last_dunder(name.clone())
-    if len(dunder_short) > 0 {
+    if dunder_short.len() > 0 {
         let dunder_found = ctx_fn_index::ctx_fn_index_find(ctx, dunder_short.clone())
         if dunder_found >= 0 {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, dunder_found)
@@ -59,7 +59,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
 
 // Bare name after the last "__" (parser_token_state__Token_float_val → Token_float_val).
 fn short_name_after_last_dunder(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut i = name_len - 2
     while i >= 0 {
         if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
@@ -72,7 +72,7 @@ fn short_name_after_last_dunder(name: String) -> String {
 
 // Strip mono type suffix from a mangled function name for fn_index lookup.
 fn mono_strip_suffix_for_lookup(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
@@ -81,7 +81,7 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
         }
         i = i + 1
     }
-    let sep_count = len(sep_positions)
+    let sep_count = sep_positions.len()
     if sep_count == 0 {
         return name
     }
@@ -101,7 +101,7 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
 }
 
 fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
-    let slen = len(suffix)
+    let slen = suffix.len()
     if slen == 0 {
         return false
     }
@@ -138,11 +138,11 @@ fn mono_type_key_looks_valid(key: String) -> bool {
     }
     // Nominal mono keys are PascalCase type names (Point), not snake_case
     // function tails (Token_float_val).
-    if len(key) > 0 {
+    if key.len() > 0 {
         let first = key.byte_at(0)
         if first >= 65 && first <= 90 {
             let mut ki = 1
-            while ki < len(key) {
+            while ki < key.len() {
                 if key.byte_at(ki) == 95 {
                     return false
                 }

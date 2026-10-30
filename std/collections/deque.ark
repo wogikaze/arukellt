@@ -52,7 +52,7 @@ pub struct Deque<T> {
 // Logical index → physical slot. `front_items` is stored back-to-front so the
 // last slot is the front element; `back_items` is stored front-to-back.
 fn deque_at<T>(deque: Deque<T>, index: i32) -> T {
-    let front_len: i32 = len(deque.front_items)
+    let front_len: i32 = deque.front_items.len()
     if index < front_len {
         return get_unchecked(deque.front_items, front_len - 1 - index)
     }
@@ -60,7 +60,7 @@ fn deque_at<T>(deque: Deque<T>, index: i32) -> T {
 }
 
 fn deque_replace_at<T>(mut deque: Deque<T>, index: i32, value: T) -> T {
-    let front_len: i32 = len(deque.front_items)
+    let front_len: i32 = deque.front_items.len()
     if index < front_len {
         let slot: i32 = front_len - 1 - index
         let old: T = get_unchecked(deque.front_items, slot)
@@ -78,10 +78,10 @@ fn deque_replace_at<T>(mut deque: Deque<T>, index: i32, value: T) -> T {
 // as different even though both read front to back as `1, 2`, so each side
 // maps its logical index onto whichever stack currently owns that element.
 fn deque_items_eq<T: Eq>(left: Deque<T>, right: Deque<T>) -> bool {
-    let left_front: i32 = len(left.front_items)
-    let right_front: i32 = len(right.front_items)
-    let count: i32 = left_front + len(left.back_items)
-    if count != right_front + len(right.back_items) {
+    let left_front: i32 = left.front_items.len()
+    let right_front: i32 = right.front_items.len()
+    let count: i32 = left_front + left.back_items.len()
+    if count != right_front + right.back_items.len() {
         return false
     }
     let mut index: i32 = 0
@@ -136,8 +136,8 @@ impl<T> Deque<T> {
 
     /// Removes and returns the back element, or `None` when empty.
     fn pop_back(mut self: Deque<T>) -> Option<T> {
-        if len(self.back_items) == 0 {
-            while len(self.front_items) > 0 {
+        if self.back_items.len() == 0 {
+            while self.front_items.len() > 0 {
                 match pop(self.front_items) {
                     Option::Some(value) => push(self.back_items, value),
                     Option::None => { break },
@@ -149,8 +149,8 @@ impl<T> Deque<T> {
 
     /// Removes and returns the front element, or `None` when empty.
     fn pop_front(mut self: Deque<T>) -> Option<T> {
-        if len(self.front_items) == 0 {
-            while len(self.back_items) > 0 {
+        if self.front_items.len() == 0 {
+            while self.back_items.len() > 0 {
                 match pop(self.back_items) {
                     Option::Some(value) => push(self.front_items, value),
                     Option::None => { break },
@@ -162,10 +162,10 @@ impl<T> Deque<T> {
 
     /// Peeks at the front element without removing it.
     fn front(self: Deque<T>) -> Option<T> {
-        if len(self.front_items) > 0 {
-            return Option::Some(get_unchecked(self.front_items, len(self.front_items) - 1))
+        if self.front_items.len() > 0 {
+            return Option::Some(get_unchecked(self.front_items, self.front_items.len() - 1))
         }
-        if len(self.back_items) > 0 {
+        if self.back_items.len() > 0 {
             return Option::Some(get_unchecked(self.back_items, 0))
         }
         Option::None
@@ -173,10 +173,10 @@ impl<T> Deque<T> {
 
     /// Peeks at the back element without removing it.
     fn back(self: Deque<T>) -> Option<T> {
-        if len(self.back_items) > 0 {
-            return Option::Some(get_unchecked(self.back_items, len(self.back_items) - 1))
+        if self.back_items.len() > 0 {
+            return Option::Some(get_unchecked(self.back_items, self.back_items.len() - 1))
         }
-        if len(self.front_items) > 0 {
+        if self.front_items.len() > 0 {
             return Option::Some(get_unchecked(self.front_items, 0))
         }
         Option::None
@@ -184,12 +184,12 @@ impl<T> Deque<T> {
 
     /// Returns the number of elements.
     fn len(self: Deque<T>) -> i32 {
-        len(self.front_items) + len(self.back_items)
+        self.front_items.len() + self.back_items.len()
     }
 
     /// Returns true when the deque has no elements.
     fn is_empty(self: Deque<T>) -> bool {
-        len(self.front_items) + len(self.back_items) == 0
+        self.front_items.len() + self.back_items.len() == 0
     }
 
     /// Removes all elements while keeping the logical capacity reservation.
@@ -210,21 +210,21 @@ impl<T> Deque<T> {
         if additional <= 0 {
             return
         }
-        let needed: i32 = len(self.front_items) + len(self.back_items) + additional
+        let needed: i32 = self.front_items.len() + self.back_items.len() + additional
         if self.reserved >= needed {
             return
         }
-        let front_cap: i32 = len(self.front_items)
+        let front_cap: i32 = self.front_items.len()
         let back_cap: i32 = needed - front_cap
         let mut new_front: Vec<T> = Vec::with_capacity<T>(front_cap)
-        while len(self.front_items) > 0 {
+        while self.front_items.len() > 0 {
             match pop(self.front_items) {
                 Option::Some(value) => push(new_front, value),
                 Option::None => { break },
             }
         }
         let mut new_back: Vec<T> = Vec::with_capacity<T>(back_cap)
-        while len(self.back_items) > 0 {
+        while self.back_items.len() > 0 {
             match pop(self.back_items) {
                 Option::Some(value) => push(new_back, value),
                 Option::None => { break },
@@ -250,7 +250,7 @@ impl<T> Deque<T> {
     // raises it before rebuilding storage, so capacity() never reports less
     // than len().
     fn note_growth(mut self: Deque<T>) {
-        let count: i32 = len(self.front_items) + len(self.back_items)
+        let count: i32 = self.front_items.len() + self.back_items.len()
         if count > self.reserved {
             self.reserved = count
         }
@@ -258,7 +258,7 @@ impl<T> Deque<T> {
 }
 
 fn pop_all<T>(mut values: Vec<T>) {
-    while len(values) > 0 {
+    while values.len() > 0 {
         match pop(values) {
             Option::Some(_) => {},
             Option::None => { break },
@@ -276,7 +276,7 @@ impl<T> Iterator for DequeIter<T> {
     type Item = T
 
     fn next(mut self: DequeIter<T>) -> Option<T> {
-        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         if self.index >= count {
             return Option::None
         }
@@ -287,7 +287,7 @@ impl<T> Iterator for DequeIter<T> {
 
     fn collect(mut self: DequeIter<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
-        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         while self.index < count {
             push(out, deque_at(self.deque, self.index))
             self.index = self.index + 1
@@ -296,7 +296,7 @@ impl<T> Iterator for DequeIter<T> {
     }
 
     fn count(mut self: DequeIter<T>) -> i32 {
-        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         let remaining: i32 = count - self.index
         self.index = count
         remaining
@@ -328,7 +328,7 @@ impl<T> Iterator for DequeIterMut<T> {
     type Item = T
 
     fn next(mut self: DequeIterMut<T>) -> Option<T> {
-        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         if self.index >= count {
             self.stopped = true
             return Option::None
@@ -341,7 +341,7 @@ impl<T> Iterator for DequeIterMut<T> {
 
     fn collect(mut self: DequeIterMut<T>) -> Vec<T> {
         let mut out: Vec<T> = Vec::new<T>()
-        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         while self.index < count {
             push(out, deque_at(self.deque, self.index))
             self.index = self.index + 1
@@ -350,7 +350,7 @@ impl<T> Iterator for DequeIterMut<T> {
     }
 
     fn count(mut self: DequeIterMut<T>) -> i32 {
-        let count: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let count: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         let remaining: i32 = count - self.index
         self.index = count
         remaining
@@ -400,7 +400,7 @@ impl<T> Iterator for DequeIntoIter<T> {
     }
 
     fn count(mut self: DequeIntoIter<T>) -> i32 {
-        let remaining: i32 = len(self.deque.front_items) + len(self.deque.back_items)
+        let remaining: i32 = self.deque.front_items.len() + self.deque.back_items.len()
         self.deque.clear()
         remaining
     }
@@ -432,7 +432,7 @@ impl<T: Clone> Clone for Deque<T> {
             reserved: self.reserved
         }
         let mut i: i32 = 0
-        while i < len(self.front_items) + len(self.back_items) {
+        while i < self.front_items.len() + self.back_items.len() {
             copy.push_back((deque_at(self, i)).clone())
             i = i + 1
         }
@@ -464,7 +464,7 @@ impl<T: Debug> Debug for Deque<T> {
 impl<T> FromIterator<VecIter<T>> for Deque<T> {
     fn from_iter(mut it: VecIter<T>) -> Deque<T> {
         let items: Vec<T> = it.collect()
-        let count: i32 = len(items)
+        let count: i32 = items.len()
         Deque {
             front_items: Vec::new<T>(),
             back_items: items,
@@ -476,7 +476,7 @@ impl<T> FromIterator<VecIter<T>> for Deque<T> {
 fn deque_debug_items<T: Debug>(deque: Deque<T>) -> String {
     let mut out: String = String_from("[")
     let mut index: i32 = 0
-    let count: i32 = len(deque.front_items) + len(deque.back_items)
+    let count: i32 = deque.front_items.len() + deque.back_items.len()
     while index < count {
         if index > 0 {
             out = out.concat(String_from(", "))
@@ -597,7 +597,7 @@ impl<T: Debug> Debug for Queue<T> {
         // nested generic struct field through the shared free function does not
         // lower on wasm32-gc, but the field method call does.
         let rendered: String = self.deque.fmt_debug()
-        String_from("Queue ").concat(rendered.slice(6, len(rendered)))
+        String_from("Queue ").concat(rendered.slice(6, rendered.len()))
     }
 }
 
@@ -610,7 +610,7 @@ impl<T: Eq> Eq for Queue<T> {
 impl<T> FromIterator<VecIter<T>> for Queue<T> {
     fn from_iter(mut it: VecIter<T>) -> Queue<T> {
         let items: Vec<T> = it.collect()
-        let count: i32 = len(items)
+        let count: i32 = items.len()
         Queue {
             deque: Deque {
                 front_items: Vec::new<T>(),
@@ -722,7 +722,7 @@ impl<T: Clone> Clone for Stack<T> {
 impl<T: Debug> Debug for Stack<T> {
     fn fmt_debug(self: Stack<T>) -> String {
         let rendered: String = self.deque.fmt_debug()
-        String_from("Stack ").concat(rendered.slice(6, len(rendered)))
+        String_from("Stack ").concat(rendered.slice(6, rendered.len()))
     }
 }
 
@@ -735,7 +735,7 @@ impl<T: Eq> Eq for Stack<T> {
 impl<T> FromIterator<VecIter<T>> for Stack<T> {
     fn from_iter(mut it: VecIter<T>) -> Stack<T> {
         let items: Vec<T> = it.collect()
-        let count: i32 = len(items)
+        let count: i32 = items.len()
         Stack {
             deque: Deque {
                 front_items: Vec::new<T>(),

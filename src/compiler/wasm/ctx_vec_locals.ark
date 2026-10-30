@@ -1,7 +1,7 @@
 use wasm::ctx_record
 
 fn SelfEmitCtx_vec_local_count(ctx: SelfEmitCtx) -> i32 {
-    len(ctx.vec_locals)
+    ctx.vec_locals.len()
 }
 
 fn SelfEmitCtx_vec_local_at(ctx: SelfEmitCtx, idx: i32) -> i32 {

@@ -24,7 +24,7 @@ fn hir_function_push_param(mut func: HirFunction, param: HirParam) {
 }
 
 fn hir_function_param_count(func: HirFunction) -> i32 {
-    len(func.params)
+    func.params.len()
 }
 
 fn hir_function_param_at(func: HirFunction, index: i32) -> HirParam {
@@ -36,7 +36,7 @@ fn hir_function_push_type_param(mut func: HirFunction, type_param: HirTypeParam)
 }
 
 fn hir_function_type_param_count(func: HirFunction) -> i32 {
-    len(func.type_params)
+    func.type_params.len()
 }
 
 fn hir_function_type_param_at(func: HirFunction, index: i32) -> HirTypeParam {

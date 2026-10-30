@@ -4,7 +4,7 @@ fn issue443_compose_wit_match_self_check() -> bool {
         "tests/component-interop/compose/fixtures/provider-match.wasm",
         "tests/component-interop/compose/fixtures/socket-match.wasm"
     )
-    len(ok) == 0
+    ok.len() == 0
 }
 
 fn issue443_compose_wit_name_mismatch_self_check() -> bool {

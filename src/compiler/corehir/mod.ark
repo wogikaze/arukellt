@@ -54,17 +54,17 @@ pub fn view_layout_source(view: CoreHirMirView) -> CoreHirMirLayoutSource {
 }
 
 pub fn release_body_expr_subtree(exprs: Vec<CoreHirExpr>, root: i32) {
-    if root < 0 || root >= len(exprs) {
+    if root < 0 || root >= exprs.len() {
         return
     }
     let mut pending = Vec::new<i32>()
     push(pending, root)
-    while len(pending) > 0 {
+    while pending.len() > 0 {
         let current = match pop(pending) {
             Some(value) => value,
             None => 0 - 1,
         }
-        if current < 0 || current >= len(exprs) {
+        if current < 0 || current >= exprs.len() {
             continue
         }
         let mut expr = get_unchecked(exprs, current)

@@ -41,7 +41,7 @@ fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -
         return 0 - 1
     }
     let canon_sigs = module_canon::MirModule_canon_sigs(ctx.mir)
-    if type_idx < 0 || type_idx >= len(canon_sigs) {
+    if type_idx < 0 || type_idx >= canon_sigs.len() {
         return 0 - 1
     }
     let sig = get_unchecked(canon_sigs, type_idx)
@@ -49,7 +49,7 @@ fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -
         return 0 - 1
     }
     let segs = sections_type_plan::type_sig_param_segments(sig)
-    if param_idx >= len(segs) {
+    if param_idx >= segs.len() {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
@@ -62,7 +62,7 @@ fn SelfEmitCtx_param_ref_type(ctx: SelfEmitCtx, type_idx: i32, param_idx: i32) -
 // FuncTypeRefs_result_ref_type equivalent.
 fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
     let canon_sigs = module_canon::MirModule_canon_sigs(ctx.mir)
-    if type_idx < 0 || type_idx >= len(canon_sigs) {
+    if type_idx < 0 || type_idx >= canon_sigs.len() {
         return 0 - 1
     }
     let sig = get_unchecked(canon_sigs, type_idx)
@@ -74,7 +74,7 @@ fn SelfEmitCtx_result_ref_type(ctx: SelfEmitCtx, type_idx: i32) -> i32 {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
-        result_seg.slice(1, len(result_seg)),
+        result_seg.slice(1, result_seg.len()),
         ctx_record::SelfEmitCtx_gc_type_base(ctx),
         module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     )
@@ -104,7 +104,7 @@ fn SelfEmitCtx_fn_sig_param_ref_types(ctx: SelfEmitCtx, f: MirFunction) -> Vec<i
     )
     let struct_canon_idxs = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let mut i = 0
-    while i < len(segs) {
+    while i < segs.len() {
         push(
             out,
             sections_types_emit::sig_ref_null_type_index(
@@ -131,7 +131,7 @@ fn SelfEmitCtx_fn_sig_result_ref_type(ctx: SelfEmitCtx, f: MirFunction) -> i32 {
         return 0 - 1
     }
     sections_types_emit::sig_ref_null_type_index(
-        result_seg.slice(1, len(result_seg)),
+        result_seg.slice(1, result_seg.len()),
         sections_types::first_gc_type_index(
             module_canon::MirModule_canon_sigs(ctx.mir)
         ),

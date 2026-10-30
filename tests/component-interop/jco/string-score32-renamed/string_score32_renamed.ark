@@ -1,11 +1,10 @@
 // Component interop smoke test: string parameter canonical ABI with f32 result is name-independent.
 
-use std::prelude::{f64_to_f32}
 export fn ratio32_text(text: String) -> f32 {
-    if len(text) == 0 {
-        return f64_to_f32(1.25)
+    if text.len() == 0 {
+        return (1.25).to_f32()
     }
-    f64_to_f32(3.75)
+    (3.75).to_f32()
 }
 
 fn main() {

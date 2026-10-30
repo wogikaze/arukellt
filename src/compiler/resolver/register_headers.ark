@@ -7,7 +7,7 @@ use resolver::ast_access
 use resolver::register_use
 use corehir::decl_impl_target
 fn register_decl_headers(mut ctx: ResolveCtx, decls: Vec<AstNode>) {
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)

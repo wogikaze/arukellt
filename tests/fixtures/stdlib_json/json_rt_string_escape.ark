@@ -19,7 +19,7 @@ fn main() {
             match v.as_string() {
                 Option::Some(s) => {
                     // decoded string has 11 chars (hello + \n + world)
-                    Stdio::println((len(s)).to_string())
+                    Stdio::println((s.len()).to_string())
                 },
                 None => Stdio::println("not string"),
             }

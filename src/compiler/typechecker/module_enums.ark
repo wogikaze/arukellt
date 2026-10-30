@@ -5,7 +5,7 @@ use typechecker::types
 
 fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
     let mut enum_defs = Vec::new<EnumInfo>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
@@ -28,7 +28,7 @@ fn collect_enum_def(node: AstNode) -> EnumInfo {
     while vi < vc {
         let variant = ast_access::node_child_at(node, vi)
         push(variant_names, ast_access::node_text(variant))
-        push(payload_starts, len(payload_types))
+        push(payload_starts, payload_types.len())
         let mut payload_count = 0
         let ann_count = ast_access::node_type_ann_count(variant)
         let mut ai = 0

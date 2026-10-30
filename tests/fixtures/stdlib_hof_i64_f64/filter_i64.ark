@@ -12,7 +12,7 @@ fn main() {
     push(v, 20i64)
     let mut pos: Vec<i64> = Vec::new<i64>()
     let mut filter_index: i32 = 0
-    while filter_index < len(v) {
+    while filter_index < v.len() {
         let filter_value = get_unchecked(v, filter_index)
         if is_positive(filter_value) {
             push(pos, filter_value)
@@ -20,7 +20,7 @@ fn main() {
         filter_index = filter_index + 1
     }
     let mut i: i32 = 0
-    while i < len(pos) {
+    while i < pos.len() {
         Stdio::println((get_unchecked(pos, i)).to_string())
         i = i + 1
     }

@@ -29,7 +29,7 @@ fn corehir_body_table_schema_version(table: CoreHirBodyTable) -> i32 {
 }
 
 fn corehir_body_table_expr_count(table: CoreHirBodyTable) -> i32 {
-    len(table.exprs)
+    table.exprs.len()
 }
 
 fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
@@ -100,7 +100,7 @@ fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
 }
 
 fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
-    len(table.fn_body_roots)
+    table.fn_body_roots.len()
 }
 
 fn corehir_body_table_fn_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
@@ -108,7 +108,7 @@ fn corehir_body_table_fn_body_root_at(table: CoreHirBodyTable, index: i32) -> i3
 }
 
 fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
-    len(table.method_body_roots)
+    table.method_body_roots.len()
 }
 
 fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
@@ -116,14 +116,14 @@ fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -
 }
 
 fn corehir_body_table_fn_contract_count(table: CoreHirBodyTable, body_index: i32) -> i32 {
-    if body_index < 0 || body_index >= len(table.fn_contract_counts) {
+    if body_index < 0 || body_index >= table.fn_contract_counts.len() {
         return 0
     }
     get_unchecked(table.fn_contract_counts, body_index)
 }
 
 fn corehir_body_table_fn_contract_start(table: CoreHirBodyTable, body_index: i32) -> i32 {
-    if body_index < 0 || body_index >= len(table.fn_contract_starts) {
+    if body_index < 0 || body_index >= table.fn_contract_starts.len() {
         return 0 - 1
     }
     get_unchecked(table.fn_contract_starts, body_index)
@@ -146,7 +146,7 @@ fn corehir_body_table_fn_contract_flat_index(
 }
 
 fn corehir_body_table_contract_flat_count(table: CoreHirBodyTable) -> i32 {
-    len(table.contract_roots)
+    table.contract_roots.len()
 }
 
 fn corehir_body_table_contract_root_flat_at(table: CoreHirBodyTable, index: i32) -> i32 {
@@ -165,19 +165,19 @@ fn corehir_body_table_contract_result_name_flat_at(
 }
 
 fn corehir_body_table_contract_kind_count(table: CoreHirBodyTable) -> i32 {
-    len(table.contract_kinds)
+    table.contract_kinds.len()
 }
 
 fn corehir_body_table_contract_result_name_count(table: CoreHirBodyTable) -> i32 {
-    len(table.contract_result_names)
+    table.contract_result_names.len()
 }
 
 fn corehir_body_table_fn_contract_range_count(table: CoreHirBodyTable) -> i32 {
-    len(table.fn_contract_starts)
+    table.fn_contract_starts.len()
 }
 
 fn corehir_body_table_fn_contract_count_record_count(table: CoreHirBodyTable) -> i32 {
-    len(table.fn_contract_counts)
+    table.fn_contract_counts.len()
 }
 
 fn corehir_body_table_fn_contract_root_at(

@@ -21,7 +21,7 @@ fn main() {
     let n = dup(41)
     assert(n == 41)
     let s = dup(String_from("hi"))
-    assert(len(s) == 2)
+    assert(s.len() == 2)
     let p = dup(Pair { a: 3, b: 4 })
     assert(p.a == 3)
     assert(p.b == 4)

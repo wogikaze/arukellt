@@ -30,7 +30,7 @@ fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
 }
 
 fn strip_module_prefix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {
@@ -73,7 +73,7 @@ fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     // segment fallback so the drain can patch fid<0 calls by name.
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
-    while vi < len(variants) {
+    while vi < variants.len() {
         let variant_idx = resolve_fn_index_by_name(ctx, get_unchecked(variants, vi).clone())
         if variant_idx >= 0 {
             return call_resolve::mir_resolve_self_delegate_collision(

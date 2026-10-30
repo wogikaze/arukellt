@@ -33,7 +33,7 @@ fn main() {
                 None => Stdio::println("key not found"),
             }
             let keys = table.table_keys()
-            Stdio::println((len(keys)).to_string())
+            Stdio::println((keys.len()).to_string())
         },
         Result::Err(e) => Stdio::println("error:".concat(e)),
     }

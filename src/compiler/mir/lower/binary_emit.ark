@@ -18,7 +18,7 @@ fn mir_emit_overloaded_binary_call(mut ctx: LowerCtx, callee: String) -> i32 {
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
     let dest = ctx_fresh_local(ctx, dest_vt)
     let rtn = ctx_fn_return_type_name(ctx, callee.clone())
-    if len(rtn) > 0 {
+    if rtn.len() > 0 {
         ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
     }
     call_type_fallback::set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
@@ -62,7 +62,7 @@ fn mir_emit_boolean_inverse(mut ctx: LowerCtx, source: i32) -> i32 {
 
 fn mir_emit_order_projection(mut ctx: LowerCtx, source: i32, mir_op: i32) -> i32 {
     let method = mir_order_projection_method(mir_op)
-    if len(method) == 0 {
+    if method.len() == 0 {
         return source
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(source))
@@ -82,7 +82,7 @@ fn mir_emit_overloaded_unary_call(mut ctx: LowerCtx, callee: String) -> i32 {
     let dest_vt = binary_type_select::mir_call_return_dest_vt(ret_vt)
     let dest = ctx_fresh_local(ctx, dest_vt)
     let rtn = ctx_fn_return_type_name(ctx, callee.clone())
-    if len(rtn) > 0 {
+    if rtn.len() > 0 {
         ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
     }
     call_type_fallback::set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))

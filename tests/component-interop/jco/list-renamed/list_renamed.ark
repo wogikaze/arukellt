@@ -1,7 +1,7 @@
 // Component interop smoke test: list<s32> parameter canonical ABI is name-independent.
 
 export fn head_or_zero(v: Vec<i32>) -> i32 {
-    if len(v) > 0 {
+    if v.len() > 0 {
         get(v, 0).unwrap()
     } else {
         0

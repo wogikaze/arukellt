@@ -64,7 +64,7 @@ fn infer_closure_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSi
     closure_capture::apply_closure_capture_summary(env, scope, capture_summary)
     let mut fn_ty = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
     let mut param_index = 0
-    while param_index < len(param_types) {
+    while param_index < param_types.len() {
         contract_type_mutation::TypeInfo_push_type_arg(
             fn_ty,
             unify::resolve_type_deep(env, get_unchecked(param_types, param_index))

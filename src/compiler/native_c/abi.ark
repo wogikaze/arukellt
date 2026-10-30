@@ -49,7 +49,7 @@ fn native_c_type_for_value(
         return String_from("intptr_t")
     }
     let scalar = native_c_scalar_type_name(name)
-    if len(scalar) > 0 {
+    if scalar.len() > 0 {
         return scalar
     }
     // Unit-tag enums (CONST_I32 lowering) must stay i32. Everything else that is
@@ -62,7 +62,7 @@ fn native_c_type_for_value(
         return String_from("int32_t")
     }
     // heap_enum_flags reserved for future payload-vs-unit classification.
-    if len(heap_enum_flags) < 0 {
+    if heap_enum_flags.len() < 0 {
         return String_new()
     }
     String_from("ark_object_header *")
@@ -117,7 +117,7 @@ fn native_c_type_for_local(
         local_record::mir_local_value_type(local),
         heap_enum_flags
     )
-    if len(typed) > 0 {
+    if typed.len() > 0 {
         return typed
     }
     let legacy = local_record::mir_local_val_type(local)
@@ -134,7 +134,7 @@ fn native_c_type_for_local(
 fn native_c_funcref_typedef_name(table: TypeTable, signature: SignatureEntry) -> String {
     let parameters = native_c_signature_parameter_encoding(table, signature)
     let results = native_c_signature_result_encoding(table, signature)
-    if len(parameters) == 0 || len(results) == 0 {
+    if parameters.len() == 0 || results.len() == 0 {
         return String_new()
     }
     String_from("ark_fnptr__P_").concat(parameters.concat(String_from("__R_").concat(results)))
@@ -146,11 +146,11 @@ fn native_c_funcref_typedef_decl(
     heap_enum_flags: Vec<i32>
 ) -> String {
     let typedef_name = native_c_funcref_typedef_name(table, signature)
-    if len(typedef_name) == 0 {
+    if typedef_name.len() == 0 {
         return String_new()
     }
     let return_type = native_c_signature_return_type(table, signature, heap_enum_flags)
-    if len(return_type) == 0 {
+    if return_type.len() == 0 {
         return String_new()
     }
     let param_count = signature_entry::signature_entry_param_count(signature)
@@ -165,7 +165,7 @@ fn native_c_funcref_typedef_decl(
                 signature_entry::signature_entry_param_at(signature, index),
                 heap_enum_flags
             )
-            if len(param_type) == 0 { return String_new() }
+            if param_type.len() == 0 { return String_new() }
             params = params.concat(param_type)
             index = index + 1
         }
@@ -213,7 +213,7 @@ fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureE
     while index < count {
         if index > 0 { encoding = encoding.concat("_") }
         let part = native_c_type_encoding(table, signature_entry::signature_entry_param_at(signature, index))
-        if len(part) == 0 { return String_new() }
+        if part.len() == 0 { return String_new() }
         encoding = encoding.concat(part)
         index = index + 1
     }
@@ -230,7 +230,7 @@ fn native_c_signature_result_encoding(table: TypeTable, signature: SignatureEntr
     while index < count {
         if index > 0 { encoding = encoding.concat("_") }
         let part = native_c_type_encoding(table, signature_entry::signature_entry_return_at(signature, index))
-        if len(part) == 0 { return String_new() }
+        if part.len() == 0 { return String_new() }
         encoding = encoding.concat(part)
         index = index + 1
     }
@@ -240,7 +240,7 @@ fn native_c_signature_result_encoding(table: TypeTable, signature: SignatureEntr
 fn native_c_function_symbol(table: TypeTable, function_id_raw: i32, signature: SignatureEntry) -> String {
     let parameters = native_c_signature_parameter_encoding(table, signature)
     let results = native_c_signature_result_encoding(table, signature)
-    if len(parameters) == 0 || len(results) == 0 {
+    if parameters.len() == 0 || results.len() == 0 {
         return String_new()
     }
     "ark_f_".concat((function_id_raw).to_string().concat("__P_".concat(parameters.concat("__R_".concat(results)))))
@@ -280,7 +280,7 @@ fn native_c_signature_parameters(
             signature_entry::signature_entry_param_at(signature, index),
             heap_enum_flags
         )
-        if len(c_type) == 0 { return String_new() }
+        if c_type.len() == 0 { return String_new() }
         if index > 0 { parameters = parameters.concat(", ") }
         parameters = parameters.concat(c_type.concat(" ark_v_".concat((index).to_string())))
         index = index + 1

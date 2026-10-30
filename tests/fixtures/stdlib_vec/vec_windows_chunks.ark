@@ -5,7 +5,7 @@ use std::host::stdio::Stdio
 fn print_window(window: Vec<i32>) {
     Stdio::print("[")
     let mut i: i32 = 0
-    while i < len(window) {
+    while i < window.len() {
         if i > 0 {
             Stdio::print(",")
         }
@@ -24,24 +24,24 @@ fn main() {
     push(values, 5)
 
     let windows: Vec<Vec<i32>> = values.windows(3)
-    Stdio::println((len(windows)).to_string())
+    Stdio::println((windows.len()).to_string())
     print_window(get_unchecked(windows, 0))
     print_window(get_unchecked(windows, 2))
 
     let too_wide: Vec<Vec<i32>> = values.windows(6)
-    Stdio::println((len(too_wide)).to_string())
+    Stdio::println((too_wide.len()).to_string())
     let zero_width: Vec<Vec<i32>> = values.windows(0)
-    Stdio::println((len(zero_width)).to_string())
+    Stdio::println((zero_width.len()).to_string())
 
     let chunks: Vec<Vec<i32>> = values.chunks(2)
-    Stdio::println((len(chunks)).to_string())
+    Stdio::println((chunks.len()).to_string())
     print_window(get_unchecked(chunks, 0))
     print_window(get_unchecked(chunks, 2))
 
     let exact: Vec<Vec<i32>> = values.chunks_exact(2)
-    Stdio::println((len(exact)).to_string())
+    Stdio::println((exact.len()).to_string())
     let exact_partial: Vec<Vec<i32>> = values.chunks_exact(4)
-    Stdio::println((len(exact_partial)).to_string())
+    Stdio::println((exact_partial.len()).to_string())
     let zero_chunks: Vec<Vec<i32>> = values.chunks(0)
-    Stdio::println((len(zero_chunks)).to_string())
+    Stdio::println((zero_chunks.len()).to_string())
 }

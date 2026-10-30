@@ -15,7 +15,7 @@ fn is_ident_char(ch: i32) -> bool {
 }
 
 fn prefix_at_offset(text: String, offset: i32) -> String {
-    let n = len(text)
+    let n = text.len()
     let mut end = offset
     if end > n {
         end = n

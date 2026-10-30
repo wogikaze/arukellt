@@ -2,7 +2,7 @@ use mir::function_core_record
 use mir::local_record
 use mir::types_function
 fn MirFunction_param_count(f: MirFunction) -> i32 {
-    len(f.params)
+    f.params.len()
 }
 
 fn MirFunction_param_at(f: MirFunction, idx: i32) -> MirLocal {
@@ -34,16 +34,16 @@ fn MirFunction_has_unsubstituted_generic_param(f: MirFunction) -> bool {
 
 fn mir_type_name_is_concrete_option_result_wrapper(type_name: String) -> bool {
     if type_name.clone().starts_with("?Option:") {
-        let inner = type_name.slice(8, len(type_name))
-        return len(inner) > 0 && !mir_type_name_is_generic_type_var(inner)
+        let inner = type_name.slice(8, type_name.len())
+        return inner.len() > 0 && !mir_type_name_is_generic_type_var(inner)
     }
     if type_name.clone().starts_with("?Result:") {
-        let inner = type_name.slice(8, len(type_name))
-        if len(inner) == 0 {
+        let inner = type_name.slice(8, type_name.len())
+        if inner.len() == 0 {
             return false
         }
         let mut i = 0
-        while i < len(inner) {
+        while i < inner.len() {
             if inner.byte_at(i) == 58 {
                 return !mir_type_name_is_generic_type_var(inner.slice(0, i))
             }
@@ -55,21 +55,21 @@ fn mir_type_name_is_concrete_option_result_wrapper(type_name: String) -> bool {
 }
 
 fn mir_type_name_is_generic_type_var(name: String) -> bool {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return false
     }
     if name.clone().starts_with("?") {
-        return mir_type_name_is_generic_type_var(name.slice(1, len(name)))
+        return mir_type_name_is_generic_type_var(name.slice(1, name.len()))
     }
-    if len(name) == 1 {
+    if name.len() == 1 {
         let c = name.byte_at(0)
         return c >= 65 && c <= 90
     }
     let c0 = name.byte_at(0)
     if c0 == 116 || c0 == 84 {
         let mut i = 1
-        let mut all_digit = i < len(name)
-        while i < len(name) {
+        let mut all_digit = i < name.len()
+        while i < name.len() {
             let c = name.byte_at(i)
             if c < 48 || c > 57 {
                 all_digit = false

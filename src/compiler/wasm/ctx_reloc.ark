@@ -164,14 +164,14 @@ fn reloc_splice_i32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     writer_leb::emit_leb128_s(sw, value)
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
-    while j < len(enc) {
+    while j < enc.len() {
         push(out_v, get_unchecked(enc, j))
         j = j + 1
     }
     // The placeholder operand is always the 1-byte sleb(0); skip exactly
     // one byte.
     let mut k = off + 1
-    while k < len(body) {
+    while k < body.len() {
         push(out_v, get_unchecked(body, k))
         k = k + 1
     }
@@ -190,12 +190,12 @@ fn reloc_splice_u32(body: Vec<i32>, off: i32, value: i32) -> Vec<i32> {
     writer_leb::emit_leb128_u(sw, value)
     let enc = writer_core::writer_bytes(sw)
     let mut j = 0
-    while j < len(enc) {
+    while j < enc.len() {
         push(out_v, get_unchecked(enc, j))
         j = j + 1
     }
     let mut k = off + 1
-    while k < len(body) {
+    while k < body.len() {
         push(out_v, get_unchecked(body, k))
         k = k + 1
     }

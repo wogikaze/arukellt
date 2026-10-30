@@ -65,7 +65,7 @@ fn emit_local_decls(mut body: WasmWriter, f: MirFunction, local_count: i32, para
     let mut pi = 0
     while pi < param_count {
         let mut param_ref = 0 - 1
-        if pi < len(param_ref_types) {
+        if pi < param_ref_types.len() {
             param_ref = get_unchecked(param_ref_types, pi)
         }
         push(local_ref_types, param_ref)
@@ -96,7 +96,7 @@ fn emit_local_decls(mut body: WasmWriter, f: MirFunction, local_count: i32, para
 }
 
 fn gc_local_type_name_is_string_or_empty(type_name: String) -> bool {
-    len(type_name) == 0 ||
+    type_name.len() == 0 ||
     type_name.clone().eq(String_from("String")) ||
     type_name.clone().eq(String_from("string"))
 }
@@ -282,7 +282,7 @@ fn emit_gc_local_val_type(mut body: WasmWriter, f: MirFunction, local_idx: i32, 
                 return true
             }
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            let elem_name = ret_name.clone().slice(4, len(ret_name))
+            let elem_name = ret_name.clone().slice(4, ret_name.len())
             if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem_name.clone()) {
                 writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
             } else {
@@ -361,7 +361,7 @@ fn emit_gc_local_val_type(mut body: WasmWriter, f: MirFunction, local_idx: i32, 
             }
             ctx_record::SelfEmitCtx_note_emit_census(ctx, emit_rung_census::RUNG_VEC_TYPE_NAME())
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            let elem_name = type_name.clone().slice(4, len(type_name))
+            let elem_name = type_name.clone().slice(4, type_name.len())
             if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem_name.clone()) ||
             ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem_name.clone()) {
                 writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
@@ -409,7 +409,7 @@ fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     if cached >= 0 {
         return cached != 0
     }
-    let block_count = len(f.blocks)
+    let block_count = f.blocks.len()
     let mut bi = 0
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
@@ -447,7 +447,7 @@ fn emit_vec_struct_ref_gc_type(mut body: WasmWriter, type_name: String, ctx: Sel
     if !type_name.clone().starts_with(String_from("vec:")) {
         return false
     }
-    let elem_name = type_name.clone().slice(4, len(type_name))
+    let elem_name = type_name.clone().slice(4, type_name.len())
     if vec_elem_is_nested_container_name(elem_name.clone()) {
         return false
     }
@@ -464,7 +464,7 @@ fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i3
     if !type_name.clone().starts_with(String_from("vec:")) {
         return false
     }
-    let elem_name = type_name.clone().slice(4, len(type_name))
+    let elem_name = type_name.clone().slice(4, type_name.len())
     if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(elem_name.clone()) ||
     ctx_gc_type_vec_ref::gc_vec_elem_is_registered_struct(ctx, elem_name.clone()) {
         return inferred_gc != ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
@@ -499,7 +499,7 @@ fn emit_explicit_vec_gc_type(mut body: WasmWriter, type_name: String, ctx: SelfE
         return true
     }
     if type_name.clone().starts_with(String_from("vec:")) {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))

@@ -3,6 +3,6 @@ use std::test
 
 fn main() {
     let s: String = String_new()
-    Test::assert_eq_i32(len(s), 0)
+    Test::assert_eq_i32(s.len(), 0)
     Test::assert_true(s.is_empty())
 }

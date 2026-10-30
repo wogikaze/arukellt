@@ -3,7 +3,7 @@ fn classify_len<T>(items: Vec<T>) -> String | m == 0 = "empty"
 fn classify_len<T>(items: Vec<T>) -> String | m == 1 = "single"
 fn classify_len<T>(_) -> String = "many"
 where
-m = len(items)
+m = items.len()
 
 fn main() {
     let empty: Vec<i32> = Vec::new<i32>()

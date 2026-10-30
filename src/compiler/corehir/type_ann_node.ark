@@ -15,7 +15,7 @@ fn type_ann_child_at(node: AstNode, idx: i32) -> AstNode {
 }
 
 fn type_ann_return_count(node: AstNode) -> i32 {
-    len(node.type_ann)
+    node.type_ann.len()
 }
 
 fn type_ann_return_at(node: AstNode, idx: i32) -> AstNode {
@@ -64,7 +64,7 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         // call_ref results land in i64 locals on GC (#874/#881).
         if type_ann_return_count(node) == 1 {
             let result_name = fn_sig_segment_name(type_ann_return_at(node, 0))
-            if len(result_name) > 0 && !fn_sig_segment_is_i32_family(result_name.clone()) {
+            if result_name.len() > 0 && !fn_sig_segment_is_i32_family(result_name.clone()) {
                 let mut params = String_new()
                 let mut pi = 0
                 while pi < type_ann_child_count(node) {
@@ -86,7 +86,7 @@ fn type_ann_function_ref_name(node: AstNode) -> String {
         // `fnsig:;<ret>` spelling so an indirect call dest local carries
         // the ref type instead of collapsing to the scalar bucket (#872).
         let ret_seg_zero = fn_sig_segment_name(type_ann_return_at(node, 0))
-        if len(ret_seg_zero) == 0 || fn_sig_segment_is_i32_family(ret_seg_zero.clone()) {
+        if ret_seg_zero.len() == 0 || fn_sig_segment_is_i32_family(ret_seg_zero.clone()) {
             return String_from("fnref")
         }
         return String_from("fnsig:;").concat(ret_seg_zero)

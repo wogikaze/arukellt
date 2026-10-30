@@ -2,7 +2,7 @@ use typechecker::contract_env_record
 use typechecker::contract_resolved_call
 
 fn type_env_resolved_call_owner_count(env: TypeEnv) -> i32 {
-    len(env.resolved_call_owners)
+    env.resolved_call_owners.len()
 }
 
 fn type_env_resolved_call_owner_at(env: TypeEnv, index: i32) -> ResolvedCallOwner {
@@ -16,7 +16,7 @@ fn type_env_record_resolved_call_owner(mut env: TypeEnv, span_start: i32, callee
     if env.current_decl_index < 0 {
         return
     }
-    let count = len(env.resolved_call_owners)
+    let count = env.resolved_call_owners.len()
     let mut i = 0
     while i < count {
         let existing = get_unchecked(env.resolved_call_owners, i)
@@ -41,7 +41,7 @@ fn type_env_record_resolved_call_owner(mut env: TypeEnv, span_start: i32, callee
 }
 
 fn type_env_deferred_len_receiver_count(env: TypeEnv) -> i32 {
-    len(env.deferred_len_receivers)
+    env.deferred_len_receivers.len()
 }
 
 fn type_env_deferred_len_receiver_at(env: TypeEnv, index: i32) -> DeferredLenReceiver {

@@ -29,12 +29,12 @@ fn call_ref_hint_seg3(hint: String) -> String {
     if first < 0 {
         return String_new()
     }
-    let rest = hint.clone().slice(first + 1, len(hint))
+    let rest = hint.clone().slice(first + 1, hint.len())
     let second = rest.clone().index_of(String_from("|"))
     if second < 0 {
         return String_new()
     }
-    let seg = rest.clone().slice(second + 1, len(rest))
+    let seg = rest.clone().slice(second + 1, rest.len())
     let third = seg.clone().index_of(String_from("|"))
     if third < 0 {
         return seg
@@ -47,17 +47,17 @@ fn call_ref_hint_seg4(hint: String) -> String {
     if first < 0 {
         return String_new()
     }
-    let rest = hint.clone().slice(first + 1, len(hint))
+    let rest = hint.clone().slice(first + 1, hint.len())
     let second = rest.clone().index_of(String_from("|"))
     if second < 0 {
         return String_new()
     }
-    let seg = rest.clone().slice(second + 1, len(rest))
+    let seg = rest.clone().slice(second + 1, rest.len())
     let third = seg.clone().index_of(String_from("|"))
     if third < 0 {
         return String_new()
     }
-    seg.clone().slice(third + 1, len(seg))
+    seg.clone().slice(third + 1, seg.len())
 }
 
 // A pair-ABI trampoline is a generated function whose first param is the
@@ -73,14 +73,14 @@ fn fn_is_pair_trampoline(f: MirFunction) -> bool {
 // Same normalization as closure_pair_seg_norm so producer/call-site keys
 // agree on container spellings.
 fn pair_seg_norm(name: String, vt: i32) -> String {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return "~".concat((vt).to_string())
     }
     if name.clone().starts_with("Vec<") && name.clone().ends_with(">") {
-        return "vec:".concat(name.slice(4, len(name) - 1))
+        return "vec:".concat(name.slice(4, name.len() - 1))
     }
     if name.clone().starts_with("Option<") && name.clone().ends_with(">") {
-        return "option:".concat(name.slice(7, len(name) - 1))
+        return "option:".concat(name.slice(7, name.len() - 1))
     }
     name
 }
@@ -121,7 +121,7 @@ fn pair_tramp_sig_key(f: MirFunction, use_names: bool) -> String {
 // Param segments must match exactly; an empty call-site return segment is
 // a wildcard for ignored results.
 fn pair_key_matches(hint_key: String, cand_key: String) -> bool {
-    if len(hint_key) == 0 || len(cand_key) == 0 {
+    if hint_key.len() == 0 || cand_key.len() == 0 {
         return false
     }
     let hp = hint_key.clone().index_of(String_from(";"))
@@ -132,11 +132,11 @@ fn pair_key_matches(hint_key: String, cand_key: String) -> bool {
     if !hint_key.clone().slice(0, hp).eq(cand_key.clone().slice(0, cp)) {
         return false
     }
-    let hret = hint_key.clone().slice(hp + 1, len(hint_key))
-    if len(hret) == 0 {
+    let hret = hint_key.clone().slice(hp + 1, hint_key.len())
+    if hret.len() == 0 {
         return true
     }
-    hret.eq(cand_key.clone().slice(cp + 1, len(cand_key)))
+    hret.eq(cand_key.clone().slice(cp + 1, cand_key.len()))
 }
 
 // Resolve the wasm type index of the (env, params...) -> ret trampoline
@@ -145,12 +145,12 @@ fn pair_key_matches(hint_key: String, cand_key: String) -> bool {
 fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
     let nk = call_ref_hint_seg3(hint.clone())
     let vk = call_ref_hint_seg4(hint.clone())
-    if len(nk) == 0 && len(vk) == 0 {
+    if nk.len() == 0 && vk.len() == 0 {
         return 0 - 1
     }
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let n = len(functions)
-    if len(nk) > 0 {
+    let n = functions.len()
+    if nk.len() > 0 {
         let mut fi = 0
         while fi < n {
             let f = get_unchecked(functions, fi)
@@ -162,7 +162,7 @@ fn call_ref_pair_key_type_idx(ctx: SelfEmitCtx, hint: String) -> i32 {
             fi = fi + 1
         }
     }
-    if len(vk) > 0 {
+    if vk.len() > 0 {
         let mut fi = 0
         while fi < n {
             let f = get_unchecked(functions, fi)
@@ -244,7 +244,7 @@ fn resolve_indirect_reloc(ctx: SelfEmitCtx, kind: i32, ikey: i32, ikey2: i32, ik
 // program function.
 
 fn pair_sig_parse_vt(seg: String) -> i32 {
-    let n = len(seg)
+    let n = seg.len()
     if n == 0 {
         return 0 - 1
     }
@@ -288,22 +288,22 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
     let mut nk_params = String_new()
     let mut nk_ret = String_new()
     if nk.clone().starts_with(String_from("nk:")) {
-        let nk_body = nk.clone().slice(3, len(nk))
+        let nk_body = nk.clone().slice(3, nk.len())
         let nk_sep = nk_body.clone().index_of(String_from(";"))
         if nk_sep >= 0 {
             nk_params = nk_body.clone().slice(0, nk_sep)
-            nk_ret = nk_body.clone().slice(nk_sep + 1, len(nk_body))
+            nk_ret = nk_body.clone().slice(nk_sep + 1, nk_body.len())
         }
     }
-    let body = vk.clone().slice(3, len(vk))
+    let body = vk.clone().slice(3, vk.len())
     let sep = body.clone().index_of(String_from(";"))
     if sep < 0 {
         return String_new()
     }
     let params_part = body.clone().slice(0, sep)
-    let ret_part = body.clone().slice(sep + 1, len(body))
+    let ret_part = body.clone().slice(sep + 1, body.len())
     let mut sig = String_from("structref")
-    let n = len(params_part)
+    let n = params_part.len()
     if n > 0 {
         let mut seg_start = 0
         let mut i = 0
@@ -321,7 +321,7 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
                         gc_struct_names.clone(),
                         memory64
                     )
-                    if len(name_tok) == 0 {
+                    if name_tok.len() == 0 {
                         return String_new()
                     }
                     sig = sig.concat(String_from("_"))
@@ -334,7 +334,7 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
         }
     }
     let mut ret_vt = 0 - 1
-    if len(ret_part) > 0 {
+    if ret_part.len() > 0 {
         ret_vt = pair_sig_parse_vt(ret_part)
     }
     if ret_vt < 0 {
@@ -349,7 +349,7 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
     // Ref-family return: the nk return name carries the declared type, so
     // resolve the exact ref token instead of dropping to the arity scan.
     let ret_tok = pair_sig_named_sig_token(nk_ret.clone(), gc_struct_names, memory64)
-    if len(ret_tok) == 0 {
+    if ret_tok.len() == 0 {
         return String_new()
     }
     sig.concat(String_from("_1").concat(ret_tok))
@@ -358,7 +358,7 @@ fn pair_call_sig_from_hint(hint: String, dest_vt: i32, memory64: bool, gc_struct
 // Segment at position idx inside a comma-separated pair-key params part
 // ("a,b,c"), or "" when idx is out of range.
 fn pair_key_param_seg(params: String, idx: i32) -> String {
-    let n = len(params)
+    let n = params.len()
     let mut seg_start = 0
     let mut seen = 0
     let mut i = 0
@@ -380,7 +380,7 @@ fn pair_key_param_seg(params: String, idx: i32) -> String {
 // signatures use); ref names resolve through pair_sig_ref_name_token so a
 // String return pins gcref0 rather than an arity-guessed fallback (#872).
 fn pair_sig_named_sig_token(name: String, gc_struct_names: Vec<String>, memory64: bool) -> String {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return String_new()
     }
     let vt = fnsig_segment_value_type(name.clone())
@@ -429,7 +429,7 @@ fn pair_sig_ref_name_token(name: String, gc_struct_names: Vec<String>) -> String
 
 fn pair_sig_struct_slot(gc_struct_names: Vec<String>, name: String) -> i32 {
     let mut i = 0
-    while i < len(gc_struct_names) {
+    while i < gc_struct_names.len() {
         if get_unchecked(gc_struct_names, i).eq(name.clone()) {
             return i
         }
@@ -458,7 +458,7 @@ fn pair_sig_collection_name_token(name: String, gc_struct_names: Vec<String>) ->
         if name.clone().eq(String_from("vec:fnref")) || name.clone().eq(String_from("vec:fn")) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
-        let elem = name.clone().slice(4, len(name))
+        let elem = name.clone().slice(4, name.len())
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem.clone()) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
@@ -496,7 +496,7 @@ fn pair_sig_collection_name_token(name: String, gc_struct_names: Vec<String>) ->
 // registration order — but readable before the type plan exists.
 fn emit_fn_type_idx(ctx: SelfEmitCtx, fi: i32) -> i32 {
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    if fi < 0 || fi >= len(functions) {
+    if fi < 0 || fi >= functions.len() {
         return 0 - 1
     }
     module_canon::MirModule_canon_index_of(
@@ -515,7 +515,7 @@ fn emit_fn_type_idx(ctx: SelfEmitCtx, fi: i32) -> i32 {
 // the collected pair-sig list, the index is the module canon table.
 fn call_ref_pair_sig_type_idx(ctx: SelfEmitCtx, sig: String) -> i32 {
     let sigs = ctx_record::SelfEmitCtx_pair_call_sigs(ctx)
-    let n = len(sigs)
+    let n = sigs.len()
     let mut i = 0
     while i < n {
         if sig.clone().eq(get_unchecked(sigs, i).clone()) {
@@ -527,10 +527,10 @@ fn call_ref_pair_sig_type_idx(ctx: SelfEmitCtx, sig: String) -> i32 {
 }
 
 fn parse_first_arg_vt_hint(hint: String) -> i32 {
-    if len(hint) == 0 {
+    if hint.len() == 0 {
         return 0 - 1
     }
-    let n = len(hint)
+    let n = hint.len()
     let mut value = 0
     let mut i = 0
     while i < n {
@@ -552,7 +552,7 @@ fn parse_first_arg_vt_hint(hint: String) -> i32 {
 }
 
 fn parse_call_ref_type_name_hint(hint: String) -> String {
-    let n = len(hint)
+    let n = hint.len()
     let mut i = 0
     while i < n {
         if hint.byte_at(i) == 124 {
@@ -575,7 +575,7 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
         return type_idx
     }
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let fn_count = len(functions)
+    let fn_count = functions.len()
     let memory64 = ctx_record::SelfEmitCtx_memory64(ctx)
     // Unary HOF (map/filter): on wasm32 use stable WASI i32_1i32 (type 3).
     // Under Memory64, use only the explicit MIR parameter/return value types;
@@ -704,7 +704,7 @@ fn typed_string_callback_type_idx_from_struct_get(
         ctx_record::SelfEmitCtx_current_func_idx(ctx)
     )
     let mut bi = 0
-    while bi < len(f.blocks) {
+    while bi < f.blocks.len() {
         let block = get_unchecked(f.blocks, bi)
         let mut ii = 0
         while ii < block_inst_access::MirBlock_inst_count(block) {
@@ -751,13 +751,13 @@ fn typed_string_callback_type_idx_from_struct_field(
     let type_map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
-    while i < len(type_map) {
-        if get_unchecked(type_map, i) != struct_type_idx || i >= len(sigs) {
+    while i < type_map.len() {
+        if get_unchecked(type_map, i) != struct_type_idx || i >= sigs.len() {
             i = i + 1
             continue
         }
         let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
-        if field_idx >= len(fields) {
+        if field_idx >= fields.len() {
             return 0 - 1
         }
         let field_sig = get_unchecked(fields, field_idx)
@@ -848,7 +848,7 @@ fn typed_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
 // Non-String params return -1 so callers fall through to the value-type
 // or MirFunction signature search.
 fn fnsig_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String, callback_base: i32) -> i32 {
-    let rest = type_name.clone().slice(6, len(type_name))
+    let rest = type_name.clone().slice(6, type_name.len())
     let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return 0 - 1
@@ -857,7 +857,7 @@ fn fnsig_string_callback_type_idx(ctx: SelfEmitCtx, type_name: String, callback_
     if !fnsig_segment_is_string(param_seg.clone()) {
         return 0 - 1
     }
-    let ret_seg = rest.clone().slice(sep + 1, len(rest))
+    let ret_seg = rest.clone().slice(sep + 1, rest.len())
     if ret_seg.clone().contains(String_from(";")) {
         return 0 - 1
     }
@@ -895,13 +895,13 @@ fn resolve_fnsig_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
             return typed
         }
     }
-    let rest = type_name.clone().slice(6, len(type_name))
+    let rest = type_name.clone().slice(6, type_name.len())
     let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return 0 - 1
     }
     let param_vt = fnsig_segment_value_type(rest.clone().slice(0, sep))
-    let ret_vt = fnsig_segment_value_type(rest.clone().slice(sep + 1, len(rest)))
+    let ret_vt = fnsig_segment_value_type(rest.clone().slice(sep + 1, rest.len()))
     if param_vt < 0 || ret_vt < 0 {
         return 0 - 1
     }
@@ -936,7 +936,7 @@ fn fnsig_segment_value_type(seg: String) -> i32 {
 // ref flavour so `fnsig:VecIter;i32` finds `fn(VecIter) -> i32` (#860).
 fn find_fnsig_fn_type_idx(ctx: SelfEmitCtx, param_vt: i32, ret_vt: i32) -> i32 {
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let fn_count = len(functions)
+    let fn_count = functions.len()
     let mut fi = 0
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
@@ -1052,9 +1052,9 @@ fn match_matches_param0(p0: i32, first_arg_vt: i32) -> bool {
 // fallback, matching the old scan's no-match path.
 fn indirect_type_returns_value(ctx: SelfEmitCtx, type_idx: i32, dest_vt: i32) -> bool {
     let canon_sigs = module_canon::MirModule_canon_sigs(ctx.mir)
-    if type_idx >= 0 && type_idx < len(canon_sigs) {
+    if type_idx >= 0 && type_idx < canon_sigs.len() {
         let sig = get_unchecked(canon_sigs, type_idx)
-        let n = len(sig)
+        let n = sig.len()
         let mut i = n - 1
         while i > 0 && sig.byte_at(i) != 95 {
             i = i - 1

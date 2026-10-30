@@ -7,14 +7,14 @@ use component::wit_names_import
 use component::wit_parse_text
 
 fn wit_parse_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
-    len(doc.package) > 0 && len(doc.interface) > 0
+    doc.package.len() > 0 && doc.interface.len() > 0
 }
 
 fn wit_import_serialized_records(text: String) -> Vec<String> {
     let mut records = Vec::new<String>()
     let mut start = 0
     let mut i = 0
-    let n = len(text)
+    let n = text.len()
     while i < n {
         if text.byte_at(i) == 59 {
             if i > start {
@@ -34,7 +34,7 @@ fn wit_import_serialized_fields(record: String) -> Vec<String> {
     let mut fields = Vec::new<String>()
     let mut start = 0
     let mut i = 0
-    let n = len(record)
+    let n = record.len()
     while i < n {
         if record.byte_at(i) == 124 {
             push(fields, record.slice(start, i))
@@ -48,12 +48,12 @@ fn wit_import_serialized_fields(record: String) -> Vec<String> {
 
 fn wit_import_serialized_list(text: String) -> Vec<String> {
     let mut values = Vec::new<String>()
-    if len(text) == 0 {
+    if text.len() == 0 {
         return values
     }
     let mut start = 0
     let mut i = 0
-    let n = len(text)
+    let n = text.len()
     while i < n {
         if text.byte_at(i) == 126 {
             push(values, text.slice(start, i))
@@ -67,11 +67,11 @@ fn wit_import_serialized_list(text: String) -> Vec<String> {
 
 fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
     let records = wit_import_serialized_records(serialized)
-    if len(records) == 0 {
+    if records.len() == 0 {
         return wit_parse_text::WitParsedInterface_empty()
     }
     let header = wit_import_serialized_fields(get_unchecked(records, 0))
-    if len(header) < 4 || !get_unchecked(header, 0).eq("header") {
+    if header.len() < 4 || !get_unchecked(header, 0).eq("header") {
         return wit_parse_text::WitParsedInterface_empty()
     }
 
@@ -80,12 +80,12 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
     let mut enums = Vec::new<WitParsedEnum>()
     let mut variants = Vec::new<WitParsedVariant>()
     let mut i = 1
-    while i < len(records) {
+    while i < records.len() {
         let fields = wit_import_serialized_fields(get_unchecked(records, i))
-        if len(fields) >= 2 {
+        if fields.len() >= 2 {
             let kind = get_unchecked(fields, 0)
             let name = get_unchecked(fields, 1)
-            if kind.eq("func") && len(fields) >= 4 {
+            if kind.eq("func") && fields.len() >= 4 {
                 let params = wit_import_serialized_list(get_unchecked(fields, 2))
                 let result = get_unchecked(fields, 3)
                 push(funcs, wit_parse_text::WitParsedFunc_new(
@@ -94,7 +94,7 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                         params,
                         result
                     ))
-            } else if kind.eq("record") && len(fields) >= 4 {
+            } else if kind.eq("record") && fields.len() >= 4 {
                 let field_names = wit_import_serialized_list(get_unchecked(fields, 2))
                 let field_types = wit_import_serialized_list(get_unchecked(fields, 3))
                 push(records_out, wit_parse_text::WitParsedRecord_new(
@@ -103,10 +103,10 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                         field_names,
                         field_types
                     ))
-            } else if kind.eq("enum") && len(fields) >= 3 {
+            } else if kind.eq("enum") && fields.len() >= 3 {
                 let variant_names = wit_import_serialized_list(get_unchecked(fields, 2))
                 let mut variant_ark_names = Vec::new<String>()
-                for vi in 0..len(variant_names) {
+                for vi in 0..variant_names.len() {
                     push(variant_ark_names, wit_names_import::wit_enum_variant_name(get_unchecked(variant_names, vi)))
                 }
                 push(enums, wit_parse_text::WitParsedEnum_new(
@@ -115,11 +115,11 @@ fn wit_import_serialized_doc(serialized: String) -> WitParsedInterface {
                         variant_names,
                         variant_ark_names
                     ))
-            } else if kind.eq("variant") && len(fields) >= 4 {
+            } else if kind.eq("variant") && fields.len() >= 4 {
                 let case_names = wit_import_serialized_list(get_unchecked(fields, 2))
                 let payload_types = wit_import_serialized_list(get_unchecked(fields, 3))
                 let mut case_ark_names = Vec::new<String>()
-                for ci in 0..len(case_names) {
+                for ci in 0..case_names.len() {
                     push(case_ark_names, wit_names_import::wit_enum_variant_name(get_unchecked(case_names, ci)))
                 }
                 push(variants, wit_parse_text::WitParsedVariant_new(
@@ -165,10 +165,10 @@ fn parse_wit_import_file(path: String) -> WitParsedInterface {
 }
 
 fn wit_import_id_matches(package_id: String, doc: wit_parse_text::WitParsedInterface) -> bool {
-    if len(doc.package) == 0 || len(doc.interface) == 0 {
+    if doc.package.len() == 0 || doc.interface.len() == 0 {
         return false
     }
-    if len(wit_identity::wit_identifier_error(package_id.clone())) > 0 {
+    if wit_identity::wit_identifier_error(package_id.clone()).len() > 0 {
         return false
     }
     let want_pkg = wit_identity::wit_identifier_package(package_id.clone())
@@ -177,7 +177,7 @@ fn wit_import_id_matches(package_id: String, doc: wit_parse_text::WitParsedInter
         return false
     }
     let want_version = wit_identity::wit_identifier_version(package_id.clone())
-    if len(want_version) == 0 {
+    if want_version.len() == 0 {
         return true
     }
     doc.package_version.clone().eq(want_version.clone())

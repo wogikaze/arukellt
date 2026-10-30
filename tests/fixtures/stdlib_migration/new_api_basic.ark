@@ -7,7 +7,7 @@ fn main() {
     let s: String = "Hello".concat(", Arukellt!")
     Stdio::println(s)
     let parts: Vec<String> = "one,two,three".split(",")
-    Stdio::println((len(parts)).to_string())
+    Stdio::println((parts.len()).to_string())
     let rejoined: String = parts.join(" | ")
     Stdio::println(rejoined)
 }

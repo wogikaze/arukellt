@@ -32,7 +32,7 @@ fn mir_module_take_block(mut m: MirModule, id: i32) -> MirBlock {
 
 fn mir_module_give_block(mut m: MirModule, mut block: MirBlock) {
     block_inst_mutation::mir_block_clear_insts(block)
-    if m.block_pool_used < len(m.block_pool) {
+    if m.block_pool_used < m.block_pool.len() {
         set(m.block_pool, m.block_pool_used, block)
         m.block_pool_used = m.block_pool_used + 1
         return
@@ -42,7 +42,7 @@ fn mir_module_give_block(mut m: MirModule, mut block: MirBlock) {
 }
 
 fn mir_function_detach_blocks(mut f: MirFunction, mut m: MirModule) {
-    let n = len(f.blocks)
+    let n = f.blocks.len()
     let mut i = 0
     while i < n {
         mir_module_give_block(m, get_unchecked(f.blocks, i))

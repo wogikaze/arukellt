@@ -24,7 +24,7 @@ fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
         frontend_result_decls(parsed),
         config_record::config_world(config)
     )
-    if len(preflight_error) > 0 {
+    if preflight_error.len() > 0 {
         return frontend_stop(
             result_record::CompileResult_err(phases::PHASE_EMIT(), preflight_error),
             t0,
@@ -83,7 +83,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
         )
     }
     if config_record::config_parse_only(config) {
-        if len(parse_warnings) > 0 {
+        if parse_warnings.len() > 0 {
             return frontend_stop(
                 errors_parse::parse_warnings_result(
                     source.clone(),

@@ -4,7 +4,7 @@ use mir_opt::loop_regions
 use mir_opt::translation_validation
 
 fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: LoopRegion, claimed_hoisted: i32) -> bool {
-    if len(before) != len(after) || claimed_hoisted < 0 {
+    if before.len() != after.len() || claimed_hoisted < 0 {
         return false
     }
     if claimed_hoisted == 0 {
@@ -12,11 +12,11 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
     }
     let start = loop_regions::LoopRegion_loop_start(region)
     let end = loop_regions::LoopRegion_loop_end(region)
-    if start < 0 || end <= start || end >= len(before) {
+    if start < 0 || end <= start || end >= before.len() {
         return false
     }
     let marker_after = start + claimed_hoisted
-    if marker_after >= len(after) {
+    if marker_after >= after.len() {
         return false
     }
     let mut i = 0
@@ -58,18 +58,18 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
     let mut before_i = start
     let mut after_i = marker_after
     let mut selected_i = 0
-    while before_i < len(before) {
-        if selected_i < len(selected) && before_i == get_unchecked(selected, selected_i) {
+    while before_i < before.len() {
+        if selected_i < selected.len() && before_i == get_unchecked(selected, selected_i) {
             selected_i = selected_i + 1
             before_i = before_i + 1
             continue
         }
-        if after_i >= len(after) ||
+        if after_i >= after.len() ||
         !translation_validation::mir_translation_inst_equal(get_unchecked(before, before_i), get_unchecked(after, after_i)) {
             return false
         }
         before_i = before_i + 1
         after_i = after_i + 1
     }
-    selected_i == len(selected) && after_i == len(after)
+    selected_i == selected.len() && after_i == after.len()
 }

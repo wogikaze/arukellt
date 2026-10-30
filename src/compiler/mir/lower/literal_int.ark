@@ -37,7 +37,7 @@ fn lower_unary_neg_forced_i64(mut ctx: LowerCtx, operand_node: AstNode) -> i32 {
 
 fn mir_int_literal_needs_i64(node: AstNode) -> bool {
     let raw_text = ast_node::node_text(node)
-    let raw_len = len(raw_text)
+    let raw_len = raw_text.len()
     // Guard every byte_at(..., 1) behind raw_len >= 2. A flat
     // `a && b || c || d` chain lets the || arms run when `a` is false, and GC
     // array.get_u traps on OOB for one-digit literals (#834 self-compile).

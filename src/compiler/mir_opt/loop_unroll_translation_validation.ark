@@ -17,7 +17,7 @@ fn loop_unroll_translation_valid(
     counter: i32,
     trips: i32
 ) -> bool {
-    if start < 0 || end < start || end >= len(before) ||
+    if start < 0 || end < start || end >= before.len() ||
     body_start < start || body_end < body_start || body_end > end ||
     counter < 0 || trips <= 0 {
         return false
@@ -26,7 +26,7 @@ fn loop_unroll_translation_valid(
     let mut before_i = 0
     let mut after_i = 0
     while before_i < start {
-        if after_i >= len(after) ||
+        if after_i >= after.len() ||
         !translation_validation::mir_translation_inst_equals_draft(
             get_unchecked(before, before_i),
             get_unchecked(after, after_i)
@@ -51,7 +51,7 @@ fn loop_unroll_translation_valid(
             } else {
                 block_inst_access::MirInst_as_draft(original)
             }
-            if after_i >= len(after) ||
+            if after_i >= after.len() ||
             !translation_validation::mir_translation_draft_equal(
                 expected,
                 get_unchecked(after, after_i)
@@ -65,8 +65,8 @@ fn loop_unroll_translation_valid(
     }
 
     before_i = end + 1
-    while before_i < len(before) {
-        if after_i >= len(after) ||
+    while before_i < before.len() {
+        if after_i >= after.len() ||
         !translation_validation::mir_translation_inst_equals_draft(
             get_unchecked(before, before_i),
             get_unchecked(after, after_i)
@@ -76,5 +76,5 @@ fn loop_unroll_translation_valid(
         before_i = before_i + 1
         after_i = after_i + 1
     }
-    after_i == len(after)
+    after_i == after.len()
 }

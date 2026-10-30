@@ -7,14 +7,14 @@ fn main() {
     Stdio::println(Path::new("/foo//bar").normalize())
     Stdio::println(Path::new("/a/b/c").normalize())
     let c1: Vec<String> = Path::new("/usr/local/bin").components()
-    Stdio::println((len(c1)).to_string())
+    Stdio::println((c1.len()).to_string())
     Stdio::println(get_unchecked(c1, 0))
     Stdio::println(get_unchecked(c1, 1))
     Stdio::println(get_unchecked(c1, 2))
     let c2: Vec<String> = Path::new("a/b").components()
-    Stdio::println((len(c2)).to_string())
+    Stdio::println((c2.len()).to_string())
     let c3: Vec<String> = Path::new("").components()
-    Stdio::println((len(c3)).to_string())
+    Stdio::println((c3.len()).to_string())
 }
 // normalize: dot and double-dot
 // components

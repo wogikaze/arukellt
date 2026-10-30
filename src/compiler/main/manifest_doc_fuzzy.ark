@@ -9,12 +9,12 @@ fn doc_score_name(query: String, candidate: String) -> i32 {
         return 0
     }
     if candidate.clone().starts_with(query.clone()) {
-        return len(candidate) - len(query)
+        return candidate.len() - query.len()
     }
     if candidate.clone().contains(query.clone()) {
-        return len(candidate)
+        return candidate.len()
     }
-    len(candidate) + len(query)
+    candidate.len() + query.len()
 }
 
 pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> Vec<String> {
@@ -30,7 +30,7 @@ pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> V
             let label = doc_qualified_name(manifest_doc_record::DocFnEntry_module(e), manifest_doc_record::DocFnEntry_name(e))
             let mut skip = false
             let mut oi = 0
-            while oi < len(out) {
+            while oi < out.len() {
                 if get_unchecked(out, oi).eq(label.clone()) {
                     skip = true
                 }

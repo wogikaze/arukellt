@@ -64,7 +64,7 @@ fn return_value_type_tag_declared(node: AstNode, type_params: Vec<String>) -> i3
     // A declared type parameter stays a scalar placeholder until mono
     // substitution; every other named annotation is a nominal GC value
     // (ADR-089: name length and case do not decide this).
-    if len(name) > 0 && !frontend_fns::fn_type_param_is_declared(type_params.clone(), name.clone()) {
+    if name.len() > 0 && !frontend_fns::fn_type_param_is_declared(type_params.clone(), name.clone()) {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()

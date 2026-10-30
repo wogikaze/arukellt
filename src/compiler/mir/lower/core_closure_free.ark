@@ -72,7 +72,7 @@ fn core_closure_collect_caps(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreH
 fn core_closure_collect_rebind_flags(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, caps: Vec<String>) -> Vec<i32> {
     let mut flags = Vec::new<i32>()
     let mut i = 0
-    while i < len(caps) {
+    while i < caps.len() {
         push(flags, 0)
         i = i + 1
     }
@@ -107,12 +107,12 @@ fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Ve
         // CoreHIR ASSIGN carries the plain target name in node text;
         // field/index targets leave it empty (ref mutation, not a rebind).
         let name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        if len(name) > 0 && !core_closure_name_is_shadowed(shadowed, name.clone()) {
+        if name.len() > 0 && !core_closure_name_is_shadowed(shadowed, name.clone()) {
             let mut ci = 0
-            while ci < len(caps) {
+            while ci < caps.len() {
                 if get_unchecked(caps, ci).eq(name.clone()) {
                     set(flags, ci, 1)
-                    ci = len(caps)
+                    ci = caps.len()
                 }
                 ci = ci + 1
             }
@@ -137,7 +137,7 @@ fn core_closure_mark_rebind(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, caps: Ve
 fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shadowed: Vec<String>, child_count: i32) -> Vec<String> {
     let mut inner = Vec::new<String>()
     let mut i = 0
-    while i < len(shadowed) {
+    while i < shadowed.len() {
         push(inner, get_unchecked(shadowed, i).clone())
         i = i + 1
     }
@@ -154,7 +154,7 @@ fn core_closure_extend_shadowed(exprs: Vec<CoreHirExpr>, clos: CoreHirExpr, shad
 
 fn core_closure_name_is_shadowed(shadowed: Vec<String>, name: String) -> bool {
     let mut i = 0
-    while i < len(shadowed) {
+    while i < shadowed.len() {
         if get_unchecked(shadowed, i).eq(name.clone()) {
             return true
         }

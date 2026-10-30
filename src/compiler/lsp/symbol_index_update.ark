@@ -13,7 +13,7 @@ pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
     // failed validate after structref array.get (#730).
     let mut kept = Vec::new<IndexedSymbol>()
     let symbols = state_record::lsp_state_symbol_symbols(state)
-    let n = len(symbols)
+    let n = symbols.len()
     let mut i = 0
     while i < n {
         if !symbol_index_record::indexed_symbol_uri(get_unchecked(symbols, i)).eq(uri.clone()) {
@@ -28,7 +28,7 @@ pub fn symbol_index_remove_uri(mut state: LspState, uri: String) {
         // Rebuild without `clone(vec)` into a mut local: that dest was poisoned
         // to String on wasm32-gc and failed validate (#730).
         let mut rebuilt = Vec::new<String>()
-        let un = len(indexed_uris)
+        let un = indexed_uris.len()
         let mut j = 0
         while j < un {
             if j != uri_idx {
@@ -45,7 +45,7 @@ pub fn symbol_index_update_uri(mut state: LspState, uri: String, text: String) {
     let decls = session_parse::session_parse_decls(text.clone())
     let extracted = symbol_index_extract::extract_symbols_from_decls(uri.clone(), decls)
     let mut symbols = state_record::lsp_state_symbol_symbols(state)
-    let en = len(extracted)
+    let en = extracted.len()
     let mut ei = 0
     while ei < en {
         symbol_index_record::symbol_index_push_symbol(symbols, get_unchecked(extracted, ei))

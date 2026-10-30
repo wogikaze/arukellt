@@ -17,7 +17,7 @@ fn LspDocStore_new() -> LspDocStore {
 }
 
 fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {
-    let n = len(store.docs)
+    let n = store.docs.len()
     let mut i = 0
     while i < n {
         let d = get_unchecked(store.docs, i)

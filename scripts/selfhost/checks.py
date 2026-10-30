@@ -552,6 +552,23 @@ BOOTSTRAP_STD_SOURCE_FILES = (
     "std/core/eq.ark",
 )
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
+
+# The checked-in prelude retired the `len` free (receiver methods own the
+# surface), but the pinned compiler's method lowering still emits the bare
+# `len` callee for a `.len()` call and types the call from this declaration.
+# Without it, `.len()` on an inline `String::slice(...)` result is untyped and
+# the pinned lowering falls into the raw-array length path, which produces an
+# invalid/trapping stage-2. The shim is overlay-only: user programs get the
+# retired free (E0100) plus `s.len()` / `v.len()`. Delete it when the pin is
+# refreshed past that method-call lowering.
+BOOTSTRAP_PRELUDE_LEN_SHIM = """
+// Bootstrap-only compatibility declaration for the pinned compiler's
+// `.len()` lowering; the checked-in prelude retires the free.
+pub fn len(s: String) -> i32 {
+    raw_string_len_bytes(s)
+}
+"""
+
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
 # Per-module AST parse cache directory (relative to root).
@@ -4756,6 +4773,7 @@ def _prepare_flattened_selfhost_source_locked(
         prelude_text = _patch_bootstrap_prelude_vector_clone_shallow_text(
             prelude_text
         )
+        prelude_text = prelude_text.rstrip() + "\n" + BOOTSTRAP_PRELUDE_LEN_SHIM
         (std_dst / "prelude.ark").write_text(prelude_text, encoding="utf-8")
     # Copy std/toml.ark (top-level scanner file without pub enum) so the
     # compiler's toml helpers are not stubbed.  This file has no `use`

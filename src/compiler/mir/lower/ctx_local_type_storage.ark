@@ -4,7 +4,7 @@ fn ctx_local_type_push(mut ctx: LowerCtx, local_idx: i32, type_name: String) {
 }
 
 fn ctx_local_type_count(ctx: LowerCtx) -> i32 {
-    len(ctx.local_type_indices)
+    ctx.local_type_indices.len()
 }
 
 fn ctx_local_type_start(ctx: LowerCtx) -> i32 {
@@ -22,7 +22,7 @@ fn ctx_local_type_name_at(ctx: LowerCtx, index: i32) -> String {
 fn ctx_local_type_reset_for_function(mut ctx: LowerCtx) {
     ctx.local_types = Vec::new<String>()
     ctx.local_type_indices = Vec::new<i32>()
-    ctx.local_type_start = len(ctx.local_types)
+    ctx.local_type_start = ctx.local_types.len()
 }
 
 fn ctx_local_type_values(ctx: LowerCtx) -> Vec<String> {

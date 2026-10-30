@@ -12,7 +12,7 @@ fn main() {
         set(v, j, j * 3)
         j = j + 1
     }
-    Test::assert_eq_i32(len(v), 100)
+    Test::assert_eq_i32(v.len(), 100)
     Test::assert_eq_i32(get_unchecked(v, 0), 0)
     Test::assert_eq_i32(get_unchecked(v, 50), 150)
     Test::assert_eq_i32(get_unchecked(v, 99), 297)

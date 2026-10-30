@@ -53,12 +53,12 @@ fn lower_struct_iterator_for_stmt(mut ctx: LowerCtx, node: AstNode, range: AstNo
     // IntoIterator impl (which snapshots `to_vec`) before the Vec path (#917).
     let mut into_iter_callee = String_new()
     let hashset_family = ctx_api_local_types::ctx_hashset_local_family(ctx, source_idx)
-    if len(hashset_family.clone()) > 0 {
+    if hashset_family.clone().len() > 0 {
         into_iter_callee = call_rewrite_hashset::hashset_into_iter_target(hashset_family)
     }
-    if len(into_iter_callee.clone()) > 0 {
+    if into_iter_callee.clone().len() > 0 {
         let iterator_type = ctx_fn_return_type::ctx_fn_return_type_name(ctx, into_iter_callee.clone())
-        if len(iterator_type.clone()) > 0 {
+        if iterator_type.clone().len() > 0 {
             lower_into_iterator_for_stmt(ctx, node, range, body, source_idx, iterator_type, into_iter_callee)
             return
         }
@@ -68,7 +68,7 @@ fn lower_struct_iterator_for_stmt(mut ctx: LowerCtx, node: AstNode, range: AstNo
         ast_node::node_span_start(node),
         raw_struct_type.clone()
     )
-    if len(si_into_iter_type) > 0 {
+    if si_into_iter_type.len() > 0 {
         let callee = for_iter_resolve::mir_for_into_iterator_callee(
             ctx,
             ast_node::node_span_start(node),
@@ -89,7 +89,7 @@ fn lower_struct_iterator_for_stmt(mut ctx: LowerCtx, node: AstNode, range: AstNo
         ast_node::node_span_start(node),
         si_struct_type.clone()
     )
-    if len(si_next_callee) > 0 {
+    if si_next_callee.len() > 0 {
         if !ast_node::node_kind_is(range, lower_kinds::NK_IDENT()) {
             ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
         }
@@ -120,7 +120,7 @@ fn lower_into_iterator_for_stmt(
         ast_node::node_span_start(node),
         iterator_type.clone()
     )
-    if len(next_callee) > 0 {
+    if next_callee.len() > 0 {
         let iter_scope = loop_struct_iter::mir_begin_struct_iterator_loop(
             ctx,
             ast_node::node_text(node),
@@ -161,7 +161,7 @@ fn lower_vec_for_stmt(mut ctx: LowerCtx, node: AstNode, body: AstNode, vec_idx: 
     let vec_type = ctx_get_local_type(ctx, vec_idx)
     let vec_vt = ctx_local_vt(ctx, vec_idx)
     let vec_local = ctx_fresh_local(ctx, vec_vt)
-    if len(vec_type) > 0 {
+    if vec_type.len() > 0 {
         ctx_set_local_type(ctx, vec_local, vec_type)
     }
     loop_conditions::mir_save_stack_to_local(ctx, vec_local)
@@ -170,7 +170,7 @@ fn lower_vec_for_stmt(mut ctx: LowerCtx, node: AstNode, body: AstNode, vec_idx: 
     let elem_type = loop_vec::mir_vec_element_type_name(vec_type.clone())
     let iter_vt = loop_vec::mir_vec_element_vt(ctx, elem_type.clone())
     let iter_var = ctx_alloc_local(ctx, ast_node::node_text(node), iter_vt)
-    if len(elem_type) > 0 {
+    if elem_type.len() > 0 {
         ctx_set_local_type(ctx, iter_var, elem_type)
     }
     let loop_scope = loop_scope::mir_begin_loop_scope(ctx)

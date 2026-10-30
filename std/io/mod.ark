@@ -204,12 +204,12 @@ impl Reader {
 
     /// Returns the total byte count, independent of the cursor.
     fn len(self: Reader) -> i32 {
-        len(self.bytes)
+        self.bytes.len()
     }
 
     /// Returns true when the cursor is at or past the end of the image.
     fn is_eof(self: Reader) -> bool {
-        self.cursor >= len(self.bytes)
+        self.cursor >= self.bytes.len()
     }
 
     /// Returns the full byte image, independent of the cursor.
@@ -223,7 +223,7 @@ impl Read for Reader {
         if max_bytes < 0 {
             return Err(IoError::Other("read: max_bytes must be non-negative"))
         }
-        let total: i32 = len(self.bytes)
+        let total: i32 = self.bytes.len()
         let available: i32 = if self.cursor < total { total - self.cursor } else { 0 }
         let count: i32 = if max_bytes < available { max_bytes } else { available }
         let mut out: Vec<i32> = Vec::new<i32>()
@@ -239,7 +239,7 @@ impl Read for Reader {
 
 impl BufRead for Reader {
     fn fill_buf(self: Reader) -> Result<Vec<i32>, IoError> {
-        let total: i32 = len(self.bytes)
+        let total: i32 = self.bytes.len()
         let mut out: Vec<i32> = Vec::new<i32>()
         let mut i: i32 = self.cursor
         while i < total {
@@ -253,7 +253,7 @@ impl BufRead for Reader {
         if amount < 0 {
             return Err(IoError::Other("consume: amount must be non-negative"))
         }
-        let total: i32 = len(self.bytes)
+        let total: i32 = self.bytes.len()
         let available: i32 = if self.cursor < total { total - self.cursor } else { 0 }
         if amount > available {
             return Err(IoError::Other("consume: amount exceeds buffered bytes"))
@@ -263,10 +263,10 @@ impl BufRead for Reader {
     }
 
     fn read_line(mut self: Reader) -> Result<Option<String>, IoError> {
-        if self.cursor >= len(self.bytes) {
+        if self.cursor >= self.bytes.len() {
             return Ok(Option::None)
         }
-        let total: i32 = len(self.bytes)
+        let total: i32 = self.bytes.len()
         let mut line: String = ""
         let mut pos: i32 = self.cursor
         let mut found_newline: bool = false
@@ -289,7 +289,7 @@ impl Seek for Reader {
         let target: i64 = match from {
             SeekFrom::Start(offset) => offset,
             SeekFrom::Current(offset) => (self.cursor).into() + offset,
-            SeekFrom::End(offset) => (len(self.bytes)).into() + offset,
+            SeekFrom::End(offset) => (self.bytes.len()).into() + offset,
         }
         if target < 0i64 {
             return Err(IoError::Other("seek: negative position"))
@@ -340,7 +340,7 @@ impl Writer {
 
 impl Write for Writer {
     fn write(mut self: Writer, data: Vec<i32>) -> Result<i32, IoError> {
-        let count: i32 = len(data)
+        let count: i32 = data.len()
         let mut i: i32 = 0
         while i < count {
             push(self.bytes, get_unchecked(data, i) & BYTE_MASK)
@@ -371,7 +371,7 @@ impl Stdout {
 
     /// Writes `text` as UTF-8 bytes and returns the byte count.
     fn write_string(self: Stdout, text: String) -> Result<i32, IoError> {
-        let count: i32 = len(text)
+        let count: i32 = text.len()
         __intrinsic_print(text)
         Ok(count)
     }
@@ -379,7 +379,7 @@ impl Stdout {
 
 impl Write for Stdout {
     fn write(self: Stdout, data: Vec<i32>) -> Result<i32, IoError> {
-        let count: i32 = len(data)
+        let count: i32 = data.len()
         __intrinsic_print(__intrinsic_string_from_bytes(data))
         Ok(count)
     }
@@ -405,7 +405,7 @@ impl Stderr {
 
     /// Writes `text` as UTF-8 bytes and returns the byte count.
     fn write_string(self: Stderr, text: String) -> Result<i32, IoError> {
-        let count: i32 = len(text)
+        let count: i32 = text.len()
         __intrinsic_eprint(text)
         Ok(count)
     }
@@ -413,7 +413,7 @@ impl Stderr {
 
 impl Write for Stderr {
     fn write(self: Stderr, data: Vec<i32>) -> Result<i32, IoError> {
-        let count: i32 = len(data)
+        let count: i32 = data.len()
         __intrinsic_eprint(__intrinsic_string_from_bytes(data))
         Ok(count)
     }
@@ -446,12 +446,12 @@ impl Io {
                 Result::Ok(bytes) => bytes,
                 Result::Err(err) => return Err(err),
             }
-            if len(chunk) == 0 {
+            if chunk.len() == 0 {
                 done = true
             } else {
                 let write_result: Result<(), IoError> = Io::write_all(to, chunk)
                 match write_result {
-                    Result::Ok(_) => total = total + (len(chunk)).into(),
+                    Result::Ok(_) => total = total + (chunk.len()).into(),
                     Result::Err(err) => return Err(err),
                 }
             }
@@ -476,21 +476,21 @@ impl Io {
                 Result::Ok(bytes) => bytes,
                 Result::Err(err) => return Err(err),
             }
-            if len(chunk) == 0 {
+            if chunk.len() == 0 {
                 let needed: String = amount.to_string()
-                let have: String = len(out).to_string()
+                let have: String = out.len().to_string()
                 let message: String = "need ".concat(needed.concat(" have ".concat(have)))
                 return Err(IoError::UnexpectedEof(message))
             }
-            if len(chunk) > remaining {
+            if chunk.len() > remaining {
                 return Err(IoError::Other("read_exact: source returned more than requested"))
             }
             let mut i: i32 = 0
-            while i < len(chunk) {
+            while i < chunk.len() {
                 push(out, get_unchecked(chunk, i))
                 i = i + 1
             }
-            remaining = remaining - len(chunk)
+            remaining = remaining - chunk.len()
         }
         Ok(out)
     }
@@ -505,11 +505,11 @@ impl Io {
                 Result::Ok(bytes) => bytes,
                 Result::Err(err) => return Err(err),
             }
-            if len(chunk) == 0 {
+            if chunk.len() == 0 {
                 done = true
             } else {
                 let mut i: i32 = 0
-                while i < len(chunk) {
+                while i < chunk.len() {
                     push(out, get_unchecked(chunk, i))
                     i = i + 1
                 }
@@ -523,7 +523,7 @@ impl Io {
     /// A sink that accepts zero bytes for a non-empty chunk would loop forever,
     /// so that case is reported as `IoError::Other`.
     fn write_all<W: Write>(mut to: W, data: Vec<i32>) -> Result<(), IoError> {
-        let total: i32 = len(data)
+        let total: i32 = data.len()
         let mut offset: i32 = 0
         while offset < total {
             let mut rest: Vec<i32> = Vec::new<i32>()
@@ -615,7 +615,7 @@ impl<R: Read> BufReader<R> {
             Result::Err(err) => return Err(err),
         }
         self.buffer = chunk
-        self.end = len(self.buffer)
+        self.end = self.buffer.len()
         Ok(())
     }
 }
@@ -626,7 +626,7 @@ impl<R: Read> Read for BufReader<R> {
             return Err(IoError::Other("read: max_bytes must be non-negative"))
         }
         let mut out: Vec<i32> = Vec::new<i32>()
-        while len(out) < max_bytes {
+        while out.len() < max_bytes {
             if self.buffered() == 0 {
                 match self.refill() {
                     Result::Ok(_) => {
@@ -638,7 +638,7 @@ impl<R: Read> Read for BufReader<R> {
                 }
             }
             let available: i32 = self.buffered()
-            let wanted: i32 = max_bytes - len(out)
+            let wanted: i32 = max_bytes - out.len()
             let take: i32 = if wanted < available { wanted } else { available }
             let mut i: i32 = 0
             while i < take {
@@ -790,13 +790,13 @@ impl<W: Write> BufWriter<W> {
     // the trait `write` share this so the accepted count and the auto-flush
     // threshold cannot drift apart.
     fn append(mut self: BufWriter<W>, data: Vec<i32>) -> Result<i32, IoError> {
-        let count: i32 = len(data)
+        let count: i32 = data.len()
         let mut i: i32 = 0
         while i < count {
             push(self.buffer, get_unchecked(data, i) & BYTE_MASK)
             i = i + 1
         }
-        if self.capacity <= 0 || len(self.buffer) >= self.capacity {
+        if self.capacity <= 0 || self.buffer.len() >= self.capacity {
             match self.flush_buffer() {
                 Result::Ok(_) => {
                 },
@@ -810,7 +810,7 @@ impl<W: Write> BufWriter<W> {
     // `into_inner`; keeping one copy makes the "clear only on success" rule
     // hold at every call site.
     fn flush_buffer(mut self: BufWriter<W>) -> Result<(), IoError> {
-        if len(self.buffer) == 0 {
+        if self.buffer.len() == 0 {
             return Ok(())
         }
         let write_result: Result<(), IoError> = Io::write_all(self.inner, self.buffer)

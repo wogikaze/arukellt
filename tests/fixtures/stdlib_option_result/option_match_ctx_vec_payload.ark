@@ -17,15 +17,15 @@ struct Inner {
 }
 
 fn match_opt_string(ctx: Ctx, o: Option<String>) -> i32 {
-    let _keep = len(ctx.v0) + len(ctx.v1) + len(ctx.v2) + len(ctx.v3)
+    let _keep = ctx.v0.len() + ctx.v1.len() + ctx.v2.len() + ctx.v3.len()
     match o {
-        Option::Some(s) => len(s) + _keep - _keep,
+        Option::Some(s) => s.len() + _keep - _keep,
         Option::None => 0,
     }
 }
 
 fn match_opt_inner(ctx: Ctx, o: Option<Inner>) -> i32 {
-    let _keep = len(ctx.v0)
+    let _keep = ctx.v0.len()
     match o {
         Option::Some(x) => x.n + _keep - _keep,
         Option::None => 0,

@@ -13,7 +13,7 @@ fn keep_large(pair: (i32, i32)) -> bool {
 
 fn keep_rich(pair: (String, i32)) -> bool {
     let (word, value) = pair
-    len(word) > 2
+    word.len() > 2
 }
 
 fn keep_fn(pair: (i32, fn(i32) -> i32)) -> bool {
@@ -59,7 +59,7 @@ fn main() {
     Test::assert_eq_i32(flat_copy.len(), 3)
     Test::assert_true(flat_copy.contains_key(4))
     let flat_pairs: Vec<(i32, i32)> = flat_copy.iter().collect()
-    Test::assert_eq_i32(len(flat_pairs), 3)
+    Test::assert_eq_i32(flat_pairs.len(), 3)
 
     let mut words: HashMap<String, i32> = HashMap::new<String, i32>()
     let _ = words.insert("a", 1)
@@ -67,7 +67,7 @@ fn main() {
     let mut word_total: i32 = 0
     for pair in words.iter() {
         let (key, value) = pair
-        word_total = word_total + len(key) * 10 + value
+        word_total = word_total + key.len() * 10 + value
     }
     Test::assert_eq_i32(word_total, 33)
     Test::assert_eq_i32(words.entry("a").or_insert(99), 1)

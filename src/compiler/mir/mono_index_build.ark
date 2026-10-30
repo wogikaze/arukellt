@@ -2,7 +2,7 @@ use mir::mono_instance_shape
 use mir::mono_index_types
 use mir::type_contracts
 fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
-    let count = len(instances)
+    let count = instances.len()
     let mut idx = mono_index_types::mono_index_new()
     let mut i = 0
     while i < count {

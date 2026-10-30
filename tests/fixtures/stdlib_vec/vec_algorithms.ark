@@ -43,7 +43,7 @@ fn is_even(value: i32) -> bool {
 
 fn print_values(values: Vec<i32>) {
     let mut i: i32 = 0
-    while i < len(values) {
+    while i < values.len() {
         Stdio::println((get_unchecked(values, i)).to_string())
         i = i + 1
     }
@@ -74,7 +74,7 @@ fn main() {
     push(deduped, 3)
     push(deduped, 4)
     deduped.dedup_by(same_value)
-    Stdio::println((len(deduped)).to_string())
+    Stdio::println((deduped.len()).to_string())
     print_values(deduped)
 
     let mut parity: Vec<i32> = Vec::new<i32>()
@@ -85,7 +85,7 @@ fn main() {
     push(parity, 6)
     push(parity, 5)
     parity.dedup_by(same_parity)
-    Stdio::println((len(parity)).to_string())
+    Stdio::println((parity.len()).to_string())
     print_values(parity)
 
     let mut search: Vec<i32> = Vec::new<i32>()

@@ -4,7 +4,7 @@ use std::text
 
 fn main() {
     let values = Env::args()
-    let n = len(values)
+    let n = values.len()
     Stdio::println(String_from("count=").concat(n.to_string()))
     let mut i = 0
     while i < n {

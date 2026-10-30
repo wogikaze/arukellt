@@ -47,7 +47,7 @@ fn string_literal_cache_global(ctx: SelfEmitCtx, strings: EmitStringTablePlan) -
     }
     sections_memory::gc_string_literal_cache(
         ctx_gc_type::SelfEmitCtx_string_array_type(ctx),
-        len(strings::EmitStringTablePlan_offsets(strings))
+        strings::EmitStringTablePlan_offsets(strings).len()
     )
 }
 

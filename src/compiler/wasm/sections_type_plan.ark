@@ -43,7 +43,7 @@ fn FuncTypeRefs_new() -> FuncTypeRefs {
 }
 
 fn FuncTypeRefs_begin_entry(mut table: FuncTypeRefs) {
-    push(table.param_starts, len(table.param_refs))
+    push(table.param_starts, table.param_refs.len())
     push(table.result_refs, 0 - 1)
 }
 
@@ -52,22 +52,22 @@ fn FuncTypeRefs_push_param(mut table: FuncTypeRefs, ref_type_idx: i32) {
 }
 
 fn FuncTypeRefs_set_result(mut table: FuncTypeRefs, ref_type_idx: i32) {
-    set(table.result_refs, len(table.result_refs) - 1, ref_type_idx)
+    set(table.result_refs, table.result_refs.len() - 1, ref_type_idx)
 }
 
 fn FuncTypeRefs_finish(mut table: FuncTypeRefs) {
-    push(table.param_starts, len(table.param_refs))
+    push(table.param_starts, table.param_refs.len())
 }
 
 fn FuncTypeRefs_result_ref_type(table: FuncTypeRefs, type_idx: i32) -> i32 {
-    if type_idx < 0 || type_idx >= len(table.result_refs) {
+    if type_idx < 0 || type_idx >= table.result_refs.len() {
         return 0 - 1
     }
     get_unchecked(table.result_refs, type_idx)
 }
 
 fn FuncTypeRefs_param_ref_type(table: FuncTypeRefs, type_idx: i32, param_idx: i32) -> i32 {
-    if type_idx < 0 || type_idx + 1 >= len(table.param_starts) {
+    if type_idx < 0 || type_idx + 1 >= table.param_starts.len() {
         return 0 - 1
     }
     let start = get_unchecked(table.param_starts, type_idx)
@@ -367,7 +367,7 @@ fn p2_post_type_index(type_map: Vec<i32>, num_host_types: i32, wit_import_count:
 }
 
 fn type_sig_param_segments(csig: String) -> Vec<String> {
-    let sig_len = len(csig)
+    let sig_len = csig.len()
     let mut param_segments = Vec::new<String>()
     let mut seg_start = 0
     let mut si = 0
@@ -383,7 +383,7 @@ fn type_sig_param_segments(csig: String) -> Vec<String> {
 }
 
 fn type_sig_result_segment(csig: String) -> String {
-    let sig_len = len(csig)
+    let sig_len = csig.len()
     let mut seg_start = 0
     let mut si = 0
     while si < sig_len {

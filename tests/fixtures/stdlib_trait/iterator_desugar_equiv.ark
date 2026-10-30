@@ -32,10 +32,10 @@ fn main() -> i32 {
     for x in it2 {
         push(desugared, x)
     }
-    Stdio::println(len(manual).to_string())
-    Stdio::println(len(desugared).to_string())
+    Stdio::println(manual.len().to_string())
+    Stdio::println(desugared.len().to_string())
     let mut i: i32 = 0
-    while i < len(manual) {
+    while i < manual.len() {
         Stdio::println(get_unchecked(manual, i).to_string())
         Stdio::println(get_unchecked(desugared, i).to_string())
         i = i + 1

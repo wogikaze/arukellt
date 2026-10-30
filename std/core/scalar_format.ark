@@ -117,11 +117,11 @@ fn __core_format_i32_impl(value: i32) -> String {
     }
     push(reversed, 48 + (0 - remaining))
 
-    let mut bytes = RawArray::new<i32>(len(reversed) + 1)
+    let mut bytes = RawArray::new<i32>(reversed.len() + 1)
     if value < 0 {
         push(bytes, 45)
     }
-    let mut index = len(reversed)
+    let mut index = reversed.len()
     while index > 0 {
         push(bytes, get_unchecked(reversed, index - 1))
         index = index - 1
@@ -142,11 +142,11 @@ fn __core_format_i64_impl(value: i64) -> String {
     }
     push(reversed, __core_i64_digit_ascii(0_i64 - remaining))
 
-    let mut bytes = RawArray::new<i32>(len(reversed) + 1)
+    let mut bytes = RawArray::new<i32>(reversed.len() + 1)
     if value < 0_i64 {
         push(bytes, 45)
     }
-    let mut index = len(reversed)
+    let mut index = reversed.len()
     while index > 0 {
         push(bytes, get_unchecked(reversed, index - 1))
         index = index - 1

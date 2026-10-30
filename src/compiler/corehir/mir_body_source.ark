@@ -36,14 +36,14 @@ fn mir_body_source_exprs(source: CoreHirMirBodySource) -> Vec<CoreHirExpr> {
 }
 
 fn mir_body_source_fn_body_root(source: CoreHirMirBodySource, info_index: i32) -> i32 {
-    if info_index >= 0 && info_index < len(source.fn_body_roots) {
+    if info_index >= 0 && info_index < source.fn_body_roots.len() {
         return get_unchecked(source.fn_body_roots, info_index)
     }
     0 - 1
 }
 
 fn mir_body_source_method_body_root(source: CoreHirMirBodySource, info_index: i32) -> i32 {
-    if info_index >= 0 && info_index < len(source.method_body_roots) {
+    if info_index >= 0 && info_index < source.method_body_roots.len() {
         return get_unchecked(source.method_body_roots, info_index)
     }
     0 - 1

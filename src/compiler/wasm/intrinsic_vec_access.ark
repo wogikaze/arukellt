@@ -197,7 +197,7 @@ fn emit_vec_get_gc_some_ref(mut w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_
         // — the same sig spelling the enum field-sig path emits for fn
         // payloads — so Option<fn> match binds the identical variant (#874).
         let fnpair_suffix = intrinsic_vec_access_gc::find_gcsref_suffix_for_struct(ctx, String_from("__fnpair"))
-        if len(fnpair_suffix) > 0 {
+        if fnpair_suffix.len() > 0 {
             some_suffix = fnpair_suffix
         } else {
             some_suffix = "_f1_fnref"
@@ -205,17 +205,17 @@ fn emit_vec_get_gc_some_ref(mut w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_
     }
     if is_struct_ref_elem {
         let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, callee.clone(), inst)
-        if len(elem_name) > 0 {
+        if elem_name.len() > 0 {
             let elem_gc_type = intrinsic_vec_access_gc::resolve_concrete_struct_type(ctx, elem_name.clone())
             if elem_gc_type >= 0 {
                 writer_gc::emit_gc_ref_cast(w, elem_gc_type)
             }
             let gcsref_suffix = intrinsic_vec_access_gc::find_gcsref_suffix_for_struct(ctx, elem_name.clone())
-            if len(gcsref_suffix) > 0 {
+            if gcsref_suffix.len() > 0 {
                 some_suffix = gcsref_suffix
             } else {
                 let container_suffix = intrinsic_vec_access_gc::option_some_suffix_for_container_elem(elem_name.clone())
-                if len(container_suffix) > 0 {
+                if container_suffix.len() > 0 {
                     // Nested Vec/HashMap elems must use the fixed container
                     // Option::Some payload (e.g. vec:i32 → _f1_ref10), not the
                     // string default _f1_ref0 (#836 Vec<Vec> outer get).
@@ -249,7 +249,7 @@ fn emit_vec_get_gc_some_ref(mut w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_
     // before struct.new so Option::Some(Token) type-checks (#726).
     if is_struct_ref_elem {
         let elem_name2 = intrinsic_vec_type::vec_element_type_name_for_call(ctx, callee.clone(), inst)
-        if len(elem_name2) > 0 {
+        if elem_name2.len() > 0 {
             let elem_gc_type2 = intrinsic_vec_access_gc::resolve_concrete_struct_type(ctx, elem_name2.clone())
             if elem_gc_type2 >= 0 {
                 writer_gc::emit_gc_ref_cast(w, elem_gc_type2)

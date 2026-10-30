@@ -2,11 +2,11 @@ use std::host::stdio::Stdio
 use std::text
 fn main() {
     let ascii = "hello"
-    Stdio::println((len(ascii)).to_string())
-    Stdio::println((len("")).to_string())
-    Stdio::println((len(" ")).to_string())
-    Stdio::println((len("\n")).to_string())
-    Stdio::println((len("\t")).to_string())
+    Stdio::println((ascii.len()).to_string())
+    Stdio::println(("".len()).to_string())
+    Stdio::println((" ".len()).to_string())
+    Stdio::println(("\n".len()).to_string())
+    Stdio::println(("\t".len()).to_string())
     let world = ascii.slice(0, 3)
     Stdio::println(world)
     let mid = ascii.slice(1, 4)
@@ -14,7 +14,7 @@ fn main() {
     let full = ascii.slice(0, 5)
     Stdio::println(full)
     let empty = ascii.slice(2, 2)
-    Stdio::println((len(empty)).to_string())
+    Stdio::println((empty.len()).to_string())
     Stdio::println(("abc".len_bytes()).to_string())
     Stdio::println(("".is_empty()).to_string())
     Stdio::println(("a".is_empty()).to_string())

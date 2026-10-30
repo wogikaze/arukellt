@@ -7,12 +7,12 @@ struct DapFrameResult {
 }
 
 fn dap_frame(body: String) -> String {
-    let header = "Content-Length: ".concat(len(body.clone()).to_string().concat("\r\n\r\n"))
+    let header = "Content-Length: ".concat(body.clone().len().to_string().concat("\r\n\r\n"))
     header.concat(body)
 }
 
 fn dap_parse_frame(input: String, pos: i32) -> DapFrameResult {
-    let n = len(input)
+    let n = input.len()
     let mut p = pos
     while p < n {
         let c = input.byte_at(p)

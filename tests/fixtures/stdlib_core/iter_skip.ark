@@ -10,11 +10,11 @@ fn main() {
     push(v, 50)
 
     let skipped = v.iter().skip(2).collect()
-    Test::assert_eq_i32(len(skipped), 3)
+    Test::assert_eq_i32(skipped.len(), 3)
     Test::assert_eq_i32(get_unchecked(skipped, 0), 30)
     Test::assert_eq_i32(get_unchecked(skipped, 2), 50)
 
     // Skip more than available
     let skipped_all = v.iter().skip(100).collect()
-    Test::assert_eq_i32(len(skipped_all), 0)
+    Test::assert_eq_i32(skipped_all.len(), 0)
 }

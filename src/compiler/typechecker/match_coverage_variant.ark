@@ -34,7 +34,7 @@ fn variant_base_name(name: String) -> String {
     // EnumInfo stores bare variant leaves (`Bool`). Module-qualified arms
     // like `types::WitType::Bool` must reduce to that leaf, not `WitType::Bool`
     // from the first `::` (#809).
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {

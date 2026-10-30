@@ -6,7 +6,7 @@ fn parse_sub_super_offset(sig: String) -> i32 {
     }
     let mut val = 0
     let mut i = plus + 1
-    let n = len(sig)
+    let n = sig.len()
     while i < n {
         let c = sig.clone().byte_at(i)
         if c >= 48 && c <= 57 {
@@ -33,7 +33,7 @@ fn parse_sub_struct_sig(sig: String) -> String {
         if at >= body_start {
             return sig.clone().slice(body_start, at)
         }
-        return sig.clone().slice(body_start, len(sig))
+        return sig.clone().slice(body_start, sig.len())
     }
     // Enum variant sigs use _S_ instead of _GS_ (e.g. SubF+14_S_f0_i32_f1_i32)
     let s_marker = "_S_"
@@ -44,13 +44,13 @@ fn parse_sub_struct_sig(sig: String) -> String {
         if at >= body_start {
             return "GS_".concat(sig.clone().slice(body_start, at))
         }
-        return "GS_".concat(sig.clone().slice(body_start, len(sig)))
+        return "GS_".concat(sig.clone().slice(body_start, sig.len()))
     }
     "GS_f0_i32"
 }
 
 fn find_type_sig_char(s: String, c: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = 0
     while i < n {
         if s.clone().byte_at(i) == c {
@@ -62,8 +62,8 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
 }
 
 fn find_type_sig_str(s: String, needle: String) -> i32 {
-    let n = len(s)
-    let nn = len(needle)
+    let n = s.len()
+    let nn = needle.len()
     if nn <= 0 || nn > n {
         return 0 - 1
     }
@@ -86,7 +86,7 @@ fn find_type_sig_str(s: String, needle: String) -> i32 {
 }
 
 fn parse_type_sig_int(s: String) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut val = 0
     let mut i = 0
     while i < n {
@@ -104,7 +104,7 @@ fn parse_gcref_offset(sig: String) -> i32 {
         return 2
     }
     if sig.clone().starts_with("gcref") {
-        return parse_type_sig_int(sig.slice(5, len(sig)))
+        return parse_type_sig_int(sig.slice(5, sig.len()))
     }
     2
 }

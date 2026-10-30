@@ -60,7 +60,7 @@ fn main() {
     let mut sum: i32 = 0
     let mut errors: i32 = 0
     let mut j: i32 = 0
-    while j < len(records) {
+    while j < records.len() {
         let rec: LogRecord = get_unchecked(records, j)
         let w: i32 = level_weight(rec.level)
         sum = sum + rec.value * w

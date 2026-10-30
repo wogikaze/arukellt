@@ -64,7 +64,7 @@ fn unary_operator_symbol(op: i32) -> String {
 
 fn enforce_binary_operator(mut env: TypeEnv, lhs_ty: TypeInfo, op: i32) {
     let trait_name = binary_trait_name(op)
-    if len(trait_name) == 0 {
+    if trait_name.len() == 0 {
         return
     }
     let symbol = binary_operator_symbol(op)
@@ -73,7 +73,7 @@ fn enforce_binary_operator(mut env: TypeEnv, lhs_ty: TypeInfo, op: i32) {
 
 fn enforce_unary_operator(mut env: TypeEnv, operand_ty: TypeInfo, op: i32) {
     let trait_name = unary_trait_name(op)
-    if len(trait_name) == 0 {
+    if trait_name.len() == 0 {
         return
     }
     enforce_operator_trait(env, operand_ty, trait_name, unary_operator_symbol(op))
@@ -105,7 +105,7 @@ fn enforce_operator_trait(
         // to unification instead of producing a spurious diagnostic (#915).
         let mut declared = false
         let mut pi = 0
-        while pi < len(env.current_fn_type_params) {
+        while pi < env.current_fn_type_params.len() {
             if get_unchecked(env.current_fn_type_params, pi).eq(contract_type_access::TypeInfo_name(resolved_ty)) {
                 declared = true
             }

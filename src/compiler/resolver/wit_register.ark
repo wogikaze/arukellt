@@ -24,7 +24,7 @@ fn wit_ensure_module_alias(mut ctx: ResolveCtx, alias: String) {
 }
 
 fn wit_doc_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
-    len(doc.package) > 0 && len(doc.interface) > 0
+    doc.package.len() > 0 && doc.interface.len() > 0
 }
 
 fn wit_doc_from_import(wit_paths: Vec<String>, package_id: String) -> WitParsedInterface {
@@ -35,34 +35,34 @@ fn register_wit_doc(mut ctx: ResolveCtx, alias: String, doc: wit_parse_text::Wit
     if !wit_doc_has_surface(doc) { return }
     wit_ensure_module_alias(ctx, alias.clone())
     let records = wit_parse_text::WitParsedInterface_records(doc)
-    for ri in 0..len(records) {
+    for ri in 0..records.len() {
         let rec = get_unchecked(records, ri)
         register_exports::register_module_export(ctx, alias.clone(), rec.ark_name.clone(), commands::SYM_STRUCT(), true)
     }
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
-    for ei in 0..len(enums) {
+    for ei in 0..enums.len() {
         let en = get_unchecked(enums, ei)
         register_exports::register_module_export(ctx, alias.clone(), en.ark_name.clone(), commands::SYM_ENUM(), true)
-        for vi in 0..len(en.variant_ark_names) {
+        for vi in 0..en.variant_ark_names.len() {
             let variant = get_unchecked(en.variant_ark_names, vi)
             let qual_variant = en.ark_name.clone().concat("::".concat(variant.clone()))
             register_exports::register_module_export(ctx, alias.clone(), qual_variant, commands::SYM_VARIANT(), true)
         }
     }
     let variants = wit_parse_text::WitParsedInterface_variants(doc)
-    for vi in 0..len(variants) {
+    for vi in 0..variants.len() {
         let variant = get_unchecked(variants, vi)
         // Payload variants are sum types. Register the binding as a named type and
         // each case as a variant constructor; payload typing is retained on the parsed view.
         register_exports::register_module_export(ctx, alias.clone(), variant.ark_name.clone(), commands::SYM_STRUCT(), true)
-        for ci in 0..len(variant.case_ark_names) {
+        for ci in 0..variant.case_ark_names.len() {
             let case_name = get_unchecked(variant.case_ark_names, ci)
             let qualified = variant.ark_name.clone().concat("::".concat(case_name.clone()))
             register_exports::register_module_export(ctx, alias.clone(), qualified, commands::SYM_VARIANT(), true)
         }
     }
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
-    for fi in 0..len(funcs) {
+    for fi in 0..funcs.len() {
         let func = get_unchecked(funcs, fi)
         register_exports::register_module_export(ctx, alias.clone(), func.ark_name.clone(), commands::SYM_FN(), true)
     }

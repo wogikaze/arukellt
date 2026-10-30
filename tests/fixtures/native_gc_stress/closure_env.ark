@@ -3,7 +3,7 @@
 
 fn inner(label: String) -> i32 {
     let _tmp = String_from("inner-temp")
-    len(label)
+    label.len()
 }
 
 fn outer(label: String) -> i32 {

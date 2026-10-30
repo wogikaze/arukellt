@@ -36,7 +36,7 @@ fn scratch_bump(mut scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error>
 
 fn scratch_write_byte(mut scratch: Vec<i32>, offset: i32, b: i32) {
     let idx = offset - CANONICAL_SCRATCH_BASE + 1
-    while len(scratch) <= idx {
+    while scratch.len() <= idx {
         push(scratch, 0)
     }
     set(scratch, idx, b)
@@ -44,7 +44,7 @@ fn scratch_write_byte(mut scratch: Vec<i32>, offset: i32, b: i32) {
 
 fn scratch_read_byte(scratch: Vec<i32>, offset: i32) -> i32 {
     let idx = offset - CANONICAL_SCRATCH_BASE + 1
-    if idx < 1 || idx >= len(scratch) {
+    if idx < 1 || idx >= scratch.len() {
         return 0
     }
     get_unchecked(scratch, idx)
@@ -71,7 +71,7 @@ impl Component {
     /// Lower `s` into scratch storage and return its pointer/length slice.
     fn lower_string(mut scratch: Vec<i32>, s: String) -> Result<CanonicalSlice, error::Error> {
         set(scratch, 0, CANONICAL_SCRATCH_BASE)
-        let n = len(s)
+        let n = s.len()
         let ptr = scratch_bump(scratch, n)
         match ptr {
             Result::Ok(start) => {
@@ -112,7 +112,7 @@ impl Component {
     /// Lower an i32 list into scratch storage and return its pointer/count slice.
     fn lower_list_i32(mut scratch: Vec<i32>, items: Vec<i32>) -> Result<CanonicalSlice, error::Error> {
         set(scratch, 0, CANONICAL_SCRATCH_BASE)
-        let count = len(items)
+        let count = items.len()
         let bytes = count * 4
         let ptr = scratch_bump(scratch, bytes)
         match ptr {

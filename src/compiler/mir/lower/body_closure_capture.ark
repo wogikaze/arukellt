@@ -14,7 +14,7 @@ use mir::lower::ctx_struct_layout
 use mir::local_factory
 use mir::value_types
 fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut cap_vts = Vec::new<i32>()
     let mut cvi = 0
     while cvi < cap_n {
@@ -49,7 +49,7 @@ fn mir_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
 }
 
 fn mir_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut cap_types = Vec::new<String>()
     let mut cvi = 0
     while cvi < cap_n {
@@ -70,7 +70,7 @@ fn mir_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<String
 }
 
 fn mir_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>, rebind_flags: Vec<i32>, env_name: String) {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut ci = 0
     while ci < cap_n {
         let cname = get_unchecked(caps, ci).clone()
@@ -81,7 +81,7 @@ fn mir_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<
             cname.clone()
         )
         let _idx2 = ctx_api_local_alloc::ctx_alloc_local(ctx, pname.clone(), pvt)
-        if len(cap_type) > 0 {
+        if cap_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, _idx2, cap_type.clone())
         }
         // A cap whose packed supply carries a promoted cell ref gets a
@@ -106,7 +106,7 @@ fn mir_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<
 // escape, E0213) and move captures read a slot whose source is already dead.
 fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scope: String) -> Vec<String> {
     let mut out = Vec::new<String>()
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut ci = 0
     while ci < cap_n {
         let cname = get_unchecked(caps, ci).clone()
@@ -127,7 +127,7 @@ fn mir_closure_snapshot_copy_captures(mut ctx: LowerCtx, caps: Vec<String>, scop
         let snap_name = "__capsnap_".concat(scope.clone()).concat("_".concat(ci.to_string()))
         let snap = ctx_api_local_alloc::ctx_alloc_local(ctx, snap_name.clone(), vt)
         let cap_type = closure_capture_type::mir_closure_lookup_capture_type(ctx, li)
-        if len(cap_type) > 0 {
+        if cap_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, snap, cap_type)
         }
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(snap, li))

@@ -27,7 +27,7 @@ struct OneByteWriter {
 
 impl io::Write for OneByteWriter {
     fn write(mut self: OneByteWriter, data: Vec<i32>) -> Result<i32, io::IoError> {
-        if len(data) == 0 {
+        if data.len() == 0 {
             return Ok(0)
         }
         push(self.bytes, get_unchecked(data, 0))
@@ -64,7 +64,7 @@ fn main() {
     let mut writer: Writer = Writer::new()
     print_copy_count(Reader::from_bytes(payload()), writer)
     let image: Vec<i32> = writer.into_bytes()
-    Stdio::println((len(image)).to_string())
+    Stdio::println((image.len()).to_string())
     Stdio::println((get_unchecked(image, 0)).to_string())
     Stdio::println((get_unchecked(image, 4)).to_string())
 
@@ -72,7 +72,7 @@ fn main() {
 
     let mut partial: Reader = Reader::from_bytes(payload())
     match read_some(partial, 2) {
-        Result::Ok(head) => Stdio::println((len(head)).to_string()),
+        Result::Ok(head) => Stdio::println((head.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
     let mut rest_writer: Writer = Writer::new()
@@ -82,7 +82,7 @@ fn main() {
     Stdio::println((get_unchecked(rest, 2)).to_string())
 
     match Io::read_to_end(Reader::from_bytes(payload())) {
-        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
 
@@ -90,7 +90,7 @@ fn main() {
     push(small, 65)
     push(small, 66)
     match Io::read_exact(Reader::from_bytes(small), 3) {
-        Result::Ok(bytes) => Stdio::println((len(bytes)).to_string()),
+        Result::Ok(bytes) => Stdio::println((bytes.len()).to_string()),
         Result::Err(err) => Stdio::println(err.message()),
     }
     match Io::read_exact(Reader::from_bytes(small), 4) {
@@ -117,7 +117,7 @@ fn main() {
     match Io::write_all(all_writer, payload()) {
         Result::Ok(_) => {
             let all: Vec<i32> = all_writer.into_bytes()
-            Stdio::println((len(all)).to_string())
+            Stdio::println((all.len()).to_string())
             Stdio::println((get_unchecked(all, 0)).to_string())
         },
         Result::Err(err) => Stdio::println(err.message()),

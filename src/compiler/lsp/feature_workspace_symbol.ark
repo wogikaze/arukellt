@@ -12,13 +12,13 @@ pub fn handle_workspace_symbol(mut state: LspState, body: String) {
     let query = json::JsonText::get_str(body.clone(), String_from("query"))
     let matches = symbol_index::symbol_index_search_query(state, query.clone())
     let mut source_texts = Vec::new<String>()
-    let mn = len(matches)
+    let mn = matches.len()
     let mut mi = 0
     while mi < mn {
         let sym = get_unchecked(matches, mi)
         let uri = symbol_index_record::indexed_symbol_uri(sym)
         let doc_text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
-        if len(doc_text) > 0 {
+        if doc_text.len() > 0 {
             push(source_texts, doc_text)
         } else {
             let file_path = symbol_index_paths::uri_to_file_path(uri.clone())

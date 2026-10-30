@@ -35,10 +35,10 @@ fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     // IntoIterator impl (which snapshots `to_vec`) before the Vec path (#917).
     let mut into_iter_callee = String_new()
     let hashset_family = ctx_api_local_types::ctx_hashset_local_family(ctx, source_idx)
-    if len(hashset_family.clone()) > 0 {
+    if hashset_family.clone().len() > 0 {
         into_iter_callee = call_rewrite_hashset::hashset_into_iter_target(hashset_family)
     }
-    if len(into_iter_callee.clone()) == 0 {
+    if into_iter_callee.clone().len() == 0 {
         into_iter_callee = for_iter_resolve::mir_for_into_iterator_callee(
             ctx,
             core_expr_shape_accessors::mir_core_expr_span_start(expr),
@@ -46,10 +46,10 @@ fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         )
     }
     let mut si_into_iter_type = String_new()
-    if len(into_iter_callee.clone()) > 0 {
+    if into_iter_callee.clone().len() > 0 {
         si_into_iter_type = ctx_fn_return_type::ctx_fn_return_type_name(ctx, into_iter_callee.clone())
     }
-    if len(si_into_iter_type) > 0 {
+    if si_into_iter_type.len() > 0 {
         return lower_core_into_iterator_for(
             ctx,
             exprs,
@@ -67,7 +67,7 @@ fn lower_core_for_iter(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         core_expr_shape_accessors::mir_core_expr_span_start(expr),
         si_struct_type.clone()
     )
-    if len(si_next_callee) == 0 {
+    if si_next_callee.len() == 0 {
         return 0 - 1
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(source_idx))
@@ -95,7 +95,7 @@ fn lower_core_into_iterator_for(
         core_expr_shape_accessors::mir_core_expr_span_start(expr),
         iterator_type.clone()
     )
-    if len(next_callee) == 0 {
+    if next_callee.len() == 0 {
         return 0 - 1
     }
     let iter_scope = loop_struct_iter::mir_begin_struct_iterator_loop(

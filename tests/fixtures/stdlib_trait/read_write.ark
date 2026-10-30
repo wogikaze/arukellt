@@ -23,7 +23,7 @@ fn main() {
 
     match r.read(5) {
         Result::Ok(read) => {
-            assert(len(read) == 5)
+            assert(read.len() == 5)
             assert(get_unchecked(read, 0) == 72)   // 'H'
             assert(get_unchecked(read, 1) == 101)  // 'e'
             assert(get_unchecked(read, 2) == 108)  // 'l'
@@ -39,7 +39,7 @@ fn main() {
     }
 
     match r.read(5) {
-        Result::Ok(read2) => assert(len(read2) == 0),
+        Result::Ok(read2) => assert(read2.len() == 0),
         Result::Err(_e) => assert(false),
     }
 

@@ -7,7 +7,7 @@ fn emit_capture_arg_segment(mut ctx: LowerCtx, packed: String, start: i32, end: 
         return
     }
     let name = packed.slice(start, end)
-    if len(name) == 0 {
+    if name.len() == 0 {
         return
     }
     let li = ctx_lookup_local(ctx, name.clone())

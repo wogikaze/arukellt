@@ -5,23 +5,23 @@ use mir::inst_accessors_literals
 use mir::opcodes
 fn mir_op_to_wat(inst: MirInst) -> String {
     let value_op = mir_value_op_to_wat(inst)
-    if len(value_op) > 0 {
+    if value_op.len() > 0 {
         return value_op
     }
     let arith_op = mir_arith_op_to_wat(inst)
-    if len(arith_op) > 0 {
+    if arith_op.len() > 0 {
         return arith_op
     }
     let call_op = mir_call_op_to_wat(inst)
-    if len(call_op) > 0 {
+    if call_op.len() > 0 {
         return call_op
     }
     let control_op = mir_control_op_to_wat(inst)
-    if len(control_op) > 0 {
+    if control_op.len() > 0 {
         return control_op
     }
     let aggregate_op = mir_aggregate_op_to_wat(inst)
-    if len(aggregate_op) > 0 {
+    if aggregate_op.len() > 0 {
         return aggregate_op
     }
     ";; unknown op ".concat(inst_accessors_shape::MirInst_op(inst).to_string())

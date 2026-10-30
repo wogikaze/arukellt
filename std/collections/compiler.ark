@@ -146,7 +146,7 @@ impl Interner {
     /// The first occurrence assigns the next symbol; repeated values return
     /// the existing symbol.
     fn intern(mut self: Interner, value: String) -> i32 {
-        let n: i32 = len(self.values)
+        let n: i32 = self.values.len()
         let mut idx: i32 = 0
         while idx < n {
             if get_unchecked(self.values, idx).eq(value) {
@@ -160,7 +160,7 @@ impl Interner {
 
     /// Returns the string for `sym`, or `None` when out of range.
     fn lookup(self: Interner, sym: i32) -> Option<String> {
-        let n: i32 = len(self.values)
+        let n: i32 = self.values.len()
         if sym < 0 || sym >= n {
             return None
         }
@@ -169,7 +169,7 @@ impl Interner {
 
     /// Returns the number of interned strings.
     fn len(self: Interner) -> i32 {
-        len(self.values)
+        self.values.len()
     }
 }
 

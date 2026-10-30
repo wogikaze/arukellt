@@ -18,7 +18,7 @@ fn main() {
     // fill_buf returns the remaining 2 bytes
     match r.fill_buf() {
         Result::Ok(filled) => {
-            Test::assert_eq_i32(len(filled), 2)
+            Test::assert_eq_i32(filled.len(), 2)
             Test::assert_eq_i32(get_unchecked(filled, 0), 30)
             Test::assert_eq_i32(get_unchecked(filled, 1), 40)
         },

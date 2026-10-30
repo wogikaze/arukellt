@@ -54,15 +54,15 @@ fn validate_export_function(f: AstNode, allows: ComponentContractAllows) -> Stri
     let func = contract_helpers::component_func_from_decl(f)
     let fname = contract_helpers::component_export_func_name(func)
     let sig_error = contract_special::component_specialized_signature_error(f, allows)
-    if len(sig_error) > 0 {
+    if sig_error.len() > 0 {
         return sig_error
     }
     let param_error = validate_export_params(func, fname.clone(), allows)
-    if len(param_error) > 0 {
+    if param_error.len() > 0 {
         return param_error
     }
     let return_error = validate_export_returns(func, fname.clone(), allows)
-    if len(return_error) > 0 {
+    if return_error.len() > 0 {
         return return_error
     }
     String_new()
@@ -70,11 +70,11 @@ fn validate_export_function(f: AstNode, allows: ComponentContractAllows) -> Stri
 
 fn validate_export_surface(decls: Vec<AstNode>) -> String {
     let allows = contract_allows::component_contract_allows(decls)
-    for i in 0..len(decls) {
+    for i in 0..decls.len() {
         let f = get_unchecked(decls, i)
         if contract_helpers::is_export_func_decl(f) {
             let export_error = validate_export_function(f, allows)
-            if len(export_error) > 0 {
+            if export_error.len() > 0 {
                 return export_error
             }
         }
@@ -83,7 +83,7 @@ fn validate_export_surface(decls: Vec<AstNode>) -> String {
 }
 
 fn validate_export_surface_from_names(export_names: Vec<String>) -> String {
-    if len(export_names) == 0 {
+    if export_names.len() == 0 {
         return String_new()
     }
     String_new()

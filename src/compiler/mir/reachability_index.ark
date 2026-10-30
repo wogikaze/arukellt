@@ -41,7 +41,7 @@ fn mir_reachability_index_bind_fid(
         return
     }
     let raw = function_id::FunctionId_raw(fid)
-    if raw < 0 || raw >= len(fid_to_mir) {
+    if raw < 0 || raw >= fid_to_mir.len() {
         return
     }
     // First MirFunction wins if aliases collide.
@@ -60,7 +60,7 @@ fn mir_reachability_index_bind_name(mut name_to_mir: NameIndex, fname: String, f
 }
 
 fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> MirReachabilityIndex {
-    let fn_count = len(functions)
+    let fn_count = functions.len()
     let mut name_to_mir = name_index::NameIndex_new(fn_count + fn_count)
     let mut fid_to_mir = Vec::new<i32>()
     let mut registry_count = 0
@@ -124,14 +124,14 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
 }
 
 fn mir_reachability_lookup_by_func_id(index: MirReachabilityIndex, func_id_raw: i32) -> i32 {
-    if func_id_raw < 0 || func_id_raw >= len(index.fid_to_mir) {
+    if func_id_raw < 0 || func_id_raw >= index.fid_to_mir.len() {
         return 0 - 1
     }
     get_unchecked(index.fid_to_mir, func_id_raw)
 }
 
 fn mir_reachability_try_enqueue(mut reachable: Vec<i32>, mut queue: Vec<i32>, mir_index: i32) -> bool {
-    if mir_index < 0 || mir_index >= len(reachable) {
+    if mir_index < 0 || mir_index >= reachable.len() {
         return false
     }
     if get_unchecked(reachable, mir_index) != 0 {

@@ -48,8 +48,8 @@ fn main() {
     expect_some(m.get(5), 0)
 
     // keys / values snapshots
-    Test::assert_eq_i32(len(m.keys()), 4)
-    Test::assert_eq_i32(len(m.values()), 4)
+    Test::assert_eq_i32(m.keys().len(), 4)
+    Test::assert_eq_i32(m.values().len(), 4)
 
     Stdio::println("OK")
 }

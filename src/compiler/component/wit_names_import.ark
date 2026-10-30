@@ -9,7 +9,7 @@
 use std::text
 fn wit_kebab_to_snake(name: String) -> String {
     let mut out = String_from("")
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     while i < n {
         let ch = name.byte_at(i)
@@ -25,7 +25,7 @@ fn wit_kebab_to_snake(name: String) -> String {
 
 fn wit_pascal_case_text(name: String) -> String {
     let mut out = String_from("")
-    let n = len(name)
+    let n = name.len()
     let mut i = 0
     let mut capitalize_next = true
     while i < n {

@@ -22,10 +22,10 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, mut m: Mi
     while d < decl_count {
         let decl_name = decl_source::mir_decl_source_name_at(decl_source, d)
         if decl_source::mir_decl_source_is_fn_at(decl_source, d) {
-            let base_name_position = len(fn_names)
+            let base_name_position = fn_names.len()
             fn_index = fn_index_fns::mir_index_top_level_fn(fn_names, fn_return_vts, fn_return_type_names, d, decl_name, fn_index, source, midx)
             if mir_entry_generic_decl(source, d) &&
-            len(fn_names) > base_name_position &&
+            fn_names.len() > base_name_position &&
             get_unchecked(fn_names, base_name_position).eq(decl_name.clone()) {
                 push(priority_fn_indices, base_name_position)
             }
@@ -78,7 +78,7 @@ fn mir_entry_generic_decl(source: MirLowerFnIndexSource, decl_index: i32) -> boo
     if fn_info_index < 0 {
         return false
     }
-    if len(fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)) > 0 {
+    if fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index).len() > 0 {
         return false
     }
     let typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, 0 - 1)
@@ -99,7 +99,7 @@ fn mir_collect_qualified_fn_aliases(
             let info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
             if info_index >= 0 {
                 let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, info_index)
-                if len(qualified_name) > 0 {
+                if qualified_name.len() > 0 {
                     let typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, info_index, info_index)
                     let return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
                     let return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
@@ -107,7 +107,7 @@ fn mir_collect_qualified_fn_aliases(
                     push(fn_return_vts, return_vt)
                     push(fn_return_type_names, return_type_name.clone())
                     let import_name = mir_import_facing_qualified_name(qualified_name)
-                    if len(import_name) > 0 {
+                    if import_name.len() > 0 {
                         push(fn_names, import_name)
                         push(fn_return_vts, return_vt)
                         push(fn_return_type_names, return_type_name)
@@ -120,7 +120,7 @@ fn mir_collect_qualified_fn_aliases(
 }
 
 fn mir_import_facing_qualified_name(qualified_name: String) -> String {
-    let name_len = len(qualified_name)
+    let name_len = qualified_name.len()
     let mut separators = Vec::new<i32>()
     let mut index = 0
     while index < name_len - 1 {
@@ -131,8 +131,8 @@ fn mir_import_facing_qualified_name(qualified_name: String) -> String {
             index = index + 1
         }
     }
-    if len(separators) < 2 {
+    if separators.len() < 2 {
         return String_new()
     }
-    qualified_name.slice(get_unchecked(separators, len(separators) - 2) + 2, name_len)
+    qualified_name.slice(get_unchecked(separators, separators.len() - 2) + 2, name_len)
 }

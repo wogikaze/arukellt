@@ -52,7 +52,7 @@ fn signature_entry_base_name(entry: SignatureEntry) -> String {
 }
 
 fn signature_entry_param_count(entry: SignatureEntry) -> i32 {
-    len(entry.param_types)
+    entry.param_types.len()
 }
 
 fn signature_entry_param_at(entry: SignatureEntry, index: i32) -> MirValueType {
@@ -60,7 +60,7 @@ fn signature_entry_param_at(entry: SignatureEntry, index: i32) -> MirValueType {
 }
 
 fn signature_entry_return_count(entry: SignatureEntry) -> i32 {
-    len(entry.return_types)
+    entry.return_types.len()
 }
 
 fn signature_entry_return_at(entry: SignatureEntry, index: i32) -> MirValueType {

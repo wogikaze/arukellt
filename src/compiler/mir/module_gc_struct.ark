@@ -1,7 +1,7 @@
 use collections::name_index
 use mir::module_record
 fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {
-    len(m.gc_struct_sigs)
+    m.gc_struct_sigs.len()
 }
 
 fn MirModule_gc_struct_sig_at(m: MirModule, idx: i32) -> String {
@@ -21,7 +21,7 @@ fn MirModule_gc_struct_sigs(m: MirModule) -> Vec<String> {
 }
 
 fn MirModule_push_gc_struct(mut m: MirModule, name: String, sig: String) {
-    name_index::name_index_insert_first(m.gc_struct_slot_index, name.clone(), len(m.gc_struct_names))
+    name_index::name_index_insert_first(m.gc_struct_slot_index, name.clone(), m.gc_struct_names.len())
     push(m.gc_struct_names, name)
     push(m.gc_struct_sigs, sig)
     // Canon idx is -1 until ordered ensure runs (sealed: inline at flush;
@@ -33,14 +33,14 @@ fn MirModule_push_gc_struct(mut m: MirModule, name: String, sig: String) {
 }
 
 fn MirModule_gc_struct_canon_idx_at(m: MirModule, slot: i32) -> i32 {
-    if slot < 0 || slot >= len(m.gc_struct_canon_idx) {
+    if slot < 0 || slot >= m.gc_struct_canon_idx.len() {
         return 0 - 1
     }
     get_unchecked(m.gc_struct_canon_idx, slot)
 }
 
 fn MirModule_set_gc_struct_canon_idx(mut m: MirModule, slot: i32, canon_idx: i32) {
-    if slot < 0 || slot >= len(m.gc_struct_canon_idx) {
+    if slot < 0 || slot >= m.gc_struct_canon_idx.len() {
         return
     }
     // Count only the -1 -> final transition: emit-side derived indexes

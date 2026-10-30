@@ -62,7 +62,7 @@ fn lower_core_method_arg_indices(
         let arg_is_composed = core_expr_shape_calls::mir_core_expr_is_method_call(method_arg_expr) ||
         core_expr_shape_calls::mir_core_expr_is_call(method_arg_expr)
         let mut method_arg_idx = lower_core_expr(ctx, exprs, method_arg_expr_index)
-        if method_arg_idx >= 0 && len(narrow_callee.clone()) > 0 &&
+        if method_arg_idx >= 0 && narrow_callee.clone().len() > 0 &&
         call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, narrow_callee.clone(), a) {
             method_arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, method_arg_idx)
         }

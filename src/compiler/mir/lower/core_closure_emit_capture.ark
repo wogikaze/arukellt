@@ -21,10 +21,10 @@ fn core_closure_lookup_capture_type(mut ctx: LowerCtx, cli: i32) -> String {
         let loc = function_locals_view::MirFunction_local_at(func, cli)
         cap_type = local_access::MirLocal_type_name(loc)
     }
-    if len(cap_type) == 0 {
+    if cap_type.len() == 0 {
         cap_type = ctx_api_local_types::ctx_get_local_type(ctx, cli)
     }
-    if len(cap_type) > 0 {
+    if cap_type.len() > 0 {
         cap_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, cap_type.clone())
     } else {
         if ctx_api_local_types::ctx_local_vt(ctx, cli) == value_types::VT_GC_REF() {
@@ -35,7 +35,7 @@ fn core_closure_lookup_capture_type(mut ctx: LowerCtx, cli: i32) -> String {
 }
 
 fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut cap_vts = Vec::new<i32>()
     let mut cvi = 0
     while cvi < cap_n {
@@ -70,7 +70,7 @@ fn core_closure_capture_vts(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
 }
 
 fn core_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut cap_types = Vec::new<String>()
     let mut cvi = 0
     while cvi < cap_n {
@@ -91,7 +91,7 @@ fn core_closure_capture_types(mut ctx: LowerCtx, caps: Vec<String>) -> Vec<Strin
 }
 
 fn core_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, cap_types: Vec<String>, rebind_flags: Vec<i32>, env_name: String) {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut ci = 0
     while ci < cap_n {
         let cname = get_unchecked(caps, ci).clone()
@@ -102,7 +102,7 @@ fn core_emit_closure_captures(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec
             cname.clone()
         )
         let _idx2 = ctx_api_local_alloc::ctx_alloc_local(ctx, pname.clone(), pvt)
-        if len(cap_type) > 0 {
+        if cap_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, _idx2, cap_type.clone())
         }
         // Mirrors mir_emit_closure_captures: a promoted-cell cap param

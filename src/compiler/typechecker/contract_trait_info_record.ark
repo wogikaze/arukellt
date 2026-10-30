@@ -23,7 +23,7 @@ fn trait_info_type_param_count(info: TraitInfo) -> i32 {
 }
 
 fn trait_info_associated_type_count(info: TraitInfo) -> i32 {
-    len(info.associated_type_names)
+    info.associated_type_names.len()
 }
 
 fn trait_info_associated_type_at(info: TraitInfo, index: i32) -> String {
@@ -35,7 +35,7 @@ fn trait_info_push_associated_type(mut info: TraitInfo, name: String) {
 }
 
 fn trait_info_supertrait_count(info: TraitInfo) -> i32 {
-    len(info.supertrait_names)
+    info.supertrait_names.len()
 }
 
 fn trait_info_supertrait_at(info: TraitInfo, index: i32) -> String {

@@ -17,7 +17,7 @@ fn resolve_error(mut ctx: ResolveCtx, msg: String) {
 
 fn resolve_unknown_name(mut ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
     let hint = removed_names::removed_name_hint(name.clone())
-    if len(hint.clone()) > 0 {
+    if hint.clone().len() > 0 {
         resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined name: ".concat(name.clone()).concat("; ".concat(hint)), span_start, span_end)
         return
     }
@@ -26,7 +26,7 @@ fn resolve_unknown_name(mut ctx: ResolveCtx, name: String, span_start: i32, span
 
 fn resolve_unknown_member(mut ctx: ResolveCtx, module: String, name: String, path: String) {
     let hint = removed_names::removed_module_member_hint(module.clone(), name.clone())
-    if len(hint.clone()) > 0 {
+    if hint.clone().len() > 0 {
         resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "undefined module member: ".concat(path).concat("; ".concat(hint)), 0, 0)
         return
     }
@@ -38,7 +38,7 @@ fn resolve_unknown_member(mut ctx: ResolveCtx, module: String, name: String, pat
 // generic privacy error, matching the E0100 hint for a deleted declaration.
 fn resolve_retired_private_member(mut ctx: ResolveCtx, module: String, name: String, path: String) -> bool {
     let hint = removed_names::removed_private_member_hint(module.clone(), name.clone())
-    if len(hint.clone()) == 0 {
+    if hint.clone().len() == 0 {
         return false
     }
     resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), "removed module member: ".concat(path).concat("; ".concat(hint)), 0, 0)

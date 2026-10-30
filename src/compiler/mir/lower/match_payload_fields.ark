@@ -31,7 +31,7 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
     if is_some_or_ok || is_err {
         payload_hint = mir_payload_elem_type_from_scrut(scrut_type.clone(), is_some_or_ok)
     }
-    if is_some_or_ok && len(payload_hint) == 0 {
+    if is_some_or_ok && payload_hint.len() == 0 {
         if mir_option_scrut_type_is_untyped(scrut_type.clone()) {
             if match_payload_field_type::mir_variant_has_fnref_payload_field(ctx, variant_name.clone()) {
                 payload_hint = String_from("fnref")
@@ -116,7 +116,7 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
         )
         // The weak spellings a generic ref payload gets before the
         // instantiation is known: unset, enum:open, or enum:<declared T>.
-        let weak_placeholder = len(current_bind_type) == 0 ||
+        let weak_placeholder = current_bind_type.len() == 0 ||
         current_bind_type.clone().eq("enum:open") ||
         current_bind_type.clone().eq(String_from("enum:").concat(declared_payload.clone()))
         if !is_some_or_ok && !is_err && weak_placeholder {
@@ -127,9 +127,9 @@ fn mir_emit_payload_variant_binds(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i3
                 String_new(),
                 scrut_type.clone()
             )
-            let instantiated = len(current_bind_type) == 0 ||
+            let instantiated = current_bind_type.len() == 0 ||
             !payload_type.clone().eq(declared_payload)
-            if len(payload_type) > 0 && instantiated {
+            if payload_type.len() > 0 && instantiated {
                 ctx_set_local_type(ctx, bind_local, payload_type)
             }
         }
@@ -188,7 +188,7 @@ fn mir_subpat_load_field(mut ctx: LowerCtx, variant_name: String, scrut_idx: i32
     // was pre-stamped as `enum:open`; replace that placeholder when the
     // scrutinee supplies a concrete type argument.
     let temp_type = ctx_get_local_type(ctx, temp)
-    if len(temp_type) == 0 || temp_type.clone().eq("enum:open") {
+    if temp_type.len() == 0 || temp_type.clone().eq("enum:open") {
         let payload_type = match_payload_field_type::mir_variant_payload_type_name_for_scrut(
             ctx,
             variant_name.clone(),
@@ -201,9 +201,9 @@ fn mir_subpat_load_field(mut ctx: LowerCtx, variant_name: String, scrut_idx: i32
             variant_name.clone(),
             field_idx + 1
         )
-        let instantiated = len(temp_type) == 0 ||
+        let instantiated = temp_type.len() == 0 ||
         !payload_type.clone().eq(declared_payload)
-        if len(payload_type) > 0 && instantiated {
+        if payload_type.len() > 0 && instantiated {
             ctx_set_local_type(ctx, temp, payload_type)
         }
     }
@@ -230,7 +230,7 @@ fn mir_emit_subpat_binds(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) {
         let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
         let bind_local = ctx_alloc_local(ctx, name.clone(), bind_vt)
         let val_type = ctx_get_local_type(ctx, val_idx)
-        if len(val_type) > 0 {
+        if val_type.len() > 0 {
             ctx_set_local_type(ctx, bind_local, val_type.clone())
             if val_type.clone().starts_with("enum:") {
                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
@@ -282,7 +282,7 @@ fn mir_emit_subpat_binds(mut ctx: LowerCtx, pat: AstNode, val_idx: i32) {
                     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, field_local)
                     let bind_local = ctx_alloc_local(ctx, bind_name.clone(), bind_vt)
                     let field_type = ctx_get_local_type(ctx, field_local)
-                    if len(field_type) > 0 {
+                    if field_type.len() > 0 {
                         ctx_set_local_type(ctx, bind_local, field_type.clone())
                         if field_type.clone().starts_with("enum:") {
                             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
@@ -304,12 +304,12 @@ fn mir_option_scrut_type_is_untyped(scrut_type: String) -> bool {
     scrut_type.clone().eq(String_from("Option")) ||
     scrut_type.clone().eq(String_from("option:")) ||
     scrut_type.clone().eq(String_from("Option:")) ||
-    len(scrut_type) == 0
+    scrut_type.len() == 0
 }
 
 // Extract the concrete payload element type from the scrutinee type name.
 fn mir_payload_bind_type_is_weak(current_type: String, is_err: bool) -> bool {
-    if len(current_type) == 0 {
+    if current_type.len() == 0 {
         return true
     }
     if current_type.clone().eq(String_from("enum:open")) {
@@ -337,27 +337,27 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
         // Option_Vec / option:Vec binds resolve get/push (not bare Vec).
         if scrut_type.clone().starts_with(String_from("option:")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type))
+                scrut_type.slice(7, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with(String_from("Option_")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type))
+                scrut_type.slice(7, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with(String_from("Option:")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type))
+                scrut_type.slice(7, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with(String_from("?Option:")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
-                scrut_type.slice(8, len(scrut_type))
+                scrut_type.slice(8, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with(String_from("Option<")) && scrut_type.clone().ends_with(String_from(">")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type) - 1)
+                scrut_type.slice(7, scrut_type.len() - 1)
             )
         }
         if scrut_type.clone().starts_with(String_from("Result_")) ||
@@ -370,7 +370,7 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
         if scrut_type.clone().starts_with(String_from("enum:Result:")) {
             return match_payload_bind_types::normalize_payload_elem_type_name(
                 match_payload_bind_types::extract_first_result_type_param(
-                    String_from("result:").concat(scrut_type.slice(12, len(scrut_type)))
+                    String_from("result:").concat(scrut_type.slice(12, scrut_type.len()))
                 )
             )
         }
@@ -385,7 +385,7 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
     }
     if scrut_type.clone().starts_with(String_from("enum:Result:")) {
         return match_payload_bind_types::extract_second_result_type_param(
-            String_from("result:").concat(scrut_type.slice(12, len(scrut_type)))
+            String_from("result:").concat(scrut_type.slice(12, scrut_type.len()))
         )
     }
     String_new()
@@ -410,7 +410,7 @@ fn mir_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
                 // Some-bind local type (#890 Option<(A, B)>).
                 aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(
                     ctx,
-                    elem_ty.clone().slice(6, len(elem_ty))
+                    elem_ty.clone().slice(6, elem_ty.len())
                 )
                 return set_type
             }
@@ -449,7 +449,7 @@ fn mir_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_loc
     let current_type = ctx_get_local_type(ctx, bind_local)
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
     let mut elem_ty = mir_payload_elem_type_from_scrut(scrut_type.clone(), is_some_or_ok)
-    if len(elem_ty) == 0 {
+    if elem_ty.len() == 0 {
         return
     }
     // Inside a monomorphized body the scrutinee keeps the generic spelling
@@ -457,11 +457,11 @@ fn mir_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_loc
     // declared name through the mono map so Some(v) binds get the concrete
     // payload type and vt instead of the unresolved parameter (#882).
     let resolved_elem = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, elem_ty.clone())
-    if len(resolved_elem) > 0 {
+    if resolved_elem.len() > 0 {
         elem_ty = resolved_elem
     }
     let resolved_current = ctx_mono_type_params::ctx_resolve_mono_type_name(ctx, current_type.clone())
-    let weak_check_type = if len(resolved_current) > 0 {
+    let weak_check_type = if resolved_current.len() > 0 {
         resolved_current
     } else {
         current_type.clone()
@@ -543,7 +543,7 @@ fn emit_payload_field_bind(mut ctx: LowerCtx, variant_name: String, scrut_idx: i
                 field_idx,
                 ctx_get_local_type(ctx, bind_local)
             )
-            if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
+            if ctx_api_local_types::ctx_get_local_type(ctx, bind_local).len() == 0 {
                 ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }
         } else if !scalar_bind && match_payload_bind_types::payload_type_name_is_gc_ref(ctx, bind_local) {
@@ -599,7 +599,7 @@ fn emit_payload_field_bind_gc(mut ctx: LowerCtx, variant_name: String, field_idx
     // single-payload twin; casting the real value to that twin traps (#807).
     if type_slot >= 0 && variant_layout_payload_field_count(ctx, variant_name.clone()) > 1 {
         let first_payload_type = match_payload_bind_gc_resolve::emit_payload_field_bind_gc_resolve_type(ctx, variant_name.clone(), 0, bind_local)
-        if len(first_payload_type) > 0 {
+        if first_payload_type.len() > 0 {
             let mut typed_vts = Vec::new<i32>()
             push(typed_vts, mir_payload_type_value_type(first_payload_type.clone()))
             let typed_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(

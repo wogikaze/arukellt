@@ -13,7 +13,7 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
 
 fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn_source_locations: Vec<SourceLocation>) -> LowerCtx {
     let mut effective_target = target.clone()
-    if len(effective_target) == 0 {
+    if effective_target.len() == 0 {
         effective_target = "wasm32-gc"
     }
     LowerCtx {

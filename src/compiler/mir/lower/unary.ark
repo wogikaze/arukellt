@@ -20,7 +20,7 @@ fn lower_unary_from_operand(mut ctx: LowerCtx, op: i32, operand_idx: i32) -> i32
     op == lower_kinds::UOP_BITNOT()
     if can_use_trait_overload {
         let ov_method = binary_method::mir_unary_operator_method_name(op)
-        if len(ov_method) > 0 {
+        if ov_method.len() > 0 {
             let ov_callee = ov_type.clone().concat("::".concat(ov_method.clone()))
             if ctx_fn_exists(ctx, ov_callee.clone()) != 0 {
                 return binary_emit::mir_emit_overloaded_unary_call(ctx, ov_callee)

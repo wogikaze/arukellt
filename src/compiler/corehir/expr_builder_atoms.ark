@@ -25,7 +25,7 @@ fn corehir_expr_float(text: String, float_val: f64, span_start: i32) -> CoreHirE
 }
 
 fn corehir_float_text_is_f32(text: String) -> bool {
-    let text_len = len(text)
+    let text_len = text.len()
     if text_len < 3 {
         return false
     }

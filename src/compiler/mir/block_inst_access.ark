@@ -42,7 +42,7 @@ fn MirBlock_inst_func_id(block: MirBlock, idx: i32) -> i32 {
 
 fn MirBlock_inst_str_val(block: MirBlock, idx: i32) -> String {
     let str_id = get_unchecked(block.str_ids, idx)
-    if str_id < 0 || str_id >= len(block.str_pool) {
+    if str_id < 0 || str_id >= block.str_pool.len() {
         return String_new()
     }
     // See mir_inst_str_val: pooled names are returned without cloning.
@@ -118,7 +118,7 @@ fn MirInst_as_draft(inst: MirInst) -> MirInstDraft {
 
 fn MirBlock_drafts_from_refs(refs: Vec<MirInst>) -> Vec<MirInstDraft> {
     let mut out = Vec::new<MirInstDraft>()
-    let n = len(refs)
+    let n = refs.len()
     let mut i = 0
     while i < n {
         push(out, MirInst_as_draft(get_unchecked(refs, i)))

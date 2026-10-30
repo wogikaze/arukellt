@@ -8,7 +8,7 @@ fn parse_command(name: String) -> i32 {
 }
 
 fn parse_ascii_core_command(name: String) -> i32 {
-    let name_len = len(name.clone())
+    let name_len = name.clone().len()
     if name_len == 5 && name.clone().byte_at(0) == 99 && name.clone().byte_at(1) == 104 && name.clone().byte_at(2) == 101 && name.clone().byte_at(3) == 99 && name.clone().byte_at(4) == 107 {
         return kinds::CMD_CHECK()
     }
@@ -126,8 +126,8 @@ fn parse_reserved_command(name: String) -> i32 {
 }
 
 fn cli_str_eq(a: String, b: String) -> bool {
-    let n = len(a.clone())
-    if n != len(b.clone()) {
+    let n = a.clone().len()
+    if n != b.clone().len() {
         return false
     }
     let mut i = 0

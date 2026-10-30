@@ -26,7 +26,7 @@ fn main() {
     let from_empty = "".to_utf8_bytes()
     Stdio::println((from_empty.len()).to_string())
     let s2 = String::from_utf8_lossy(empty)
-    Stdio::println((len(s2)).to_string())
+    Stdio::println((s2.len()).to_string())
     let mut hb = Vec::new<i32>()
     hb.push_byte(0)
     hb.push_byte(255)

@@ -22,10 +22,10 @@ fn mir_set_closure_return_from_local(mut ctx: LowerCtx, mut f: MirFunction, res_
         let loc = function_locals_view::MirFunction_local_at(func, val_idx)
         ret_type = local_access::MirLocal_type_name(loc)
     }
-    if len(ret_type) == 0 {
+    if ret_type.len() == 0 {
         ret_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
     }
-    if len(ret_type) > 0 {
+    if ret_type.len() > 0 {
         ret_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ret_type.clone())
     } else {
         if ret_vt == value_types::VT_GC_REF() {
@@ -42,7 +42,7 @@ fn mir_set_closure_return_from_local(mut ctx: LowerCtx, mut f: MirFunction, res_
         ret_vt = value_types::VT_GC_REF()
     }
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)
-    if len(ret_type) > 0 {
+    if ret_type.len() > 0 {
         function_return_mutation::MirFunction_set_return_type_name(f, ret_type)
     }
 }

@@ -7,7 +7,7 @@ fn main() {
         Result::Ok(v) => match v.as_string() {
             Option::Some(s) => {
                 // UTF-8 encoding is 4 bytes: F0 9F 98 80
-                Test::assert_eq_i32(len(s), 4)
+                Test::assert_eq_i32(s.len(), 4)
                 Test::assert_eq_i32(s.byte_at(0), 240)
                 Test::assert_eq_i32(s.byte_at(1), 159)
                 Test::assert_eq_i32(s.byte_at(2), 152)

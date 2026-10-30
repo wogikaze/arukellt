@@ -9,6 +9,6 @@ fn main() {
     // Concat non-empty + empty
     Test::assert_eq_string("x".concat(""), "x")
     // Length checks
-    Test::assert_eq_i32(len("".concat("")), 0)
-    Test::assert_eq_i32(len("ab".concat("cd")), 4)
+    Test::assert_eq_i32("".concat("").len(), 0)
+    Test::assert_eq_i32("ab".concat("cd").len(), 4)
 }

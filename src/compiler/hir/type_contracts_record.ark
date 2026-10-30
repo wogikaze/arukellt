@@ -24,7 +24,7 @@ fn hir_type_name(ty: HirType) -> String {
 }
 
 fn hir_type_type_arg_count(ty: HirType) -> i32 {
-    len(ty.type_args)
+    ty.type_args.len()
 }
 
 fn hir_type_type_arg_at(ty: HirType, index: i32) -> HirType {
@@ -36,7 +36,7 @@ fn hir_type_push_type_arg(mut ty: HirType, arg: HirType) {
 }
 
 fn hir_type_param_count(ty: HirType) -> i32 {
-    len(ty.param_types)
+    ty.param_types.len()
 }
 
 fn hir_type_param_at(ty: HirType, index: i32) -> HirType {

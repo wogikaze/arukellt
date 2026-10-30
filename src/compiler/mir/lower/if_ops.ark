@@ -35,9 +35,9 @@ fn mir_store_if_branch_result(mut ctx: LowerCtx, result: i32, branch_result: i32
         if branch_slot >= 0 || branch_is_variant_struct {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, result, 0 - 1)
             ctx_api_local_types::ctx_set_local_type(ctx, result, "enum:open")
-        } else if len(current_type) == 0 && len(branch_type) > 0 {
+        } else if current_type.len() == 0 && branch_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, result, branch_type)
-        } else if len(current_type) == 0 {
+        } else if current_type.len() == 0 {
             // Enum variant constructors (Ok/Err/Some/None) can produce
             // GC_REF values with no semantic type name.  Keep their result
             // on the open enum base until a later consumer narrows it.

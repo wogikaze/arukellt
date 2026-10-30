@@ -6,7 +6,7 @@ use mir::type_contracts
 // pulls in ctx_module/emit_inloop.
 fn ctx_set_mono_instances(mut ctx: LowerCtx, instances: Vec<MonoInstance>) {
     ctx.mono_instances = instances
-    let count = len(instances)
+    let count = instances.len()
     let mut capacity = 16
     let required = count * 2
     while capacity < required {
@@ -43,18 +43,18 @@ fn ctx_mono_inst_insert_first(mut ctx: LowerCtx, name: String, value: i32) {
     }
     push(ctx.mono_inst_keys, name)
     push(ctx.mono_inst_vals, value)
-    set(ctx.mono_inst_buckets, slot, len(ctx.mono_inst_keys))
+    set(ctx.mono_inst_buckets, slot, ctx.mono_inst_keys.len())
 }
 
 fn ctx_mono_inst_probe_slot(ctx: LowerCtx, name: String) -> i32 {
-    let capacity = len(ctx.mono_inst_buckets)
+    let capacity = ctx.mono_inst_buckets.len()
     if capacity <= 0 {
         return 0 - 1
     }
     let fnv_offset = 216613626
     let fnv_prime = 16777619
     let mut hash = fnv_offset
-    let name_len = len(name)
+    let name_len = name.len()
     let mut hi = 0
     while hi < name_len {
         hash = hash * fnv_prime ^ name.byte_at(hi)
@@ -74,7 +74,7 @@ fn ctx_mono_inst_probe_slot(ctx: LowerCtx, name: String) -> i32 {
             return slot
         }
         let key = get_unchecked(ctx.mono_inst_keys, bucket - 1)
-        let mut same = len(key) == name_len
+        let mut same = key.len() == name_len
         if same {
             let mut i = 0
             while i < name_len {
@@ -105,7 +105,7 @@ fn ctx_mono_instance_at(ctx: LowerCtx, mangled: String) -> MonoInstance {
         return type_contracts::MonoInstance_new(String_new(), String_new(), Vec::new<TypeInfo>())
     }
     let inst_index = get_unchecked(ctx.mono_inst_vals, bucket - 1)
-    if inst_index < 0 || inst_index >= len(ctx.mono_instances) {
+    if inst_index < 0 || inst_index >= ctx.mono_instances.len() {
         return type_contracts::MonoInstance_new(String_new(), String_new(), Vec::new<TypeInfo>())
     }
     get_unchecked(ctx.mono_instances, inst_index)

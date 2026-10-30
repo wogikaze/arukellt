@@ -121,7 +121,7 @@ fn mir_emit_clone_identity(mut ctx: LowerCtx, source: i32) -> i32 {
     let source_vt = ctx_api_local_types::ctx_local_vt(ctx, source)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
     let source_type = ctx_api_local_types::ctx_get_local_type(ctx, source)
-    if len(source_type) > 0 {
+    if source_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, source_type)
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(source, dest))

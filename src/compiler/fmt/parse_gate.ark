@@ -15,7 +15,7 @@ fn fmt_parse_gate(input: String) -> FmtParseGate {
 }
 
 fn fmt_parse_gate_error_count(gate: FmtParseGate) -> i32 {
-    len(gate.errors)
+    gate.errors.len()
 }
 
 fn fmt_parse_gate_error_at(gate: FmtParseGate, index: i32) -> Diagnostic {

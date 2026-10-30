@@ -28,7 +28,7 @@ fn lower_gc_variant_value(mut ctx: LowerCtx, variant_name: String, tag: i32) -> 
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
     ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, type_slot)
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(variant_name.clone())
-    if len(enum_name) > 0 {
+    if enum_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "enum:".concat(enum_name))
     }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
@@ -50,7 +50,7 @@ fn lower_empty_payload_variant(mut ctx: LowerCtx, variant_name: String, tag: i32
 
 fn set_linear_enum_type(mut ctx: LowerCtx, dest: i32, variant_name: String) {
     let enum_name = ctx_gc_enum::ctx_gc_enum_type_name_from_variant(variant_name)
-    if len(enum_name) > 0 {
+    if enum_name.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, "enum:".concat(enum_name))
     }
 }

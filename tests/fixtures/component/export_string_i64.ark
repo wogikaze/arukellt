@@ -1,7 +1,7 @@
 // Export with String parameter and i64 result maps to WIT string -> s64.
 
 export fn count64_text(text: String) -> i64 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 0i64
     }
     5000000000i64

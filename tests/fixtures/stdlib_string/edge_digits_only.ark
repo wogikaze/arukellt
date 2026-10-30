@@ -1,7 +1,7 @@
 use std::test::Test
 fn main() {
     let s = String_from("1234567890")
-    Test::assert_eq_i32(len(s), 10)
+    Test::assert_eq_i32(s.len(), 10)
     Test::assert_true(s.contains(String_from("567")))
     Test::assert_eq_i32(s.index_of(String_from("0")), 9)
 }

@@ -13,13 +13,13 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
     if inst_draft::MirInstDraft_op(inst) != opcodes::MIR_RETURN() {
         return out
     }
-    if len(ctx.cell_fn_names) == 0 {
+    if ctx.cell_fn_names.len() == 0 {
         return out
     }
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let fn_name = function_identity::MirFunction_name(func)
     let mut i = 0
-    while i < len(ctx.cell_fn_names) {
+    while i < ctx.cell_fn_names.len() {
         if get_unchecked(ctx.cell_fn_names, i).eq(fn_name.clone()) {
             push(out, inst_struct_set::MirInst_struct_set_named_idx(
                     get_unchecked(ctx.cell_env_locals, i),
@@ -40,7 +40,7 @@ fn ctx_env_cell_flush(ctx: LowerCtx, inst: MirInstDraft) -> Vec<MirInstDraft> {
 // to the trampoline and arity computations.
 fn ctx_has_env_cell(rebind_flags: Vec<i32>) -> i32 {
     let mut i = 0
-    while i < len(rebind_flags) {
+    while i < rebind_flags.len() {
         if get_unchecked(rebind_flags, i) != 0 {
             return 1
         }

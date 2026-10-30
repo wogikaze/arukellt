@@ -19,7 +19,7 @@ fn pick(bag: Bag, i: i32) -> i32 {
     let body = get_unchecked(bag.bodies, i)
     // Unrelated receiver call; it must not leak Bag into body's decl type.
     let tag = Bag_tag(bag)
-    len(body) + tag
+    body.len() + tag
 }
 
 fn main() {

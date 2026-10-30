@@ -1,7 +1,7 @@
 use hir::node_record
 
 fn hir_node_child_count(node: HirNode) -> i32 {
-    len(node.children)
+    node.children.len()
 }
 
 fn hir_node_child_at(node: HirNode, index: i32) -> HirNode {

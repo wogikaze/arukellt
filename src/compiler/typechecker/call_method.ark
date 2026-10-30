@@ -59,7 +59,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
     // Try mangled name lookup first (e.g. "String::len", "i32::to_string")
     // so that impl-block methods are resolved to the correct signature.
     let recv_type_name = type_name_for_mangling(recv_ty)
-    if len(recv_type_name) > 0 {
+    if recv_type_name.len() > 0 {
         let mangled = recv_type_name.clone().concat(String_from("::").concat(method_name.clone()))
         let mangled_sig = sigs::lookup_fn_sig(env, fn_sigs, mangled)
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
@@ -71,7 +71,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
         // like Pair<i32> still reaches impl Pair<T> methods.
         if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_STRUCT() {
             let bare_recv = names::unqualified_type_name(contract_type_access::TypeInfo_name(recv_ty))
-            if len(bare_recv) > 0 && !recv_type_name.clone().eq(bare_recv.clone()) {
+            if bare_recv.len() > 0 && !recv_type_name.clone().eq(bare_recv.clone()) {
                 let shell = bare_recv.clone().concat(String_from("::").concat(method_name.clone()))
                 let shell_sig = sigs::lookup_fn_sig(env, fn_sigs, shell)
                 if contract_fn_sig::FnSig_has_name(shell_sig) {
@@ -178,7 +178,7 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
             // report the missing import once per environment.
             let mut seen = false
             let mut ei = 0
-            while ei < len(env.errors) {
+            while ei < env.errors.len() {
                 if get_unchecked(env.errors, ei).clone().eq(message.clone()) {
                     seen = true
                 }
@@ -226,7 +226,7 @@ fn reject_hashset_method_outside_family(
     method_name: String
 ) -> bool {
     let family = hashset_family_from_owner(recv_type_name.clone())
-    if len(family.clone()) == 0 {
+    if family.clone().len() == 0 {
         return false
     }
     let mut other_family = String_from("i32")
@@ -243,7 +243,7 @@ fn reject_hashset_method_outside_family(
     // Speculative inference can visit the same method node more than once;
     // report the family rejection once per environment.
     let mut index = 0
-    while index < len(env.errors) {
+    while index < env.errors.len() {
         if get_unchecked(env.errors, index).clone().eq(message.clone()) {
             return true
         }
@@ -507,7 +507,7 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
             let value_name = type_name_for_mangling(
                 contract_type_access::TypeInfo_type_arg_at(ty, 1)
             )
-            if len(key_name) > 0 && len(value_name) > 0 {
+            if key_name.len() > 0 && value_name.len() > 0 {
                 return String_from("HashMap_").concat(key_name.clone().concat(String_from("_").concat(value_name.clone())))
             }
         }
@@ -515,9 +515,9 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
     }
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
-        if len(name) > 0 {
+        if name.len() > 0 {
             let inst_owner = struct_inst_owner_name(ty)
-            if len(inst_owner) > 0 {
+            if inst_owner.len() > 0 {
                 return inst_owner
             }
             return names::unqualified_type_name(name)
@@ -525,7 +525,7 @@ fn type_name_for_mangling(ty: TypeInfo) -> String {
     }
     if tag == commands::TY_ENUM() {
         let name = contract_type_access::TypeInfo_name(ty)
-        if len(name) > 0 {
+        if name.len() > 0 {
             return names::unqualified_type_name(name)
         }
     }
@@ -546,17 +546,17 @@ fn struct_inst_owner_name(ty: TypeInfo) -> String {
         return String_new()
     }
     let base = names::unqualified_type_name(contract_type_access::TypeInfo_name(ty))
-    if len(base) == 0 {
+    if base.len() == 0 {
         return String_new()
     }
     let mut suffix = String_new()
     let mut i = 0
     while i < arg_count {
         let key = inst_arg_key(contract_type_access::TypeInfo_type_arg_at(ty, i))
-        if len(key) == 0 {
+        if key.len() == 0 {
             return String_new()
         }
-        if len(suffix) > 0 {
+        if suffix.len() > 0 {
             suffix = suffix.concat(String_from("_"))
         }
         suffix = suffix.concat(key)
@@ -585,7 +585,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
             return String_from("Vec")
         }
         let elem_key = inst_arg_key(contract_type_access::TypeInfo_type_arg_at(ty, 0))
-        if len(elem_key) == 0 {
+        if elem_key.len() == 0 {
             return String_new()
         }
         return String_from("Vec_").concat(elem_key)
@@ -596,7 +596,7 @@ fn inst_arg_key(ty: TypeInfo) -> String {
         }
         let key_key = inst_arg_key(contract_type_access::TypeInfo_type_arg_at(ty, 0))
         let value_key = inst_arg_key(contract_type_access::TypeInfo_type_arg_at(ty, 1))
-        if len(key_key) == 0 || len(value_key) == 0 {
+        if key_key.len() == 0 || value_key.len() == 0 {
             return String_new()
         }
         return String_from("HashMap_").concat(key_key.clone().concat(String_from("_").concat(value_key)))
@@ -606,14 +606,14 @@ fn inst_arg_key(ty: TypeInfo) -> String {
             return String_from("Option")
         }
         let some_key = inst_arg_key(contract_type_access::TypeInfo_type_arg_at(ty, 0))
-        if len(some_key) == 0 {
+        if some_key.len() == 0 {
             return String_new()
         }
         return String_from("Option_").concat(some_key)
     }
     if tag == commands::TY_STRUCT() || tag == commands::TY_ENUM() {
         let name = names::unqualified_type_name(contract_type_access::TypeInfo_name(ty))
-        if len(name) == 0 {
+        if name.len() == 0 {
             return String_new()
         }
         let inner_count = contract_type_access::TypeInfo_type_arg_count(ty)
@@ -624,10 +624,10 @@ fn inst_arg_key(ty: TypeInfo) -> String {
         let mut i = 0
         while i < inner_count {
             let key = inst_arg_key(contract_type_access::TypeInfo_type_arg_at(ty, i))
-            if len(key) == 0 {
+            if key.len() == 0 {
                 return String_new()
             }
-            if len(inner) > 0 {
+            if inner.len() > 0 {
                 inner = inner.concat(String_from("_"))
             }
             inner = inner.concat(key)
@@ -648,7 +648,7 @@ fn try_resolve_trait_method_from_bounds(mut env: TypeEnv, mut scope: LocalScope,
     let recv_ty_name = contract_type_access::TypeInfo_name(recv_ty)
     // Search the current function's type parameter bounds for a trait
     // that declares this method.
-    let bound_count = len(env.current_fn_bounds)
+    let bound_count = env.current_fn_bounds.len()
     let mut i = 0
     while i < bound_count {
         let tp_bound = get_unchecked(env.current_fn_bounds, i)
@@ -740,7 +740,7 @@ fn receiver_exposes_iterator_api(recv_ty: TypeInfo) -> bool {
         return true
     }
     let name = contract_type_access::TypeInfo_name(recv_ty)
-    let n = len(name)
+    let n = name.len()
     if n >= 4 && name.contains(String_from("Iter")) {
         return true
     }
@@ -755,7 +755,7 @@ fn unique_method_signature_index(fn_sigs: Vec<FnSig>, method_name: String) -> i3
     let mut found = 0 - 1
     let mut count = 0
     let mut i = 0
-    while i < len(fn_sigs) {
+    while i < fn_sigs.len() {
         let name = contract_fn_sig::FnSig_name(get_unchecked(fn_sigs, i))
         let matches = name.clone().ends_with(suffix.clone()) ||
         name.clone().eq(String_from("::").concat(method_name.clone()))

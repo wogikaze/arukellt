@@ -2,7 +2,7 @@ use std::text
 fn render() -> String {
     let open = String_from("([{")
     let close = String_from(")]}")
-    if len(open) > 0 {
+    if open.len() > 0 {
         return open.concat(close)
     }
     String_new()

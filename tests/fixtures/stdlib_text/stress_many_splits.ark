@@ -5,11 +5,11 @@ fn main() {
     // Many splits — comma-separated values
     let s = "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p"
     let parts = s.split(",")
-    Test::assert_eq_i32(len(parts), 16)
+    Test::assert_eq_i32(parts.len(), 16)
     Test::assert_eq_string(parts.join(","), s)
 
     // Split on single char
     let s2 = "x".repeat(50)
     let parts2 = s2.split("")
-    Test::assert_eq_i32(len(parts2), 50)
+    Test::assert_eq_i32(parts2.len(), 50)
 }

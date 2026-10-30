@@ -3,6 +3,6 @@ use std::text
 
 fn main() {
     let parts = String_from("hello,world").split(String_from(","))
-    let n = len(parts)
+    let n = parts.len()
     Stdio::println(n.to_string())
 }

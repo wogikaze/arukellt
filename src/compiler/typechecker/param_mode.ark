@@ -118,7 +118,7 @@ fn check_mutable_parameter_places(
     first_arg: i32,
     requires_mutable: Vec<bool>
 ) {
-    let param_count = len(requires_mutable)
+    let param_count = requires_mutable.len()
     let mut index = 0
     while index < param_count {
         if get_unchecked(requires_mutable, index) {
@@ -383,7 +383,7 @@ fn check_overlapping_places(
     first_arg: i32,
     requires_mutable: Vec<bool>
 ) {
-    let param_count = len(requires_mutable)
+    let param_count = requires_mutable.len()
     let mut left = 0
     while left < param_count {
         let mut right = left + 1
@@ -440,7 +440,7 @@ fn place_child_key(scope: LocalScope, node: AstNode) -> String {
 }
 
 fn place_keys_overlap(left: String, right: String) -> bool {
-    if len(left) == 0 || len(right) == 0 {
+    if left.len() == 0 || right.len() == 0 {
         return false
     }
     if left.clone().eq(right.clone()) {

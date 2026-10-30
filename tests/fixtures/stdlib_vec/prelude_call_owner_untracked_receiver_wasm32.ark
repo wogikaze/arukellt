@@ -3,7 +3,7 @@
 // bind the owner-qualified CoreOps from the checker's per-call resolution,
 // not from the receiver's local type spelling (#933 / #936).
 use std::host::stdio::Stdio
-use std::prelude::{get, len, pop, push}
+use std::prelude::{get, pop, push}
 use std::test::Test
 
 fn main() {
@@ -14,9 +14,9 @@ fn main() {
     push(second, 3)
     push(second, 4)
     let mut values = if first.len() > 0 { second } else { first }
-    Test::assert_eq_i32(len(values), 3)
+    Test::assert_eq_i32(values.len(), 3)
     push(values, 9)
-    Test::assert_eq_i32(len(values), 4)
+    Test::assert_eq_i32(values.len(), 4)
     match get(values, 0) {
         Option::Some(value) => Test::assert_eq_i32(value, 2),
         None => Std::panic("expected Some, got None"),
@@ -25,6 +25,6 @@ fn main() {
         Option::Some(value) => Test::assert_eq_i32(value, 9),
         None => Std::panic("expected Some, got None"),
     }
-    Test::assert_eq_i32(len(values), 3)
+    Test::assert_eq_i32(values.len(), 3)
     Stdio::println("prelude call owner untracked receiver ok")
 }

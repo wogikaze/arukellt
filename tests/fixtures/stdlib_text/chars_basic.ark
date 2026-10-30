@@ -3,11 +3,11 @@ use std::text
 
 fn main() {
     let cs = "abc".chars()
-    Test::assert_eq_i32(len(cs), 3)
+    Test::assert_eq_i32(cs.len(), 3)
     // Empty string
     let cs2 = "".chars()
-    Test::assert_eq_i32(len(cs2), 1)
+    Test::assert_eq_i32(cs2.len(), 1)
     // Single char
     let cs3 = "x".chars()
-    Test::assert_eq_i32(len(cs3), 1)
+    Test::assert_eq_i32(cs3.len(), 1)
 }

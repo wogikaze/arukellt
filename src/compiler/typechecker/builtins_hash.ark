@@ -24,7 +24,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     if name.clone().eq("__intrinsic_i31_box") || name.clone().eq("i31_box") {
         return simple_type(commands::TY_I32())
     }
-    if !name.clone().starts_with("__hm_") || len(name) < 9 {
+    if !name.clone().starts_with("__hm_") || name.len() < 9 {
         return simple_type(commands::TY_UNKNOWN())
     }
     let family = name.slice(5, 7)
@@ -33,7 +33,7 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
         return simple_type(commands::TY_UNKNOWN())
     }
     let value_ty = hashmap_family_value_type(family)
-    let op = name.slice(8, len(name))
+    let op = name.slice(8, name.len())
     if op.clone().eq("new") || op.clone().eq("new_with_cap") {
         return hashmap_type(key_ty, value_ty)
     }

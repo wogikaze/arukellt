@@ -61,13 +61,13 @@ pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let mut warnings = Vec::new<Diagnostic>()
     let mut starts = Vec::new<i32>()
     let mut ends = Vec::new<i32>()
-    let dn = len(decls)
+    let dn = decls.len()
     let mut di = 0
     while di < dn {
         collect_nested_else_if(get_unchecked(decls, di), starts, ends)
         di = di + 1
     }
-    let n = len(starts)
+    let n = starts.len()
     let mut i = 0
     while i < n {
         let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))

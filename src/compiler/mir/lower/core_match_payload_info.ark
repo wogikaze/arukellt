@@ -93,15 +93,15 @@ fn core_prepare_match_payload(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
 
 fn core_scrut_type_is_ref(scrut_type: String) -> bool {
     if scrut_type.clone().starts_with("Option_") || scrut_type.clone().starts_with("Result_") {
-        let suffix = scrut_type.clone().slice(7, len(scrut_type))
+        let suffix = scrut_type.clone().slice(7, scrut_type.len())
         return core_suffix_is_ref(suffix)
     }
     if scrut_type.clone().starts_with("option:") {
-        let suffix = scrut_type.clone().slice(7, len(scrut_type))
+        let suffix = scrut_type.clone().slice(7, scrut_type.len())
         return core_suffix_is_ref(suffix)
     }
     if scrut_type.clone().starts_with("result:") {
-        let suffix = scrut_type.clone().slice(7, len(scrut_type))
+        let suffix = scrut_type.clone().slice(7, scrut_type.len())
         return core_suffix_is_ref(suffix)
     }
     false

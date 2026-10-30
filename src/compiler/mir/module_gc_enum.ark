@@ -3,7 +3,7 @@ use std::text
 use corehir::name_match
 use mir::module_record
 fn MirModule_gc_enum_variant_sig_count(m: MirModule) -> i32 {
-    len(m.gc_enum_variant_sigs)
+    m.gc_enum_variant_sigs.len()
 }
 
 fn MirModule_gc_enum_variant_sig_at(m: MirModule, idx: i32) -> String {
@@ -32,14 +32,14 @@ fn MirModule_push_gc_enum_variant(mut m: MirModule, name: String, sig: String) {
 }
 
 fn MirModule_gc_enum_variant_canon_idx_at(m: MirModule, slot: i32) -> i32 {
-    if slot < 0 || slot >= len(m.gc_enum_variant_canon_idx) {
+    if slot < 0 || slot >= m.gc_enum_variant_canon_idx.len() {
         return 0 - 1
     }
     get_unchecked(m.gc_enum_variant_canon_idx, slot)
 }
 
 fn MirModule_set_gc_enum_variant_canon_idx(mut m: MirModule, slot: i32, canon_idx: i32) {
-    if slot < 0 || slot >= len(m.gc_enum_variant_canon_idx) {
+    if slot < 0 || slot >= m.gc_enum_variant_canon_idx.len() {
         return
     }
     // Count only the -1 -> final transition: emit-side derived indexes
@@ -75,7 +75,7 @@ fn MirModule_gc_enum_variant_slot(m: MirModule, name: String) -> i32 {
 // `"::"+base+"::"` pattern is matched in place instead of rebuilding both
 // strings; the allocations were a top GC-churn source in the overlay profile.
 fn MirModule_gc_enum_name_has_enum_prefix(enum_name: String) -> bool {
-    len(enum_name) >= 5 &&
+    enum_name.len() >= 5 &&
     byte_at(enum_name, 0) == 101 &&
     byte_at(enum_name, 1) == 110 &&
     byte_at(enum_name, 2) == 117 &&
@@ -85,11 +85,11 @@ fn MirModule_gc_enum_name_has_enum_prefix(enum_name: String) -> bool {
 
 fn MirModule_gc_enum_variant_matches(enum_name: String, variant_name: String) -> bool {
     let base_start = if MirModule_gc_enum_name_has_enum_prefix(enum_name) { 5 } else { 0 }
-    let base_len = len(enum_name) - base_start
+    let base_len = enum_name.len() - base_start
     if base_len <= 0 {
         return false
     }
-    let variant_len = len(variant_name)
+    let variant_len = variant_name.len()
     if variant_len >= base_len + 2 &&
     name_match::NameMatch::region_equal(variant_name, 0, enum_name, base_start, base_len) &&
     byte_at(variant_name, base_len) == 58 &&

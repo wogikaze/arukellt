@@ -96,7 +96,7 @@ fn __core_string_utf8_width_impl(s: String, index: i32) -> i32 {
 // elements stay invalid instead of being truncated by the runtime's
 // byte-string constructor.
 fn __core_string_utf8_width_vec_impl(bytes: Vec<i32>, index: i32) -> i32 {
-    let byte_len = len(bytes)
+    let byte_len = bytes.len()
     if index < 0 || index >= byte_len {
         return 0
     }
@@ -515,7 +515,7 @@ fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
 fn __core_string_join_impl(parts: Vec<String>, separator: String) -> String {
     // Avoid __core_string_push_range: mixed GC-ref/i32 params scramble MIR
     // locals on wasm32-gc and trap mid-join (#807). concat is intrinsic-backed.
-    let part_count = len(parts)
+    let part_count = parts.len()
     if part_count == 0 {
         return String_from("")
     }
@@ -616,7 +616,7 @@ impl String {
     /// Decodes `bytes` as UTF-8, replacing each invalid sequence with U+FFFD.
     fn from_utf8_lossy(bytes: Vec<i32>) -> String {
         let mut result = Vec::new<i32>()
-        let byte_len = len(bytes)
+        let byte_len = bytes.len()
         let mut index = 0
         while index < byte_len {
             let width = __core_string_utf8_width_vec_impl(bytes, index)
@@ -640,7 +640,7 @@ impl String {
     /// Decodes `bytes` as UTF-8 and returns `None` when the input is invalid.
     fn try_from_utf8(bytes: Vec<i32>) -> Option<String> {
         let mut result = Vec::new<i32>()
-        let byte_len = len(bytes)
+        let byte_len = bytes.len()
         let mut index = 0
         while index < byte_len {
             let width = __core_string_utf8_width_vec_impl(bytes, index)

@@ -7,10 +7,10 @@ fn main() {
         push(v, i)
         i = i + 1
     }
-    Stdio::println((len(v)).to_string())
+    Stdio::println((v.len()).to_string())
     let mut sum: i32 = 0
     let mut j: i32 = 0
-    while j < len(v) {
+    while j < v.len() {
         sum = sum + get_unchecked(v, j)
         j = j + 1
     }

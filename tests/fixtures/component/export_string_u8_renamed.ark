@@ -1,7 +1,7 @@
 // Export with renamed String parameter and u8 result maps to WIT string -> u8.
 
 export fn small_code(text: String) -> u8 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 3u8
     }
     5u8

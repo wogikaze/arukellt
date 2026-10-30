@@ -195,10 +195,10 @@ fn native_c_validate_function_signature(
     }
     let table = module_spine::MirModule_type_table(mir_module)
     let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
-    if len(abi::native_c_signature_return_type(table, signature, heap_enum_flags)) == 0 {
+    if abi::native_c_signature_return_type(table, signature, heap_enum_flags).len() == 0 {
         return String_from("compiler ICE: native-cpp cannot lower result signature for FunctionId ").concat((function_id_raw).to_string())
     }
-    if len(abi::native_c_signature_parameters(table, signature, heap_enum_flags)) == 0 {
+    if abi::native_c_signature_parameters(table, signature, heap_enum_flags).len() == 0 {
         return String_from("compiler ICE: native-cpp cannot lower parameter signature for FunctionId ").concat((function_id_raw).to_string())
     }
     String_new()
@@ -226,11 +226,11 @@ fn native_c_function_declaration(
         function_id_raw,
         signature
     )
-    if len(signature_error) > 0 { return NativeCEmitResult_err(signature_error) }
+    if signature_error.len() > 0 { return NativeCEmitResult_err(signature_error) }
     let table = module_spine::MirModule_type_table(mir_module)
     let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
-    if len(symbol) == 0 {
+    if symbol.len() == 0 {
         return NativeCEmitResult_err(
             String_from("compiler ICE: native-cpp cannot mangle signature for FunctionId ").concat((function_id_raw).to_string())
         )
@@ -273,7 +273,7 @@ fn native_c_runtime_prelude() -> String {
 }
 
 fn native_c_append_bytes(mut output: Vec<i32>, fragment: String) {
-    let length = len(fragment)
+    let length = fragment.len()
     let mut index = 0
     while index < length {
         push(output, fragment.byte_at(index))
@@ -289,7 +289,7 @@ pub fn emit_native_c_module(mut mir_module: MirModule) -> NativeCEmitResult {
         )
     }
     let capability_error = native_c_validate_capabilities(mir_module)
-    if len(capability_error) > 0 { return NativeCEmitResult_err(capability_error) }
+    if capability_error.len() > 0 { return NativeCEmitResult_err(capability_error) }
     // Register synthetic closures in SignatureRegistry before funcref typedef
     // collection and emission (they are appended after the spine is built).
     let function_count_for_registry = module_functions::MirModule_function_count(mir_module)
@@ -302,7 +302,7 @@ pub fn emit_native_c_module(mut mir_module: MirModule) -> NativeCEmitResult {
     let mut source_bytes = Vec::new<i32>()
     native_c_append_bytes(source_bytes, native_c_runtime_prelude())
     let funcref_typedefs = hof_call::native_c_collect_funcref_typedefs(mir_module)
-    if len(funcref_typedefs) > 0 {
+    if funcref_typedefs.len() > 0 {
         native_c_append_bytes(source_bytes, funcref_typedefs)
         native_c_append_bytes(source_bytes, String_from("\n"))
     }
@@ -357,7 +357,7 @@ pub fn emit_native_c_module(mut mir_module: MirModule) -> NativeCEmitResult {
         module_functions::MirModule_set_function_at(mir_module, function_index, function)
         function_index = function_index + 1
     }
-    if len(main_symbol) == 0 {
+    if main_symbol.len() == 0 {
         return NativeCEmitResult_err(
             String_from("target `native-cpp` requires a `fn main()` entry point")
         )

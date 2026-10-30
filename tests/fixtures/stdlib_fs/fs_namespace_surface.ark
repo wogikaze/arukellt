@@ -25,7 +25,7 @@ fn main() {
     }
     let read_bytes: Result<Vec<i32>, String> = Fs::read_bytes(String_from("fs_namespace_surface.out.bin"))
     match read_bytes {
-        Result::Ok(values) => Test::assert_eq_i32(len(values), 2),
+        Result::Ok(values) => Test::assert_eq_i32(values.len(), 2),
         Result::Err(_) => Test::assert_true(false),
     }
 

@@ -29,7 +29,7 @@ fn StructInfo_type_params(info: StructInfo) -> Vec<String> {
 }
 
 fn StructInfo_field_index(info: StructInfo, field_name: String) -> i32 {
-    let count = len(info.field_names)
+    let count = info.field_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(info.field_names, i).eq(field_name.clone()) {
@@ -41,7 +41,7 @@ fn StructInfo_field_index(info: StructInfo, field_name: String) -> i32 {
 }
 
 fn StructInfo_field_type_at(info: StructInfo, index: i32) -> TypeInfo {
-    if index < 0 || index >= len(info.field_types) {
+    if index < 0 || index >= info.field_types.len() {
         return contract_types_record::TypeInfo_new(commands::TY_UNKNOWN(), String_new(), Vec::new<TypeInfo>())
     }
     get_unchecked(info.field_types, index)

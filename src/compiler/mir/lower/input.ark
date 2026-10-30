@@ -22,7 +22,7 @@ fn mir_lower_input_new(
     source_text: String
 ) -> MirLowerInput {
     let mut effective_target = target.clone()
-    if len(effective_target) == 0 {
+    if effective_target.len() == 0 {
         effective_target = "wasm32-gc"
     }
     // Module ASTs are released after type checking and before MIR lowering.

@@ -30,24 +30,24 @@ fn tccr_collect_reachable(
         contract_index = contract_index + 1
     }
 
-    while len(stack) > 0 {
+    while stack.len() > 0 {
         let id = match pop(stack) {
             Some(value) => value,
             None => return reachable,
         }
         let mut already_seen = false
         let mut seen_index = 0
-        while seen_index < len(reachable) {
+        while seen_index < reachable.len() {
             if get_unchecked(reachable, seen_index) == id {
                 already_seen = true
-                seen_index = len(reachable)
+                seen_index = reachable.len()
             } else {
                 seen_index = seen_index + 1
             }
         }
         if !already_seen {
             push(reachable, id)
-            if id >= 0 && id < len(exprs) {
+            if id >= 0 && id < exprs.len() {
                 let expression = get_unchecked(exprs, id)
                 let child_count = expr_raw::corehir_expr_child_count(expression)
                 let mut child_index = 0
@@ -87,7 +87,7 @@ fn tccr_render_contracts(program: CoreHirRawProgram, function_index: i32) -> Str
         )
         out = out.concat("{\"kind\":".concat(verified_core_render_primitives::vc_quote(kind_name)))
         out = out.concat(",\"expression_id\":".concat(expression_id.to_string()))
-        if len(result_name.clone()) > 0 {
+        if result_name.clone().len() > 0 {
             out = out.concat(",\"result_name\":".concat(verified_core_render_primitives::vc_quote(result_name)))
         }
         out = out.concat("}")
@@ -114,7 +114,7 @@ fn render_function(program: CoreHirRawProgram, function_index: i32) -> String {
         return ""
     }
     let name = verified_core_render_safe::vcs_function_name(program, function_index)
-    if len(name.clone()) == 0 ||
+    if name.clone().len() == 0 ||
     !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {
         return ""
     }

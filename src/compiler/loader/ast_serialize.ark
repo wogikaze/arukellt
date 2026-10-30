@@ -59,7 +59,7 @@ fn buf_push_i32(mut buf: Vec<i32>, val: i32) {
 }
 
 fn buf_push_string(mut buf: Vec<i32>, s: String) {
-    let n = len(s)
+    let n = s.len()
     buf_push_i32(buf, n)
     let mut i = 0
     while i < n {
@@ -74,7 +74,7 @@ fn buf_push_byte(mut buf: Vec<i32>, val: i32) {
 
 fn fnv1a_bytes(bytes: Vec<i32>) -> i32 {
     let mut h = FNV_BASIS
-    let n = len(bytes)
+    let n = bytes.len()
     let mut i = 0
     while i < n {
         h = h * FNV_PRIME ^ (get_unchecked(bytes, i) & 255)
@@ -90,7 +90,7 @@ fn fnv1a_bytes(bytes: Vec<i32>) -> i32 {
 
 pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
     let mut payload: Vec<i32> = Vec::new<i32>()
-    let n = len(nodes)
+    let n = nodes.len()
     let mut i = 0
     while i < n {
         serialize_node(payload, get_unchecked(nodes, i))
@@ -103,9 +103,9 @@ pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
     push(buf, 67)  // 'C'
     buf_push_i32(buf, ASTC_FORMAT_VERSION)
     buf_push_i32(buf, n)
-    buf_push_i32(buf, len(payload))
+    buf_push_i32(buf, payload.len())
     buf_push_i32(buf, fnv1a_bytes(payload))
-    let pn = len(payload)
+    let pn = payload.len()
     let mut j = 0
     while j < pn {
         push(buf, get_unchecked(payload, j))
@@ -124,14 +124,14 @@ fn serialize_node(mut buf: Vec<i32>, node: AstNode) {
     buf_push_i32(buf, node.int_val)
     buf_push_string(buf, node.float_val.to_string())
     buf_push_i32(buf, node.op)
-    let cn = len(node.children)
+    let cn = node.children.len()
     buf_push_i32(buf, cn)
     let mut ci = 0
     while ci < cn {
         serialize_node(buf, get_unchecked(node.children, ci))
         ci = ci + 1
     }
-    let tn = len(node.type_ann)
+    let tn = node.type_ann.len()
     buf_push_i32(buf, tn)
     let mut ti = 0
     while ti < tn {
@@ -167,7 +167,7 @@ pub fn write_ast_cache(path: String, nodes: Vec<AstNode>) -> bool {
 
 // Count total nodes in an AST forest (children and type_ann included).
 fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
-    let n = len(nodes)
+    let n = nodes.len()
     let mut total = n
     let mut i = 0
     while i < n {
@@ -241,12 +241,12 @@ test mod "astc_codec" {
         let bytes = serialize_ast_nodes(astc_test_forest())
         match astc_test_deserialize(bytes) {
             Result::Ok(back) => {
-                assert(len(back) == 1)
+                assert(back.len() == 1)
                 let root = get_unchecked(back, 0)
                 assert(root.kind == 1)
                 assert(root.is_pub)
                 assert(root.is_component_export)
-                assert(len(root.children) == 1)
+                assert(root.children.len() == 1)
                 let leaf = get_unchecked(root.children, 0)
                 assert(leaf.kind == 7)
                 assert(leaf.int_val == 4242)
@@ -304,7 +304,7 @@ test mod "astc_codec" {
     test "empty_forest_is_ok_not_corrupt" {
         let bytes = serialize_ast_nodes(Vec::new<AstNode>())
         match astc_test_deserialize(bytes) {
-            Result::Ok(back) => { assert(len(back) == 0) }
+            Result::Ok(back) => { assert(back.len() == 0) }
             Result::Err(_) => { assert(false) }
         }
     }

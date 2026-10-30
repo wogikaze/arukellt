@@ -17,7 +17,7 @@ impl WitText {
     /// Find character `ch` in `s` starting at offset `from`.  Returns -1 if
     /// not found.
     fn find_char(s: String, ch: i32, from: i32) -> i32 {
-        let n = len(s)
+        let n = s.len()
         let mut i = from
         while i < n {
             if s.byte_at(i) == ch {
@@ -30,7 +30,7 @@ impl WitText {
 
     /// Trim leading and trailing ASCII whitespace from `s`.
     fn trim(s: String) -> String {
-        let n = len(s)
+        let n = s.len()
         let mut start = 0
         while start < n {
             let ch = s.byte_at(start)
@@ -74,14 +74,14 @@ impl WitText {
         if colon < 0 {
             return WitText::trim(param)
         }
-        WitText::trim(param.slice(colon + 1, len(param)))
+        WitText::trim(param.slice(colon + 1, param.len()))
     }
 
     /// Split `inner` on top-level commas (tracking `<`/`>` nesting) into a
     /// `Vec<String>` of trimmed items.
     fn split_csv_items(inner: String) -> Vec<String> {
         let mut items = Vec::new<String>()
-        let n = len(inner)
+        let n = inner.len()
         let mut start = 0
         let mut depth = 0
         let mut i = 0
@@ -119,7 +119,7 @@ impl WitText {
 
     /// Return the offset of the end of the line containing `pos` (exclusive).
     fn line_end(text: String, pos: i32) -> i32 {
-        let n = len(text)
+        let n = text.len()
         let mut i = pos
         while i < n {
             if text.byte_at(i) == 10 {

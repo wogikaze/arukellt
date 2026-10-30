@@ -69,7 +69,7 @@ fn main() {
                 Option::Some(arr) => {
                     match arr.as_array() {
                         Option::Some(items) => {
-                            assert(len(items) == 2)
+                            assert(items.len() == 2)
                         },
                         None => assert(false),
                     }

@@ -17,13 +17,13 @@ use wasm::writer_gc
 fn find_payload_variant_type(ctx: SelfEmitCtx) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let type_map = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
-    let count = len(names)
+    let count = names.len()
     let mut i = 0
     while i < count {
         let name = get_unchecked(names, i).clone()
         // Look for "Some" or "Ok" variants (payload variants with i32 field 1)
         if name.contains("Some") || name.contains("Ok") {
-            if i < len(type_map) {
+            if i < type_map.len() {
                 let variant_type = get_unchecked(type_map, i)
                 let enum_open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
                 if variant_type != enum_open {

@@ -69,7 +69,7 @@ fn mir_function_propagate_local_types(
     let max_iterations = 2
     while changed && iterations < max_iterations {
         changed = false
-        let block_count = len(f.blocks)
+        let block_count = f.blocks.len()
         let mut bi = 0
         while bi < block_count {
             let block = get_unchecked(f.blocks, bi)
@@ -158,7 +158,7 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
         table,
         source_value_type
     )
-    if len(spine_type_name) > 0 {
+    if spine_type_name.len() > 0 {
         src_type_name = spine_type_name
     }
     let dst_variant_slot = local_access::MirLocal_variant_slot(dst_loc)
@@ -190,7 +190,7 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
             updated = true
         } else if dst_variant_slot < 0 && src_variant_slot >= 0 {
             if (
-                len(src_type_name) == 0 ||
+                src_type_name.len() == 0 ||
                 post_pass_enum_normalize::is_open_enum_container_type_name(src_type_name.clone())
             ) &&
             !post_pass_enum_normalize::is_open_enum_container_type_name(dst_type_name.clone()) &&
@@ -204,8 +204,8 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
         updated = true
     }
     let should_replace_type_name =
-    len(src_type_name) > 0 &&
-    (len(dst_type_name) == 0 ||
+    src_type_name.len() > 0 &&
+    (dst_type_name.len() == 0 ||
         (destination_is_temporary && !dst_type_name.clone().eq(src_type_name.clone())) ||
         (destination_is_variant_struct && src_is_payload_container &&
             !dst_type_name.clone().eq(src_type_name.clone())) ||
@@ -213,7 +213,7 @@ fn propagate_from_local(mut f: MirFunction, dest: i32, source: i32, mut table: T
             !source_is_string &&
             !dst_type_name.clone().eq(src_type_name.clone())))
     let should_sync_value_type =
-    len(spine_type_name) > 0 &&
+    spine_type_name.len() > 0 &&
     (should_replace_type_name || dst_type_name.clone().eq(src_type_name.clone())) &&
     !mir_value_types_equal(source_value_type, destination_value_type)
     if should_replace_type_name || should_sync_value_type {

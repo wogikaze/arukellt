@@ -29,7 +29,7 @@ fn mono_instance_table_register_from_instances(
     while ai < arg_count {
         let var_name = mono_suffix_parse::mono_type_var_name_at(ai)
         let mut type_name = var_name.clone()
-        if ai < len(keys) {
+        if ai < keys.len() {
             type_name = get_unchecked(keys, ai)
         }
         push(subst_names, var_name.clone())
@@ -70,7 +70,7 @@ fn mono_subst_kind_for_type_name(type_name: String) -> i32 {
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {
     let safe = mono_names::mono_safe_name(mangled)
-    let count = len(mono_instances)
+    let count = mono_instances.len()
     let mut i = 0
     while i < count {
         let inst = get_unchecked(mono_instances, i)

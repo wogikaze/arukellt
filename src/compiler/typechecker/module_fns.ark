@@ -11,7 +11,7 @@ use typechecker::types
 use corehir::decl_impl_target
 fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
     let mut fn_sigs = Vec::new<FnSig>()
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
@@ -56,7 +56,7 @@ fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> Fn
         env.declared_type_names.clone()
     )
     let impl_type_param_bounds = impl_generics::type_param_bounds(impl_decl)
-    let bare_sig = if len(impl_type_params) > 0 {
+    let bare_sig = if impl_type_params.len() > 0 {
         sigs::fn_sig_from_fn_decl_with_impl_type_params(
             method_decl,
             impl_type_params,

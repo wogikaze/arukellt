@@ -26,7 +26,7 @@ fn read_line(s: String) -> Result<String, AppError> {
 
 fn process(s: String) -> Result<i32, AppError> {
     let line: String = read_line(s)?
-    Ok(len(line))
+    Ok(line.len())
 }
 
 fn main() {

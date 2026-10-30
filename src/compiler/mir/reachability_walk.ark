@@ -28,7 +28,7 @@ fn mir_edge_intern_bias() -> i32 {
 }
 
 fn mir_edge_ensure_i32_len(mut values: Vec<i32>, min_len: i32, fill: i32) {
-    while len(values) < min_len {
+    while values.len() < min_len {
         push(values, fill)
     }
 }
@@ -43,7 +43,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
         push(counts, 0)
         fi = fi + 1
     }
-    let n = len(edges)
+    let n = edges.len()
     let header = mir_edge_header_len()
     let mut packed = Vec::new<i32>()
     push(packed, fn_count)
@@ -95,7 +95,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
             i = n
         } else {
             let frame = get_unchecked(edges, i)
-            if frame >= 0 && frame < len(frame_to_mir) {
+            if frame >= 0 && frame < frame_to_mir.len() {
                 let mir = get_unchecked(frame_to_mir, frame)
                 if mir >= 0 && mir < fn_count {
                     set(recorded, mir, 1)
@@ -137,7 +137,7 @@ fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
         } else {
             let frame = get_unchecked(edges, i)
             let fid = get_unchecked(edges, i + 1)
-            if frame >= 0 && frame < len(frame_to_mir) {
+            if frame >= 0 && frame < frame_to_mir.len() {
                 let mir = get_unchecked(frame_to_mir, frame)
                 if mir >= 0 && mir < fn_count {
                     let at = get_unchecked(cursor, mir)
@@ -165,7 +165,7 @@ fn mir_enqueue_call_edges(
     fn_names: Vec<String>,
     edge_names: Vec<String>
 ) {
-    if len(packed) > 0 && fi >= 0 && fi < get_unchecked(packed, 0) {
+    if packed.len() > 0 && fi >= 0 && fi < get_unchecked(packed, 0) {
         mir_enqueue_recorded_callees(
             m,
             index,
@@ -204,7 +204,7 @@ fn mir_enqueue_recorded_payload(
     }
     let bias = mir_edge_intern_bias()
     if tagged < bias {
-        if tagged < len(fn_names) {
+        if tagged < fn_names.len() {
             reachability_names::mir_enqueue_reachable_name(
                 index,
                 functions,
@@ -216,7 +216,7 @@ fn mir_enqueue_recorded_payload(
         return
     }
     let overflow = tagged - bias
-    if overflow >= 0 && overflow < len(edge_names) {
+    if overflow >= 0 && overflow < edge_names.len() {
         reachability_names::mir_enqueue_reachable_name(
             index,
             functions,
@@ -243,7 +243,7 @@ fn mir_enqueue_recorded_callees(
     let off = get_unchecked(packed, 1 + fn_count + fi)
     let off_end = get_unchecked(packed, 1 + fn_count + fi + 1)
     let mut i = off
-    while i < off_end && i < len(packed) {
+    while i < off_end && i < packed.len() {
         mir_enqueue_recorded_payload(
             m,
             index,
@@ -285,7 +285,7 @@ fn mir_enqueue_call_edges_from_insts(
             }
             if op == call_op && !skip_fallback {
                 let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
-                if len(fallback) > 0 {
+                if fallback.len() > 0 {
                     mir_enqueue_symbol(m, index, functions, reachable, queue, fallback, target.clone())
                 }
             }

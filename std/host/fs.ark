@@ -194,15 +194,15 @@ impl File {
 
     /// Writes `data` at the write cursor, extending the image when needed.
     fn write_at_cursor(mut self: File, data: Vec<i32>) -> Result<i32, IoError> {
-        let count: i32 = len(data)
-        while len(self.image) < self.cursor {
+        let count: i32 = data.len()
+        while self.image.len() < self.cursor {
             push(self.image, 0)
         }
         let mut i: i32 = 0
         while i < count {
             let position: i32 = self.cursor + i
             let byte: i32 = get_unchecked(data, i) & BYTE_MASK
-            if position < len(self.image) {
+            if position < self.image.len() {
                 set(self.image, position, byte)
             } else {
                 push(self.image, byte)
@@ -238,7 +238,7 @@ impl Seek for File {
         let target: i64 = match from {
             SeekFrom::Start(offset) => offset,
             SeekFrom::Current(offset) => (self.cursor).into() + offset,
-            SeekFrom::End(offset) => (len(self.image)).into() + offset,
+            SeekFrom::End(offset) => (self.image.len()).into() + offset,
         }
         if target < 0i64 {
             return Err(IoError::Other("seek: negative position"))

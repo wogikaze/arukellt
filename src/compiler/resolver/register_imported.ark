@@ -14,7 +14,7 @@ use resolver::paths
 use resolver::impl_target
 use corehir::decl_impl_target
 fn register_imported_modules(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
-    let mod_count = len(modules)
+    let mod_count = modules.len()
     let mut mi = 0
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
@@ -31,7 +31,7 @@ fn register_imported_modules(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
 }
 
 fn register_prelude_bare_names(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
-    let mod_count = len(modules)
+    let mod_count = modules.len()
     let mut mi = 0
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
@@ -114,7 +114,7 @@ fn register_imported_impl_exports(mut ctx: ResolveCtx, m: ModuleDecls, module_na
     let known_type_names = ctx_record::resolve_ctx_declared_type_names(ctx)
     let type_name = impl_target::impl_self_type_name(impl_decl, known_type_names.clone())
     let base_name = impl_target::impl_self_base_type_name(impl_decl)
-    if len(type_name.clone()) == 0 || len(base_name.clone()) == 0 {
+    if type_name.clone().len() == 0 || base_name.clone().len() == 0 {
         return
     }
     let declares_type = module_declares_pub_type(m, type_name.clone())
@@ -237,7 +237,7 @@ fn register_variants_only(mut ctx: ResolveCtx, module_name: String, enum_decl: A
 // nothing new, bounded by the module count as before. The edges are collected
 // once so the passes never re-walk module declarations.
 fn register_pub_use_reexports(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
-    let mod_count = len(modules)
+    let mod_count = modules.len()
     let mut edge_targets = Vec::new<String>()
     let mut edge_sources = Vec::new<String>()
     let mut mi = 0
@@ -246,7 +246,7 @@ fn register_pub_use_reexports(mut ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
         collect_pub_use_edges(m, modules::module_name(m), modules, edge_targets, edge_sources)
         mi = mi + 1
     }
-    let edge_count = len(edge_targets)
+    let edge_count = edge_targets.len()
     let mut pass = 0
     while pass < mod_count {
         let mut defined_any = false
@@ -305,7 +305,7 @@ fn pub_use_source_key(source: String, modules: Vec<ModuleDecls>) -> String {
         return leaf
     }
     let parent = paths::use_module_parent_path(source.clone())
-    if len(parent.clone()) == 0 {
+    if parent.clone().len() == 0 {
         return source.clone()
     }
     let parent_leaf = paths::use_module_short_name(parent)
@@ -320,7 +320,7 @@ fn reexport_module_symbols(mut ctx: ResolveCtx, target_module: String, source_mo
     let source_root = paths::path_module_part(source_module.clone())
     let selected_symbol = paths::path_symbol_part(source_module.clone())
     let module_prefix = source_root.clone().concat("::")
-    let module_prefix_len = len(module_prefix.clone())
+    let module_prefix_len = module_prefix.clone().len()
     let selected_prefix = source_module.clone().concat("::")
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
@@ -329,13 +329,13 @@ fn reexport_module_symbols(mut ctx: ResolveCtx, target_module: String, source_mo
     while i < sym_count {
         let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
         let sym_name = scope_stack_symbols::Symbol_name(sym)
-        let matches_source = if len(selected_symbol.clone()) == 0 {
+        let matches_source = if selected_symbol.clone().len() == 0 {
             sym_name.clone().starts_with(module_prefix.clone())
         } else {
             sym_name.clone().eq(source_module.clone()) || sym_name.clone().starts_with(selected_prefix.clone())
         }
         if matches_source && scope_stack_symbols::Symbol_is_pub(sym) {
-            let suffix = sym_name.clone().slice(module_prefix_len, len(sym_name.clone()))
+            let suffix = sym_name.clone().slice(module_prefix_len, sym_name.clone().len())
             let qualified = target_module.clone().concat("::".concat(suffix.clone()))
             let existing = scope_lookup::lookup(ctx, qualified.clone())
             if existing < 0 {

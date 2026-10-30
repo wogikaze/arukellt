@@ -9,7 +9,7 @@ fn is_mono_unsafe_char(ch: i32) -> bool {
 // path does not copy. Otherwise copy runs between unsafe chars instead of one
 // substring per character.
 fn mono_safe_name(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut run_start = 0
     let mut out = ""
     let mut i = 0
@@ -32,8 +32,8 @@ fn mono_safe_name(name: String) -> String {
 // Equivalent to eq(mono_safe_name(name), safe) but scans bytes in place, which
 // keeps mono_find_instance lookups off the GC-heap allocation path.
 fn mono_name_eq_safe(name: String, safe: String) -> bool {
-    let n = len(name)
-    if len(safe) != n {
+    let n = name.len()
+    if safe.len() != n {
         return false
     }
     let mut i = 0

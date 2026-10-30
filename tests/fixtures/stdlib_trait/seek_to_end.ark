@@ -16,7 +16,7 @@ fn main() {
     }
 
     match r.read(1) {
-        Result::Ok(one) => Test::assert_eq_i32(len(one), 0),
+        Result::Ok(one) => Test::assert_eq_i32(one.len(), 0),
         Result::Err(e) => Std::panic(e.message()),
     }
 }

@@ -38,7 +38,7 @@ fn EffectiveLoweringDecision_empty() -> EffectiveLoweringDecision {
 }
 
 fn effective_lowering_is_resolved(decision: EffectiveLoweringDecision) -> bool {
-    len(decision.core_op_canonical_id) > 0 && len(decision.handler_id) > 0
+    decision.core_op_canonical_id.len() > 0 && decision.handler_id.len() > 0
 }
 
 fn effective_lowering_is_wit(decision: EffectiveLoweringDecision) -> bool {
@@ -46,7 +46,7 @@ fn effective_lowering_is_wit(decision: EffectiveLoweringDecision) -> bool {
 }
 
 fn effective_lowering_from_core_op_canonical(canonical_id: String) -> EffectiveLoweringDecision {
-    if len(canonical_id) == 0 {
+    if canonical_id.len() == 0 {
         return EffectiveLoweringDecision_empty()
     }
     let coid = core_op_registry::CoreOpRegistry_lookup_by_canonical(canonical_id.clone())

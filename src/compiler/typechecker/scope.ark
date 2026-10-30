@@ -324,7 +324,7 @@ fn scope_lookup_instantiated(mut env: TypeEnv, scope: LocalScope, name: String) 
 }
 
 fn instantiate_scheme(mut env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
-    let var_count = len(scheme.vars)
+    let var_count = scheme.vars.len()
     if var_count == 0 {
         return scheme.body
     }
@@ -339,7 +339,7 @@ fn instantiate_scheme(mut env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
 
 fn type_name_is_present(names: Vec<String>, name: String) -> bool {
     let mut i = 0
-    while i < len(names) {
+    while i < names.len() {
         if get_unchecked(names, i).eq(name.clone()) {
             return true
         }
@@ -353,7 +353,7 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
     let resolved = unify::resolve_type(env, ty)
     if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() {
         let name = contract_type_access::TypeInfo_name(resolved)
-        if len(name) > 0 {
+        if name.len() > 0 {
             push(names, name)
         }
         return names
@@ -366,7 +366,7 @@ fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
             contract_type_access::TypeInfo_type_arg_at(resolved, i)
         )
         let mut j = 0
-        while j < len(nested) {
+        while j < nested.len() {
             let name = get_unchecked(nested, j)
             if !type_name_is_present(names, name.clone()) {
                 push(names, name.clone())
@@ -394,7 +394,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
             Vec::new<String>()
         }
         let mut j = 0
-        while j < len(binding_names) {
+        while j < binding_names.len() {
             let name = get_unchecked(binding_names, j)
             if !type_name_is_present(quantified, name.clone()) &&
             !type_name_is_present(names, name.clone()) {
@@ -404,7 +404,7 @@ fn scope_free_type_var_names(env: TypeEnv, scope: LocalScope) -> Vec<String> {
         }
         i = i + 1
     }
-    let generic_count = len(env.current_fn_type_params)
+    let generic_count = env.current_fn_type_params.len()
     let mut generic_index = 0
     while generic_index < generic_count {
         let name = get_unchecked(env.current_fn_type_params, generic_index)
@@ -421,7 +421,7 @@ fn generalize(env: TypeEnv, scope: LocalScope, ty: TypeInfo) -> TypeScheme {
     let environment_names = scope_free_type_var_names(env, scope)
     let mut vars = Vec::new<String>()
     let mut i = 0
-    while i < len(candidates) {
+    while i < candidates.len() {
         let name = get_unchecked(candidates, i)
         if !type_name_is_present(environment_names, name.clone()) {
             push(vars, name.clone())

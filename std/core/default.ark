@@ -66,7 +66,7 @@ impl Default for String {
 test mod "default_contract" {
     test "default_string_is_empty" {
         let s: String = Default::default()
-        assert(len(s) == 0)
+        assert(s.len() == 0)
     }
     test "default_i32_is_zero" {
         let n: i32 = Default::default()

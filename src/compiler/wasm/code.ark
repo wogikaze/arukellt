@@ -186,7 +186,7 @@ fn code_configure_linear_gc_writer(
 // first and earlier splice-induced growth never shifts a site still to
 // be patched.
 fn code_apply_pending_relocs(mut ctx: SelfEmitCtx, wit_import_count: i32) {
-    let mut i = len(ctx.reloc_func) - 1
+    let mut i = ctx.reloc_func.len() - 1
     while i >= 0 {
         let fi = get_unchecked(ctx.reloc_func, i)
         let off = get_unchecked(ctx.reloc_off, i)
@@ -272,7 +272,7 @@ fn resolve_ref_func_reloc(ctx: SelfEmitCtx, fn_name: String, wit_import_count: i
 // already final and adoption is a straight vec handoff.
 fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) {
     let map = art.prune_old_to_new
-    if len(map) == 0 {
+    if map.len() == 0 {
         ctx.body_bytes = art.body_bytes
         ctx.reloc_func = art.reloc_func
         ctx.reloc_off = art.reloc_off
@@ -289,7 +289,7 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
     } else {
         let mut bodies = Vec::new<Vec<i32>>()
         let mut oi = 0
-        while oi < len(map) {
+        while oi < map.len() {
             if get_unchecked(map, oi) >= 0 {
                 push(bodies, get_unchecked(art.body_bytes, oi))
             }
@@ -305,7 +305,7 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         let mut rs1 = Vec::new<String>()
         let mut rs2 = Vec::new<String>()
         let mut ri = 0
-        while ri < len(art.reloc_func) {
+        while ri < art.reloc_func.len() {
             let mapped = get_unchecked(map, get_unchecked(art.reloc_func, ri))
             if mapped >= 0 {
                 push(rfunc, mapped)
@@ -332,7 +332,7 @@ fn emit_ctx_adopt_inloop_artifacts(mut ctx: SelfEmitCtx, art: MirEmitArtifacts) 
         let mut cfuncs = Vec::new<i32>()
         let mut cnames = Vec::new<String>()
         let mut cii = 0
-        while cii < len(art.call_reloc_funcs) {
+        while cii < art.call_reloc_funcs.len() {
             let mapped = get_unchecked(map, get_unchecked(art.call_reloc_funcs, cii))
             if mapped >= 0 {
                 push(coffs, get_unchecked(art.call_reloc_offs, cii))

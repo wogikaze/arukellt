@@ -31,7 +31,7 @@ pub fn DriverLoadedSource_source(loaded: DriverLoadedSource) -> String {
 }
 
 pub fn DriverLoadedSource_is_ok(loaded: DriverLoadedSource) -> bool {
-    len(loaded.error) == 0
+    loaded.error.len() == 0
 }
 
 // Returns a loaded source or an error string in `.error`. Avoids

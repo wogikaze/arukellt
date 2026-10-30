@@ -2,7 +2,7 @@ use mir::phi_record
 use mir::types_block
 
 fn MirBlock_phi_count(block: MirBlock) -> i32 {
-    len(block.phis)
+    block.phis.len()
 }
 
 fn MirBlock_phi_at(block: MirBlock, idx: i32) -> MirPhi {

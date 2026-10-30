@@ -8,13 +8,13 @@ fn main() {
     let _ = m.insert(3, 333)
 
     let vals = m.values()
-    Test::assert_eq_i32(len(vals), 3)
+    Test::assert_eq_i32(vals.len(), 3)
 
     let mut found_111 = false
     let mut found_222 = false
     let mut found_333 = false
     let mut i = 0
-    while i < len(vals) {
+    while i < vals.len() {
         let v = get_unchecked(vals, i)
         if v == 111 { found_111 = true }
         if v == 222 { found_222 = true }

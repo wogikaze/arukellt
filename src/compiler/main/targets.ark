@@ -9,7 +9,7 @@ pub fn cmd_targets() {
 test mod "targets_contract" {
     test "canonical_targets_are_non_empty" {
         let line = target_contract_generated::target_display_line("wasm32-gc")
-        assert(len(line) > 0)
+        assert(line.len() > 0)
     }
     test "wasm32_gc_display_contains_gc" {
         let line = target_contract_generated::target_display_line("wasm32-gc")

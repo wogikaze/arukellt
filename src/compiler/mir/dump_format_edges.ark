@@ -1,6 +1,6 @@
 use std::text
 fn mir_format_block_ids(ids: Vec<i32>) -> String {
-    let count = len(ids)
+    let count = ids.len()
     let mut out = "["
     let mut i = 0
     while i < count {

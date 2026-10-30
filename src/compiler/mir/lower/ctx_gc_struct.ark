@@ -34,7 +34,7 @@ fn ctx_register_gc_struct(mut ctx: LowerCtx, struct_name: String, sig: String) {
     // Dedupe by name, not by sig. Distinct structs can share a field layout
     // (Range and RangeIter are both two i32 fields) but each still needs a
     // named GC slot so params/returns resolve via gcsref rather than i32.
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.gc_struct_names, i).eq(struct_name.clone()) {
@@ -46,7 +46,7 @@ fn ctx_register_gc_struct(mut ctx: LowerCtx, struct_name: String, sig: String) {
     push(ctx.gc_struct_names, struct_name.clone())
     push(ctx.gc_struct_sigs, sig)
     push(ctx.gc_struct_sig_pending, false)
-    ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
+    ctx_gc_note_late_struct(ctx, ctx.gc_struct_names.len() - 1)
     ctx_intern_gc_struct_type(ctx, struct_name)
     if ctx.gc_seal_done {
         ctx_gc_struct_materialize_ready(ctx)
@@ -78,7 +78,7 @@ fn ctx_ensure_fnpair_struct(mut ctx: LowerCtx) -> i32 {
 }
 
 fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.gc_struct_names, i).eq(struct_name.clone()) {
@@ -102,7 +102,7 @@ fn ctx_set_gc_struct_sig(mut ctx: LowerCtx, struct_name: String, sig: String) {
     push(ctx.gc_struct_names, struct_name)
     push(ctx.gc_struct_sigs, sig)
     push(ctx.gc_struct_sig_pending, false)
-    ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
+    ctx_gc_note_late_struct(ctx, ctx.gc_struct_names.len() - 1)
     if ctx.gc_seal_done {
         ctx_gc_struct_materialize_ready(ctx)
     }
@@ -116,7 +116,7 @@ fn ctx_gc_struct_push_pending(mut ctx: LowerCtx, struct_name: String) {
     push(ctx.gc_struct_names, struct_name.clone())
     push(ctx.gc_struct_sigs, "GS")
     push(ctx.gc_struct_sig_pending, true)
-    ctx_gc_note_late_struct(ctx, len(ctx.gc_struct_names) - 1)
+    ctx_gc_note_late_struct(ctx, ctx.gc_struct_names.len() - 1)
     ctx_intern_gc_struct_type(ctx, struct_name)
 }
 
@@ -127,7 +127,7 @@ fn ctx_gc_struct_push_pending(mut ctx: LowerCtx, struct_name: String) {
 // order, matching the late_gc_order/ctx_gc_canon_ensure_late sequence.
 fn ctx_gc_struct_materialize_ready(mut ctx: LowerCtx) {
     let mut m = ctx.module
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     let mut slot = module_gc_struct::MirModule_gc_struct_sig_count(m)
     while slot < count {
         if get_unchecked(ctx.gc_struct_sig_pending, slot) {
@@ -181,7 +181,7 @@ fn ctx_ensure_gc_struct_registered(mut ctx: LowerCtx, struct_name: String) -> i3
     ctx_gc_struct_slot(ctx, struct_name.clone())
 }
 fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     let mut i = 0
     while i < count {
         if get_unchecked(ctx.gc_struct_names, i).eq(struct_name.clone()) {
@@ -192,7 +192,7 @@ fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     0 - 1
 }
 fn ctx_gc_struct_count(ctx: LowerCtx) -> i32 {
-    len(ctx.gc_struct_names)
+    ctx.gc_struct_names.len()
 }
 
 fn ctx_flush_gc_structs(mut ctx: LowerCtx) {
@@ -201,7 +201,7 @@ fn ctx_flush_gc_structs(mut ctx: LowerCtx) {
 
 fn ctx_flush_gc_structs_from(mut ctx: LowerCtx, start: i32) {
     let mut m = ctx.module
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     let mut i = if start < 0 { 0 } else { start }
     // Post-seal entries may already be materialized on the module (slot
     // order push + canon + layout bind at registration); resume after them.
@@ -269,7 +269,7 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
 // type names (struct P, enum E) collide with the unsubstituted-type-param
 // heuristics, so declared types must win before the i32 fallbacks apply.
 fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     ctx_struct_field_type::ctx_struct_layout_exists(ctx, type_name.clone()) ||
@@ -281,10 +281,10 @@ fn gc_struct_field_name_is_declared(ctx: LowerCtx, type_name: String) -> bool {
 // suffix fn, which maps them before the type-param check).
 fn gc_struct_vec_elem_spelling(type_name: String) -> String {
     if type_name.clone().starts_with(String_from("vec:")) {
-        return type_name.clone().slice(4, len(type_name))
+        return type_name.clone().slice(4, type_name.len())
     }
     if type_name.clone().starts_with(String_from("Vec<")) && type_name.clone().ends_with(String_from(">")) {
-        return type_name.clone().slice(4, len(type_name) - 1)
+        return type_name.clone().slice(4, type_name.len() - 1)
     }
     String_new()
 }
@@ -293,7 +293,7 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
     let prefix = String_from("_f").concat((field_idx).to_string())
     // Empty field types are discriminant/_tag slots on enum layouts — i32, not
     // the unknown→ref14 fallback (which produced GS_f0_ref14 enum boxes).
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return prefix.concat(String_from("_i32"))
     }
     // fn-valued fields hold a {fnptr, env} pair under the managed closure
@@ -311,10 +311,10 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
     // unsubstituted-type-param fallback, which must not claim the field.
     // Collapsing a ref field to _i32 dedupes the env/struct layout onto the
     // all-i32 shell and makes later struct.get/struct.set invalid (#874).
-    let param_fallback_on_declared = len(scalar) > 0 &&
+    let param_fallback_on_declared = scalar.len() > 0 &&
     gc_struct_field_type_is_type_param(type_name.clone()) &&
     gc_struct_field_name_is_declared(ctx, type_name.clone())
-    if len(scalar) > 0 && !param_fallback_on_declared {
+    if scalar.len() > 0 && !param_fallback_on_declared {
         return prefix.concat(scalar)
     }
     // `Owner::Item` projections (fnsig:VecIter::Item;...,
@@ -360,19 +360,19 @@ fn gc_struct_field_sig_for_type(mut ctx: LowerCtx, type_name: String, field_idx:
 // non-callback fields. Only unary callbacks resolve today; anything else
 // falls back to the legacy `fnref` slot.
 fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
-    let rest = type_name.clone().slice(6, len(type_name))
+    let rest = type_name.clone().slice(6, type_name.len())
     let sep = rest.clone().index_of(String_from(";"))
     if sep < 0 {
         return String_from("_fnref")
     }
     let param_seg = rest.clone().slice(0, sep)
-    let ret_seg = rest.clone().slice(sep + 1, len(rest))
+    let ret_seg = rest.clone().slice(sep + 1, rest.len())
     if ret_seg.clone().contains(String_from(";")) {
         return String_from("_fnref")
     }
     let param_tok = gc_struct_fnsig_segment_token(ctx, param_seg)
     let ret_tok = gc_struct_fnsig_segment_token(ctx, ret_seg)
-    if len(param_tok) == 0 || len(ret_tok) == 0 {
+    if param_tok.len() == 0 || ret_tok.len() == 0 {
         return String_from("_fnref")
     }
     String_from("_fnsig:").concat(param_tok.concat(String_from(";").concat(ret_tok)))
@@ -382,14 +382,14 @@ fn gc_struct_fnsig_suffix(mut ctx: LowerCtx, type_name: String) -> String {
 // ordinary field-suffix machinery and converting the ref-offset dialect
 // (refN) to the func-sig dialect (gcrefN).
 fn gc_struct_fnsig_segment_token(mut ctx: LowerCtx, seg: String) -> String {
-    if len(seg) == 0 || seg.clone().starts_with(String_from("fnsig:")) {
+    if seg.len() == 0 || seg.clone().starts_with(String_from("fnsig:")) {
         return String_new()
     }
     let suffixed = gc_struct_field_sig_for_type(ctx, seg.clone(), 0)
-    if len(suffixed) <= 4 {
+    if suffixed.len() <= 4 {
         return String_new()
     }
-    let suffix = suffixed.clone().slice(4, len(suffixed))
+    let suffix = suffixed.clone().slice(4, suffixed.len())
     if suffix.clone().starts_with(String_from("gcsref")) {
         return suffix
     }
@@ -494,7 +494,7 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     }
     // Angle-bracket Vec<T> for non-scalar T (TomlField, TomlValue, …) (#726).
     if type_name.clone().starts_with(String_from("Vec<")) && type_name.clone().ends_with(String_from(">")) {
-        let elem = type_name.clone().slice(4, len(type_name) - 1)
+        let elem = type_name.clone().slice(4, type_name.len() - 1)
         if elem.clone().eq(String_from("String")) || elem.clone().eq(String_from("string")) {
             return String_from("_ref19")
         }
@@ -527,7 +527,7 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         return String_from("_ref25")
     }
     if type_name.clone().starts_with(String_from("vec:")) {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         if elem.clone().eq(String_from("fnref")) ||
         elem.clone().eq(String_from("fn")) ||
         elem.clone().starts_with(String_from("fn(")) {
@@ -553,14 +553,14 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     String_from("_ref10")
 }
 fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().starts_with(String_from("?")) {
-        return gc_struct_field_type_is_type_param(type_name.slice(1, len(type_name)))
+        return gc_struct_field_type_is_type_param(type_name.slice(1, type_name.len()))
     }
     // Single uppercase letter (T, U, V, ...) — unsubstituted generic field.
-    if len(type_name) == 1 {
+    if type_name.len() == 1 {
         let ch = type_name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true

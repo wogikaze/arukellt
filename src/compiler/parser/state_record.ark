@@ -10,7 +10,7 @@ pub struct Parser {
 }
 
 fn Parser_new(tokens: Vec<Token>) -> Parser {
-    let count = len(tokens)
+    let count = tokens.len()
     Parser {
         tokens: tokens,
         pos: 0,
@@ -57,7 +57,7 @@ fn parser_errors(p: Parser) -> Vec<Diagnostic> {
 }
 
 fn parser_error_count(p: Parser) -> i32 {
-    len(p.errors)
+    p.errors.len()
 }
 
 fn parser_error_at(p: Parser, index: i32) -> Diagnostic {

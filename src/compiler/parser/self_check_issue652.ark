@@ -48,15 +48,15 @@ fn issue652_parser_self_check() -> String {
     if state_record::parser_error_count(p) != 0 {
         return "issue652 parser fail: unexpected parse errors"
     }
-    if len(decls) != 3 {
-        return "issue652 parser fail: decl count=".concat(len(decls).to_string())
+    if decls.len() != 3 {
+        return "issue652 parser fail: decl count=".concat(decls.len().to_string())
     }
     let wit_alias = issue652_assert_wit_import(get_unchecked(decls, 0), "test:host/math", "host")
-    if len(wit_alias) > 0 {
+    if wit_alias.len() > 0 {
         return wit_alias
     }
     let wit_default = issue652_assert_wit_import(get_unchecked(decls, 1), "wasi:cli/stdin", "stdin")
-    if len(wit_default) > 0 {
+    if wit_default.len() > 0 {
         return wit_default
     }
     let local = get_unchecked(decls, 2)

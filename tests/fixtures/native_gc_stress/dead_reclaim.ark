@@ -4,7 +4,7 @@ fn main() -> i32 {
     let mut i = 0
     while i < 4000 {
         let junk = String_from("dead-payload-0123456789").concat(String_from("x"))
-        let _n = len(junk)
+        let _n = junk.len()
         i = i + 1
     }
     if keep.eq(String_from("keep")) { 0 } else { 1 }

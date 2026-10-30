@@ -37,7 +37,7 @@ fn mir_register_view_late_gc_types(mut ctx: LowerCtx, view: CoreHirMirView) {
 fn register_body_tuple_gc_types(mut ctx: LowerCtx, view: CoreHirMirView) {
     let body = corehir_mod::view_body_source(view)
     let exprs = mir_body_source::mir_body_source_exprs(body)
-    let expr_count = len(exprs)
+    let expr_count = exprs.len()
     let mut ei = 0
     while ei < expr_count {
         let expr = get_unchecked(exprs, ei)
@@ -57,7 +57,7 @@ fn register_one_body_tuple(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     let mut ci = 0
     while ci < child_count {
         let child_idx = expr_access_children::expr_child(expr, ci)
-        if child_idx < 0 || child_idx >= len(exprs) {
+        if child_idx < 0 || child_idx >= exprs.len() {
             return
         }
         push(field_vts, expr_access_types::expr_val_type(get_unchecked(exprs, child_idx)))
@@ -67,7 +67,7 @@ fn register_one_body_tuple(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
 }
 
 fn register_body_only_known_tuples(mut ctx: LowerCtx) {
-    let count = len(ctx.gc_struct_names)
+    let count = ctx.gc_struct_names.len()
     let mut i = 0
     let mut has_tuple = false
     while i < count {
@@ -103,7 +103,7 @@ fn register_typed_fn_late_gc_types(mut ctx: LowerCtx, ts: CoreHirMirTypeSource) 
 
 fn register_mono_late_gc_types(mut ctx: LowerCtx, ts: CoreHirMirTypeSource) {
     let instances = type_source::mir_type_source_mono_instances(ts)
-    let mono_count = len(instances)
+    let mono_count = instances.len()
     let mut mi = 0
     while mi < mono_count {
         let inst = get_unchecked(instances, mi)

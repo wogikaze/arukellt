@@ -28,7 +28,7 @@ fn lower_payload_variant_call(mut ctx: LowerCtx, node: AstNode, child_count: i32
         let p_vt = ctx_local_vt(ctx, p_idx)
         let save_local = ctx_fresh_local(ctx, p_vt)
         let src_type = ctx_api_local_types::ctx_get_local_type(ctx, p_idx)
-        if len(src_type) > 0 {
+        if src_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, src_type.clone())
         }
         // The type name is only a lowering hint.  Preserve the producer's
@@ -67,7 +67,7 @@ fn lower_payload_variant_call(mut ctx: LowerCtx, node: AstNode, child_count: i32
     let callee = ast_node::node_child_at(node, 0)
     let raw_name = ast_node::node_text(callee)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-    let variant_name = if len(canon) > 0 {
+    let variant_name = if canon.len() > 0 {
         canon
     } else {
         raw_name
@@ -112,14 +112,14 @@ fn mir_expected_enum_payload_is_fn(ctx: LowerCtx, callee_name: String) -> bool {
 fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
     if expected.clone().starts_with(String_from("Option<")) && expected.clone().ends_with(String_from(">")) {
         if which == 1 {
-            return expected.slice(7, len(expected) - 1)
+            return expected.slice(7, expected.len() - 1)
         }
         return String_new()
     }
     if expected.clone().starts_with(String_from("Result<")) && expected.clone().ends_with(String_from(">")) {
-        let inner = expected.clone().slice(7, len(expected) - 1)
+        let inner = expected.clone().slice(7, expected.len() - 1)
         let parts = mir_expected_enum_split_args(inner)
-        if which >= 1 && which <= len(parts) {
+        if which >= 1 && which <= parts.len() {
             return get_unchecked(parts, which - 1)
         }
         return String_new()
@@ -127,15 +127,15 @@ fn mir_expected_enum_type_arg(expected: String, which: i32) -> String {
     let mut args = String_new()
     let mut sep = 0
     if expected.clone().starts_with("Option_") || expected.clone().starts_with("Result_") {
-        args = expected.clone().slice(7, len(expected))
+        args = expected.clone().slice(7, expected.len())
         sep = 95
     } else if expected.clone().starts_with("option:") || expected.clone().starts_with("result:") {
-        args = expected.clone().slice(7, len(expected))
+        args = expected.clone().slice(7, expected.len())
         sep = 58
     } else {
         return String_new()
     }
-    let n = len(args)
+    let n = args.len()
     let mut seg_start = 0
     let mut index = 1
     let mut i = 0
@@ -161,7 +161,7 @@ fn mir_expected_enum_split_args(inner: String) -> Vec<String> {
     let mut angle_depth = 0
     let mut paren_depth = 0
     let mut seg_start = 0
-    let n = len(inner)
+    let n = inner.len()
     let mut i = 0
     while i <= n {
         if i < n {

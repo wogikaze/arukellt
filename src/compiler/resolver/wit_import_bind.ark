@@ -59,7 +59,7 @@ fn wit_import_binding_qualified_name(binding: WitImportBinding) -> String {
 
 fn wit_collect_bindings(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<WitImportBinding> {
     let mut bindings = Vec::new<WitImportBinding>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
@@ -79,7 +79,7 @@ fn wit_import_alias(decl: AstNode) -> String {
 }
 
 fn wit_push_bindings_for_import(mut bindings: Vec<WitImportBinding>, wit_paths: Vec<String>, package_id: String, alias: String) {
-    if len(alias) == 0 {
+    if alias.len() == 0 {
         return
     }
     let doc = wit_register::wit_doc_from_import(wit_paths, package_id.clone())
@@ -110,7 +110,7 @@ fn wit_push_bindings_for_doc(mut bindings: Vec<WitImportBinding>, alias: String,
     let component_interface_id = wit_surface::wit_component_interface_id(doc)
     let wit_import_id = wit_surface::wit_import_id(doc)
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
-    for fi in 0..len(funcs) {
+    for fi in 0..funcs.len() {
         let func = get_unchecked(funcs, fi)
         push(bindings, WitImportBinding_new(
                 wit_register::wit_binding_type_sig(func, doc),

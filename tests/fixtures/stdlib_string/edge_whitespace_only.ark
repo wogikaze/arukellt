@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let s = String_from("   ")
-    Test::assert_eq_i32(len(s), 3)
+    Test::assert_eq_i32(s.len(), 3)
     Test::assert_false(s.is_empty())
     Test::assert_eq_string(s.trim(), "")
 }

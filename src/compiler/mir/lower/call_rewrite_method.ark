@@ -11,12 +11,12 @@ use mir::lower::ctx_api_local_types
 use mir::lower::method_resolve
 use mir::value_types
 fn mir_bare_receiver_type_name(arg_type: String) -> String {
-    if len(arg_type) == 0 {
+    if arg_type.len() == 0 {
         return String_new()
     }
     if arg_type.clone().starts_with("struct:") {
-        let rest = arg_type.clone().slice(7, len(arg_type))
-        let n = len(rest)
+        let rest = arg_type.clone().slice(7, arg_type.len())
+        let n = rest.len()
         let mut i = 0
         while i < n {
             if rest.byte_at(i) == 58 {
@@ -27,7 +27,7 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
         return method_resolve::mir_inst_owner_name(rest)
     }
     if arg_type.clone().starts_with("enum:") {
-        return arg_type.clone().slice(5, len(arg_type))
+        return arg_type.clone().slice(5, arg_type.len())
     }
     // Vec locals are typed "vec:i32" / "vec:String"; impl methods are
     // mangled as "Vec::read" / "Vec::seek", not "i32::seek" (#726 seek_to).
@@ -44,10 +44,10 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
         return "HashMap"
     }
     if arg_type.clone().starts_with("option:") {
-        return arg_type.clone().slice(7, len(arg_type))
+        return arg_type.clone().slice(7, arg_type.len())
     }
     if arg_type.clone().starts_with("Option_") {
-        return arg_type.clone().slice(7, len(arg_type))
+        return arg_type.clone().slice(7, arg_type.len())
     }
     // Generic-instantiation receivers (SkipMapIter<VecIter>) own impl
     // methods under the per-instantiation owner (SkipMapIter_VecIter),
@@ -64,7 +64,7 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
 // mono paths own) and are left unchanged.
 fn mir_canonicalize_qualified_callee(ctx: LowerCtx, callee_name: String) -> String {
     let variants = callee_spelling::callee_spelling_variants(callee_name.clone())
-    if len(variants) == 0 {
+    if variants.len() == 0 {
         return callee_name
     }
     let exact = ctx_fn_index::ctx_fn_index_find(ctx, callee_name.clone())
@@ -72,7 +72,7 @@ fn mir_canonicalize_qualified_callee(ctx: LowerCtx, callee_name: String) -> Stri
         return callee_name
     }
     let mut i = 0
-    while i < len(variants) {
+    while i < variants.len() {
         let variant = get_unchecked(variants, i).clone()
         let idx = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if idx >= 0 {
@@ -102,7 +102,7 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     // owner (HashMap_String_i32::into_iter), not the bare HashMap inherent
     // owner. Try the pair symbol first; fall through when no impl exists.
     let pair_owner = method_resolve::mir_hashmap_impl_owner_name(arg_type.clone())
-    if len(pair_owner) > 0 {
+    if pair_owner.len() > 0 {
         let pair_candidate = pair_owner.clone().concat("::".concat(bare_method.clone()))
         if ctx_fn_exists::ctx_has_fn_name(ctx, pair_candidate.clone()) {
             return pair_candidate
@@ -123,7 +123,7 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     method_resolve::mir_is_vec_string_type(arg_type.clone()) {
         bare_type = String_from("Vec_String")
     }
-    if len(bare_type) == 0 {
+    if bare_type.len() == 0 {
         return bare_method
     }
     // Concrete generic receivers (GenTakeIter<VecIter>) own impl methods
@@ -155,10 +155,10 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     // Direct numeric literals carry only a value type, not a type-name
     // spelling; let/param locals carry both. Recover scalar source names so
     // `U::method(literal)` overloads dispatch like named locals.
-    if len(source_name) == 0 {
+    if source_name.len() == 0 {
         source_name = mir_scalar_source_type_name(ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx))
     }
-    if len(source_name) == 0 {
+    if source_name.len() == 0 {
         return associated_name
     }
     // String literals and String_from results carry the builtin "string"
@@ -198,7 +198,7 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     if owner_name.clone().eq(String_from("HashMap")) &&
     method_name.clone().eq(String_from("from_iter")) {
         let candidate = mir_hashmap_from_iter_candidate(ctx, source_name)
-        if len(candidate.clone()) > 0 {
+        if candidate.clone().len() > 0 {
             return candidate
         }
     }
@@ -214,7 +214,7 @@ fn mir_hashmap_from_iter_candidate(ctx: LowerCtx, source_name: String) -> String
     push(owners, String_from("HashMap_i32_fnref"))
     push(owners, String_from("HashMap_String_fnref"))
     let mut index: i32 = 0
-    while index < len(owners) {
+    while index < owners.len() {
         let owner = get_unchecked(owners, index)
         let candidate = owner.concat(String_from("::from_iter__").concat(source_name.clone()))
         if ctx_fn_exists::ctx_has_fn_name(ctx, candidate.clone()) {

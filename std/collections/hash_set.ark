@@ -97,7 +97,7 @@ impl HashSet<i32> {
         let values: Vec<i32> = self.to_vec()
         self.clear()
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             let value: i32 = get_unchecked(values, index)
             if keep(value) {
                 let _ = self.insert(value)
@@ -202,7 +202,7 @@ impl HashSet<String> {
         let values: Vec<String> = self.to_vec()
         self.clear()
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             let value: String = get_unchecked(values, index)
             if keep(value) {
                 let _ = self.insert(value)
@@ -269,7 +269,7 @@ impl IntoIterator for HashSet<i32> {
 
     fn into_iter(self: HashSet<i32>) -> VecIter<i32> {
         let values: Vec<i32> = self.to_vec()
-        VecIter { vec: values, index: 0, length: len(values) }
+        VecIter { vec: values, index: 0, length: values.len() }
     }
 }
 
@@ -278,7 +278,7 @@ impl Clone for HashSet<i32> {
         let values: Vec<i32> = self.to_vec()
         let mut result: HashSet<i32> = HashSet::new<i32>()
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             let _ = result.insert(get_unchecked(values, index))
             index = index + 1
         }
@@ -294,7 +294,7 @@ impl Eq for HashSet<i32> {
         }
         let values: Vec<i32> = self.to_vec()
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             if !other.contains(get_unchecked(values, index)) {
                 return false
             }
@@ -310,7 +310,7 @@ impl Debug for HashSet<i32> {
         let values: Vec<i32> = self.to_vec()
         let mut out: String = String_from("HashSet [")
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             if index > 0 {
                 out = out.concat(String_from(", "))
             }
@@ -360,7 +360,7 @@ impl IntoIterator for HashSet<String> {
 
     fn into_iter(self: HashSet<String>) -> VecIter<String> {
         let values: Vec<String> = self.to_vec()
-        VecIter { vec: values, index: 0, length: len(values) }
+        VecIter { vec: values, index: 0, length: values.len() }
     }
 }
 
@@ -369,7 +369,7 @@ impl Clone for HashSet<String> {
         let values: Vec<String> = self.to_vec()
         let mut result: HashSet<String> = HashSet::new<String>()
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             let _ = result.insert(get_unchecked(values, index))
             index = index + 1
         }
@@ -385,7 +385,7 @@ impl Eq for HashSet<String> {
         }
         let values: Vec<String> = self.to_vec()
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             if !other.contains(get_unchecked(values, index)) {
                 return false
             }
@@ -401,7 +401,7 @@ impl Debug for HashSet<String> {
         let values: Vec<String> = self.to_vec()
         let mut out: String = String_from("HashSet [")
         let mut index: i32 = 0
-        while index < len(values) {
+        while index < values.len() {
             if index > 0 {
                 out = out.concat(String_from(", "))
             }
@@ -537,10 +537,10 @@ test mod "hashset" {
         let copy: HashSet<String> = s.clone()
         assert(copy.eq(s))
         let values: Vec<String> = s.to_vec()
-        assert(len(values) == 2)
+        assert(values.len() == 2)
         let mut total: i32 = 0
         for word in s {
-            total = total + len(word)
+            total = total + word.len()
         }
         assert(total == 7)
     }

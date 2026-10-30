@@ -1,11 +1,10 @@
 // Component interop smoke test: string parameter canonical ABI with f32 result.
 
-use std::prelude::{f64_to_f32}
 export fn score32_text(text: String) -> f32 {
-    if len(text) == 0 {
-        return f64_to_f32(0.5)
+    if text.len() == 0 {
+        return (0.5).to_f32()
     }
-    f64_to_f32(2.5)
+    (2.5).to_f32()
 }
 
 fn main() {

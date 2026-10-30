@@ -16,6 +16,39 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — vec intrinsic-compat `len` free の退役 (ADR-046, ADR-087, ADR-091, #917, #936, wave/vec-intrinsic-len)
+
+- **Removed**: prelude の signature-only free `len(s: String) -> i32`。
+  `String` / `Vec<T>` の両 receiver を 1 つの free が担い、checker が
+  receiver owner から `String::len` / `Vec::len` を選ぶ最後の
+  intrinsic-compat member だった。bare call と
+  `use std::prelude::{len}` は **E0100** と receiver method hint
+  （`s.len()` / `v.len()`）で失敗する。manifest entry と
+  `std/prelude.ark` 宣言を削除した。
+- **Replacement**: `s.len()`（`String`）と `v.len()`（`Vec<T>`）。
+  inline の `s.slice(start, end).len()` も同じ method spelling で型付け・
+  lower される。
+- **Migration**: compiler / std / fixtures / benchmarks の free `len(...)`
+  呼び出し 5,701 箇所を receiver method へ移行した。`len` を列挙していた
+  `use std::prelude::{...}` も整理した。`docs/sample/parser.ark` は HEAD で
+  既に現行型検査を通らない stale sample のため対象外とし、122 箇所を残す
+  （sample の型エラー修復とは分離）。
+- **Bootstrap**: pinned compiler は `String` receiver の `.len()` を
+  未だ bare `len` declaration 経由で lower するため、flat overlay の
+  prelude に overlay-only の `len` 宣言を残す（`scripts/selfhost/checks.py`
+  の `BOOTSTRAP_PRELUDE_LEN_SHIM`）。user program は退役後の surface
+  （E0100 + receiver method）だけを見る。pin 更新時に削除する。
+- **Diagnostics / fixtures**: `resolver::removed_names` と
+  `resolver::register_use` に E0100 hint を追加し、W0009 行を削除した。
+  `diagnostics/removed_len_free{,_wasm32}` と
+  `diagnostics/removed_len_import` を追加し、`stdlib_vec/len_method_surface`
+  （`s.len()`、`v.len()`、inline slice receiver）を両 target で追加した。
+  旧 `prelude_len_*` diagnostics は退役に伴い削除した。
+- **Scorecard**: real std surface 28 → **27**、`pub fn` declarations
+  28 → **27**、manifest public entries 28 → **27**、`must delete`
+  21 → **20**、vec intrinsic-compat rule 9 → **8**。`prelude_wrapper`
+  5、monomorphic helpers 2、intrinsic-only 1 は不変。
+
 ## 2026-10-30 — `std::io` / `std::host::stdio` 互換 free 9 個の退役 (ADR-046, ADR-094, ADR-087, #693, wave/io-stdio)
 
 - **Removed**: `std::host::stdio` の `read_stdin` / `print` / `println` /

@@ -102,14 +102,14 @@ fn ExportNameCounts_new(expected: i32) -> ExportNameCounts {
 }
 
 fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
-    let capacity = len(counts.buckets)
+    let capacity = counts.buckets.len()
     if capacity <= 0 {
         return 0
     }
     let fnv_offset = 216613626
     let fnv_prime = 16777619
     let mut hash = fnv_offset
-    let name_len = len(name)
+    let name_len = name.len()
     let mut hi = 0
     while hi < name_len {
         hash = hash * fnv_prime ^ name.byte_at(hi)
@@ -128,11 +128,11 @@ fn export_name_seen_bump(mut counts: ExportNameCounts, name: String) -> i32 {
         if bucket == 0 {
             push(counts.keys, name)
             push(counts.vals, 1)
-            set(counts.buckets, slot, len(counts.keys))
+            set(counts.buckets, slot, counts.keys.len())
             return 0
         }
         let key = get_unchecked(counts.keys, bucket - 1)
-        let mut same = len(key) == name_len
+        let mut same = key.len() == name_len
         if same {
             let mut i = 0
             while i < name_len {
@@ -432,7 +432,7 @@ fn is_p2_std_helper_name(name: String) -> bool {
 }
 
 fn is_internal_export_name(name: String) -> bool {
-    let name_len = len(name)
+    let name_len = name.len()
     name_len > 2 && name.byte_at(0) == 95 && name.byte_at(1) == 95
 }
 
@@ -440,7 +440,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     // Specialized mono functions (name contains "__") are not generic —
     // they have concrete type specializations in their bodies.
     let fn_name = function_identity::MirFunction_name(f)
-    let name_len = len(fn_name)
+    let name_len = fn_name.len()
     let mut has_sep = false
     let mut i = 0
     while i < name_len - 1 {

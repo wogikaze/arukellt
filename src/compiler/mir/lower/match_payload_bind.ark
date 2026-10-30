@@ -15,7 +15,7 @@ fn mir_emit_match_ident_bind(mut ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
     let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, scrut_idx)
     let bind_local = ctx_alloc_local(ctx, ast_node::node_text(pat), bind_vt)
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
-    if len(scrut_type) > 0 {
+    if scrut_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, scrut_type)
         if scrut_type.clone().starts_with("enum:") {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())

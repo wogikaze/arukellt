@@ -4,7 +4,7 @@ use main::doc_usage
 use main::manifest_doc
 pub fn cmd_doc(opts: CliOptions) {
     let symbol = args_record::cli_input_file(opts)
-    if len(symbol) == 0 {
+    if symbol.len() == 0 {
         doc_usage::print_doc_usage()
         Process::exit(2)
         return

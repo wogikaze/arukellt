@@ -5,7 +5,7 @@ fn AstNode_push_child(mut node: AstNode, child: AstNode) {
 }
 
 fn AstNode_child_count(node: AstNode) -> i32 {
-    len(node.children)
+    node.children.len()
 }
 
 fn AstNode_child_at(node: AstNode, index: i32) -> AstNode {

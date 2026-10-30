@@ -2,7 +2,7 @@
 
 use std::text
 fn wit_trim_ws(text: String) -> String {
-    let n = len(text)
+    let n = text.len()
     let mut start = 0
     while start < n {
         let ch = text.byte_at(start)

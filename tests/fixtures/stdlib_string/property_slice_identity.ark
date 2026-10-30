@@ -1,5 +1,5 @@
 use std::test::Test
 fn main() {
     let s = String_from("identity")
-    Test::assert_true(s.slice(0, len(s)).eq(s))
+    Test::assert_true(s.slice(0, s.len()).eq(s))
 }

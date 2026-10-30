@@ -16,7 +16,7 @@ fn typed_corehir_diagnostic_module_index(program: CoreHirRawProgram) -> i32 {
         return 0 - 1
     }
     let mut module_index = 0
-    while module_index < len(modules) {
+    while module_index < modules.len() {
         let module = get_unchecked(modules, module_index)
         let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module)
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module)
@@ -37,9 +37,9 @@ fn diagnose_first_untyped_expression(
     let exprs = body_table::corehir_body_table_exprs(table)
     let function_name = verified_core_render_safe::vcs_function_name(program, function_index)
     let mut i = 0
-    while i < len(reachable) {
+    while i < reachable.len() {
         let expression_id = get_unchecked(reachable, i)
-        if expression_id < 0 || expression_id >= len(exprs) {
+        if expression_id < 0 || expression_id >= exprs.len() {
             return "TypedCoreHIR reject: invalid reachable expression function=".concat(function_name).concat(" expression_id=".concat(expression_id.to_string()))
         }
         let expression = get_unchecked(exprs, expression_id)
@@ -63,11 +63,11 @@ fn diagnose_first_untyped_expression(
 
 fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
     let modules = raw_record::raw_program_modules(program)
-    if len(modules) == 0 {
+    if modules.len() == 0 {
         return "TypedCoreHIR reject: no modules"
     }
     let source_module_index = typed_corehir_diagnostic_module_index(program)
-    if source_module_index < 0 || source_module_index >= len(modules) {
+    if source_module_index < 0 || source_module_index >= modules.len() {
         return "TypedCoreHIR reject: entry main module not found"
     }
     let source_module = get_unchecked(modules, source_module_index)
@@ -76,7 +76,7 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
     let fn_infos = raw_decls::program_fn_infos(program)
     let mut source_function_count = 0
     let mut function_index = 0
-    while function_index < len(fn_infos) {
+    while function_index < fn_infos.len() {
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
         if decl_index >= source_decl_start && decl_index < source_decl_end {
             source_function_count = source_function_count + 1
@@ -99,7 +99,7 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
                 ).concat(" value_type=".concat(return_vt.to_string()).concat(" type_id=".concat(return_type_id.to_string())))
             }
             let name = verified_core_render_safe::vcs_function_name(program, function_index)
-            if len(name.clone()) == 0 {
+            if name.clone().len() == 0 {
                 return "TypedCoreHIR reject: empty function name index=".concat(function_index.to_string())
             }
             if !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {

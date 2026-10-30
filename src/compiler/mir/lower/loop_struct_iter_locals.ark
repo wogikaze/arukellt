@@ -15,11 +15,11 @@ fn mir_struct_iterator_iter_ptr(mut ctx: LowerCtx, struct_type: String) -> i32 {
 fn mir_struct_iterator_iter_var(mut ctx: LowerCtx, iter_name: String, next_callee: String) -> i32 {
     let payload_type = mir_struct_iterator_payload_type(ctx, next_callee)
     let mut payload_vt = value_types::VT_I32()
-    if len(payload_type) > 0 {
+    if payload_type.len() > 0 {
         payload_vt = mir_struct_iterator_payload_vt(ctx, payload_type.clone())
     }
     let iter_var = ctx_alloc_local(ctx, iter_name, payload_vt)
-    if len(payload_type) > 0 {
+    if payload_type.len() > 0 {
         ctx_set_local_type(ctx, iter_var, payload_type)
     }
     iter_var
@@ -36,7 +36,7 @@ fn mir_struct_iterator_payload_vt(ctx: LowerCtx, payload_type: String) -> i32 {
 fn mir_struct_iterator_payload_type(ctx: LowerCtx, next_callee: String) -> String {
     let ret_type_name = ctx_fn_return_type_name(ctx, next_callee.clone())
     if ret_type_name.clone().starts_with("option:") {
-        return ret_type_name.slice(7, len(ret_type_name))
+        return ret_type_name.slice(7, ret_type_name.len())
     }
     ""
 }

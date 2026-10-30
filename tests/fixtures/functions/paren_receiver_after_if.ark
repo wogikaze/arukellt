@@ -6,14 +6,14 @@ use std::host::stdio::Stdio
 use std::test::Test
 
 fn prefix_matches(path: String) -> bool {
-    if len(path) < 5 {
+    if path.len() < 5 {
         return false
     }
     (path.slice(0, 5)).eq("std::")
 }
 
 fn prefix_matches_ungrouped(path: String) -> bool {
-    if len(path) < 5 {
+    if path.len() < 5 {
         return false
     }
     path.slice(0, 5).eq("std::")

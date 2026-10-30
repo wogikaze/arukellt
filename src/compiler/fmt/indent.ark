@@ -15,7 +15,7 @@ fn fmt_indent_scan_new(opens: i32, closes: i32, in_block_comment: bool) -> FmtIn
 }
 
 fn fmt_indent_trimmed(line: String) -> String {
-    let n = len(line.clone())
+    let n = line.clone().len()
     let mut start = 0
     while start < n {
         let c = line.clone().byte_at(start)
@@ -28,7 +28,7 @@ fn fmt_indent_trimmed(line: String) -> String {
 }
 
 fn fmt_indent_closes_else_opens(trimmed: String, scan: FmtIndentScan) -> bool {
-    if len(trimmed) < 6 {
+    if trimmed.len() < 6 {
         return false
     }
     if trimmed.clone().byte_at(0) != 125 {
@@ -38,7 +38,7 @@ fn fmt_indent_closes_else_opens(trimmed: String, scan: FmtIndentScan) -> bool {
 }
 
 fn fmt_indent_starts_close(trimmed: String) -> bool {
-    if len(trimmed) == 0 {
+    if trimmed.len() == 0 {
         return false
     }
     let c = trimmed.byte_at(0)
@@ -46,7 +46,7 @@ fn fmt_indent_starts_close(trimmed: String) -> bool {
 }
 
 fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
-    let line_count = len(lines)
+    let line_count = lines.len()
     let mut out = Vec::new<String>()
     let mut indent = 0
     let mut in_block_comment = false
@@ -54,7 +54,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
     while i < line_count {
         let raw = get_unchecked(lines, i)
         let trimmed = fmt_indent_trimmed(raw)
-        if len(trimmed) == 0 {
+        if trimmed.len() == 0 {
             push(out, String_new())
             i = i + 1
             continue
@@ -90,7 +90,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
 }
 
 fn fmt_indent_scan_line(text: String, starts_in_block_comment: bool) -> FmtIndentScan {
-    let n = len(text)
+    let n = text.len()
     let mut opens = 0
     let mut closes = 0
     let mut in_string = false

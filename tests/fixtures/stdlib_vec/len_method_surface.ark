@@ -1,0 +1,20 @@
+use std::host::stdio::Stdio
+use std::test::Test
+
+// The retired `len` free is replaced by the receiver method. The inline
+// `String::slice(...)` receiver is the shape that previously needed the free's
+// declaration for receiver typing in the pinned overlay.
+fn sliced_len(text: String) -> i32 {
+    text.slice(1, 4).len()
+}
+
+fn main() {
+    let text: String = String_from("hello")
+    Test::assert_eq_i32(text.len(), 5)
+    Test::assert_eq_i32(text.slice(0, 3).len(), 3)
+    Test::assert_eq_i32(sliced_len(text), 3)
+    let mut values: Vec<i32> = Vec::new<i32>()
+    values.push(7)
+    Test::assert_eq_i32(values.len(), 1)
+    Stdio::println("len method surface ok")
+}

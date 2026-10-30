@@ -21,7 +21,7 @@ fn main() -> i32 {
             inner: Inner { label: String_from("n") },
             depth: i,
         }
-        let _n = len(node.inner.label)
+        let _n = node.inner.label.len()
         i = i + 1
     }
     if keep.depth == 255 {

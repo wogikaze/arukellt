@@ -8,7 +8,7 @@ use mir::mono_instance_shape
 use mir::value_types
 
 fn mir_method_name_last_segment(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut last_start = 0 - 1
     let mut i = 0
     while i < n - 1 {
@@ -26,7 +26,7 @@ fn mir_method_name_last_segment(name: String) -> String {
 }
 
 fn mir_method_name_last_two_segments(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut prev_start = 0 - 1
     let mut last_start = 0 - 1
     let mut i = 0
@@ -49,7 +49,7 @@ fn mir_method_name_last_two_segments(name: String) -> String {
 }
 
 fn mir_is_all_digits(s: String) -> bool {
-    let n = len(s)
+    let n = s.len()
     if n == 0 {
         return false
     }
@@ -65,7 +65,7 @@ fn mir_is_all_digits(s: String) -> bool {
 }
 
 fn mir_strip_type_instance_suffix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     if n == 0 {
         return name
     }
@@ -90,10 +90,10 @@ fn mir_strip_type_instance_suffix(name: String) -> String {
 fn mir_normalize_type_name(t: String) -> String {
     let mut n = t.clone()
     if n.clone().starts_with(String_from("struct:")) {
-        n = n.slice(7, len(n))
+        n = n.slice(7, n.len())
     }
     if n.clone().starts_with(String_from("enum:")) {
-        n = n.slice(5, len(n))
+        n = n.slice(5, n.len())
     }
     n = mir_strip_type_instance_suffix(n.clone())
     n = mir_method_name_last_segment(n.clone())
@@ -109,7 +109,7 @@ fn mir_inst_owner_name(type_name: String) -> String {
     // Local-type spellings reach here as struct:Name<Args>:size; reduce them
     // to the declared instantiation spelling before splitting on <>.
     let normalized = mir_normalize_type_name(type_name.clone())
-    let n = len(normalized)
+    let n = normalized.len()
     if n < 3 || normalized.clone().byte_at(n - 1) != 62 {
         return normalized
     }
@@ -141,7 +141,7 @@ fn mir_inst_owner_name(type_name: String) -> String {
         return mir_hashmap_decl_owner_name(inner)
     }
     let suffix = mir_inst_key_suffix(inner)
-    if len(suffix) == 0 {
+    if suffix.len() == 0 {
         // A type parameter or unkeyable argument means the impl is generic;
         // its methods register under the bare owner.
         return base
@@ -155,7 +155,7 @@ fn mir_inst_owner_name(type_name: String) -> String {
 // per-instantiation owner has no impl.
 fn mir_bare_owner_name(type_name: String) -> String {
     let normalized = mir_normalize_type_name(type_name.clone())
-    let n = len(normalized)
+    let n = normalized.len()
     let mut i = 0
     while i < n {
         if normalized.clone().byte_at(i) == 60 {
@@ -174,7 +174,7 @@ fn mir_inst_key_suffix(inner: String) -> String {
     let mut suffix = String_new()
     let mut seg_start = 0
     let mut depth = 0
-    let m = len(inner)
+    let m = inner.len()
     let mut j = 0
     while j <= m {
         let at_end = j == m
@@ -188,10 +188,10 @@ fn mir_inst_key_suffix(inner: String) -> String {
         if (ch == 44 && depth == 0) || at_end {
             let seg = inner.clone().slice(seg_start, j)
             let key = mir_inst_arg_key(seg)
-            if len(key) == 0 {
+            if key.len() == 0 {
                 return String_new()
             }
-            if len(suffix) > 0 {
+            if suffix.len() > 0 {
                 suffix = suffix.concat(String_from("_"))
             }
             suffix = suffix.concat(key)
@@ -208,7 +208,7 @@ fn mir_inst_key_suffix(inner: String) -> String {
 fn mir_hashmap_decl_owner_name(inner: String) -> String {
     let mut comma = 0 - 1
     let mut depth = 0
-    let m = len(inner)
+    let m = inner.len()
     let mut i = 0
     while i < m {
         let ch = inner.clone().byte_at(i)
@@ -248,14 +248,14 @@ fn mir_hashmap_decl_owner_name(inner: String) -> String {
 // A plain named type segment (no <>, no local-type classifier, not a type
 // parameter) — the shape impl_self_type_name accepts for HashMap_K_V owners.
 fn mir_inst_seg_is_named(seg: String) -> bool {
-    if len(seg) == 0 {
+    if seg.len() == 0 {
         return false
     }
-    if len(seg) == 1 && seg.clone().byte_at(0) >= 65 && seg.clone().byte_at(0) <= 90 {
+    if seg.len() == 1 && seg.clone().byte_at(0) >= 65 && seg.clone().byte_at(0) <= 90 {
         return false
     }
     let mut i = 0
-    while i < len(seg) {
+    while i < seg.len() {
         let ch = seg.clone().byte_at(i)
         if ch == 60 || ch == 62 || ch == 58 || ch == 63 {
             return false
@@ -270,7 +270,7 @@ fn mir_inst_seg_is_named(seg: String) -> bool {
 // "HashMap<i32, fn(i32) -> i32>" resolves the same owner as the compact
 // forms (#691).
 fn mir_inst_seg_is_fn(seg: String) -> bool {
-    let n = len(seg)
+    let n = seg.len()
     let mut i = 0
     while i < n && seg.clone().byte_at(i) == 32 {
         i = i + 1
@@ -295,33 +295,33 @@ fn mir_inst_named_seg_key(seg: String) -> String {
 // (vec:i32 -> Vec_i32, hashmap:si32 -> HashMap_String_i32). Returns "" for
 // type variables so generic impl heads keep the bare owner.
 fn mir_inst_arg_key(seg: String) -> String {
-    if len(seg) == 0 {
+    if seg.len() == 0 {
         return String_new()
     }
     if seg.clone().starts_with(String_from("vec:")) {
-        let inner = seg.clone().slice(4, len(seg))
-        if len(inner) == 0 {
+        let inner = seg.clone().slice(4, seg.len())
+        if inner.len() == 0 {
             return String_from("Vec")
         }
         let elem_key = mir_inst_arg_key(inner)
-        if len(elem_key) == 0 {
+        if elem_key.len() == 0 {
             return String_new()
         }
         return String_from("Vec_").concat(elem_key)
     }
     if seg.clone().starts_with(String_from("hashmap:")) {
         let owner = mir_hashmap_impl_owner_name(seg)
-        if len(owner) == 0 {
+        if owner.len() == 0 {
             return String_from("HashMap")
         }
         return owner
     }
     if seg.clone().starts_with(String_from("struct:")) {
-        let rest = seg.clone().slice(7, len(seg))
+        let rest = seg.clone().slice(7, seg.len())
         return mir_inst_arg_key(mir_strip_type_instance_suffix(rest))
     }
     if seg.clone().starts_with(String_from("enum:")) {
-        return mir_inst_arg_key(seg.clone().slice(5, len(seg)))
+        return mir_inst_arg_key(seg.clone().slice(5, seg.len()))
     }
     if seg.clone().eq(String_from("string")) {
         return String_from("String")
@@ -329,7 +329,7 @@ fn mir_inst_arg_key(seg: String) -> String {
     if seg.clone().byte_at(0) == 63 {
         return String_new()
     }
-    if len(seg) == 1 && seg.clone().byte_at(0) >= 65 && seg.clone().byte_at(0) <= 90 {
+    if seg.len() == 1 && seg.clone().byte_at(0) >= 65 && seg.clone().byte_at(0) <= 90 {
         return String_new()
     }
     if seg.clone().eq(String_from("fn")) ||
@@ -339,19 +339,19 @@ fn mir_inst_arg_key(seg: String) -> String {
         return String_from("fnref")
     }
     let mut k = 0
-    while k < len(seg) {
+    while k < seg.len() {
         if seg.clone().byte_at(k) == 60 {
             // Nested generic arg: apply the generic key rule directly so
             // Vec<i32> stays Vec_i32 (the Vec/HashMap target-level owner
             // spellings do not apply to argument position). An unkeyable
             // nested arg makes the whole owner fall back to bare.
-            let mut arg_end = len(seg)
+            let mut arg_end = seg.len()
             if seg.clone().byte_at(arg_end - 1) == 62 {
                 arg_end = arg_end - 1
             }
             let arg_inner = seg.clone().slice(k + 1, arg_end)
             let arg_suffix = mir_inst_key_suffix(arg_inner)
-            if len(arg_suffix) == 0 {
+            if arg_suffix.len() == 0 {
                 return String_new()
             }
             return seg.clone().slice(0, k).concat(String_from("_").concat(arg_suffix))
@@ -441,7 +441,7 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
         return String_from("")
     }
     let mut method_mono_type_key = ctx_get_local_type(ctx, first_method_arg_idx)
-    if len(method_mono_type_key) == 0 {
+    if method_mono_type_key.len() == 0 {
         let method_arg_vt = ctx_local_vt(ctx, first_method_arg_idx)
         if method_arg_vt == value_types::VT_I64() {
             method_mono_type_key = String_from("i64")
@@ -462,11 +462,11 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     // `impl Vec<T> { push/... }` shells must not win mono as
     // `__core_vec_push_i32_impl` before element-type rewrite (#845).
     let early_vec = mir_vec_method_prefer_coreop_name(callee_name.clone())
-    if len(early_vec) > 0 {
+    if early_vec.len() > 0 {
         return early_vec
     }
     let method_mono_type_key = mir_method_mono_type_key(ctx, first_method_arg_idx)
-    if len(method_mono_type_key) > 0 {
+    if method_mono_type_key.len() > 0 {
         let method_mono_candidate = mono::mono_safe_name(callee_name.clone().concat(String_from("__").concat(method_mono_type_key)))
         if ctx_has_fn_name(ctx, method_mono_candidate.clone()) {
             return method_mono_candidate
@@ -479,8 +479,8 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     let bare_builtin = mir_bare_method_name(callee_name.clone())
     if mir_type_prefix(callee_name.clone()).eq(String_from("String")) &&
     bare_builtin.clone().eq(String_from("len")) {
-        // Owner-qualified already: the free `len` handoff must not have to
-        // recover a String method receiver from a local type spelling (#933).
+        // Owner-qualified already: `.len()` method lowering emits the String
+        // CoreOp owner instead of recovering a receiver from a local spelling.
         return String_from("String::len")
     }
     if mir_type_prefix(callee_name.clone()).eq(String_from("String")) &&
@@ -488,7 +488,7 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
         return bare_builtin
     }
     let mono_target = ctx_mono_lookup_call(ctx, span_start, callee_name.clone())
-    if len(mono_target) > 0 {
+    if mono_target.len() > 0 {
         return mono_target
     }
     if ctx_has_fn_name(ctx, callee_name.clone()) {
@@ -499,23 +499,23 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     // `WrapIter_i32::next`. The propagated instance `WrapIter::next`+[i32]
     // emits as `WrapIter__next__i32`; map the inst-owner spelling back.
     let parametric_target = mir_parametric_impl_callee(ctx, callee_name.clone())
-    if len(parametric_target) > 0 {
+    if parametric_target.len() > 0 {
         return parametric_target
     }
     // The name-rewrite pool is instantiation-blind (first unused match for
     // the bare method name), so it runs only after the precise
     // receiver-derived paths above.
     let named_mono_target = ctx_resolve_unused_mono_by_name(ctx, callee_name)
-    if len(named_mono_target) > 0 {
+    if named_mono_target.len() > 0 {
         return named_mono_target
     }
     // Fallback for builtin types: if the mangled callee (e.g. "Vec::push")
     // is not a MIR function, check if the type prefix is a builtin type.
     // If so, map to the corresponding compiler intrinsic name.
     let bare_name = mir_bare_method_name(callee_name)
-    if len(bare_name) > 0 && mir_is_builtin_type_prefix(callee_name) {
+    if bare_name.len() > 0 && mir_is_builtin_type_prefix(callee_name) {
         let intrinsic_name = mir_builtin_method_to_intrinsic(callee_name, bare_name)
-        if len(intrinsic_name) > 0 {
+        if intrinsic_name.len() > 0 {
             return intrinsic_name
         }
         // Prefer Type::method when present. Falling back to a free function of
@@ -526,7 +526,7 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
         return bare_name
     }
     let short_name = mir_resolve_short_method_name(ctx, callee_name.clone())
-    if len(short_name) > 0 {
+    if short_name.len() > 0 {
         return short_name
     }
     callee_name
@@ -566,7 +566,7 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
     // Vec methods: some intrinsics use bare name, others use vec_ prefix.
     if prefix.clone().eq(String_from("Vec")) {
         let preferred = mir_vec_method_prefer_coreop_name(mangled.clone())
-        if len(preferred) > 0 {
+        if preferred.len() > 0 {
             return preferred
         }
         // Associated constructors: keep mangled Vec::new__T for wasm
@@ -606,30 +606,30 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
 fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
     let owner = mir_type_prefix(callee_name.clone())
     let method = mir_bare_method_name(callee_name.clone())
-    if len(owner) == 0 || len(method) == 0 {
+    if owner.len() == 0 || method.len() == 0 {
         return String_new()
     }
     if !owner.clone().contains(String_from("_")) {
         return String_new()
     }
     let method_suffix = "::".concat(method.clone())
-    let inst_count = len(ctx.mono_instances)
+    let inst_count = ctx.mono_instances.len()
     let mut i = 0
     while i < inst_count {
         let inst = get_unchecked(ctx.mono_instances, i)
         let inst_fn = mono_instance_shape::mir_mono_instance_fn_name(inst)
         if inst_fn.clone().ends_with(method_suffix.clone()) {
-            let inst_owner = inst_fn.clone().slice(0, len(inst_fn) - len(method_suffix))
+            let inst_owner = inst_fn.clone().slice(0, inst_fn.len() - method_suffix.len())
             let owner_safe = mono::mono_safe_name(inst_owner)
             let recv_prefix = owner_safe.clone().concat(String_from("_"))
             if owner.clone().starts_with(recv_prefix.clone()) {
-                let recv_args = owner.clone().slice(len(recv_prefix), len(owner))
+                let recv_args = owner.clone().slice(recv_prefix.len(), owner.len())
                 let mangled_safe = mono::mono_safe_name(
                     mono_instance_shape::mir_mono_instance_mangled_name(inst)
                 )
                 let arg_prefix = owner_safe.clone().concat("__".concat(method.clone().concat("__")))
                 if mangled_safe.clone().starts_with(arg_prefix.clone()) {
-                    let inst_args = mangled_safe.clone().slice(len(arg_prefix), len(mangled_safe))
+                    let inst_args = mangled_safe.clone().slice(arg_prefix.len(), mangled_safe.len())
                     if mir_mono_arg_segments_eq(recv_args.clone(), inst_args) &&
                     ctx_has_fn_name(ctx, mangled_safe.clone()) {
                         return mangled_safe
@@ -650,11 +650,11 @@ fn mir_parametric_impl_callee(ctx: LowerCtx, callee_name: String) -> String {
 fn mir_mono_arg_segments_eq(recv_args: String, inst_args: String) -> bool {
     let recv_segs = mir_mono_arg_segments(recv_args)
     let inst_segs = mir_mono_arg_segments(inst_args)
-    if len(recv_segs) != len(inst_segs) {
+    if recv_segs.len() != inst_segs.len() {
         return false
     }
     let mut i = 0
-    while i < len(recv_segs) {
+    while i < recv_segs.len() {
         if !get_unchecked(recv_segs, i).eq(get_unchecked(inst_segs, i)) {
             return false
         }
@@ -666,12 +666,12 @@ fn mir_mono_arg_segments_eq(recv_args: String, inst_args: String) -> bool {
 fn mir_mono_arg_segments(args: String) -> Vec<String> {
     let mut segs = Vec::new<String>()
     let mut seg_start = 0
-    let n = len(args)
+    let n = args.len()
     let mut i = 0
     while i <= n {
         if i == n || args.clone().byte_at(i) == 95 {
             let seg = args.clone().slice(seg_start, i)
-            if len(seg) > 0 {
+            if seg.len() > 0 {
                 push(segs, seg)
             }
             seg_start = i + 1
@@ -686,7 +686,7 @@ fn mir_bare_method_name(mangled: String) -> String {
     if pos < 0 {
         return String_from("")
     }
-    mangled.slice(pos + 2, len(mangled))
+    mangled.slice(pos + 2, mangled.len())
 }
 
 fn mir_is_builtin_type_prefix(mangled: String) -> bool {

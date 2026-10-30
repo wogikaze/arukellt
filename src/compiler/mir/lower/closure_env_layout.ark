@@ -18,7 +18,7 @@ fn closure_env_slot_width(vt: i32) -> i32 {
 fn closure_env_byte_size(cap_vts: Vec<i32>) -> i32 {
     let mut total = 0
     let mut i = 0
-    while i < len(cap_vts) {
+    while i < cap_vts.len() {
         total = total + closure_env_slot_width(get_unchecked(cap_vts, i))
         i = i + 1
     }

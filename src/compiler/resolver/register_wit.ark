@@ -9,7 +9,7 @@ use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::wit_register
 fn wit_seen_name(items: Vec<String>, name: String) -> bool {
-    for i in 0..len(items) {
+    for i in 0..items.len() {
         if get_unchecked(items, i).eq(name.clone()) {
             return true
         }
@@ -20,7 +20,7 @@ fn wit_seen_name(items: Vec<String>, name: String) -> bool {
 fn register_wit_imports(mut ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
     let mut seen_aliases = Vec::new<String>()
     let mut seen_packages = Vec::new<String>()
-    let count = len(decls)
+    let count = decls.len()
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
@@ -29,13 +29,13 @@ fn register_wit_imports(mut ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<
             let alias = wit_import_alias(d)
             let span_start = ast_access::node_span_start(d)
             let span_end = ast_access::node_span_end(d)
-            if len(alias) > 0 && wit_seen_name(seen_aliases, alias.clone()) {
+            if alias.len() > 0 && wit_seen_name(seen_aliases, alias.clone()) {
                 scope_error::resolve_duplicate_symbol(ctx, "WIT import alias `".concat(alias.clone().concat("`")), span_start, span_end)
             } else {
                 if wit_seen_name(seen_packages, package_id.clone()) {
                     scope_error::resolve_duplicate_symbol(ctx, "WIT package `".concat(package_id.clone().concat("`")), span_start, span_end)
                 } else {
-                    if len(alias) > 0 {
+                    if alias.len() > 0 {
                         push(seen_aliases, alias.clone())
                     }
                     push(seen_packages, package_id.clone())
@@ -59,7 +59,7 @@ fn register_wit_module_alias(mut ctx: ResolveCtx, alias: String) {
 }
 
 fn register_one_wit_import(mut ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String, span_start: i32, span_end: i32) {
-    if len(alias) == 0 {
+    if alias.len() == 0 {
         return
     }
     // Reserve the alias before registering exports. This catches collisions with

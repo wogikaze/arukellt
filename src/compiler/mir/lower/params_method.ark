@@ -33,7 +33,7 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
     let local_type_name = param::param_local_type_name(param)
     let mut mir_type_name = p_type_name.clone()
     let mut sig_type_name = p_type_name.clone()
-    if len(local_type_name) > 0 {
+    if local_type_name.len() > 0 {
         // The frontend spells a declared enum parameter as enum:<name> so
         // the enum kind survives call and local typing (ADR-089). It is not
         // a struct layout and must keep its canonical spelling.
@@ -71,7 +71,7 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
                 // separator, not a module qualifier (#860).
                 let bare = mir_method_strip_module_prefix(local_type_name.clone())
                 let named = mir_method_resolve_named_user_type(bare.clone())
-                if len(named) > 0 {
+                if named.len() > 0 {
                     pvt = value_types::VT_GC_REF()
                     mir_type_name = named.clone()
                     sig_type_name = named.clone()
@@ -80,11 +80,11 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
         }
     } else {
         if p_type_name.clone().starts_with("Option:") {
-            mir_type_name = "option:".concat(p_type_name.slice(7, len(p_type_name)))
+            mir_type_name = "option:".concat(p_type_name.slice(7, p_type_name.len()))
             sig_type_name = mir_type_name.clone()
             pvt = value_types::VT_GC_REF()
         } else if p_type_name.clone().starts_with("Result:") {
-            mir_type_name = "result:".concat(p_type_name.slice(7, len(p_type_name)))
+            mir_type_name = "result:".concat(p_type_name.slice(7, p_type_name.len()))
             sig_type_name = mir_type_name.clone()
             pvt = value_types::VT_GC_REF()
         } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, p_type_name.clone()) {
@@ -92,7 +92,7 @@ fn mir_bind_method_param(mut ctx: LowerCtx, struct_name: String, param: CoreHirP
             sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, p_type_name.clone())
         } else {
             let named = mir_method_resolve_named_user_type(p_type_name.clone())
-            if len(named) > 0 {
+            if named.len() > 0 {
                 pvt = value_types::VT_GC_REF()
                 mir_type_name = "?".concat(named.clone())
                 sig_type_name = mir_type_name.clone()
@@ -130,7 +130,7 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
     // type name ("Vec"). Bare "Vec" falls through to string GC type in the
     // emitter and causes ref-vs-ref on `local.set self` (#726 Vec::read).
     let mut self_type_name = struct_name.clone()
-    if len(local_type_name) > 0 {
+    if local_type_name.len() > 0 {
         // A concrete instantiation spelling (GenTakeIter<VecIter>) derives
         // its substituted layout here so the registered-struct check and the
         // signature type name both see the real GC layout, not the impl
@@ -157,7 +157,7 @@ fn mir_bind_method_self_param(mut ctx: LowerCtx, struct_name: String, param: Cor
         // names from param spellings, and a bare Holder drops T so ?T span
         // rewrites cannot concretize inside the body (#874).
         let impl_params = ctx_struct_mono::ctx_generic_struct_params(ctx, struct_name.clone())
-        if len(impl_params) > 0 {
+        if impl_params.len() > 0 {
             self_type_name = struct_name.clone().concat(String_from("<").concat(impl_params.concat(String_from(">"))))
         }
         // Bare Vec / HashMap / HashSet without element annotation → i32 vec.
@@ -238,7 +238,7 @@ fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
     }
     ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, param_mvt)
-    if len(alias) == 0 {
+    if alias.len() == 0 {
         return
     }
     let current = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
@@ -257,7 +257,7 @@ fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
     // Overwriting the local type name here would erase the vars and leave
     // the map empty; ctx_set_func_param_type would also sync the local
     // record, so only the signature record takes the alias (#691).
-    if len(ctx_mono_type_params::ctx_type_var_names_from_local_type(current.clone())) > 0 {
+    if ctx_mono_type_params::ctx_type_var_names_from_local_type(current.clone()).len() > 0 {
         ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
         ctx_api_function_frame::ctx_set_func_param_sig_type(ctx, param_local, mvt_vt, alias.clone())
         return
@@ -268,10 +268,10 @@ fn mir_apply_param_mvt_override(mut ctx: LowerCtx, param_local: i32) {
 }
 
 fn mir_method_param_type_name_is_concrete(type_name: String) -> bool {
-    if len(type_name) == 0 || type_name.clone().starts_with(String_from("?")) {
+    if type_name.len() == 0 || type_name.clone().starts_with(String_from("?")) {
         return false
     }
-    if len(type_name) == 1 {
+    if type_name.len() == 1 {
         let ch = type_name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return false
@@ -282,7 +282,7 @@ fn mir_method_param_type_name_is_concrete(type_name: String) -> bool {
 
 fn mir_method_resolve_named_user_type(bare: String) -> String {
     if !binary_type_names::mir_is_builtin_type_name(bare.clone()) &&
-    len(bare) > 0 &&
+    bare.len() > 0 &&
     mir_method_param_type_name_is_concrete(bare.clone()) {
         return bare
     }
@@ -290,7 +290,7 @@ fn mir_method_resolve_named_user_type(bare: String) -> String {
 }
 
 fn mir_method_strip_module_prefix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {

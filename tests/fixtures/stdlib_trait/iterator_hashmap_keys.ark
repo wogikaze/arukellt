@@ -32,7 +32,7 @@ fn main() {
     let mut key_len_total: i32 = 0
     for key in words {
         word_count = word_count + 1
-        key_len_total = key_len_total + len(key)
+        key_len_total = key_len_total + key.len()
         Test::assert_true(words.contains_key(key))
     }
     Test::assert_eq_i32(word_count, 2)
@@ -55,7 +55,7 @@ fn main() {
     let _ = pairs.insert("k3", "v3")
     let mut pair_len: i32 = 0
     for key in pairs {
-        pair_len = pair_len + len(key)
+        pair_len = pair_len + key.len()
     }
     Test::assert_eq_i32(pair_len, 6)
 

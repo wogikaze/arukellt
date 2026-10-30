@@ -48,7 +48,7 @@ fn type_ann_shape_param_type_name(ty: AstNode) -> String {
         // User-defined generic types keep their argument list so MIR
         // lowering can derive the substituted layout (Pair<String>).
         let generic_name = type_ann_generic_inst_param_name(ty)
-        if len(generic_name) > 0 {
+        if generic_name.len() > 0 {
             return generic_name
         }
     }
@@ -83,7 +83,7 @@ fn type_ann_generic_inst_param_name(ty: AstNode) -> String {
     while i < arg_count {
         let arg_ty = type_ann_node::type_ann_child_at(ty, i)
         let arg_name = type_ann_shape_param_type_name(arg_ty)
-        if len(arg_name) == 0 {
+        if arg_name.len() == 0 {
             return String_new()
         }
         if i > 1 {

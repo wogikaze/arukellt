@@ -38,9 +38,9 @@ pub fn parse_path_suffix(mut p: Parser, lhs: AstNode) -> AstNode {
         type_token_predicates::is_fn_start(peek) ||
         type_token_predicates::is_tuple_start(peek) {
             let type_args = parse_turbofish_type_args(p)
-            if len(type_args) > 0 {
+            if type_args.len() > 0 {
                 let mut k = 0
-                while k < len(type_args) {
+                while k < type_args.len() {
                     core_ast_children::AstNode_push_child(node, get_unchecked(type_args, k))
                     k = k + 1
                 }

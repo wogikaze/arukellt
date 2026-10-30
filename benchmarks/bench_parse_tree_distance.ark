@@ -21,11 +21,11 @@ fn main() {
     match read_result {
         Result::Ok(raw) => {
             let mut pos = 0
-            while pos < len(raw) && is_space(raw.byte_at(pos)) {
+            while pos < raw.len() && is_space(raw.byte_at(pos)) {
                 pos = pos + 1
             }
             let mut n = 0
-            while pos < len(raw) && !is_space(raw.byte_at(pos)) {
+            while pos < raw.len() && !is_space(raw.byte_at(pos)) {
                 n = n * 10 + raw.byte_at(pos) - 48
                 pos = pos + 1
             }
@@ -34,11 +34,11 @@ fn main() {
             while i < n {
                 let mut j = i + 1
                 while j < n {
-                    while pos < len(raw) && is_space(raw.byte_at(pos)) {
+                    while pos < raw.len() && is_space(raw.byte_at(pos)) {
                         pos = pos + 1
                     }
                     let mut value = 0
-                    while pos < len(raw) && !is_space(raw.byte_at(pos)) {
+                    while pos < raw.len() && !is_space(raw.byte_at(pos)) {
                         value = value * 10 + raw.byte_at(pos) - 48
                         pos = pos + 1
                     }
@@ -64,7 +64,7 @@ fn main() {
             push(processed, 0)
             let mut ok = true
             let mut k = 1
-            while ok && k < len(order_keys) {
+            while ok && k < order_keys.len() {
                 let v = get_unchecked(order_keys, k) % base
                 let root_dist = if v == 0 {
                     0
@@ -74,7 +74,7 @@ fn main() {
                 let mut parent = 0
                 let mut best_depth = 0
                 let mut p = 0
-                while p < len(processed) {
+                while p < processed.len() {
                     let u = get_unchecked(processed, p)
                     let u_depth = if u == 0 {
                         0
@@ -109,7 +109,7 @@ fn main() {
                     ok = false
                 } else {
                     p = 0
-                    while ok && p < len(processed) {
+                    while ok && p < processed.len() {
                         let u = get_unchecked(processed, p)
                         let mut a1 = v
                         let mut b1 = u

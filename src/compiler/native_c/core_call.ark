@@ -135,17 +135,17 @@ fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
 
 fn native_c_core_vec_element_type_name(vec_type: String) -> String {
     if vec_type.clone().starts_with(String_from("vec:")) {
-        return vec_type.slice(4, len(vec_type))
+        return vec_type.slice(4, vec_type.len())
     }
     if vec_type.clone().starts_with(String_from("Vec<")) && vec_type.clone().ends_with(String_from(">")) {
-        return vec_type.slice(4, len(vec_type) - 1)
+        return vec_type.slice(4, vec_type.len() - 1)
     }
     String_new()
 }
 
 // Prefer Vec element type over stale VT_I32 on named enum/struct values.
 fn native_c_core_member_for_vec_element(element_type: String) -> String {
-    if len(element_type) == 0 {
+    if element_type.len() == 0 {
         return String_new()
     }
     if abi::native_c_type_name_is_funcref(element_type.clone()) ||
@@ -186,7 +186,7 @@ fn native_c_core_override_member_from_vec_local(
     )
     let element = native_c_core_vec_element_type_name(vec_type)
     let override_member = native_c_core_member_for_vec_element(element)
-    if len(override_member) == 0 {
+    if override_member.len() == 0 {
         return member
     }
     override_member
@@ -275,7 +275,7 @@ fn native_c_core_hashmap_value_expr(function: MirFunction, local_id: i32) -> Str
 }
 
 fn native_c_core_binary_string_call(function_name: String, arguments: Vec<i32>) -> NativeCCoreCall {
-    if len(arguments) != 2 {
+    if arguments.len() != 2 {
         return native_c_core_call_error("compiler ICE: native-cpp String CoreOp argument mismatch")
     }
     native_c_core_call_expression(
@@ -409,12 +409,12 @@ fn native_c_emit_core_call(
     let handler = core_op_call::mir_call_core_op_index(mir_module, instruction)
     if handler < 0 { return native_c_core_call_not_handled() }
     let expected_arguments = native_c_core_expected_argument_count(handler)
-    if expected_arguments >= 0 && len(arguments) != expected_arguments {
+    if expected_arguments >= 0 && arguments.len() != expected_arguments {
         return native_c_core_call_error(
             "compiler ICE: native-cpp CoreOp `".concat(
                 core_op_registry_generated::core_op_registry_canonical_id_at(handler).concat(
                     "` argument count mismatch in function `".concat(
-                        function_identity::MirFunction_name(function).concat("`: expected ".concat((expected_arguments).to_string().concat(", got ".concat((len(arguments)).to_string()))))
+                        function_identity::MirFunction_name(function).concat("`: expected ".concat((expected_arguments).to_string().concat(", got ".concat((arguments.len()).to_string()))))
                     )
                 )
             )
@@ -616,13 +616,13 @@ fn native_c_emit_core_call(
         return native_c_core_call_expression("(ark_object_header *)ark_rt_read_stdin()")
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_write_bytes() {
-        if len(arguments) != 2 { return native_c_core_call_error("compiler ICE: native-cpp write_bytes argument mismatch") }
+        if arguments.len() != 2 { return native_c_core_call_error("compiler ICE: native-cpp write_bytes argument mismatch") }
         return native_c_core_call_expression(
             "ark_rt_write_bytes(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_ref_arg(arguments, 1, "ark_vec").concat(")"))))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_write_string() {
-        if len(arguments) != 2 { return native_c_core_call_error("compiler ICE: native-cpp write_string argument mismatch") }
+        if arguments.len() != 2 { return native_c_core_call_error("compiler ICE: native-cpp write_string argument mismatch") }
         return native_c_core_call_expression(
             "ark_rt_write_string(".concat(native_c_core_ref_arg(arguments, 0, "ark_string").concat(", ".concat(native_c_core_ref_arg(arguments, 1, "ark_string").concat(")"))))
         )
@@ -640,7 +640,7 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_string_concat() {
         let call = native_c_core_binary_string_call("ark_rt_string_concat", arguments)
-        if len(native_c_core_call_diagnostic(call)) > 0 { return call }
+        if native_c_core_call_diagnostic(call).len() > 0 { return call }
         return native_c_core_call_expression("(ark_object_header *)".concat(native_c_core_call_source(call)))
     }
     if handler == core_op_registry_generated::core_op_handler_string_contains() {

@@ -32,7 +32,7 @@ fn read_line(s: String) -> Result<String, String> {
 fn process(s: String) -> Result<i32, AppError> {
     // ? propagates the String error, converting via From<String> for AppError.
     let line: String = read_line(s)?
-    Ok(len(line))
+    Ok(line.len())
 }
 
 fn main() {

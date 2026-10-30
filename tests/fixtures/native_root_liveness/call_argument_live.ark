@@ -1,12 +1,12 @@
 use std::text
 fn consume(value: String) -> i32 {
-    len(value)
+    value.len()
 }
 
 fn main() -> i32 {
     let keep = String_from("keep-arg")
     let arg = String_from("call-arg-").concat(String_from("payload"))
     let n = consume(arg)
-    let keep_len = len(keep)
+    let keep_len = keep.len()
     n + keep_len - n - keep_len
 }

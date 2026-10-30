@@ -5,19 +5,19 @@ use lexer::name_ops
 
 pub fn token_kind_name(kind: i32) -> String {
     let base_name = name_base::token_base_name(kind)
-    if len(base_name) > 0 {
+    if base_name.len() > 0 {
         return base_name
     }
     let keyword_name = name_keywords::token_keyword_name(kind)
-    if len(keyword_name) > 0 {
+    if keyword_name.len() > 0 {
         return keyword_name
     }
     let op_name = name_ops::token_op_name(kind)
-    if len(op_name) > 0 {
+    if op_name.len() > 0 {
         return op_name
     }
     let delim_name = name_delims::token_delim_name(kind)
-    if len(delim_name) > 0 {
+    if delim_name.len() > 0 {
         return delim_name
     }
     "UNKNOWN"

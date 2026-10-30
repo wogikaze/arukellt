@@ -24,7 +24,7 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
         // left from generic T (add_any__f64 must not keep an i64 spine VT).
         let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, name.clone())
         let rtn = mono_return_type_name(ctx, name.clone(), base_rtn)
-        if len(rtn) > 0 &&
+        if rtn.len() > 0 &&
         !mono_suffix_parse::is_mono_type_var_name(rtn.clone()) {
             let resolved_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
             if resolved_vt == value_types::VT_GC_REF() || resolved_vt == value_types::VT_REF() {
@@ -68,7 +68,7 @@ fn mono_return_vt_registry_function_id(ctx: LowerCtx, callee_name: String) -> Fu
     let fid = signature_registry::signature_registry_lookup_by_mangled(registry, callee_name)
     if !function_id::function_id_is_valid(fid) {
         let short_name = short_name_after_last_double_colon(callee_name)
-        if len(short_name) > 0 {
+        if short_name.len() > 0 {
             fid = signature_registry::signature_registry_lookup_by_mangled(registry, short_name)
         }
     }
@@ -79,7 +79,7 @@ fn mono_return_vt_registry_function_id(ctx: LowerCtx, callee_name: String) -> Fu
 }
 
 fn short_name_after_last_double_colon(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut index = name_len - 2
     while index >= 0 {
         if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {
@@ -99,13 +99,13 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
         return spine_name
     }
     let registry_name = mono_return_type_name_from_registry(ctx, name.clone())
-    if len(registry_name) > 0 {
+    if registry_name.len() > 0 {
         return registry_name
     }
     if is_concrete_mono_return_type_name(fallback_name.clone()) {
         return fallback_name
     }
-    if len(fallback_name) > 0 &&
+    if fallback_name.len() > 0 &&
     !mono_suffix_parse::is_mono_type_var_name(fallback_name.clone()) &&
     !fallback_name.clone().starts_with("?") &&
     !is_container_mono_return_type_name(fallback_name.clone()) {
@@ -147,7 +147,7 @@ fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {
 }
 
 fn is_concrete_mono_return_type_name(type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().starts_with("?") {
@@ -186,7 +186,7 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
 }
 
 fn type_name_has_type_var_suffix(type_name: String) -> bool {
-    let n = len(type_name)
+    let n = type_name.len()
     if n == 0 {
         return false
     }

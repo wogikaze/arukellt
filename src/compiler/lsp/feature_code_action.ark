@@ -34,18 +34,18 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
 
 fn build_import_actions_json(state: LspState, uri: String, text: String, name: String) -> String {
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
-    let sn = len(stdlib)
+    let sn = stdlib.len()
     let mut j = 0
     let mut actions = String_new()
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         if symbol_index_record::stdlib_indexed_symbol_name(sym).eq(name.clone()) {
             let module_path = symbol_index_record::stdlib_indexed_symbol_module_path(sym)
-            if len(module_path) > 0 {
+            if module_path.len() > 0 {
                 let import_path = import_graph::stdlib_import_path(module_path.clone(), name.clone())
                 if !import_graph::is_path_imported(text.clone(), import_path.clone()) {
                     let title = String_from("Import '").concat(import_path.clone()).concat(String_from("'"))
-                    if len(actions) > 0 {
+                    if actions.len() > 0 {
                         actions = actions.concat(String_from(","))
                     }
                     actions = actions.concat(build_import_action(title, uri, import_path, text.clone()))
@@ -71,7 +71,7 @@ pub fn handle_code_action(mut state: LspState, body: String) {
         let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
         body_out = body_out.concat(req_id.to_string())
         body_out = body_out.concat(String_from(",\"result\":["))
-        if len(fix_all) > 0 {
+        if fix_all.len() > 0 {
             body_out = body_out.concat(fix_all)
         }
         body_out = body_out.concat(String_from("]}"))
@@ -83,7 +83,7 @@ pub fn handle_code_action(mut state: LspState, body: String) {
         let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
         body_out = body_out.concat(req_id.to_string())
         body_out = body_out.concat(String_from(",\"result\":["))
-        if len(organize) > 0 {
+        if organize.len() > 0 {
             body_out = body_out.concat(organize)
         }
         body_out = body_out.concat(String_from("]}"))

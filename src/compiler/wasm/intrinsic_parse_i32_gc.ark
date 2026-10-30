@@ -192,7 +192,7 @@ fn emit_parse_i32_gc_err(mut w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_res
 
 fn emit_parse_i32_gc_invalid_integer_string(mut w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
     let msg = "parse error: invalid integer"
-    let msg_len = len(msg)
+    let msg_len = msg.len()
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     helpers_numeric_i32::emit_i32_const(w, msg_len)
     writer_gc::emit_gc_array_new_from_widened(w, string_type)

@@ -11,14 +11,14 @@ fn ctx_struct_field_hashmap_alias(type_name: String) -> String {
     !type_name.clone().ends_with(String_from(">")) {
         return type_name
     }
-    let inner = type_name.clone().slice(8, len(type_name) - 1)
+    let inner = type_name.clone().slice(8, type_name.len() - 1)
     let comma = inner.clone().index_of(String_from(","))
     if comma < 0 {
         return type_name
     }
     let key = ctx_struct_trim_type_segment(inner.clone().slice(0, comma))
-    let value = ctx_struct_trim_type_segment(inner.clone().slice(comma + 1, len(inner)))
-    if len(key.clone()) == 0 || len(value.clone()) == 0 {
+    let value = ctx_struct_trim_type_segment(inner.clone().slice(comma + 1, inner.len()))
+    if key.clone().len() == 0 || value.clone().len() == 0 {
         return type_name
     }
     if ctx_struct_is_type_param_segment(key.clone()) || ctx_struct_is_type_param_segment(value.clone()) {
@@ -28,7 +28,7 @@ fn ctx_struct_field_hashmap_alias(type_name: String) -> String {
 }
 
 fn ctx_struct_trim_type_segment(segment: String) -> String {
-    let length = len(segment)
+    let length = segment.len()
     let mut start = 0
     while start < length && segment.clone().byte_at(start) == 32 {
         start = start + 1
@@ -41,7 +41,7 @@ fn ctx_struct_trim_type_segment(segment: String) -> String {
 }
 
 fn ctx_struct_is_type_param_segment(segment: String) -> bool {
-    if len(segment) != 1 {
+    if segment.len() != 1 {
         return false
     }
     let ch = segment.byte_at(0)
@@ -52,13 +52,13 @@ fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32
     let found = ctx_struct_field_hashmap_alias(
         ctx_struct_field_type_name_exact(ctx, struct_name.clone(), field_idx)
     )
-    if len(found) > 0 || ctx_struct_layout_exists(ctx, struct_name.clone()) {
+    if found.len() > 0 || ctx_struct_layout_exists(ctx, struct_name.clone()) {
         return found
     }
     // Match arms may use bare `Table` while layouts are registered as
     // `TomlValue::Table` (#726 toml_full_*).
     let resolved = ctx_resolve_variant_layout_name(ctx, struct_name.clone())
-    if len(resolved) > 0 && !resolved.clone().eq(struct_name.clone()) {
+    if resolved.len() > 0 && !resolved.clone().eq(struct_name.clone()) {
         return ctx_struct_field_hashmap_alias(
             ctx_struct_field_type_name_exact(ctx, resolved, field_idx)
         )
@@ -70,18 +70,18 @@ fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32
 // (Some/Ok/Err) with different payload field types. Prefer the layout whose
 // payload field matches `payload_type_name` instead of the first name hit.
 fn ctx_struct_field_type_name_for_payload(ctx: LowerCtx, struct_name: String, field_idx: i32, payload_type_name: String) -> String {
-    if len(payload_type_name) == 0 {
+    if payload_type_name.len() == 0 {
         return ctx_struct_field_type_name(ctx, struct_name, field_idx)
     }
     let want = ctx_normalize_payload_field_type_name(payload_type_name.clone())
     let found = ctx_struct_field_type_name_exact_for_payload(ctx, struct_name.clone(), field_idx, want.clone())
-    if len(found) > 0 {
+    if found.len() > 0 {
         return found
     }
     let resolved = ctx_resolve_variant_layout_name(ctx, struct_name.clone())
-    if len(resolved) > 0 && !resolved.clone().eq(struct_name.clone()) {
+    if resolved.len() > 0 && !resolved.clone().eq(struct_name.clone()) {
         let resolved_found = ctx_struct_field_type_name_exact_for_payload(ctx, resolved, field_idx, want.clone())
-        if len(resolved_found) > 0 {
+        if resolved_found.len() > 0 {
             return resolved_found
         }
     }
@@ -93,19 +93,19 @@ fn ctx_normalize_payload_field_type_name(type_name: String) -> String {
         return String_from("String")
     }
     if type_name.clone().starts_with(String_from("enum:")) {
-        return type_name.slice(5, len(type_name))
+        return type_name.slice(5, type_name.len())
     }
     if type_name.clone().starts_with(String_from("option:")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name)))
+        return String_from("option:").concat(type_name.slice(7, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("Option_")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name)))
+        return String_from("option:").concat(type_name.slice(7, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("Option:")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name)))
+        return String_from("option:").concat(type_name.slice(7, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("Option<")) && type_name.clone().ends_with(String_from(">")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name) - 1))
+        return String_from("option:").concat(type_name.slice(7, type_name.len() - 1))
     }
     type_name
 }
@@ -133,7 +133,7 @@ fn ctx_generic_field_type_matches(layout_type: String, want_type: String) -> boo
         return true
     }
     if layout_type.clone().starts_with("vec:") && want_type.clone().starts_with("vec:") {
-        let layout_elem = layout_type.clone().slice(4, len(layout_type))
+        let layout_elem = layout_type.clone().slice(4, layout_type.len())
         return is_generic_type_parameter_name(layout_elem.clone())
     }
     false
@@ -141,11 +141,11 @@ fn ctx_generic_field_type_matches(layout_type: String, want_type: String) -> boo
 
 fn is_generic_type_parameter_name(type_name: String) -> bool {
     let bare = if type_name.clone().starts_with("?") {
-        type_name.slice(1, len(type_name))
+        type_name.slice(1, type_name.len())
     } else {
         type_name
     }
-    if len(bare) != 1 {
+    if bare.len() != 1 {
         return false
     }
     let ch = bare.byte_at(0)
@@ -230,7 +230,7 @@ fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> Strin
         let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si2)
         if variant_layout_enum_variant_key(sn.clone()).eq(query_key.clone()) {
             hits2 = hits2 + 1
-            let sn_len = len(sn)
+            let sn_len = sn.len()
             if sn_len > best_len {
                 best_len = sn_len
                 best = sn
@@ -245,7 +245,7 @@ fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> Strin
 }
 
 fn variant_layout_enum_variant_key(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut last_sep = 0 - 1
     let mut prev_sep = 0 - 1
     let mut i = 0
@@ -266,7 +266,7 @@ fn variant_layout_enum_variant_key(name: String) -> String {
 
 fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
     let ft = ctx_struct_field_type_name(ctx, struct_name.clone(), field_idx)
-    if len(ft) == 0 {
+    if ft.len() == 0 {
         return false
     }
     if ft.clone().eq("String") || ft.clone().eq("string") {
@@ -320,13 +320,13 @@ fn field_type_is_container_ref(type_name: String) -> bool {
 }
 
 fn field_type_is_type_param(type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().starts_with(String_from("?")) {
-        return field_type_is_type_param(type_name.slice(1, len(type_name)))
+        return field_type_is_type_param(type_name.slice(1, type_name.len()))
     }
-    if len(type_name) == 1 {
+    if type_name.len() == 1 {
         let ch = type_name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true
@@ -419,19 +419,19 @@ fn ctx_struct_field_is_v128(ctx: LowerCtx, struct_name: String, field_idx: i32) 
 // local type name used by the GC emitter (e.g. Vec<String> -> vec:String).
 fn normalize_gc_field_type_name(type_name: String) -> String {
     if type_name.clone().starts_with(String_from("vec:")) {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         return String_from("vec:").concat(normalize_gc_field_type_name(elem))
     }
     if type_name.clone().starts_with(String_from("Vec<")) &&
     type_name.clone().ends_with(String_from(">")) {
-        let elem = type_name.clone().slice(4, len(type_name) - 1)
+        let elem = type_name.clone().slice(4, type_name.len() - 1)
         if elem.clone().eq(String_from("String")) || elem.clone().eq(String_from("string")) {
             return String_from("vec:String")
         }
         return String_from("vec:").concat(normalize_gc_field_type_name(elem.clone()))
     }
     if type_name.clone().starts_with(String_from("Vec_")) {
-        let elem = type_name.clone().slice(4, len(type_name))
+        let elem = type_name.clone().slice(4, type_name.len())
         if elem.clone().eq(String_from("String")) || elem.clone().eq(String_from("string")) {
             return String_from("vec:String")
         }
@@ -448,7 +448,7 @@ fn normalize_gc_field_type_name(type_name: String) -> String {
 }
 
 fn strip_module_prefix(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut index = name_len - 2
     while index >= 0 {
         if name.byte_at(index) == 58 && name.byte_at(index + 1) == 58 {

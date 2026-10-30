@@ -6,7 +6,7 @@ use lsp::symbol_index_paths
 use loader::load
 use resolver
 fn ark_stem_from_path(path: String) -> String {
-    let n = len(path)
+    let n = path.len()
     let mut last_slash = 0 - 1
     let mut i = n - 1
     while i >= 0 {
@@ -23,7 +23,7 @@ fn ark_stem_from_path(path: String) -> String {
         last_slash + 1
     }
     let name = path.slice(start, n)
-    let nl = len(name)
+    let nl = name.len()
     if nl > 4 && name.clone().slice(nl - 4, nl).eq(".ark") {
         return name.slice(0, nl - 4)
     }
@@ -33,11 +33,11 @@ fn ark_stem_from_path(path: String) -> String {
 fn module_text_for_uri(state: LspState, uri: String) -> String {
     let store = state_record::lsp_state_doc_store(state)
     let from_store = state_docs::lsp_doc_store_lookup_text(store, uri.clone())
-    if len(from_store) > 0 {
+    if from_store.len() > 0 {
         return from_store
     }
     let mut path = symbol_index_paths::uri_to_file_path(uri.clone())
-    if len(path) == 0 {
+    if path.len() == 0 {
         return String_new()
     }
     let read_result = Fs::read_to_string(path)
@@ -54,16 +54,16 @@ fn module_text_for_uri(state: LspState, uri: String) -> String {
 pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<ModuleDecls> {
     let mut out = Vec::new<ModuleDecls>()
     let indexed = state_record::lsp_state_symbol_indexed_uris(state)
-    let n = len(indexed)
+    let n = indexed.len()
     let mut i = 0
     while i < n {
         let uri = get_unchecked(indexed, i)
         if !uri.clone().eq(current_uri.clone()) {
             let text = module_text_for_uri(state, uri.clone())
-            if len(text) > 0 {
+            if text.len() > 0 {
                 let decls = session_parse::session_parse_decls(text.clone())
                 let stem = ark_stem_from_path(symbol_index_paths::uri_to_file_path(uri.clone()))
-                if len(stem) > 0 {
+                if stem.len() > 0 {
                     push(out, resolver::ModuleDecls_new(stem, decls))
                 }
             }
@@ -77,13 +77,13 @@ pub fn build_resolve_modules_with_prelude(state: LspState, current_uri: String) 
     let prelude_modules = load::load_prelude_modules()
     let project_modules = build_resolve_modules(state, current_uri)
     let mut combined = Vec::new<ModuleDecls>()
-    let pn = len(prelude_modules)
+    let pn = prelude_modules.len()
     let mut pi = 0
     while pi < pn {
         push(combined, get_unchecked(prelude_modules, pi))
         pi = pi + 1
     }
-    let mn = len(project_modules)
+    let mn = project_modules.len()
     let mut mi = 0
     while mi < mn {
         push(combined, get_unchecked(project_modules, mi))

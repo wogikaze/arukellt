@@ -16,8 +16,8 @@ fn issue504_parser_self_check() -> String {
     if error_count != 0 {
         return "issue504 parser fail: parse errors=".concat(error_count.to_string())
     }
-    if len(decls) != 2 {
-        return "issue504 parser fail: decl count=".concat(len(decls).to_string())
+    if decls.len() != 2 {
+        return "issue504 parser fail: decl count=".concat(decls.len().to_string())
     }
     let impl_decl = get_unchecked(decls, 0)
     if ast_kind_fields::AstNode_kind(impl_decl) != kinds::NK_IMPL_DECL() {

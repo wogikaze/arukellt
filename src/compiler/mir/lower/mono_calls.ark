@@ -4,7 +4,7 @@ use mir::mono
 use mir::mono_instance_shape
 use mir::type_contracts
 fn mir_register_mono_rewrites(mut ctx: LowerCtx, mono_instances: Vec<MonoInstance>) {
-    let mono_site_count = len(mono_instances)
+    let mono_site_count = mono_instances.len()
     let mut mono_site_i = 0
     while mono_site_i < mono_site_count {
         let site_marker = get_unchecked(mono_instances, mono_site_i)

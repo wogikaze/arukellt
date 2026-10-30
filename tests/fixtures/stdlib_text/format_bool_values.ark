@@ -4,6 +4,6 @@ use std::text
 fn main() {
     Test::assert_eq_string(true.to_string(), "true")
     Test::assert_eq_string(false.to_string(), "false")
-    Test::assert_eq_i32(len(true.to_string()), 4)
-    Test::assert_eq_i32(len(false.to_string()), 5)
+    Test::assert_eq_i32(true.to_string().len(), 4)
+    Test::assert_eq_i32(false.to_string().len(), 5)
 }

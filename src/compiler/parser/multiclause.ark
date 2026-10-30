@@ -10,7 +10,7 @@ fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool, where_bindings: Vec<
     let mut result = multiclause_base::build_multiclause_fn_base(first, is_pub, fn_span, is_async)
     let first_child_count = core_ast_children::AstNode_child_count(first)
     let param_count = first_child_count - 1
-    if len(where_bindings) > 0 {
+    if where_bindings.len() > 0 {
         return multiclause_where::desugar_multiclause_with_where(result, first, clauses, where_bindings, fn_span)
     }
     multiclause_plain::desugar_multiclause_plain(result, clauses, param_count, fn_span)

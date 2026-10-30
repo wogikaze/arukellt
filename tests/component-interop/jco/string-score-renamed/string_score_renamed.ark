@@ -1,7 +1,7 @@
 // Component interop smoke test: string parameter canonical ABI with f64 result is name-independent.
 
 export fn ratio_text(text: String) -> f64 {
-    if len(text) == 0 {
+    if text.len() == 0 {
         return 1.25
     }
     3.75

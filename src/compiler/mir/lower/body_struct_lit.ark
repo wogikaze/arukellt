@@ -17,7 +17,7 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let raw_name = ast_node::node_text(node)
     let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, raw_name.clone())
-    let struct_name = if len(canon) > 0 {
+    let struct_name = if canon.len() > 0 {
         canon
     } else {
         raw_name
@@ -39,7 +39,7 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
     let mut outer_args = Vec::new<String>()
     if ctx_struct_mono::generic_inst_base_name(outer_expected.clone()).eq(struct_name.clone()) {
         outer_args = ctx_struct_mono::generic_inst_args(outer_expected.clone())
-        if len(outer_args) > 0 {
+        if outer_args.len() > 0 {
             outer_params = struct_lit::struct_lit_split_params(
                 ctx_struct_mono::ctx_generic_struct_params(ctx, struct_name.clone())
             )
@@ -58,7 +58,7 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
             if fc >= 1 {
                 let init = ast_node::node_child_at(field, 0)
                 let saved_expected = ctx.expected_struct_inst.clone()
-                if len(outer_params) > 0 && len(outer_params) == len(outer_args) {
+                if outer_params.len() > 0 && outer_params.len() == outer_args.len() {
                     let fi = ctx_struct_lookup::ctx_field_index(ctx, struct_name.clone(), ast_node::node_text(field))
                     if fi >= 0 {
                         let ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, struct_name.clone(), fi)
@@ -67,7 +67,7 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
                             outer_params.clone(),
                             outer_args.clone()
                         )
-                        if len(sub) > 0 {
+                        if sub.len() > 0 {
                             ctx.expected_struct_inst = sub
                         }
                     }
@@ -102,7 +102,7 @@ fn lower_struct_lit_expr(mut ctx: LowerCtx, node: AstNode) -> i32 {
         struct_lit::mir_copy_struct_base_fields(ctx, inst_name.clone(), dest, base_idx)
     }
     let mut emit_i = 0
-    while emit_i < len(field_names) {
+    while emit_i < field_names.len() {
         struct_lit::mir_emit_struct_field_set(
             ctx,
             inst_name.clone(),

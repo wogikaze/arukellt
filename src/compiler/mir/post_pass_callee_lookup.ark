@@ -50,7 +50,7 @@ fn propagate_from_producer_inst(
     }
     if op == opcodes::MIR_STRUCT_NEW() {
         let struct_name = inst_record::mir_inst_str_val(inst)
-        if len(struct_name) > 0 {
+        if struct_name.len() > 0 {
             new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, struct_name, table)
             local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
             updated = true
@@ -65,7 +65,7 @@ fn propagate_from_producer_inst(
         // lowering. A wrong mono name (get_unchecked__String) would otherwise
         // overwrite WitParsedInterface/etc. with string here.
         let skip_ret_sync =
-        (is_get_unchecked_callee(callee.clone()) && len(dst_type_name) > 0) ||
+        (is_get_unchecked_callee(callee.clone()) && dst_type_name.len() > 0) ||
         (is_vec_constructor_callee(callee.clone()) &&
             dst_type_name.clone().starts_with("vec:"))
         if is_vec_constructor_callee(callee.clone()) &&
@@ -86,15 +86,15 @@ fn propagate_from_producer_inst(
         } else {
             if !skip_ret_sync {
                 ret_name = producer_result_type_name(inst, table)
-                if len(ret_name) == 0 {
+                if ret_name.len() == 0 {
                     ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, callee.clone())
                 }
-                if len(ret_name) == 0 {
+                if ret_name.len() == 0 {
                     ret_name = lookup_intrinsic_return_type_name(callee)
                 }
             }
         }
-        if len(ret_name) > 0 {
+        if ret_name.len() > 0 {
             new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, ret_name, table)
             if !post_pass_enum_normalize::is_open_enum_container_type_name(ret_name.clone()) {
                 local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
@@ -199,7 +199,7 @@ fn lookup_intrinsic_return_type_name(callee: String) -> String {
         return "vec:String"
     }
     let base = intrinsic_strip_mono_suffix(callee.clone())
-    if len(base) > 0 && !base.clone().eq(callee.clone()) {
+    if base.len() > 0 && !base.clone().eq(callee.clone()) {
         if is_string_returning_intrinsic(base) {
             return "string"
         }
@@ -349,16 +349,16 @@ fn is_text_free_function_returning_string(name: String) -> bool {
 
 fn is_string_type_method(name: String) -> bool {
     if name.clone().starts_with("String::") {
-        let n = len(name)
-        let prefix_len = len("String::")
+        let n = name.len()
+        let prefix_len = "String::".len()
         let base = name.slice(prefix_len, n)
         if is_common_string_method(base) || is_string_new_like(base) || is_string_from_like(base) || is_to_string_name(base) {
             return true
         }
     }
     if name.clone().starts_with("std::text::String::") {
-        let n = len(name)
-        let prefix_len = len("std::text::String::")
+        let n = name.len()
+        let prefix_len = "std::text::String::".len()
         let base = name.slice(prefix_len, n)
         if is_common_string_method(base) || is_string_new_like(base) || is_string_from_like(base) || is_to_string_name(base) {
             return true
@@ -368,7 +368,7 @@ fn is_string_type_method(name: String) -> bool {
 }
 
 fn strip_module_prefix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut last = 0 - 1
     let mut i = 0
     while i + 1 < n {
@@ -393,9 +393,9 @@ fn is_core_string_impl_returning_string(name: String) -> bool {
     if !name.clone().ends_with("_impl") {
         return false
     }
-    let n = len(name)
-    let prefix_len = len("__core_string_")
-    let suffix_len = len("_impl")
+    let n = name.len()
+    let prefix_len = "__core_string_".len()
+    let suffix_len = "_impl".len()
     let middle_len = n - prefix_len - suffix_len
     if middle_len <= 0 {
         return false
@@ -493,7 +493,7 @@ fn is_hashmap_string_accessor(name: String) -> bool {
 }
 
 fn intrinsic_strip_mono_suffix(name: String) -> String {
-    let name_len = len(name)
+    let name_len = name.len()
     let mut i = 0
     while i < name_len - 1 {
         if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {

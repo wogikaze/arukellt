@@ -42,10 +42,10 @@ fn read_text_position_request(state: LspState, body: String) -> LspTextPositionR
     let line = feature_position::extract_position_field(body.clone(), String_from("line"))
     let character = feature_position::extract_position_field(body.clone(), String_from("character"))
     let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
-    if len(text) == 0 {
+    if text.len() == 0 {
         text = source_text::text_for_uri(state, uri.clone())
     }
-    if len(text) == 0 {
+    if text.len() == 0 {
         return LspTextPositionRequest_new(id, uri, text, 0, false)
     }
     let offset = positions::position_to_offset(text.clone(), line, character)

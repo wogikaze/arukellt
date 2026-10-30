@@ -4,7 +4,7 @@ fn mir_is_string_type_name(type_name: String) -> bool {
 }
 
 fn mir_is_primitive_operator_type(type_name: String) -> bool {
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return true
     }
     if type_name.clone().eq("i32") || type_name.clone().eq("i64") || type_name.clone().eq("f64") {

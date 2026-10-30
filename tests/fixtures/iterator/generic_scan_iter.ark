@@ -2,7 +2,7 @@ use std::core::iter
 use std::host::stdio::Stdio
 use std::text
 fn join_state(state: String, x: String) -> Option<String> {
-    if len(state) > 2 {
+    if state.len() > 2 {
         return None
     }
     Some(state.concat(x))

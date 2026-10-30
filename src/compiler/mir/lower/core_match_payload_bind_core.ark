@@ -40,7 +40,7 @@ fn core_emit_payload_variant_binds(
         payload_hint = core_payload_elem_type_from_scrut(scrut_type.clone(), true)
         // Bare Option / empty scrut: recover fnref from an already-registered
         // Some(_f1_fnref) layout when present (#831).
-        if len(payload_hint) == 0 {
+        if payload_hint.len() == 0 {
             let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, variant_name.clone())
             if slot >= 0 {
                 let sig = get_unchecked(ctx.gc_enum_variant_sigs, slot).clone()
@@ -109,7 +109,7 @@ fn core_emit_payload_variant_binds(
             scrut_type.clone()
         )
         if bind_vt != value_types::VT_FUNCREF() && bind_is_ref {
-            if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
+            if ctx_api_local_types::ctx_get_local_type(ctx, bind_local).len() == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "enum:open")
             }
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
@@ -122,7 +122,7 @@ fn core_emit_payload_variant_binds(
         core_match_payload_bind_types::set_narrow_int_payload_bind_type_if_needed(ctx, variant_name.clone(), bind_local, bind_vt, bi)
         if bind_vt == value_types::VT_GC_REF() && scrut_ok_is_ref && bi == 0 {
             if core_match_payload_bind_types::core_match_variant_is_some_or_ok(variant_name.clone()) {
-                if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
+                if ctx_api_local_types::ctx_get_local_type(ctx, bind_local).len() == 0 {
                     ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "string")
                 }
             }
@@ -190,7 +190,7 @@ fn core_subpat_load_field(
         scrut_type.clone()
     )
     if bind_vt != value_types::VT_FUNCREF() && bind_is_ref {
-        if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
+        if ctx_api_local_types::ctx_get_local_type(ctx, temp).len() == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, temp, "enum:open")
         }
         ctx_api_local_types::ctx_set_local_vt(ctx, temp, value_types::VT_GC_REF())
@@ -202,7 +202,7 @@ fn core_subpat_load_field(
     }
     if bind_vt == value_types::VT_GC_REF() && scrut_ok_is_ref && field_idx == 0 {
         if core_match_payload_bind_types::core_match_variant_is_some_or_ok(variant_name.clone()) {
-            if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
+            if ctx_api_local_types::ctx_get_local_type(ctx, temp).len() == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, temp, "string")
             }
         }
@@ -213,12 +213,12 @@ fn core_subpat_load_field(
     // Declared-field types keep the nested value's own type name (an enum
     // or tuple payload) so deeper tag/payload reads resolve layouts the
     // Option/Result inference would not see (#902).
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, temp)) == 0 {
+    if ctx_api_local_types::ctx_get_local_type(ctx, temp).len() == 0 {
         let declared = ctx_mono_type_params::ctx_resolve_mono_type_name(
             ctx,
             ctx_struct_field_type::ctx_struct_field_type_name(ctx, variant_name.clone(), field_idx + 1)
         )
-        if len(declared) > 0 {
+        if declared.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, temp, declared)
         }
     }
@@ -240,7 +240,7 @@ fn core_emit_subpat_binds(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreH
         let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
         let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, name.clone(), bind_vt)
         let val_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if len(val_type) > 0 {
+        if val_type.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, val_type.clone())
         }
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(val_idx))
@@ -302,17 +302,17 @@ fn core_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) ->
         // Option_Vec / option:Vec binds resolve get/push (not bare Vec).
         if scrut_type.clone().starts_with("option:") {
             return core_match_payload_type_extract::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type))
+                scrut_type.slice(7, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with("Option_") {
             return core_match_payload_type_extract::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type))
+                scrut_type.slice(7, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with("Option:") {
             return core_match_payload_type_extract::normalize_payload_elem_type_name(
-                scrut_type.slice(7, len(scrut_type))
+                scrut_type.slice(7, scrut_type.len())
             )
         }
         if scrut_type.clone().starts_with("Result_") || scrut_type.clone().starts_with("result:") {
@@ -347,7 +347,7 @@ fn core_infer_payload_set_type(mut ctx: LowerCtx, elem_ty: String) -> String {
                 // Some-bind local type (#890 Option<(A, B)>).
                 aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(
                     ctx,
-                    elem_ty.clone().slice(6, len(elem_ty))
+                    elem_ty.clone().slice(6, elem_ty.len())
                 )
                 return set_type
             }
@@ -393,12 +393,12 @@ fn core_infer_payload_bind_type(mut ctx: LowerCtx, variant_name: String, bind_lo
     // variants, so that non-String Err payloads (e.g. AppError)
     // get the correct type.
     let current_type = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if !(len(current_type) == 0 || current_type.eq("enum:open") || current_type.starts_with("enum:") || (is_err && current_type.eq("string"))) {
+    if !(current_type.len() == 0 || current_type.eq("enum:open") || current_type.starts_with("enum:") || (is_err && current_type.eq("string"))) {
         return
     }
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
     let elem_ty = core_payload_elem_type_from_scrut(scrut_type, is_some_or_ok)
-    if len(elem_ty) == 0 {
+    if elem_ty.len() == 0 {
         return
     }
     let mut set_type = core_infer_payload_set_type(ctx, elem_ty.clone())

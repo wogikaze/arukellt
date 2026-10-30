@@ -5,7 +5,7 @@ use lsp::state_record
 /// Processes framed LSP input until exit or an incomplete frame and returns accumulated output.
 pub fn run_session(input: String) -> String {
     let mut state = state_record::LspState_new()
-    let n = len(input)
+    let n = input.len()
     let mut pos = 0
     while pos < n {
         let f = framing::parse_frame(input.clone(), pos)

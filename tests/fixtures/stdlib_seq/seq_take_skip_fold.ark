@@ -17,11 +17,11 @@ fn main() {
     push(v, 4)
     push(v, 5)
     let taken: Vec<i32> = v.iter().take(3).collect()
-    Stdio::println((len(taken)).to_string())
+    Stdio::println((taken.len()).to_string())
     Stdio::println((get_unchecked(taken, 0)).to_string())
     Stdio::println((get_unchecked(taken, 2)).to_string())
     let skipped: Vec<i32> = v.iter().skip(2).collect()
-    Stdio::println((len(skipped)).to_string())
+    Stdio::println((skipped.len()).to_string())
     Stdio::println((get_unchecked(skipped, 0)).to_string())
     Stdio::println((get_unchecked(skipped, 2)).to_string())
     let total: i32 = v.iter().fold(0, add)
@@ -29,9 +29,9 @@ fn main() {
     let product: i32 = v.iter().fold(1, mul)
     Stdio::println((product).to_string())
     let all: Vec<i32> = v.iter().take(100).collect()
-    Stdio::println((len(all)).to_string())
+    Stdio::println((all.len()).to_string())
     let empty: Vec<i32> = v.iter().skip(100).collect()
-    Stdio::println((len(empty)).to_string())
+    Stdio::println((empty.len()).to_string())
 }
 // take: first 3 elements
 // skip: skip first 2 elements

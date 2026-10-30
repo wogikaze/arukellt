@@ -10,7 +10,7 @@ use mir::lower::method_resolve
 use std::text
 fn mir_for_into_iterator_owner(source_type: String) -> String {
     let normalized = method_resolve::mir_normalize_type_name(source_type.clone())
-    if len(normalized) == 0 || normalized.byte_at(0) == 63 {
+    if normalized.len() == 0 || normalized.byte_at(0) == 63 {
         return String_from("")
     }
     if loop_vec::mir_is_vec_type_name(source_type.clone()) {
@@ -24,7 +24,7 @@ fn mir_for_into_iterator_owner(source_type: String) -> String {
         return String_from("")
     }
     let hashmap_owner = method_resolve::mir_hashmap_impl_owner_name(normalized.clone())
-    if len(hashmap_owner) > 0 {
+    if hashmap_owner.len() > 0 {
         return hashmap_owner
     }
     // Concrete generic sources (GenTakeIter<VecIter>) own their IntoIterator
@@ -34,7 +34,7 @@ fn mir_for_into_iterator_owner(source_type: String) -> String {
 
 fn mir_for_into_iterator_type(mut ctx: LowerCtx, span_start: i32, source_type: String) -> String {
     let callee = mir_for_into_iterator_callee(ctx, span_start, source_type)
-    if len(callee) == 0 {
+    if callee.len() == 0 {
         return String_from("")
     }
     ctx_fn_return_type::ctx_fn_return_type_name(ctx, callee)
@@ -47,18 +47,18 @@ fn mir_for_into_iterator_type(mut ctx: LowerCtx, span_start: i32, source_type: S
 // both exist because it is the more specific impl.
 fn mir_for_into_iterator_callee(mut ctx: LowerCtx, span_start: i32, source_type: String) -> String {
     let owner = mir_for_into_iterator_owner(source_type.clone())
-    if len(owner) > 0 {
+    if owner.len() > 0 {
         let resolved = mir_for_desugar_callee(
             ctx,
             span_start,
             owner.clone().concat("::into_iter")
         )
-        if len(resolved) > 0 {
+        if resolved.len() > 0 {
             return resolved
         }
     }
     let bare = method_resolve::mir_bare_owner_name(source_type)
-    if len(bare) == 0 || bare.clone().eq(owner.clone()) {
+    if bare.len() == 0 || bare.clone().eq(owner.clone()) {
         return String_new()
     }
     mir_for_desugar_callee(ctx, span_start, bare.concat("::into_iter"))
@@ -69,7 +69,7 @@ fn mir_for_into_iterator_callee(mut ctx: LowerCtx, span_start: i32, source_type:
 fn mir_for_next_callee(mut ctx: LowerCtx, span_start: i32, iterator_type: String) -> String {
     let inst_next = method_resolve::mir_inst_owner_name(iterator_type.clone()).concat("::next")
     let resolved = mir_for_desugar_callee(ctx, span_start, inst_next.clone())
-    if len(resolved) > 0 {
+    if resolved.len() > 0 {
         return resolved
     }
     let bare_next = method_resolve::mir_bare_owner_name(iterator_type).concat("::next")
@@ -86,7 +86,7 @@ fn mir_for_next_callee(mut ctx: LowerCtx, span_start: i32, iterator_type: String
 // name rewrite for the declared callee.
 fn mir_for_desugar_callee(mut ctx: LowerCtx, span_start: i32, declared: String) -> String {
     let span_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, declared.clone())
-    if len(span_target) > 0 {
+    if span_target.len() > 0 {
         return span_target
     }
     if ctx_fn_exists::ctx_has_fn_name(ctx, declared.clone()) {
@@ -96,11 +96,11 @@ fn mir_for_desugar_callee(mut ctx: LowerCtx, span_start: i32, declared: String) 
     // propagated parametric instance (Take__next__VecIter) by argument
     // segments; the instantiation-blind name pool only runs after that.
     let parametric_target = method_resolve::mir_parametric_impl_callee(ctx, declared.clone())
-    if len(parametric_target) > 0 {
+    if parametric_target.len() > 0 {
         return parametric_target
     }
     let name_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, declared.clone())
-    if len(name_target) > 0 {
+    if name_target.len() > 0 {
         return name_target
     }
     String_new()

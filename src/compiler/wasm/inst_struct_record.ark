@@ -55,17 +55,17 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
         return field_idx == 0 || field_idx == 1
     }
     let user_sig = user_gc_struct_field_sig(ctx, type_idx, field_idx)
-    if len(user_sig) > 0 {
+    if user_sig.len() > 0 {
         return gc_struct_field_sig_is_i32_scalar(user_sig)
     }
     let variant_types = module_gc_enum::MirModule_gc_enum_variant_canon_idxs(ctx.mir)
     let variant_sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
-    let count = len(variant_types)
+    let count = variant_types.len()
     let mut variant_id = 0
     while variant_id < count {
-        if get_unchecked(variant_types, variant_id) == type_idx && variant_id < len(variant_sigs) {
+        if get_unchecked(variant_types, variant_id) == type_idx && variant_id < variant_sigs.len() {
             let fields = sections_types_gc::struct_field_sigs(get_unchecked(variant_sigs, variant_id))
-            if field_idx >= 0 && field_idx < len(fields) {
+            if field_idx >= 0 && field_idx < fields.len() {
                 return get_unchecked(fields, field_idx).eq(String_from("i32"))
             }
             return false
@@ -81,10 +81,10 @@ fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> 
     let map = module_gc_struct::MirModule_gc_struct_canon_idxs(ctx.mir)
     let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
     let mut i = 0
-    while i < len(map) {
-        if get_unchecked(map, i) == type_idx && i < len(sigs) {
+    while i < map.len() {
+        if get_unchecked(map, i) == type_idx && i < sigs.len() {
             let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
-            if field_idx >= 0 && field_idx < len(fields) {
+            if field_idx >= 0 && field_idx < fields.len() {
                 return get_unchecked(fields, field_idx)
             }
             return String_new()
@@ -109,7 +109,7 @@ fn struct_get_base_is_stack_composed(inst: MirInst, prev_arg0: i32) -> bool {
 // (reused i64 scratches would otherwise widen String/ref fields).
 fn memory64_gc_struct_get_uses_i32(w: WasmWriter, ctx: SelfEmitCtx, type_idx: i32, field_idx: i32, val_type: i32, dest: i32) -> bool {
     let user_sig = user_gc_struct_field_sig(ctx, type_idx, field_idx)
-    if len(user_sig) > 0 {
+    if user_sig.len() > 0 {
         return gc_struct_field_sig_is_i32_scalar(user_sig)
     }
     fixed_gc_struct_field_is_i32(ctx, type_idx, field_idx) ||
@@ -120,7 +120,7 @@ fn emit_struct_new(mut w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: 
     let dest = inst_accessors_operands::MirInst_dest(inst)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-        let gc_type_idx = if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+        let gc_type_idx = if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
             ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
         } else {
             ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
@@ -314,7 +314,7 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         }
     }
     let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-    if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+    if struct_name.len() > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name.clone())
     }
     let size_hint_val = size_hint
@@ -343,15 +343,15 @@ fn gc_struct_type_from_local_name(f: MirFunction, local_idx: i32, ctx: SelfEmitC
         return 0 - 1
     }
     let struct_name = gc_struct_name_without_size(type_name.clone())
-    if len(struct_name) == 0 || !ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
+    if struct_name.len() == 0 || !ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, struct_name.clone()) {
         return 0 - 1
     }
     ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name)
 }
 
 fn gc_struct_name_without_size(type_name: String) -> String {
-    let body = type_name.slice(7, len(type_name))
-    let n = len(body)
+    let body = type_name.slice(7, type_name.len())
+    let n = body.len()
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {

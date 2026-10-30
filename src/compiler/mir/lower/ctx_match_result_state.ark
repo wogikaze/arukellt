@@ -7,7 +7,7 @@ fn ctx_match_result_state_has_nonterminating_arm() -> i32 { 2 }
 fn ctx_match_result_state_has_value() -> i32 { 3 }
 
 fn ctx_match_result_state_get(ctx: LowerCtx, result: i32) -> i32 {
-    let mut i = len(ctx.match_result_indices) - 1
+    let mut i = ctx.match_result_indices.len() - 1
     while i >= 0 {
         if get_unchecked(ctx.match_result_indices, i) == result {
             return get_unchecked(ctx.match_result_states, i)

@@ -47,7 +47,7 @@ fn mir_emit_struct_field_bind(mut ctx: LowerCtx, struct_name: String, field_pat:
     }
     let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, bind_name.clone(), bind_vt)
     let ft = ctx_struct_lookup::ctx_get_field_type(ctx, struct_name.clone(), field_name.clone())
-    if len(ft) > 0 {
+    if ft.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ft))
     }
     let field_off = ctx_struct_layout::ctx_struct_field_offset(ctx, struct_name.clone(), field_idx)

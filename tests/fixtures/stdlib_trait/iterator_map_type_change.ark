@@ -11,11 +11,11 @@ fn itos(value: i32) -> String {
 }
 
 fn slen(value: String) -> i32 {
-    len(value)
+    value.len()
 }
 
 fn non_empty(value: String) -> bool {
-    len(value) > 0
+    value.len() > 0
 }
 
 fn same(value: String) -> String {
@@ -28,7 +28,7 @@ fn main() {
     push(v, 7)
     push(v, 42)
     let strings = v.iter().map(itos).collect()
-    Test::assert_eq_i32(len(strings), 2)
+    Test::assert_eq_i32(strings.len(), 2)
     Test::assert_eq_string(get_unchecked(strings, 0), "n7")
     Test::assert_eq_string(get_unchecked(strings, 1), "n42")
 
@@ -37,19 +37,19 @@ fn main() {
     push(w, String_from("ab"))
     push(w, String_from("cdef"))
     let lengths = w.iter().map(slen).collect()
-    Test::assert_eq_i32(len(lengths), 2)
+    Test::assert_eq_i32(lengths.len(), 2)
     Test::assert_eq_i32(get_unchecked(lengths, 0), 2)
     Test::assert_eq_i32(get_unchecked(lengths, 1), 4)
 
     // filter-then-map also carries a method-level item type parameter.
     let filtered = w.iter().filter(non_empty).map(slen).collect()
-    Test::assert_eq_i32(len(filtered), 2)
+    Test::assert_eq_i32(filtered.len(), 2)
     Test::assert_eq_i32(get_unchecked(filtered, 1), 4)
 
     // T -> T still works through the renamed FilterMapIter<T, U> impl,
     // including the Vec<String> from_iter path.
     let copied: Vec<String> = Vec::from_iter(w.iter().filter(non_empty).map(same))
-    Test::assert_eq_i32(len(copied), 2)
+    Test::assert_eq_i32(copied.len(), 2)
     Test::assert_eq_string(get_unchecked(copied, 1), "cdef")
 
     Stdio::println(get_unchecked(strings, 0))

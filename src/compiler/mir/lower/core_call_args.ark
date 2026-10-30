@@ -35,7 +35,7 @@ fn mir_core_stage_call_arg(mut ctx: LowerCtx, mut staged_arg_locals: Vec<i32>, a
     let staged_vt = mir_core_stage_call_arg_vt(ctx, arg_idx)
     let staged_local = ctx_api_local_alloc::ctx_fresh_local(ctx, staged_vt)
     let staged_type = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-    if len(staged_type) > 0 {
+    if staged_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, staged_local, staged_type)
     }
     ctx_api_local_types::ctx_set_local_mvt(

@@ -30,11 +30,11 @@ pub fn resolved_signature_params(sig: ResolvedSignature) -> Vec<String> {
 
 fn split_param_list(inner: String) -> Vec<String> {
     let mut out = Vec::new<String>()
-    if len(inner) == 0 {
+    if inner.len() == 0 {
         return out
     }
     let mut start = 0
-    let n = len(inner)
+    let n = inner.len()
     let mut depth = 0
     let mut i = 0
     while i < n {
@@ -64,7 +64,7 @@ fn params_from_detail(detail: String) -> Vec<String> {
     if open < 0 {
         return Vec::new<String>()
     }
-    let close = detail.slice(open + 1, len(detail)).index_of(")")
+    let close = detail.slice(open + 1, detail.len()).index_of(")")
     if close < 0 {
         return Vec::new<String>()
     }
@@ -87,7 +87,7 @@ pub fn resolve_signature_for_name(state: LspState, name: String) -> ResolvedSign
         return resolve_from_index_def(def)
     }
     let symbols = state_record::lsp_state_symbol_symbols(state)
-    let n = len(symbols)
+    let n = symbols.len()
     let mut i = 0
     while i < n {
         let sym = get_unchecked(symbols, i)

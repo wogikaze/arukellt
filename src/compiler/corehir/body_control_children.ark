@@ -2,7 +2,7 @@ use corehir::expr_node_access
 use corehir::expr_predicates
 
 fn corehir_build_children(mut table: CoreHirBodyTable, nodes: Vec<AstNode>, mut children: Vec<i32>) -> bool {
-    let child_count = len(nodes)
+    let child_count = nodes.len()
     let mut i = 0
     let mut unsupported = false
     while i < child_count {

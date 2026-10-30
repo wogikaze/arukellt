@@ -9,5 +9,5 @@ fn main() {
         i = i + 1
     }
     let r = parts.join(String_from("-"))
-    Test::assert_eq_i32(len(r), 49)
+    Test::assert_eq_i32(r.len(), 49)
 }

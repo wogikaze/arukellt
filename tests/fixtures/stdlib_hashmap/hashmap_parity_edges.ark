@@ -33,7 +33,7 @@ test "zero_and_boundary_values_round_trip" {
     Test::assert_true(m.contains_key(5))
 
     let entry_pairs: Vec<(i32, i32)> = m.entries()
-    Test::assert_eq_i32(len(entry_pairs), 2)
+    Test::assert_eq_i32(entry_pairs.len(), 2)
     match m.remove_entry(3) {
         Option::Some((k, v)) => {
             Test::assert_eq_i32(k, 3)
@@ -44,7 +44,7 @@ test "zero_and_boundary_values_round_trip" {
     assert_none(m.get(3))
 
     let drained: Vec<(i32, i32)> = m.drain()
-    Test::assert_eq_i32(len(drained), 1)
+    Test::assert_eq_i32(drained.len(), 1)
     Test::assert_true(m.is_empty())
 
     let mut s: HashSet<String> = HashSet::new<String>()

@@ -7,5 +7,5 @@ fn main() {
     let v1 = Vec::new<i32>()
     let v2 = v1
     push(v1, 1)
-    Stdio::println(len(v2))
+    Stdio::println(v2.len())
 }

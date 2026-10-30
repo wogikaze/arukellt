@@ -39,7 +39,7 @@ fn ctx_register_fn_signature(mut ctx: LowerCtx, name: String, return_vt: i32, re
     push(ret_names, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, return_type_name.clone()))
     // The seeded cache index is not rebuilt on growth; register the new
     // name so tier-2 lookups find it too.
-    name_index::name_index_insert_first(ctx.prop_cache.disc_names, name.clone(), len(names) - 1)
+    name_index::name_index_insert_first(ctx.prop_cache.disc_names, name.clone(), names.len() - 1)
 }
 
 fn ctx_mono_lookup_call(mut ctx: LowerCtx, span_start: i32, source: String) -> String {
@@ -81,7 +81,7 @@ fn ctx_mono_concretize_span_target(ctx: LowerCtx, target: String) -> String {
         return target
     }
     let resolved = ctx_mono_substitute_span_vars(ctx, target.clone())
-    if len(resolved) > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, resolved.clone()) {
+    if resolved.len() > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, resolved.clone()) {
         return resolved
     }
     String_new()
@@ -91,7 +91,7 @@ fn ctx_mono_substitute_span_vars(ctx: LowerCtx, target: String) -> String {
     if !ctx_mono_type_params::ctx_has_mono_type_params(ctx) {
         return String_new()
     }
-    let count = len(ctx.mono_type_param_names)
+    let count = ctx.mono_type_param_names.len()
     let mut out = target.clone()
     let mut i = 0
     while i < count {
@@ -114,8 +114,8 @@ fn ctx_mono_substitute_span_vars(ctx: LowerCtx, target: String) -> String {
 // `__` separator) so `?I` does not rewrite inside `?Item` or inside a
 // nested argument's mapped underscores.
 fn ctx_mono_replace_var_token(target: String, token: String, replacement: String) -> String {
-    let tlen = len(token)
-    let n = len(target)
+    let tlen = token.len()
+    let n = target.len()
     if tlen == 0 || tlen > n {
         return target
     }
@@ -187,10 +187,10 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         !mono_source_owner_matches(source.clone(), String_new()) {
             return false
         }
-        let rest = target.slice(len(prefix), len(target))
+        let rest = target.slice(prefix.len(), target.len())
         // Reject opaque numeric stubs like eq__1; accept type keys
         // such as eq__Person / pair_first__i32__String.
-        if len(rest) == 0 {
+        if rest.len() == 0 {
             return false
         }
         let first = rest.byte_at(0)
@@ -239,7 +239,7 @@ fn mono_source_owner_matches(source: String, target_owner: String) -> bool {
 // Constructor base of a per-instantiation owner spelling
 // (Take_VecIter -> Take, HashMap_i32_String -> HashMap).
 fn mono_owner_inst_base(owner: String) -> String {
-    let n = len(owner)
+    let n = owner.len()
     let mut i = 0
     while i < n {
         if owner.clone().byte_at(i) == 95 {

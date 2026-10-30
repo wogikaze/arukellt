@@ -68,7 +68,7 @@ pub fn cmd_fmt(opts: CliOptions) {
     let count = args_record::cli_fmt_input_count(opts)
     if count == 0 {
         let single = args_record::cli_input_file(opts)
-        if len(single) == 0 {
+        if single.len() == 0 {
             Stdio::eprintln("usage: arukellt fmt <file.ark>... [--check] [--fix]")
             Process::exit(2)
             return

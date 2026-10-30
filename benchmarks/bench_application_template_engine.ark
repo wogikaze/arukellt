@@ -16,7 +16,7 @@ fn expand(s: String, ctx: HashMap<String, String>) -> String {
         } else {
             let prefix: String = s.slice(0, start)
             let var_name: String = s.slice(start + 1, end)
-            let suffix: String = s.slice(end + 1, len(s))
+            let suffix: String = s.slice(end + 1, s.len())
             match ctx.get(var_name) {
                 Option::Some(val) => {
                     let expanded_val: String = expand(val, ctx)

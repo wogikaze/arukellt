@@ -85,7 +85,7 @@ fn try_payload_or_unknown(operand_ty: TypeInfo) -> TypeInfo {
 
 fn count_from_impls(env: TypeEnv, source_ty: TypeInfo, target_ty: TypeInfo) -> i32 {
     let mut matches = 0
-    let count = len(env.trait_impls)
+    let count = env.trait_impls.len()
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
@@ -108,7 +108,7 @@ fn from_impl_matches(impl_info: TraitImplInfo, source_ty: TypeInfo, target_ty: T
         return false
     }
     let args = contract_trait_impl_record::trait_impl_info_trait_args(impl_info)
-    len(args) == 1 && same_try_type(get_unchecked(args, 0), source_ty)
+    args.len() == 1 && same_try_type(get_unchecked(args, 0), source_ty)
 }
 
 fn same_try_type(left: TypeInfo, right: TypeInfo) -> bool {

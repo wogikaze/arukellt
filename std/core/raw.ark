@@ -17,7 +17,7 @@ fn raw_array_new<T>(cap: i32) -> Vec<T> {
 }
 
 fn raw_array_len<T>(values: Vec<T>) -> i32 {
-    len(values)
+    values.len()
 }
 
 fn raw_array_get_unchecked<T>(values: Vec<T>, index: i32) -> T {
@@ -48,7 +48,7 @@ fn raw_string_from_bytes(bytes: Vec<i32>) -> String {
 }
 
 fn raw_string_len_bytes(text: String) -> i32 {
-    len(text)
+    text.len()
 }
 
 fn raw_string_byte_at_unchecked(text: String, index: i32) -> i32 {
@@ -226,11 +226,11 @@ test mod "raw_storage" {
     test "array_primitives" {
         let mut values: Vec<i32> = RawArray::new<i32>(2)
         push(values, 11)
-        assert(RawArray::len(values) == 1)
+        assert(RawArray::values.len() == 1)
         assert(RawArray::get_unchecked(values, 0) == 11)
         RawArray::set_unchecked(values, 0, 17)
         let mut grown: Vec<i32> = RawArray::grow(values, 8)
-        assert(RawArray::len(grown) == 8)
+        assert(RawArray::grown.len() == 8)
         assert(RawArray::get_unchecked(grown, 0) == 17)
         RawArray::set_unchecked(grown, 7, 23)
         assert(RawArray::get_unchecked(grown, 7) == 23)

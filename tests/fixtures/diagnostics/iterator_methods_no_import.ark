@@ -7,5 +7,5 @@ fn main() {
     push(values, 1)
     push(values, 2)
     let mapped = values.iter().map(double).collect()
-    assert(len(mapped) == 2)
+    assert(mapped.len() == 2)
 }

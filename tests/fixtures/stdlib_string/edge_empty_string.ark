@@ -4,7 +4,7 @@ use std::text
 
 fn main() {
     let s = String_from("")
-    Test::assert_eq_i32(len(s), 0)
+    Test::assert_eq_i32(s.len(), 0)
     Test::assert_true(s.is_empty())
     Test::assert_true(s.eq(s.clone()))
     Test::assert_eq_string(s.concat(s), "")

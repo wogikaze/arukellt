@@ -26,7 +26,7 @@ fn try_lower_overloaded_binary(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         return 0 - 1
     }
     let ov_method = binary_method::mir_operator_method_name(mir_op)
-    if len(ov_method) <= 0 {
+    if ov_method.len() <= 0 {
         return 0 - 1
     }
     let ov_callee = ov_ltype.clone().concat("::".concat(ov_method.clone()))

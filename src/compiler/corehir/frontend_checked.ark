@@ -26,7 +26,7 @@ fn build_checked_program_from_bundle_mode(bundle: FrontendBundle, include_bodies
         frontend_bundle::bundle_module_names(bundle),
         frontend_bundle::bundle_module_decl_counts(bundle),
         frontend_bundle::bundle_module_stdlib_flags(bundle),
-        len(decls)
+        decls.len()
     )
     // Checker resolutions are body-independent: the wasm32-gc path lowers
     // bodies from the AST fallback and does not build the CoreHIR body

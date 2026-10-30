@@ -5,7 +5,7 @@ use std::text
 
 fn main() {
     let values = Env::args()
-    let n = len(values)
+    let n = values.len()
     if n >= 2 {
         Stdio::println(String_from("hello=").concat(get_unchecked(values, 1)))
         Process::exit(0)

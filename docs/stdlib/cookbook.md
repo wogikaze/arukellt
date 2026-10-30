@@ -45,7 +45,7 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    Test::assert_eq_i32(len(v), 3)
+    Test::assert_eq_i32(v.len(), 3)
 }
 ```
 
@@ -87,7 +87,7 @@ fn main() {
         Option::Some(val) => Test::assert_eq_i32(val, 20),
         None => Std::panic("expected Some, got None"),
     }
-    Test::assert_eq_i32(len(v), 1)
+    Test::assert_eq_i32(v.len(), 1)
 }
 ```
 
@@ -195,7 +195,7 @@ fn main() {
     Stdio::println((v.iter().sum()).to_string())  // 100
 
     v.drain(1, 2)                              // removes element at index 1
-    Stdio::println(len(v).to_string())      // 3
+    Stdio::println(v.len().to_string())      // 3
 }
 ```
 
@@ -249,11 +249,11 @@ fn main() {
 use std::test::Test
 fn main() {
     let s: String = String_new()
-    Test::assert_true(is_empty(s))
-    Test::assert_eq_i32(len(s), 0)
+    Test::assert_eq_i32(s.len(), 0)
+    Test::assert_true(s.is_empty())
 
     let hello: String = String_from("hello")
-    Test::assert_eq_i32(len(hello), 5)
+    Test::assert_eq_i32(hello.len(), 5)
 }
 ```
 
@@ -305,12 +305,12 @@ fn main() {
 use std::test::Test
 fn main() {
     let s: String = String_from("hello world")
-    let sub: String = slice(s, 0, 5)
+    let sub: String = s.slice(0, 5)
     Test::assert_eq_string(sub, "hello")
 
-    let parts: Vec<String> = split(String_from("a,b,c"), String_from(","))
-    Test::assert_eq_i32(len(parts), 3)
-    let joined: String = join(parts, String_from("-"))
+    let parts: Vec<String> = s.split(String_from(","))
+    Test::assert_eq_i32(parts.len(), 3)
+    let joined: String = parts.join(String_from("-"))
     Test::assert_eq_string(joined, "a-b-c")
 }
 ```
@@ -690,7 +690,7 @@ use std::host::env::Env
 use std::host::stdio::Stdio
 fn main() {
     let values = Env::args()
-    Stdio::println((len(values)).to_string())
+    Stdio::println(values.len().to_string())
     Stdio::println((Env::arg_count()).to_string())
 }
 ```
@@ -705,7 +705,7 @@ use std::host::env::Env
 use std::host::stdio::Stdio
 fn main() {
     let values = Env::args()
-    Stdio::println((len(values)).to_string())
+    Stdio::println(values.len().to_string())
     match Env::var("HOME") {
         Option::Some(value) => Stdio::println(value),
         Option::None => Stdio::println("HOME not set"),
@@ -769,7 +769,7 @@ fn count_words(s: String) -> i32 {
     let words: Vec<String> = split(s, String_from(" "))
     let mut count: i32 = 0
     let mut i: i32 = 0
-    while i < len(words) {
+    while i < words.len() {
         let word: String = get_unchecked(words, i)
         if !is_empty(word) {
             count = count + 1
@@ -811,7 +811,7 @@ fn main() {
 
     let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
-    while i < len(v) {
+    while i < v.len() {
         push(parts, get_unchecked(v, i).to_string())
         i = i + 1
     }

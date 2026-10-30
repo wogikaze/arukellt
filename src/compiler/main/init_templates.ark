@@ -24,7 +24,7 @@ pub fn init_template_is_valid(name: String) -> bool {
 }
 
 pub fn init_template_normalize(name: String) -> String {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return "minimal"
     }
     name.clone()

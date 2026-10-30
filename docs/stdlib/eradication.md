@@ -15,20 +15,20 @@ the sole exception is non-public `__intrinsic_*` bridges (`intrinsic-only`).
 Policy: [#709](../../issues/done/709-stdlib-trait-first-api-policy.md).
 Execution: [#917](../../issues/open/917-stdlib-eradication-execution.md).
 
-**Real surface denominator:** 28 `pub fn` declarations under
-`std/**/*.ark`; 28 map to a manifest entry and
-0 are unregistered. Eradication scope = 28 manifest
-public entries + 0 unregistered declarations = **28 symbols**.
+**Real surface denominator:** 27 `pub fn` declarations under
+`std/**/*.ark`; 27 map to a manifest entry and
+0 are unregistered. Eradication scope = 27 manifest
+public entries + 0 unregistered declarations = **27 symbols**.
 
 ## Scorecard
 
 | Metric | Count | Goal |
 |--------|-------|------|
-| Eradication-scope symbols (real std surface) | 28 | 0 |
-| `pub fn` declarations under `std/**/*.ark` | 28 | — |
+| Eradication-scope symbols (real std surface) | 27 | 0 |
+| `pub fn` declarations under `std/**/*.ark` | 27 | — |
 | Unregistered std declarations (no manifest entry) | 0 | 0 |
 | Manifest entries without a std declaration | 0 | 0 |
-| Manifest public entries (registered scope) | 28 | 0 |
+| Manifest public entries (registered scope) | 27 | 0 |
 | `prelude_wrapper` entries | 5 | 0 |
 | Monomorphic `*_i32` / `*_f64` / … helpers (manifest) | 2 | 0 |
 | `intrinsic-only` bridges (non-public) | 1 | — |
@@ -37,7 +37,7 @@ public entries + 0 unregistered declarations = **28 symbols**.
 
 | Class | Meaning | Symbols |
 |-------|---------|---------|
-| `must delete` | Replacement already exists or functionality retires | 21 |
+| `must delete` | Replacement already exists or functionality retires | 20 |
 | `associated-or-method` | Replacement must land as method/associated first | 7 |
 | `intrinsic-only` | Non-public `__intrinsic_*` / intrinsic bridge | 1 |
 
@@ -50,7 +50,7 @@ registered entries and unregistered `pub fn` declarations.
 | Rule | Class | Owner | Manifest | Source | Replacement |
 |------|-------|-------|----------|--------|-------------|
 | private intrinsics | `intrinsic-only` | — | 1 | 0 | — |
-| vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 9 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `clear` was a stale non-callable entry and was retired directly. |
+| vec intrinsic-compat frees | `must delete` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 8 | 0 | Vec<T> methods: v.push(x), v.pop(), v.len(), v.get(idx), v.set(idx, val), v.get_unchecked(idx), v.as_slice(start, end); Slice<T> methods: view.len(), view.get(idx). `len` was retired with an E0100 hint onto `s.len()` / `v.len()`; `clear` was a stale non-callable entry and was retired directly. |
 | monomorphic seq/combinator frees | `must delete` | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) | 1 | 0 | Vec / iterator methods: v.sort_by(cmp), v.iter().map(f).collect(), v.iter().filter(f).collect(), v.iter().fold(init, f), v.iter().sum(), v.iter().any(f), v.iter().find(f), v.iter().contains(x), v.iter().rev().collect(), v.drain(idx, idx + 1); Option::map / Result::map via std::core::container |
 | legacy linear deque frees | `must delete` | [#710](../../issues/open/710-stdlib-linear-collections-type-surface.md) | 11 | 0 | Deque<T> methods (new/with_capacity/push_front/push_back/pop_front/pop_back/front/back/len/is_empty/clear); ADR-086 §8 keeps the Vec<i32> layout through the ADR-014 deprecation window |
 | prelude frees (default) | `associated-or-method` | [#917](../../issues/open/917-stdlib-eradication-execution.md) | 4 | 0 | method / associated equivalent on the receiver or namespace type |
@@ -66,7 +66,6 @@ Every manifest `[[functions]]` entry resolves to exactly one rule.
 | `filter_i32` | `(prelude)` | `must delete` | monomorphic seq/combinator frees | [#703](../../issues/open/703-monomorphic-api-bold-cutover.md) |
 | `get` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `get_unchecked` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
-| `len` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `pop` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `push` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |
 | `set` | `(prelude)` | `must delete` | vec intrinsic-compat frees | [#917](../../issues/open/917-stdlib-eradication-execution.md) |

@@ -1,7 +1,7 @@
 use std::text
 use lsp::state_record
 fn frame(body: String) -> String {
-    let header = "Content-Length: ".concat(len(body.clone()).to_string().concat("\r\n\r\n"))
+    let header = "Content-Length: ".concat(body.clone().len().to_string().concat("\r\n\r\n"))
     header.concat(body)
 }
 

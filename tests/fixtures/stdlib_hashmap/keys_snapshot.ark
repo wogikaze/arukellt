@@ -8,14 +8,14 @@ fn main() {
     let _ = m.insert(30, 300)
 
     let keys = m.keys()
-    Test::assert_eq_i32(len(keys), 3)
+    Test::assert_eq_i32(keys.len(), 3)
 
     // Every key should be present in the map
     let mut found_10 = false
     let mut found_20 = false
     let mut found_30 = false
     let mut i = 0
-    while i < len(keys) {
+    while i < keys.len() {
         let k = get_unchecked(keys, i)
         if k == 10 { found_10 = true }
         if k == 20 { found_20 = true }

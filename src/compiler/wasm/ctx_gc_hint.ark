@@ -12,5 +12,5 @@ fn SelfEmitCtx_gc_hint_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
 }
 
 fn SelfEmitCtx_gc_hint_count(ctx: SelfEmitCtx) -> i32 {
-    len(ctx.gc_hint_offsets) / 2
+    ctx.gc_hint_offsets.len() / 2
 }

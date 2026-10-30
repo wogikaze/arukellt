@@ -69,7 +69,7 @@ fn csv_impl_split_line(line: String) -> Vec<String> {
 /// and newlines.
 fn csv_impl_parse_row(line: String) -> Vec<String> {
     let mut result = Vec::new<String>()
-    let n = len(line)
+    let n = line.len()
     let mut i = 0
     while i <= n {
         let mut field = ""
@@ -118,7 +118,7 @@ fn csv_impl_parse_row(line: String) -> Vec<String> {
 ///
 /// Fields that contain commas, double-quotes, or newlines are quoted.
 fn csv_impl_stringify_row(fields: Vec<String>) -> String {
-    let n = len(fields)
+    let n = fields.len()
     let mut result = ""
     let mut i = 0
     while i < n {
@@ -142,12 +142,12 @@ fn csv_impl_stringify_row(fields: Vec<String>) -> String {
 /// Count the number of non-empty lines in a CSV string.
 fn csv_impl_count_rows(s: String) -> i32 {
     let lines = s.split("\n")
-    let n = len(lines)
+    let n = lines.len()
     let mut count = 0
     let mut i = 0
     while i < n {
         let line = get_unchecked(lines, i)
-        if len(line) > 0 {
+        if line.len() > 0 {
             count = count + 1
         }
         i = i + 1
@@ -158,12 +158,12 @@ fn csv_impl_count_rows(s: String) -> i32 {
 /// Return the raw text of row `row_index` (0-based, skipping empty lines).
 fn csv_impl_get_row_raw(s: String, row_index: i32) -> String {
     let lines = s.split("\n")
-    let n = len(lines)
+    let n = lines.len()
     let mut current = 0
     let mut i = 0
     while i < n {
         let line = get_unchecked(lines, i)
-        if len(line) > 0 {
+        if line.len() > 0 {
             if current == row_index {
                 return line
             }
@@ -182,7 +182,7 @@ fn csv_impl_parse_row_at(s: String, row_index: i32) -> Vec<String> {
 /// Parse a full CSV document into rows.
 fn csv_impl_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     let lines = s.split("\n")
-    let n = len(lines)
+    let n = lines.len()
     if n == 0 {
         return Err("empty document")
     }
@@ -190,7 +190,7 @@ fn csv_impl_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     let mut i = 0
     while i < n {
         let line = get_unchecked(lines, i)
-        if len(line) > 0 {
+        if line.len() > 0 {
             push(rows, csv_impl_parse_row(line))
         }
         i = i + 1
@@ -200,7 +200,7 @@ fn csv_impl_parse(s: String) -> Result<Vec<Vec<String>>, String> {
 
 /// Serialize rows to a CSV document.
 fn csv_impl_stringify(rows: Vec<Vec<String>>) -> String {
-    let n = len(rows)
+    let n = rows.len()
     let mut out = ""
     let mut i = 0
     while i < n {
@@ -223,12 +223,12 @@ fn csv_impl_stringify(rows: Vec<Vec<String>>) -> String {
 /// `header.len() * i` in the body vector.
 fn csv_impl_parse_with_header(s: String) -> Result<Vec<String>, String> {
     let lines = s.split("\n")
-    let n = len(lines)
+    let n = lines.len()
     if n == 0 {
         return Err("empty document")
     }
     let first_line = get_unchecked(lines, 0)
-    if len(first_line) == 0 {
+    if first_line.len() == 0 {
         return Err("empty header")
     }
     Ok(csv_impl_parse_row(first_line))

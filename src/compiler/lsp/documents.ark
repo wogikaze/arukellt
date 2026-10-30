@@ -52,7 +52,7 @@ pub fn handle_did_save(mut state: LspState, body: String) {
     }
     let uri = json::JsonText::get_str(body.clone(), String_from("uri"))
     let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), uri.clone())
-    if len(text) > 0 {
+    if text.len() > 0 {
         publish_for(state, uri.clone(), text.clone())
     }
 }

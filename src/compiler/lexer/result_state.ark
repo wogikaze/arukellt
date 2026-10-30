@@ -24,7 +24,7 @@ fn LexResult_tokens(result: LexResult) -> Vec<Token> {
 }
 
 fn LexResult_diagnostic_count(result: LexResult) -> i32 {
-    len(result.diagnostics)
+    result.diagnostics.len()
 }
 
 fn LexResult_diagnostic_at(result: LexResult, index: i32) -> LexDiagnostic {

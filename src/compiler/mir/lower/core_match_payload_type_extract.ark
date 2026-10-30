@@ -3,7 +3,7 @@ use mir::lower::ctx_api_local_types
 use mir::value_types
 fn core_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, scrut_type.len())
     // Split Ok/Err on the LAST encoding separator so nested vec:T /
     // option:T stay intact. result:… uses ':'; Result_… uses '_' (#832).
     // Do not split vec:T on its own ':' — that turned Result_vec:fn_E into
@@ -18,18 +18,18 @@ fn core_extract_first_result_type_param(scrut_type: String) -> String {
 
 fn core_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
-    let rest = scrut_type.slice(prefix_len, len(scrut_type))
+    let rest = scrut_type.slice(prefix_len, scrut_type.len())
     // Mirror first-param: last ':' for result:…, last '_' for Result_… (#832).
     let sep_char = if scrut_type.clone().starts_with("result:") { 58 } else { 95 }
     let last = find_last_sep_char(rest.clone(), sep_char)
-    if last >= 0 && last + 1 < len(rest) {
-        return rest.slice(last + 1, len(rest))
+    if last >= 0 && last + 1 < rest.len() {
+        return rest.slice(last + 1, rest.len())
     }
     String_new()
 }
 
 fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
-    let n = len(s)
+    let n = s.len()
     let mut i = n - 1
     while i >= 0 {
         if s.clone().byte_at(i) == sep_char {
@@ -56,18 +56,18 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
         return "vec:i32"
     }
     if elem_ty.clone().starts_with("Vec<") && elem_ty.clone().ends_with(">") {
-        let inner = elem_ty.clone().slice(4, len(elem_ty) - 1)
+        let inner = elem_ty.clone().slice(4, elem_ty.len() - 1)
         return "vec:".concat(inner)
     }
     if elem_ty.clone().starts_with("Vec_") {
-        return "vec:".concat(elem_ty.clone().slice(4, len(elem_ty)))
+        return "vec:".concat(elem_ty.clone().slice(4, elem_ty.len()))
     }
     elem_ty
 }
 
 fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if len(type_name) == 0 {
+    if type_name.len() == 0 {
         return false
     }
     if type_name.clone().eq("string") || type_name.clone().eq("String") {

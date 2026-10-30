@@ -9,7 +9,7 @@ fn main() -> i32 {
     let mut i = 0
     while i < 2000 {
         let junk = Node { label: String_from("tmp"), next: i }
-        let _ = len(junk.label)
+        let _ = junk.label.len()
         i = i + 1
     }
     if a.label.eq(String_from("a")) && b.label.eq(String_from("b")) { 0 } else { 1 }

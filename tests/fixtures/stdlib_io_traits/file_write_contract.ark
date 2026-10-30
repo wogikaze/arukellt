@@ -12,9 +12,9 @@ fn print_image(path: String) {
     match Fs::read_bytes(path) {
         Result::Ok(image) => {
             let image: Vec<i32> = image
-            Stdio::println((len(image)).to_string())
+            Stdio::println((image.len()).to_string())
             let mut i: i32 = 0
-            while i < len(image) {
+            while i < image.len() {
                 Stdio::println((get_unchecked(image, i)).to_string())
                 i = i + 1
             }

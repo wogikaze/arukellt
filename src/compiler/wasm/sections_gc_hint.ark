@@ -27,12 +27,12 @@ fn emit_gc_hint_custom_section(mut out: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_gc_layout_table(mut payload: WasmWriter, names: Vec<String>, sigs: Vec<String>) {
-    let count = len(names)
+    let count = names.len()
     writer_core::emit_leb128_u(payload, count)
     let mut i = 0
     while i < count {
         writer_string::emit_string(payload, get_unchecked(names, i))
-        let sig = if i < len(sigs) { get_unchecked(sigs, i) } else { String_new() }
+        let sig = if i < sigs.len() { get_unchecked(sigs, i) } else { String_new() }
         writer_string::emit_string(payload, sig)
         i = i + 1
     }

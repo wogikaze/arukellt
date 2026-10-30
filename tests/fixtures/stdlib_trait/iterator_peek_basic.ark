@@ -52,7 +52,7 @@ fn main() {
     push(w, 7)
     push(w, 8)
     let drained = w.iter().peekable().collect()
-    Test::assert_eq_i32(len(drained), 2)
+    Test::assert_eq_i32(drained.len(), 2)
     Test::assert_eq_i32(get_unchecked(drained, 0), 7)
     Test::assert_eq_i32(get_unchecked(drained, 1), 8)
 }

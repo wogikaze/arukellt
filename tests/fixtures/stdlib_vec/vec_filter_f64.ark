@@ -12,14 +12,14 @@ fn main() {
     push(v, 4.0)
     let mut result: Vec<f64> = Vec::new<f64>()
     let mut filter_index: i32 = 0
-    while filter_index < len(v) {
+    while filter_index < v.len() {
         let filter_value = get_unchecked(v, filter_index)
         if is_large(filter_value) {
             push(result, filter_value)
         }
         filter_index = filter_index + 1
     }
-    Test::assert_eq_i32(len(result), 2)
+    Test::assert_eq_i32(result.len(), 2)
     Test::assert_eq_f64(get_unchecked(result, 0), 3.0)
     Test::assert_eq_f64(get_unchecked(result, 1), 4.0)
 }

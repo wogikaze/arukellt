@@ -41,7 +41,7 @@ fn ctx_register_env_cell(mut ctx: LowerCtx, fn_name: String, local_idx: i32, env
 // (closure_params..., captures...) signature. Shared by the AST and
 // CoreHIR capture-binding paths.
 fn ctx_bind_closure_env_cells(mut ctx: LowerCtx, caps: Vec<String>, cap_vts: Vec<i32>, rebind_flags: Vec<i32>, env_name: String) -> i32 {
-    let cap_n = len(caps)
+    let cap_n = caps.len()
     let mut has_cell = 0
     let mut i = 0
     while i < cap_n {
@@ -122,11 +122,11 @@ fn ctx_register_env_writeback(mut ctx: LowerCtx, synth: String, src_li: i32, env
 // source local observes the cell's flushed value (ADR-061 section 1: a
 // rebind capture mutates the source's place).
 fn ctx_emit_closure_writeback(mut ctx: LowerCtx, synth: String) {
-    if len(ctx.wb_synths) == 0 {
+    if ctx.wb_synths.len() == 0 {
         return
     }
     let mut i = 0
-    while i < len(ctx.wb_synths) {
+    while i < ctx.wb_synths.len() {
         if get_unchecked(ctx.wb_synths, i).eq(synth.clone()) {
             ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(
                     get_unchecked(ctx.wb_env_lis, i),

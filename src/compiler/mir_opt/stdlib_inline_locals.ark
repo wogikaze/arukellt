@@ -28,7 +28,7 @@ fn stdlib_inline_build_local_map(mut caller: MirFunction, callee: MirFunction) -
 }
 
 fn stdlib_inline_remap_local(local_map: Vec<i32>, local_id: i32) -> i32 {
-    if local_id < 0 || local_id >= len(local_map) {
+    if local_id < 0 || local_id >= local_map.len() {
         return local_id
     }
     get_unchecked(local_map, local_id)

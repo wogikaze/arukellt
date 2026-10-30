@@ -28,7 +28,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
     let mut mir_type_name = p_type_name.clone()
     let mut sig_type_name = p_type_name.clone()
     let mut is_type_var = false
-    if len(local_type_name) > 0 {
+    if local_type_name.len() > 0 {
         mir_type_name = local_type_name.clone()
         sig_type_name = local_type_name.clone()
         if local_type_name.clone().starts_with(String_from("vec:")) ||
@@ -59,7 +59,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
                     sig_type_name = mir_type_name.clone()
                 } else {
                     let named = mir_param_resolve_named_user_type(ctx, bare.clone())
-                    if len(named) > 0 {
+                    if named.len() > 0 {
                         pvt = value_types::VT_GC_REF()
                         sig_type_name = named.clone()
                         mir_type_name = named
@@ -69,7 +69,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
         }
     } else {
         let resolved = mir_param_resolve_no_local_type(ctx, p_type_name.clone())
-        if len(resolved) > 0 {
+        if resolved.len() > 0 {
             pvt = value_types::VT_GC_REF()
             mir_type_name = get_unchecked(resolved, 0)
             sig_type_name = get_unchecked(resolved, 1)
@@ -125,7 +125,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
     if !typed_mir_compat::mvt_is_invalid(param_mvt) {
         ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
         let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, param_mvt)
-        if len(alias) > 0 && !type_info_to_mir_value::concrete_type_outranks_mvt_alias(preserved_type_name.clone(), alias.clone()) {
+        if alias.len() > 0 && !type_info_to_mir_value::concrete_type_outranks_mvt_alias(preserved_type_name.clone(), alias.clone()) {
             let mvt_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt)
             ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
             // A var-carrying spelling (?HashMap:K:V, vec:K) must keep its
@@ -133,7 +133,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
             // from it before mono substitution resolves the concrete alias
             // (#691). ctx_set_func_param_type would also sync the local
             // record, so only the signature record takes the alias.
-            if len(ctx_mono_type_params::ctx_type_var_names_from_local_type(preserved_type_name.clone())) == 0 {
+            if ctx_mono_type_params::ctx_type_var_names_from_local_type(preserved_type_name.clone()).len() == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, param_local, alias.clone())
                 ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, alias.clone())
             } else {
@@ -161,7 +161,7 @@ fn mir_bind_fn_param(mut ctx: LowerCtx, param: CoreHirParam) {
 }
 
 fn mir_param_type_name_is_concrete(type_name: String) -> bool {
-    if len(type_name) == 0 || type_name.clone().starts_with(String_from("?")) {
+    if type_name.len() == 0 || type_name.clone().starts_with(String_from("?")) {
         return false
     }
     !mir_param_name_is_type_param(type_name.clone())
@@ -196,7 +196,7 @@ fn mir_param_type_is_option_container(type_name: String) -> bool {
 fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Vec<String> {
     let mut result = Vec::new<String>()
     let tuple_type = aggregate_tuple::tuple_type_name_from_param_alias(ctx, p_type_name.clone())
-    if len(tuple_type) > 0 {
+    if tuple_type.len() > 0 {
         push(result, tuple_type.clone())
         push(result, tuple_type.clone())
         return result
@@ -204,7 +204,7 @@ fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Ve
     // Surface Option:/Result: forms must become option:/result: — never
     // "?Option:..." which makes is_generic_function emit unreachable bodies.
     let normalized = mir_param_normalize_option_result_type_name(p_type_name.clone())
-    if len(normalized) > 0 {
+    if normalized.len() > 0 {
         push(result, normalized.clone())
         push(result, normalized.clone())
         return result
@@ -220,7 +220,7 @@ fn mir_param_resolve_no_local_type(mut ctx: LowerCtx, p_type_name: String) -> Ve
         push(result, mt.clone())
         return result
     }
-    if !binary_type_names::mir_is_builtin_type_name(p_type_name.clone()) && len(p_type_name) > 0 {
+    if !binary_type_names::mir_is_builtin_type_name(p_type_name.clone()) && p_type_name.len() > 0 {
         let mt = String_from("?").concat(p_type_name.clone())
         push(result, mt)
         push(result, mt.clone())
@@ -234,25 +234,25 @@ fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
         return type_name
     }
     if type_name.clone().starts_with(String_from("Option_")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name)))
+        return String_from("option:").concat(type_name.slice(7, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("Option:")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name)))
+        return String_from("option:").concat(type_name.slice(7, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("?Option:")) {
-        return String_from("option:").concat(type_name.slice(8, len(type_name)))
+        return String_from("option:").concat(type_name.slice(8, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("Option<")) && type_name.clone().ends_with(String_from(">")) {
-        return String_from("option:").concat(type_name.slice(7, len(type_name) - 1))
+        return String_from("option:").concat(type_name.slice(7, type_name.len() - 1))
     }
     if type_name.clone().starts_with(String_from("Result:")) {
-        return String_from("result:").concat(type_name.slice(7, len(type_name)))
+        return String_from("result:").concat(type_name.slice(7, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("?Result:")) {
-        return String_from("result:").concat(type_name.slice(8, len(type_name)))
+        return String_from("result:").concat(type_name.slice(8, type_name.len()))
     }
     if type_name.clone().starts_with(String_from("Result_")) {
-        return String_from("result:").concat(type_name.slice(7, len(type_name)))
+        return String_from("result:").concat(type_name.slice(7, type_name.len()))
     }
     String_new()
 }
@@ -262,14 +262,14 @@ fn mir_param_resolve_named_user_type(ctx: LowerCtx, bare: String) -> String {
     // struct that previously skipped GC registration): still
     // use the GC ABI so range_iter(Range) is not i32.
     // Unsubstituted type params (T, U, ...) stay i32.
-    if !binary_type_names::mir_is_builtin_type_name(bare.clone()) && len(bare) > 0 && !mir_param_name_is_type_param(bare.clone()) {
+    if !binary_type_names::mir_is_builtin_type_name(bare.clone()) && bare.len() > 0 && !mir_param_name_is_type_param(bare.clone()) {
         return bare
     }
     String_new()
 }
 
 fn mir_param_strip_module_prefix(name: String) -> String {
-    let n = len(name)
+    let n = name.len()
     let mut i = n - 1
     while i >= 0 {
         if name.byte_at(i) == 58 {
@@ -281,13 +281,13 @@ fn mir_param_strip_module_prefix(name: String) -> String {
 }
 
 fn mir_param_name_is_type_param(name: String) -> bool {
-    if len(name) == 0 {
+    if name.len() == 0 {
         return false
     }
     if name.clone().starts_with(String_from("?")) {
-        return mir_param_name_is_type_param(name.slice(1, len(name)))
+        return mir_param_name_is_type_param(name.slice(1, name.len()))
     }
-    if len(name) == 1 {
+    if name.len() == 1 {
         let ch = name.byte_at(0)
         if ch >= 65 && ch <= 90 {
             return true

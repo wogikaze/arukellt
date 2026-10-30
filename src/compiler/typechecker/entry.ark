@@ -26,9 +26,9 @@ use resolver::modules
 fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
     let mut keys = Vec::new<String>()
     let known_type_names = module_traits::collect_declared_type_names(decls)
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     let mut pos = 0
-    let module_count = len(modules)
+    let module_count = modules.len()
     let mut mi = 0
     while mi < module_count && pos < decl_count {
         let m = get_unchecked(modules, mi)
@@ -66,7 +66,7 @@ fn push_sig_index_key(
     known_type_names: Vec<String>
 ) {
     if ast_decl_predicates::node_is_fn_decl(decl) || ast_decl_predicates::node_is_const_decl(decl) {
-        if len(module_name) == 0 {
+        if module_name.len() == 0 {
             push(keys, String_new())
         } else {
             push(keys, module_name.concat(String_from("::").concat(ast_access::node_text(decl))))
@@ -91,7 +91,7 @@ fn push_sig_index_key(
 }
 
 fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameIndex {
-    let count = len(fn_sigs)
+    let count = fn_sigs.len()
     let mut index = name_index::NameIndex_new(count)
     let mut i = 0
     // combine_loaded_and_main_decls lists loaded modules before the entry
@@ -108,7 +108,7 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     // Concrete entry decls keep the existing imported-first order so
     // std-internal calls to colliding names are not re-bound.
     while i < count {
-        if i < len(qualified_keys) && len(get_unchecked(qualified_keys, i)) == 0 {
+        if i < qualified_keys.len() && get_unchecked(qualified_keys, i).len() == 0 {
             let own_sig = get_unchecked(fn_sigs, i)
             if contract_fn_sig::FnSig_type_param_count(own_sig) > 0 {
                 name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(own_sig), i)
@@ -119,9 +119,9 @@ fn build_fn_sig_index(fn_sigs: Vec<FnSig>, qualified_keys: Vec<String>) -> NameI
     i = 0
     while i < count {
         let sig = get_unchecked(fn_sigs, i)
-        if i < len(qualified_keys) {
+        if i < qualified_keys.len() {
             let qname = get_unchecked(qualified_keys, i)
-            if len(qname) > 0 {
+            if qname.len() > 0 {
                 name_index::name_index_insert_first(index, qname, i)
             }
         }
@@ -144,7 +144,7 @@ fn typecheck_module_with_options(
     env.strict_impl_binders = strict_impl_binders
     env.declared_type_names = module_traits::collect_declared_type_names(decls)
     contract_result_state::typecheck_result_set_errors(result, ctx_record::resolve_ctx_errors(resolve_ctx))
-    let decl_count = len(decls)
+    let decl_count = decls.len()
     module::register_trait_impl_decls(env, decls)
     module::register_struct_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls, env), module_wit::collect_wit_fn_sigs(wit_paths, decls))

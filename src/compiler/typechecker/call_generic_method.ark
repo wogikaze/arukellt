@@ -60,7 +60,7 @@ fn infer_generic_method_call_expr(
     let method_name = ast_access::node_text(node)
     let mut mono_fn_name = method_name.clone()
     let type_prefix = type_name_for_mono(resolved_recv_ty)
-    if len(type_prefix) > 0 {
+    if type_prefix.len() > 0 {
         mono_fn_name = type_prefix.concat("::".concat(method_name))
     }
     if !hashmap_api::validate_hashmap_method(env, mono_fn_name.clone(), resolved_recv_ty) {
@@ -105,7 +105,7 @@ fn report_unresolved_fresh_type_params(mut env: TypeEnv, infer_env: TypeEnv, var
     // Only method-declared params — the tail beyond the receiver arity —
     // must be determined by call arguments.
     let mut i = contract_type_access::TypeInfo_type_arg_count(resolved_recv)
-    while i < len(var_types) {
+    while i < var_types.len() {
         let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
         if call_generic_resolve::is_unresolved_fresh_type_var(infer_env, resolved) {
             unify::type_error(env, "cannot infer type parameter ".concat(get_unchecked(var_names, i).concat(" in method call ".concat(method_name))))
@@ -130,13 +130,13 @@ fn type_name_for_mono(ty: TypeInfo) -> String {
     }
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
-        if len(name) > 0 {
+        if name.len() > 0 {
             return names::unqualified_type_name(name)
         }
     }
     if tag == commands::TY_ENUM() {
         let name = contract_type_access::TypeInfo_name(ty)
-        if len(name) > 0 {
+        if name.len() > 0 {
             return names::unqualified_type_name(name)
         }
     }

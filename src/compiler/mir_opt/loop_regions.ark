@@ -29,17 +29,17 @@ fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
     let mut regions = Vec::new<LoopRegion>()
     let mut stack = Vec::new<i32>()
     let mut depths = Vec::new<i32>()
-    let count = len(insts)
+    let count = insts.len()
     let mut i = 0
     while i < count {
         let inst = get_unchecked(insts, i)
         let op = inst_accessors_shape::MirInst_op(inst)
         if op == opcodes::MIR_LOOP() {
             push(stack, i)
-            push(depths, len(stack))
+            push(depths, stack.len())
         }
         if op == opcodes::MIR_END() {
-            if len(stack) > 0 {
+            if stack.len() > 0 {
                 let start = match pop(stack) {
                     Some(value) => value,
                     None => return regions,
@@ -60,17 +60,17 @@ fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegio
     let mut regions = Vec::new<LoopRegion>()
     let mut stack = Vec::new<i32>()
     let mut depths = Vec::new<i32>()
-    let count = len(insts)
+    let count = insts.len()
     let mut i = 0
     while i < count {
         let inst = get_unchecked(insts, i)
         let op = inst_draft::MirInstDraft_op(inst)
         if op == opcodes::MIR_LOOP() {
             push(stack, i)
-            push(depths, len(stack))
+            push(depths, stack.len())
         }
         if op == opcodes::MIR_END() {
-            if len(stack) > 0 {
+            if stack.len() > 0 {
                 let start = match pop(stack) {
                     Some(value) => value,
                     None => return regions,
@@ -89,14 +89,14 @@ fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegio
 
 fn mir_opt_pick_innermost(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
     let mut max_depth = 0
-    for ri in 0..len(regions) {
+    for ri in 0..regions.len() {
         let d = LoopRegion_depth(get_unchecked(regions, ri))
         if d > max_depth {
             max_depth = d
         }
     }
     let mut out = Vec::new<LoopRegion>()
-    for ri in 0..len(regions) {
+    for ri in 0..regions.len() {
         let r = get_unchecked(regions, ri)
         if LoopRegion_depth(r) == max_depth {
             push(out, r)
@@ -108,14 +108,14 @@ fn mir_opt_pick_innermost(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
 fn mir_opt_regions_by_depth_desc(regions: Vec<LoopRegion>) -> Vec<LoopRegion> {
     let mut out = Vec::new<LoopRegion>()
     let mut max_depth = 0
-    for ri in 0..len(regions) {
+    for ri in 0..regions.len() {
         let d = LoopRegion_depth(get_unchecked(regions, ri))
         if d > max_depth {
             max_depth = d
         }
     }
     while max_depth > 0 {
-        for ri in 0..len(regions) {
+        for ri in 0..regions.len() {
             let r = get_unchecked(regions, ri)
             if LoopRegion_depth(r) == max_depth {
                 push(out, r)

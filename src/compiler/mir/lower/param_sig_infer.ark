@@ -37,7 +37,7 @@ fn mir_stamp_param_from_return_type(mut ctx: LowerCtx, val_idx: i32) {
     if !mir_scrutinee_is_fn_param(ctx, val_idx) {
         return
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, val_idx)) > 0 {
+    if ctx_api_local_types::ctx_get_local_type(ctx, val_idx).len() > 0 {
         return
     }
     let f = ctx_current_storage::ctx_current_func_value(ctx)
@@ -46,11 +46,11 @@ fn mir_stamp_param_from_return_type(mut ctx: LowerCtx, val_idx: i32) {
         return
     }
     let rtn = function_return_view::MirFunction_return_type_name(f)
-    if len(rtn) == 0 {
+    if rtn.len() == 0 {
         return
     }
     let canonical = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn)
-    if len(canonical) == 0 {
+    if canonical.len() == 0 {
         return
     }
     mir_stamp_scrutinee_type(ctx, val_idx, canonical)

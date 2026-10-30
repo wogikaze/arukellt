@@ -65,7 +65,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     // `Type::method` spelling before the last-segment fallback.
     let variants = callee_spelling::callee_spelling_variants(name.clone())
     let mut vi = 0
-    while vi < len(variants) {
+    while vi < variants.len() {
         let variant = get_unchecked(variants, vi).clone()
         let variant_found = ctx_fn_index::ctx_fn_index_find(ctx, variant.clone())
         if variant_found >= 0 {
@@ -77,7 +77,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
         }
         vi = vi + 1
     }
-    let nlen = len(name)
+    let nlen = name.len()
     let mut colon_pos = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
@@ -96,7 +96,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     }
     // Same as ctx_fn_return_type_name: module__FnName export mangling.
     let dunder_short = ctx_fn_return_type::short_name_after_last_dunder(name.clone())
-    if len(dunder_short) > 0 {
+    if dunder_short.len() > 0 {
         let dunder_found = ctx_fn_index::ctx_fn_index_find(ctx, dunder_short.clone())
         if dunder_found >= 0 {
             let dunder_vt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, dunder_found)
@@ -197,8 +197,8 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
 
 fn ctx_bare_builtin_name(name: String) -> String {
     let mut bare_name = name.clone()
-    if len(bare_name) > 12 && bare_name.clone().starts_with("__intrinsic_") {
-        bare_name = bare_name.slice(12, len(bare_name))
+    if bare_name.len() > 12 && bare_name.clone().starts_with("__intrinsic_") {
+        bare_name = bare_name.slice(12, bare_name.len())
     }
     bare_name
 }

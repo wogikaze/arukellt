@@ -53,10 +53,10 @@ fn emit_let_initializer_store(mut ctx: LowerCtx, node: AstNode, vt: i32, local_i
     }
     sync_let_local_type_name(ctx, local_idx, actual_val_idx, pre_init_kind, ta_count)
     let mut set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, actual_val_idx)
-    if len(set_family) == 0 {
+    if set_family.len() == 0 {
         set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, val_idx)
     }
-    if len(set_family) > 0 {
+    if set_family.len() > 0 {
         ctx_api_local_types::ctx_mark_hashset_local(ctx, local_idx, set_family)
     }
 }
@@ -87,7 +87,7 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
             return
         }
-        if len(init_type) == 0 ||
+        if init_type.len() == 0 ||
         init_vt == value_types::VT_I32() ||
         init_vt == value_types::VT_I64() {
             // A scalar/default call-result temp under an enum annotation is
@@ -134,7 +134,7 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
         // Propagate the annotation back onto the initializer temp so Vec_new
         // emission (resolve_vec_type_for_new_dest) sees vec:Vec / structref layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if init_type.clone().starts_with("vec:") || len(init_type) == 0 {
+        if init_type.clone().starts_with("vec:") || init_type.len() == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, val_idx, existing.clone())
             ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         }
@@ -149,16 +149,16 @@ fn sync_let_local_type_name(mut ctx: LowerCtx, local_idx: i32, val_idx: i32, pre
         return
     }
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-    if len(init_type) > 0 {
+    if init_type.len() > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
     }
-    if ta_count == 0 && len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) == 0 {
+    if ta_count == 0 && ctx_api_local_types::ctx_get_local_type(ctx, local_idx).len() == 0 {
         let mut literal_type_name = expr_types::mir_literal_kind_type_name(pre_init_kind)
         let initializer_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
         if initializer_vt == value_types::VT_I64() {
             literal_type_name = "i64"
         }
-        if len(literal_type_name) > 0 {
+        if literal_type_name.len() > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, literal_type_name)
         }
     }

@@ -11,7 +11,7 @@ fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
 }
 
 fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
-    let package_name = if len(world.clone()) > 0 { "arukellt:app" } else { "arukellt:generated" }
+    let package_name = if world.clone().len() > 0 { "arukellt:app" } else { "arukellt:generated" }
     let world_name = world_spec::world_spec_world_name(world.clone())
     let mut out = "package ".concat(package_name.concat(";\n\nworld "))
     out = out.concat(world_name)
@@ -26,10 +26,10 @@ fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_p
 fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
     let bindings = wit_import_bind::wit_collect_bindings(wit_paths, decls)
     let mut out = String_new()
-    for i in 0..len(bindings) {
+    for i in 0..bindings.len() {
         let binding = get_unchecked(bindings, i)
         let import_id = wit_import_bind::wit_import_binding_wit_import_id(binding)
-        if len(import_id) > 0 {
+        if import_id.len() > 0 {
             let line = "    import ".concat(import_id.concat(";\n"))
             if !out.clone().contains(line.clone()) {
                 out = out.concat(line)
@@ -49,7 +49,7 @@ fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
 fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> String {
     if !world_spec::world_spec_is_cli_command(world.clone()) { return emit_wit_func_exports(decls) }
     let mut out = ""
-    for i in 0..len(decls) {
+    for i in 0..decls.len() {
         let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
@@ -77,7 +77,7 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 
 fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
     let mut out = ""
-    for i in 0..len(decls) {
+    for i in 0..decls.len() {
         let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
@@ -89,7 +89,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                 for pi in 0..wit_decl::wit_func_param_count(f) {
                     if pi > 0 { out = out.concat(", ") }
                     let pname = wit_decl::wit_func_param_name_at(f, pi)
-                    if len(pname.clone()) > 0 { out = out.concat(pname) } else { out = out.concat("arg".concat(pi.to_string())) }
+                    if pname.clone().len() > 0 { out = out.concat(pname) } else { out = out.concat("arg".concat(pi.to_string())) }
                     out = out.concat(": ")
                     if fname.clone().eq("flip_read") {
                         out = out.concat(wit_type_defs::wit_export_flags_type_name())
@@ -108,7 +108,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
                 out = out.concat(")")
                 let mut ret = String_new()
                 if wit_decl::wit_func_return_has_type(f) { ret = wit_types::component_wit_type_to_text(wit_decl::wit_func_return_type_view(f)) }
-                if len(ret) > 0 {
+                if ret.len() > 0 {
                     out = out.concat(" -> ")
                     if fname.clone().eq("flip_read") {
                         out = out.concat(wit_type_defs::wit_export_flags_type_name())
@@ -125,7 +125,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 
 fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
     let mut export_roots = Vec::new<String>()
-    for i in 0..len(decls) {
+    for i in 0..decls.len() {
         let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
@@ -137,12 +137,12 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 
 fn string_to_bytes(text: String) -> Vec<i32> {
     let mut bytes = Vec::new<i32>()
-    for i in 0..len(text) { push(bytes, text.byte_at(i)) }
+    for i in 0..text.len() { push(bytes, text.byte_at(i)) }
     bytes
 }
 
 fn validate_wit_import_surface(paths: Vec<String>) -> String {
-    for i in 0..len(paths) {
+    for i in 0..paths.len() {
         let path = get_unchecked(paths, i)
         let read_result = Fs::read_to_string(path.clone())
         match read_result {
