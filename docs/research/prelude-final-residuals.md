@@ -197,6 +197,41 @@ files cannot be migrated yet. `std::collections::string::clone` is also a dead
 path: its body reaches `raw_string_clone`, a retired CoreOp
 (`resolver::removed_names`), and traps when called.
 
+### Resolution 2026-10-30 (`wave/clone-noimport`) — the prelude now imports `Clone`
+
+The import requirement is gone. `std/prelude.ark` imports `std::core::clone`,
+and `impl<T> Clone for Vec<T>` is unbounded so compiler record element types
+(`Vec<AstNode>`, `Vec<TypeInfo>`, ...) keep compiling once the prelude registers
+the impl. `Vec<T>::clone` allocates independent storage; an element type with a
+`Clone` impl is cloned element-wise, and other element types take the compiler's
+identity copy.
+
+Two blockers had to be fixed rather than documented as infeasible:
+
+- The bootstrap overlay cannot keep the import: the pin (`ff4ff6a4f`) lowers the
+  `String::clone` impl's `__intrinsic_clone` to an unresolved-call stub
+  (`local.get $s; drop; unreachable` in the stage-2 WAT), so the rebuilt s2
+  traps in `__clone_string_helper` at startup. The overlay strips the prelude
+  import and keeps the identity inherent `Vec::clone` bridge; user programs load
+  the checked-in prelude and get the deep impl.
+- `mir_try_resolve_impl_method` mapped an `option:<payload>` receiver to the
+  payload owner. With `i32::clone` now registered by the prelude,
+  `Option<i32>.clone()` lowered to `i32::clone(Option ref)` and produced invalid
+  core Wasm (`poly_clone`). The MIR rewrite now leaves bare `clone` on option
+  receivers for the typechecker's polymorphic identity path.
+- Loading `std::core::clone` also registers the module short name `clone` as a
+  bare symbol, so bare `clone(x)` (and `eq(a, b)` through `std::core::eq`)
+  resolved instead of failing E0100. `resolver::resolve_ident` now reports the
+  retirement hint for a bare module symbol that has no use-alias target and a
+  removed-name hint. Explicit `use std::prelude::{filter_i32}` imports keep
+  their alias and still resolve; the first attempt rejected them and regressed
+  37 fixtures plus 7 diagnostics.
+
+Fixtures: `clone_no_import/vec_clone_deep` (gc runtime, no import) and
+`clone_no_import/vec_clone_deep_wasm32` (`test:`, wasm32); `poly_clone` /
+`poly_clone_wasm32` cover the Option receiver. The full decision and delete
+conditions are in the ADR-091 addendum.
+
 ## `Box_new` / `unbox` — generic enum construction is not lowered
 
 The resolver only accepts `Box::new` when `Box` is imported; otherwise the

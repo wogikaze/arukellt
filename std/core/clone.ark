@@ -25,7 +25,7 @@ trait Copy {}
 /// | bool    | impl   | Copy semantics (returns self)      |
 /// | char    | impl   | Copy semantics (returns self)      |
 /// | String  | impl   | Via the string copy intrinsic      |
-/// | Vec<T>  | impl   | Deep copy when `T: Clone`          |
+/// | Vec<T>  | impl   | Deep storage; element clone if any |
 trait Clone {
     fn clone(self: Self) -> Self
 }
@@ -83,12 +83,14 @@ impl Clone for String {
 /// `Clone` impl for `Vec<T>` — allocates a fresh element array and clones
 /// each element, so the copy shares no storage with the source.
 ///
-/// Import `std::core::clone` to select this impl. Without the import, MIR
-/// lowers `.clone()` on a concrete Vec to an identity local copy, so the
-/// header is copied without a deep element copy. The bootstrap overlay keeps a
-/// shallow inherent method for the pinned compiler, whose cache mis-resolves
-/// the bare callee (#928); that bridge is not part of user-facing semantics.
-impl<T: Clone> Clone for Vec<T> {
+/// The prelude imports this module, so `.clone()` on a Vec is deep without an
+/// explicit `use std::core::clone`. The impl is deliberately unbounded:
+/// compiler record types (AST nodes, MIR instructions, checker records) have
+/// no `Clone` impl, and a `T: Clone` bound would reject their `Vec` clones
+/// once the prelude registers the impl. An element type with a `Clone` impl is
+/// cloned element-wise; any other element takes the compiler's identity copy,
+/// so only its storage independence is guaranteed.
+impl<T> Clone for Vec<T> {
     fn clone(self: Vec<T>) -> Vec<T> {
         let mut copy: Vec<T> = Vec::new<T>()
         let mut i: i32 = 0

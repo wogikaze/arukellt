@@ -2,9 +2,27 @@ use resolver::scope_lookup
 use resolver::ast_access
 use resolver::ref_sites
 use resolver::scope_error
+use resolver::removed_names
+use resolver::ctx_record
 fn resolve_ident(mut ctx: ResolveCtx, node: AstNode) {
     let name = ast_access::node_text(node)
     let idx = scope_lookup::lookup(ctx, name.clone())
+    // Loading `std::core::clone` / `std::core::eq` from the prelude also
+    // registers their module short names (`clone`, `eq`) as bare module
+    // symbols. A bare identifier in expression position is never a valid
+    // module use, and the typechecker's compiler-provided `clone` special case
+    // would otherwise accept the retired `clone(x)` call. Report the
+    // retirement hint instead of resolving the module symbol. Imported names
+    // (`use std::prelude::{filter_i32}`) are also module symbols here, so the
+    // use-alias target distinguishes a real module from an explicit import.
+    if idx >= 0 && scope_lookup::lookup_kind(ctx, name.clone()) == commands::SYM_MODULE() {
+        let alias_target = ctx_record::resolve_ctx_lookup_use_alias(ctx, name.clone())
+        let hint = removed_names::removed_name_hint(name.clone())
+        if len(alias_target.clone()) == 0 && len(hint.clone()) > 0 {
+            scope_error::resolve_unknown_name(ctx, name, ast_access::node_span_start(node), ast_access::node_span_end(node))
+            return
+        }
+    }
     ref_sites::record_use(ctx, idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
     if idx < 0 {
         if !resolver_ident_is_builtin(name.clone()) {

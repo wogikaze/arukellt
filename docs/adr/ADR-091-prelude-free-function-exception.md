@@ -386,6 +386,69 @@ receiver を指す hint を返す。
   `lower_method_call_expr` の composed-receiver 判定を修正する follow-up で
   解消する。
 
+## 追記: 2026-10-30 `wave/clone-noimport` — prelude 経由の deep `Vec<T>::clone`
+
+commit `6a156775d` は `impl<T: Clone> Clone for Vec<T>` を `std::core::clone` に
+置き、deep clone を明示 import の opt-in にした。本 wave はその import 要求を
+外し、`.clone()` を prelude だけで deep にする。
+
+- **Root cause (auto-import を塞いでいたもの)**: bounded impl を
+  `std/prelude.ark` から import すると、`Vec<AstNode>` / `Vec<TypeInfo>` /
+  `Vec<MirInst>` など compiler record の `.clone()` が `Vec<T>::clone` の
+  `T: Clone` bound に落ち、E0200 になる。compiler record は `Clone` impl を
+  持たないため、bounded impl のままでは prelude import できない。実際に
+  prelude へ import を足した overlay は stage-2 build こそ通るが、生成された
+  s2 は起動時に `__clone_string_helper` で trap した。pin は
+  `__intrinsic_clone` を `drop` + `unreachable` に lower しており、s2 の WAT で
+  `local.get $s; drop; unreachable` を確認した（pin の clone emitter は
+  `ff4ff6a4f` 由来で、HEAD の clone 修正 32 commits より前）。
+- **Mechanism**:
+  - `impl<T: Clone> Clone for Vec<T>` を `impl<T> Clone for Vec<T>` に変更。
+    `Vec<T>` は常に独立 storage を確保し、element は `Clone` impl があれば
+    element-wise に clone、なければ compiler の identity copy を使う。これに
+    より `Vec<NoClone>` も E0200 にならず、compiler record の clone が引き続き
+    compile する。
+  - `std/prelude.ark` が `use std::core::clone` を持つ。`std::core::clone` は
+    `Clone` / `Copy` trait と scalar / String / Vec impl だけを定義し、`Ord` の
+    ような他の演算子を巻き込まない（`eq` を `std::core::eq` へ分割したのと同じ
+    理由）。
+  - bootstrap overlay は prelude から `use std::core::clone` を落とし、従来の
+    shallow inherent `Vec::clone` bridge を維持する。pin が compiler 自身を
+    shallow clone で build する現在の成立条件を変えない。
+  - `mir_try_resolve_impl_method` は `option:<payload>` receiver の bare
+    `clone` を payload owner に解決しない。`i32::clone` が prelude で常時登録
+    されるようになった結果、`Option<i32>.clone()` が
+    `i32::clone(Option ref)` に lower され invalid core Wasm になった
+    （`poly_clone` で検出）。typechecker はこの call を bare な polymorphic
+    shim に残しているので、MIR も再解決しない。
+  - prelude が `std::core::clone` を load すると、module short name `clone` が
+    bare module symbol として登録され、退役した bare `clone(x)` が E0100 ではなく
+    module 参照として解決されてしまう（`std::core::eq` の `eq` も同様）。
+    `resolver::resolve_ident` は、bare ident が module symbol で use-alias を
+    持たず、`removed_names` に hint がある場合に retirement diagnostic を返す。
+    `use std::prelude::{filter_i32}` のような明示 import は alias を持つため
+    影響を受けない。これにより `removed_prelude_free_clone` の golden が戻る。
+- **Fixtures**: `clone_no_import/vec_clone_deep`（gc runtime、`.expected` 空）と
+  `clone_no_import/vec_clone_deep_wasm32`（`test:`、wasm32）。どちらも
+  `use std::core::clone` を持たず、Vec<String> / Vec<i32> の storage 独立性と
+  Option<String> clone を確認する。`poly_clone` / `poly_clone_wasm32` は
+  Option receiver の回帰として残る。
+- **Residual**:
+  - bootstrap overlay の shallow bridge と import strip は pin の clone emitter が
+    HEAD に追いつくまで残す。削除条件は、両方を外しても `build-compiler` の s2 が
+    起動し `verify fixtures` が通ること。
+  - element type が `Clone` impl を持たない場合、Vec storage だけが独立で、
+    element は identity copy のまま。`T: Clone` を要求しない選択の代償である。
+  - `mir_emit_clone_identity` は struct / enum / Option など `Clone` impl のない
+    receiver と overlay build の safety net として残す。
+- **Evidence**: `selfhost build-compiler` PASS（60.8 s）。
+  `verify fixtures` PASS=1939 FAIL=0（112 runtime smoke、42/42 `test:` PASS、
+  2 runtime-unsupported）。新 fixture は gc smoke と wasm32 `test:` の両方で
+  実行された。`verify lane` PASS、`docs check` 6/6 PASS、
+  `selfhost diag-parity` PASS。ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `6c3aa713bc392c9630b74829020bfc8ace13cfd364771f96ffff0dbc623b7983`、
+  pinned base `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`）。
+
 ## 参照
 
 - [ADR-014](ADR-014-stability-labels.md)

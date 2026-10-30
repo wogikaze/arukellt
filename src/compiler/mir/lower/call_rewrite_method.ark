@@ -88,6 +88,16 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
         return bare_method
     }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    // `clone` on an Option local keeps the compiler identity fallback. The
+    // local type is "option:<payload>", and resolving through the payload owner
+    // would pick the payload's Clone impl (`i32::clone`, `String::clone`) and
+    // pass the Option ref where the payload is expected. The typechecker leaves
+    // this call on the bare polymorphic shim; MIR must not re-resolve it.
+    if bare_method.clone().eq(String_from("clone")) &&
+    (arg_type.clone().starts_with(String_from("option:")) ||
+        arg_type.clone().starts_with(String_from("Option_"))) {
+        return bare_method
+    }
     // hashmap:<pair> receivers register trait impls under the concrete pair
     // owner (HashMap_String_i32::into_iter), not the bare HashMap inherent
     // owner. Try the pair symbol first; fall through when no impl exists.

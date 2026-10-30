@@ -193,8 +193,12 @@ without a `Clone` impl; a bare call and `use std::prelude::{clone}` are E0100.
 `Box_new` / `unbox` are retired entirely: `Box::new` and `Box::take` live in
 the prelude impl next to the `Box<T>` enum declaration, and a bare call is
 E0100 with the replacement hint.
-`Vec<T>::clone` is shallow (shared element storage) until the pin refresh
-allows a `T: Clone`-bounded deep impl.
+`Vec<T>::clone` is deep without an import since 2026-10-30: the prelude
+imports `std::core::clone`, and the unbounded `impl<T> Clone for Vec<T>`
+allocates independent element storage. Elements with a `Clone` impl are cloned
+element-wise; other element types take the compiler's identity copy, so only
+the Vec storage is independent. The bootstrap overlay strips the prelude import
+so the pinned compiler keeps its shallow build (ADR-091 addendum).
 
 `eq` was retired on 2026-10-30 as well: use `a.eq(b)`; a bare call is E0100.
 The bootstrap overlay now ships `std/core/eq.ark` (`impl Eq for String`), and
