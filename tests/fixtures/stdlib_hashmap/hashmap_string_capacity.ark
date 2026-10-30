@@ -1,0 +1,61 @@
+// Capacity / bulk-maintenance surface for HashMap<String, i32>. The pair
+// keeps its bucket arrays behind the __hm_si_* bridge, so these methods must
+// stay on that store instead of the flat i32 helpers.
+use std::test::Test
+
+test "capacity_plan" {
+    let mut m = HashMap::with_capacity<String, i32>(4)
+    Test::assert_eq_i32(m.capacity(), 4)
+    Test::assert_true(m.is_empty())
+
+    let empty = HashMap::with_capacity<String, i32>(0)
+    Test::assert_eq_i32(empty.capacity(), 1)
+
+    let _ = m.insert("a", 1)
+    m.reserve(4)
+    Test::assert_true(m.capacity() >= 8)
+    Test::assert_true(m.try_reserve(2))
+
+    let _ = m.insert("b", 2)
+    let _ = m.insert("c", 3)
+    m.shrink_to_fit()
+    Test::assert_true(m.capacity() >= 4)
+    Test::assert_eq_i32(m.len(), 3)
+}
+
+test "bulk_operations" {
+    let mut m = HashMap::new<String, i32>()
+    let _ = m.insert("a", 1)
+    let _ = m.insert("b", 2)
+
+    match m.remove_entry("a") {
+        Option::Some((key, value)) => {
+            Test::assert_eq_string(key, "a")
+            Test::assert_eq_i32(value, 1)
+        }
+        Option::None => Std::panic("missing remove_entry entry"),
+    }
+    match m.remove_entry("missing") {
+        Option::Some(_) => Std::panic("unexpected remove_entry result"),
+        Option::None => {}
+    }
+
+    let mut other = HashMap::new<String, i32>()
+    let _ = other.insert("b", 20)
+    let _ = other.insert("c", 3)
+    m.extend(other)
+    Test::assert_eq_i32(m.len(), 2)
+    match m.get("b") {
+        Option::Some(value) => Test::assert_eq_i32(value, 20),
+        Option::None => Std::panic("extend did not overwrite"),
+    }
+
+    let drained: Vec<(String, i32)> = m.drain()
+    Test::assert_eq_i32(drained.len(), 2)
+    Test::assert_true(m.is_empty())
+    Test::assert_true(m.capacity() >= 1)
+
+    let _ = m.insert("d", 4)
+    m.clear()
+    Test::assert_true(m.is_empty())
+}

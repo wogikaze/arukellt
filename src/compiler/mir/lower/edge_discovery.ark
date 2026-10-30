@@ -1190,6 +1190,18 @@ fn edge_collect_calls(
             frontend_ast_identity::corehir_node_text(callee),
             frontend_ast_span::corehir_node_span_start(node)
         )
+        // `HashMap::with_capacity<K, V>` has no generic shell declaration
+        // (the pinned bootstrap must still typecheck this std module), so no
+        // mono instance names the pair. The source spelling is bare, and its
+        // rewrite is pair-specific, so add the type-argument spelling here to
+        // keep the per-pair constructor in the worklist (#917).
+        let callee_text = frontend_ast_identity::corehir_node_text(callee.clone())
+        if callee_text.clone().eq(String_from("HashMap::with_capacity")) {
+            let typed = edge_ctor_spelling(callee)
+            if len(typed) > 0 {
+                push(out, typed)
+            }
+        }
     }
     if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
         let method_text = frontend_ast_identity::corehir_node_text(node)

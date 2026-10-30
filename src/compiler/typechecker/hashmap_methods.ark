@@ -25,22 +25,16 @@ fn infer_hashmap_constructor_call(
     if type_arg_count != 2 {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
-    let key_ty = types::resolve_type_ann_node(ast_access::node_child_at(callee, 1))
-    let value_ty = types::resolve_type_ann_node(ast_access::node_child_at(callee, 2))
+    // Resolve through the enclosing function's type parameters so the shell
+    // bodies `HashMap::new<K, V>()` / `HashMap::with_capacity<K, V>(cap)`
+    // produce `HashMap<K, V>` instead of anonymous struct placeholders.
+    let type_params = env.current_fn_type_params.clone()
+    let key_ty = types::resolve_type_ann_node_generic(ast_access::node_child_at(callee, 1), type_params.clone())
+    let value_ty = types::resolve_type_ann_node_generic(ast_access::node_child_at(callee, 2), type_params)
     let mut resolved_types = Vec::new<TypeInfo>()
     push(resolved_types, key_ty)
     push(resolved_types, value_ty)
     let result_ty = hashmap_type(key_ty, value_ty)
-    if is_with_capacity && !hashmap_pair_is_flat_store(key_ty, value_ty) {
-        hashmap_report_unavailable(
-            env,
-            String_from("associated function"),
-            String_from("with_capacity"),
-            key_ty,
-            value_ty
-        )
-        return result_ty
-    }
     if !hashmap_api::validate_hashmap_constructor(env, callee_name.clone(), resolved_types) {
         return result_ty
     }
@@ -58,20 +52,20 @@ fn infer_hashmap_constructor_call(
             contract_type_constructors::TypeInfo_simple(commands::TY_I32())
         )
     }
-    // `with_capacity` has no generic shell declaration (the method is
-    // declared on `impl HashMap<i32, i32>`), so a mono instance named
-    // `HashMap::with_capacity` would have no body to instantiate. The MIR
-    // constructor rewrite owns the callee instead; recording a call site
-    // here leaves an unresolved `unreachable` at the call.
-    if !is_with_capacity {
-        let mangled_name = mono::record_mono_instance(env, callee_name.clone(), resolved_types)
-        mono::record_mono_call_site(
-            env,
-            ast_access::node_span_start(node),
-            callee_name.clone(),
-            mangled_name
-        )
-    }
+    // Record the concrete instance for both constructors, matching
+    // `HashMap::new`. The MIR constructor rewrite owns the emitted callee:
+    // the typed `HashMap__with_capacity__<pair>` spelling selects the
+    // per-pair store. `with_capacity` has no generic shell declaration (the
+    // pinned bootstrap must still typecheck this module), so its worklist
+    // entry comes from the constructor spelling in `edge_collect_calls`
+    // rather than from an instantiated shell body.
+    let mangled_name = mono::record_mono_instance(env, callee_name.clone(), resolved_types)
+    mono::record_mono_call_site(
+        env,
+        ast_access::node_span_start(node),
+        callee_name.clone(),
+        mangled_name
+    )
     result_ty
 }
 
@@ -97,20 +91,26 @@ fn infer_builtin_hashmap_method(
     }
     let key_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
     let value_ty = contract_type_access::TypeInfo_type_arg_at(recv_ty, 1)
-    // The capacity / bulk-maintenance surface is implemented over the flat
-    // i32 store. Reject the other pairs (and unresolved type parameters)
-    // before argument unification can produce a misleading mismatch, so a
-    // call can never be lowered over the String / fn bucket layout.
-    if hashmap_method_needs_flat_store(method_name.clone()) &&
-    !hashmap_pair_is_flat_store(key_ty, value_ty) {
-        hashmap_report_unavailable(env, String_from("method"), method_name, key_ty, value_ty)
-        return hashmap_method_return_type(method_name.clone(), key_ty, value_ty)
-    }
+    let is_reserve = method_name.clone().eq(String_from("reserve")) ||
+    method_name.clone().eq(String_from("try_reserve"))
     if method_name.clone().eq(String_from("extend")) {
         // `extend` takes another map, not a key: unify the argument with the
         // receiver's pair so the previous key-typed default does not report
         // `i32` vs `HashMap<...>` for the shell body (#917).
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, recv_ty)
+    } else if is_reserve {
+        // Both take an entry count, not a key. Unifying with `key_ty` worked
+        // only while every pair was i32-keyed; a String key would bind the
+        // count against `String` (#917).
+        unify_hashmap_method_arg(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            1,
+            contract_type_constructors::TypeInfo_simple(commands::TY_I32())
+        )
     } else if explicit_args == 1 {
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, key_ty)
     } else if explicit_args == 2 {
@@ -127,63 +127,6 @@ fn infer_builtin_hashmap_method(
     let mangled_name = mono::record_mono_instance(env, mono_name.clone(), resolved_types)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_name, mangled_name)
     hashmap_method_return_type(method_name, key_ty, value_ty)
-}
-
-fn hashmap_report_unavailable(
-    mut env: TypeEnv,
-    kind: String,
-    method_name: String,
-    key_ty: TypeInfo,
-    value_ty: TypeInfo
-) {
-    let pair = String_from("HashMap<").concat(
-        hashmap_type_name(key_ty).concat(
-            String_from(", ").concat(hashmap_type_name(value_ty).concat(String_from(">")))
-        )
-    )
-    let head = kind.concat(String_from(" `").concat(method_name.concat(String_from("` is not available on `"))))
-    let capacity_group = String_from("(`with_capacity`, `capacity`, `reserve`, `try_reserve`, ").concat(
-        String_from("`shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend`)")
-    )
-    let available_methods = String_from("`len`, `is_empty`, `insert`, `get`, `contains_key`, ").concat(
-        String_from("`remove`, `keys`, `values`, and `entries`")
-    )
-    let message = head.concat(
-        pair.concat(
-            String_from("`; the capacity/bulk group ").concat(capacity_group).concat(
-                String_from(" is implemented only for the flat `HashMap<i32, i32>` store; ")
-            ).concat(String_from("this pair supports ").concat(available_methods).concat(String_from(".")))
-        )
-    )
-    // Speculative inference can visit the same call node more than once;
-    // report the family rejection once per environment.
-    let mut seen = false
-    let mut index = 0
-    while index < len(env.errors) {
-        if get_unchecked(env.errors, index).eq(message.clone()) {
-            seen = true
-        }
-        index = index + 1
-    }
-    if !seen {
-        unify::type_error(env, message)
-    }
-}
-
-fn hashmap_pair_is_flat_store(key_ty: TypeInfo, value_ty: TypeInfo) -> bool {
-    contract_type_access::TypeInfo_tag(key_ty) == commands::TY_I32() &&
-    contract_type_access::TypeInfo_tag(value_ty) == commands::TY_I32()
-}
-
-fn hashmap_method_needs_flat_store(method_name: String) -> bool {
-    method_name.clone().eq(String_from("capacity")) ||
-    method_name.clone().eq(String_from("reserve")) ||
-    method_name.clone().eq(String_from("try_reserve")) ||
-    method_name.clone().eq(String_from("shrink_to_fit")) ||
-    method_name.clone().eq(String_from("clear")) ||
-    method_name.clone().eq(String_from("drain")) ||
-    method_name.clone().eq(String_from("remove_entry")) ||
-    method_name.clone().eq(String_from("extend"))
 }
 
 fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {

@@ -227,3 +227,112 @@ fn hashmap_str_fn_insert(
 fn hashmap_str_fn_is_empty(m: HashMap<String, fn(i32) -> i32>) -> bool {
     hashmap_str_fn_len(m) == 0
 }
+
+// ─── Capacity / bulk maintenance ───────────────────────────────────────────
+// Lowering targets for the generic capacity surface. String keys and fnref
+// values live in the compiler-managed bucket arrays, so every operation goes
+// through the __hm_sf_* bridge.
+
+fn hashmap_str_fn_with_capacity(cap: i32) -> HashMap<String, fn(i32) -> i32> {
+    let mut actual_cap: i32 = cap
+    if actual_cap < 1 {
+        actual_cap = 1
+    }
+    __hm_sf_new_with_cap(actual_cap)
+}
+
+fn hashmap_str_fn_capacity(m: HashMap<String, fn(i32) -> i32>) -> i32 {
+    __hm_sf_cap(m)
+}
+
+fn hashmap_str_fn_min_capacity(entries: i32) -> i32 {
+    let mut cap: i32 = 1
+    while cap * 3 < entries * 4 {
+        cap = cap * 2
+    }
+    cap
+}
+
+fn hashmap_str_fn_rehash_to(m: HashMap<String, fn(i32) -> i32>, requested_cap: i32) {
+    let old_cap: i32 = __hm_sf_cap(m)
+    let mut target_cap: i32 = hashmap_str_fn_min_capacity(__hm_sf_size(m))
+    if requested_cap > target_cap {
+        target_cap = requested_cap
+    }
+    if target_cap == old_cap {
+        return
+    }
+    let dst: HashMap<String, fn(i32) -> i32> = __hm_sf_new_with_cap(target_cap)
+    let mut i: i32 = 0
+    while i < old_cap {
+        if __hm_sf_get_flag(m, i) == 1 {
+            let _stored: bool = hashmap_str_fn_set_probe(dst, __hm_sf_get_key(m, i), __hm_sf_get_val(m, i))
+        }
+        i = i + 1
+    }
+    __hm_sf_adopt(m, dst)
+}
+
+fn hashmap_str_fn_reserve(m: HashMap<String, fn(i32) -> i32>, additional: i32) {
+    if additional > 0 {
+        let needed_cap: i32 = hashmap_str_fn_min_capacity(__hm_sf_size(m) + additional)
+        if needed_cap > __hm_sf_cap(m) {
+            hashmap_str_fn_rehash_to(m, needed_cap)
+        }
+    }
+}
+
+fn hashmap_str_fn_try_reserve(m: HashMap<String, fn(i32) -> i32>, additional: i32) -> bool {
+    hashmap_str_fn_reserve(m, additional)
+    true
+}
+
+fn hashmap_str_fn_shrink_to_fit(m: HashMap<String, fn(i32) -> i32>) {
+    let target_cap: i32 = hashmap_str_fn_min_capacity(__hm_sf_size(m))
+    if target_cap < __hm_sf_cap(m) {
+        hashmap_str_fn_rehash_to(m, target_cap)
+    }
+}
+
+fn hashmap_str_fn_clear(m: HashMap<String, fn(i32) -> i32>) {
+    let cap: i32 = __hm_sf_cap(m)
+    __hm_sf_set_size(m, 0)
+    let mut i: i32 = 0
+    while i < cap {
+        __hm_sf_set_flag(m, i, 0)
+        i = i + 1
+    }
+}
+
+fn hashmap_str_fn_drain(m: HashMap<String, fn(i32) -> i32>) -> Vec<(String, fn(i32) -> i32)> {
+    let result: Vec<(String, fn(i32) -> i32)> = hashmap_str_fn_entries(m)
+    hashmap_str_fn_clear(m)
+    result
+}
+
+fn hashmap_str_fn_remove_entry(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String
+) -> Option<(String, fn(i32) -> i32)> {
+    let old: Option<fn(i32) -> i32> = hashmap_str_fn_remove(m, key.clone())
+    match old {
+        Option::Some(value) => Option::Some((key, value)),
+        Option::None => Option::None,
+    }
+}
+
+fn hashmap_str_fn_extend(
+    m: HashMap<String, fn(i32) -> i32>,
+    other: HashMap<String, fn(i32) -> i32>
+) {
+    let mut pending: Vec<(String, fn(i32) -> i32)> = hashmap_str_fn_entries(other)
+    while len(pending) > 0 {
+        match pending.pop() {
+            Option::Some(pair) => {
+                let (key, value) = pair
+                let _stored: bool = hashmap_str_fn_set(m, key, value)
+            }
+            Option::None => {}
+        }
+    }
+}

@@ -16,35 +16,30 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-30 — `std::io::io_error_message` の退役 (#693 / #917, wave/io-error-message)
+## 2026-10-30 — `HashMap<K, V>` capacity / bulk surface の全 pair 展開 (#917, wave/hashmap-generic)
 
-- **Removed**: `std/io/mod.ark` の `pub fn io_error_message(err)` を退役した。
-  これは `std/**/*.ark` に残っていた最後の unregistered declaration
-  （manifest entry なし）で、ADR-014 D4 により直接削除した。qualified
-  `io::io_error_message(...)` は E0100 と
-  ``use `e.message()` on the `IoError` value instead`` の hint を返す。
-- **Replacement**: `impl IoError` の `fn message(self: IoError) -> String`。
-  `Display::to_string` は `"IoError: "` と `self.message()` を連結し、
-  `From<IoError> for String` も `err.message()` へ委譲する。`std/manifest.toml`
-  の `IoError` type entry に `methods = ["message"]` を登録した。
-- **Migration**: fixture 82 ファイル・234 call site を `err.message()` へ移した
-  （selective import の
-  `stdlib_io/{stdout,stderr}_writer_to_bytes_empty` を含む）。E0100 golden は
-  `diagnostics/removed_io_error_message`、hint は
-  `resolver::removed_names.removed_io_free_hint`。
-- **Scorecard**: eradication scope 83 -> **82**、`pub fn` declarations 83 ->
-  **82**、unregistered 1 -> **0**、`associated-or-method` 17 -> **16**、
-  `std::io and host stdio frees` rule の Source 1 -> **0**。
-  `docs/stdlib/eradication.md` の unregistered inventory は空になった。
-- **Evidence**: `verify fixtures` **1931/1931** compile+validate PASS（111
-  runtime executed、39/39 `test:` PASS、2 runtime-unsupported、0 FAIL）、
-  `selfhost diag-parity` PASS（新規 golden 含む）、`docs check` 6/6、
-  `verify lane` PASS、ADR-029 fixpoint PASS（s2 == s3 =
-  `6042638ea518406a296e7cc2bd1b26416ae84325c8a2296534c999c958671268`、pinned
-  base `56ff0808…`）。変更した io fixture 7 本は pinned / current ×
-  `--target wasm32` でも compile+validate+run PASS。
-- **Residual**: 残る 82 はすべて manifest 登録済みの free function で、#917 の
-  各 family が継続して所有する。この wave はそれらを変更しない。
+- **Changed**: `with_capacity` / `capacity` / `reserve` / `try_reserve` /
+  `shrink_to_fit` / `clear` / `drain` / `remove_entry` / `extend` を
+  `HashMap<i32, i32>` 限定から、サポートする全 pair
+  （`i32/String` キー × `i32`/`String`/`fn(i32) -> i32` 値）へ広げた。
+  宣言は flat pair の `impl HashMap<i32, i32>` shell と typechecker の HashMap
+  method table が担い、MIR が receiver の pair ごとの store 実装へ rewrite する。
+  非 flat 宣言を generic shell へ置かないのは、pinned bootstrap が
+  `std/collections/hash_map.ark` を型検査し続けられるようにするためである。
+  `HashMap<i32, i32>` は flat `Vec<i32>`、String/fn pair は compiler 管理
+  bucket 配列を `__hm_*` bridge 経由で操作する。
+- **Contract**: `drain` は `Vec<(K, V)>`、`remove_entry` は `Option<(K, V)>` を
+  返す。`try_reserve` の `true` は reserve 完了を意味する。flat pair の
+  `with_capacity(0) -> capacity 1` を含め、0 以下の容量は 1 に clamp する。
+- **Removed**: 非 flat pair の capacity 呼び出しに対する E0200 境界。診断 fixture
+  `diagnostics/hashmap_string_capacity*` と
+  `diagnostics/hashmap_string_with_capacity*` を削除し、positive fixture
+  `stdlib_hashmap/hashmap_string_capacity` / `hashmap_pair_capacity` /
+  `hashmap_capacity_pairs` を追加した。
+- **Not changed**: `HashSet<String>` の capacity 境界は据え置き。String set は
+  bucket layout を持たない `Vec<String>` facade のままである。
+- **Residual**: borrow-based `entry` / `iter` / `retain` /
+  `FromIterator` parity は collection iterator 設計待ちのまま。
 
 ## 2026-10-30 — `std::collections::string::eq` の退役 (#917 / ADR-046, wave/string-eq-qualified)
 

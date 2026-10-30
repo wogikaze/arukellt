@@ -441,10 +441,6 @@ diag:diagnostics/hashmap_entries_unsupported_pair.ark
 diag:diagnostics/hashmap_unsupported_pair.ark
 diag:diagnostics/hashset_string_capacity.ark
 diag:diagnostics/hashset_string_capacity_wasm32.ark
-diag:diagnostics/hashmap_string_capacity.ark
-diag:diagnostics/hashmap_string_capacity_wasm32.ark
-diag:diagnostics/hashmap_string_with_capacity.ark
-diag:diagnostics/hashmap_string_with_capacity_wasm32.ark
 diag:diagnostics/hashset_string_reserve.ark
 diag:diagnostics/hashset_string_shrink_to_fit.ark
 diag:diagnostics/iterator_methods_no_import.ark
@@ -1135,6 +1131,7 @@ run:stdlib_hashmap/native_hashmap_i32_string_family.ark
 run:stdlib_hashmap/native_hashmap_string_i32_family.ark
 run:stdlib_hashmap/native_hashmap_string_string_family.ark
 run:stdlib_hashmap/hashmap_capacity_extend.ark
+run:stdlib_hashmap/hashmap_capacity_pairs.ark
 test:stdlib_hashmap/hashmap_capacity_reserve.ark
 test:stdlib_hashmap/hashmap_extended.ark
 run:stdlib_hashmap/hashmap_fn_growth.ark
@@ -1150,6 +1147,8 @@ test:stdlib_hashmap/hashmap_parity_edges.ark
 run:stdlib_hashmap/hashmap_remove.ark
 test:stdlib_hashmap/hashmap_size_direct.ark
 test:stdlib_hashmap/hashmap_string_i32.ark
+test:stdlib_hashmap/hashmap_pair_capacity.ark
+test:stdlib_hashmap/hashmap_string_capacity.ark
 test:stdlib_hashmap/hashmap_string_string.ark
 run:stdlib_hashmap/hashmap_typed_remove_extend.ark
 run:stdlib_hashset/hashset_methods.ark
@@ -2596,6 +2595,7 @@ t3-compile:stdlib_linked_list/linked_list_iter.ark
 t3-compile:stdlib_linked_list/linked_list_traits.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
 t3-compile:stdlib_hashmap/hashmap_capacity_extend.ark
+t3-compile:stdlib_hashmap/hashmap_capacity_pairs.ark
 t3-compile:stdlib_hashmap/hashmap_capacity_reserve.ark
 t3-compile:stdlib_hashmap/hashmap_generic_demo.ark
 t3-compile:stdlib_hashmap/hashmap_i32_string.ark
@@ -2608,6 +2608,8 @@ t3-compile:stdlib_hashmap/hashmap_size_direct.ark
 t3-compile:stdlib_hashmap/hashmap_string_i32.ark
 t3-compile:stdlib_hashmap/hashmap_string_string.ark
 t3-compile:stdlib_hashmap/hashmap_typed_remove_extend.ark
+t3-compile:stdlib_hashmap/hashmap_pair_capacity.ark
+t3-compile:stdlib_hashmap/hashmap_string_capacity.ark
 t3-compile:stdlib_hashmap/hashset_capacity_extend.ark
 t3-compile:stdlib_hashmap/hashset_string_basic.ark
 t3-compile:stdlib_hashmap/hashset_string_facades.ark
@@ -3132,6 +3134,7 @@ t3-run:stdlib_linked_list/linked_list_iter.ark
 t3-run:stdlib_linked_list/linked_list_traits.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark
 t3-run:stdlib_hashmap/hashmap_capacity_extend.ark
+t3-run:stdlib_hashmap/hashmap_capacity_pairs.ark
 t3-run:stdlib_hashmap/hashmap_capacity_reserve.ark
 t3-run:stdlib_hashmap/hashmap_fn_growth.ark
 t3-run:stdlib_hashmap/hashmap_generic_demo.ark
@@ -3147,6 +3150,8 @@ t3-run:stdlib_hashmap/hashmap_size_direct.ark
 t3-run:stdlib_hashmap/hashmap_string_i32.ark
 t3-run:stdlib_hashmap/hashmap_string_string.ark
 t3-run:stdlib_hashmap/hashmap_typed_remove_extend.ark
+t3-run:stdlib_hashmap/hashmap_pair_capacity.ark
+t3-run:stdlib_hashmap/hashmap_string_capacity.ark
 t3-run:stdlib_hashmap/hashset_capacity_extend.ark
 t3-run:stdlib_hashmap/hashset_string_basic.ark
 t3-run:stdlib_hashmap/hashset_string_facades.ark

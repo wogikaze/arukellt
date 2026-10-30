@@ -1,0 +1,66 @@
+// gc-target runtime coverage for the generic capacity surface: the flat
+// HashMap<i32, i32> store and the compiler-managed String/fn store both
+// create, grow, remove, drain, and extend through their own lowering target.
+use std::host::stdio
+use std::test::Test
+
+fn inc(n: i32) -> i32 {
+    n + 1
+}
+
+fn main() {
+    let mut flat = HashMap::with_capacity<i32, i32>(4)
+    Test::assert_eq_i32(flat.capacity(), 4)
+    flat.reserve(8)
+    Test::assert_true(flat.try_reserve(4))
+    let _ = flat.insert(1, 10)
+    let _ = flat.insert(2, 20)
+    match flat.remove_entry(1) {
+        Option::Some((key, value)) => {
+            Test::assert_eq_i32(key, 1)
+            Test::assert_eq_i32(value, 10)
+        }
+        Option::None => Std::panic("missing flat remove_entry"),
+    }
+    let mut more = HashMap::new<i32, i32>()
+    let _ = more.insert(3, 30)
+    flat.extend(more)
+    Test::assert_eq_i32(flat.len(), 2)
+    let drained_flat: Vec<(i32, i32)> = flat.drain()
+    Test::assert_eq_i32(drained_flat.len(), 2)
+    Test::assert_true(flat.is_empty())
+
+    let mut strings = HashMap::with_capacity<String, i32>(4)
+    Test::assert_eq_i32(strings.capacity(), 4)
+    let _ = strings.insert("a", 1)
+    strings.reserve(8)
+    Test::assert_true(strings.try_reserve(2))
+    strings.shrink_to_fit()
+    match strings.remove_entry("a") {
+        Option::Some((key, value)) => {
+            Test::assert_eq_string(key, "a")
+            Test::assert_eq_i32(value, 1)
+        }
+        Option::None => Std::panic("missing String remove_entry"),
+    }
+    let mut more_strings = HashMap::new<String, i32>()
+    let _ = more_strings.insert("b", 2)
+    strings.extend(more_strings)
+    Test::assert_eq_i32(strings.len(), 1)
+    let drained_strings: Vec<(String, i32)> = strings.drain()
+    Test::assert_eq_i32(drained_strings.len(), 1)
+    strings.clear()
+    Test::assert_true(strings.is_empty())
+
+    let mut functions = HashMap::with_capacity<String, fn(i32) -> i32>(2)
+    let _ = functions.insert("inc", inc)
+    match functions.remove_entry("inc") {
+        Option::Some((key, f)) => {
+            Test::assert_eq_string(key, "inc")
+            Test::assert_eq_i32(f(4), 5)
+        }
+        Option::None => Std::panic("missing String->fn remove_entry"),
+    }
+
+    stdio::println("capacity-surface-ok")
+}

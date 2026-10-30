@@ -15,15 +15,30 @@ fn mir_rewrite_hashmap_constructor(callee_name: String) -> String {
     if !callee_name.clone().starts_with(String_from("HashMap")) {
         return String_new()
     }
-    // `with_capacity` is part of the flat-store maintenance surface; the
-    // other pairs reject the call at typecheck, so only the i32->i32 target
-    // is reachable here (#917). The CoreHIR path can drop the explicit type
-    // arguments, so match the bare associated spelling as well.
+    // The CoreHIR path can drop the explicit type arguments, so match the
+    // bare associated spelling as well. Every pair now has a capacity
+    // constructor; the typed spellings below pick the pair-specific store
+    // before this flat fallback (#917).
     if callee_name.clone().eq("HashMap::with_capacity") ||
     callee_name.clone().eq("HashMap__with_capacity") ||
     callee_name.clone().eq("HashMap_with_capacity") ||
     hashmap_constructor_matches(callee_name.clone(), "with_capacity", "i32", "i32") {
         return String_from("hashmap_with_capacity")
+    }
+    if hashmap_constructor_matches(callee_name.clone(), "with_capacity", "String", "i32") {
+        return String_from("hash_string::hashmap_str_with_capacity")
+    }
+    if hashmap_constructor_matches(callee_name.clone(), "with_capacity", "i32", "String") {
+        return String_from("hash_string::hashmap_i32_str_with_capacity")
+    }
+    if hashmap_constructor_matches(callee_name.clone(), "with_capacity", "String", "String") {
+        return String_from("hash_string::hashmap_str_str_with_capacity")
+    }
+    if hashmap_constructor_matches(callee_name.clone(), "with_capacity", "i32", "fn") {
+        return String_from("hash_fn::hashmap_i32_fn_with_capacity")
+    }
+    if hashmap_constructor_matches(callee_name.clone(), "with_capacity", "String", "fn") {
+        return String_from("hash_str_fn::hashmap_str_fn_with_capacity")
     }
     if hashmap_constructor_matches(callee_name.clone(), "new", "i32", "i32") {
         return String_from("hashmap_new")
@@ -127,11 +142,12 @@ fn hashmap_family_method_target(family: String, method: String) -> String {
     if family.clone().eq(String_from("hash::ii")) {
         return hashmap_i32_i32_method_target(method)
     }
-    // The maintenance surface exists only over the flat i32 store. Typecheck
-    // rejects the call on the other pairs; returning empty here keeps an
-    // unresolved path from crossing into the i32 helpers by accident.
-    if hashmap_method_requires_flat_store(method.clone()) {
-        return String_new()
+    // The capacity / bulk-maintenance group exists on every supported pair.
+    // Non-flat families spell their targets `<family>_<method>` over the
+    // compiler-managed bucket bridge; the flat i32 pair owns its own table
+    // above because several of its method names do not follow that shape.
+    if hashmap_method_is_capacity_group(method.clone()) {
+        return family.concat(String_from("_").concat(method))
     }
     if family.clone().eq(String_from("hash_string::hashmap_str")) {
         return hashmap_str_i32_method_target(method)
@@ -142,7 +158,7 @@ fn hashmap_family_method_target(family: String, method: String) -> String {
     family.clone().concat(String_from("_").concat(method))
 }
 
-fn hashmap_method_requires_flat_store(method: String) -> bool {
+fn hashmap_method_is_capacity_group(method: String) -> bool {
     method.clone().eq(String_from("capacity")) ||
     method.clone().eq(String_from("reserve")) ||
     method.clone().eq(String_from("try_reserve")) ||
@@ -410,7 +426,11 @@ test mod "hashmap_rewrite" {
     test "constructor" {
         assert(mir_rewrite_hashmap_constructor("HashMap__new__i32__i32") == "hashmap_new")
         assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__i32__i32") == "hashmap_with_capacity")
-        assert(len(mir_rewrite_hashmap_constructor("HashMap__with_capacity__String__i32")) == 0)
+        assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__String__i32") == "hash_string::hashmap_str_with_capacity")
+        assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__i32__String") == "hash_string::hashmap_i32_str_with_capacity")
+        assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__String__String") == "hash_string::hashmap_str_str_with_capacity")
+        assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__i32__fn") == "hash_fn::hashmap_i32_fn_with_capacity")
+        assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__String__fn") == "hash_str_fn::hashmap_str_fn_with_capacity")
     }
     test "store_maintenance_targets" {
         assert(hashmap_method_name("HashMap_i32_i32::capacity") == "capacity")
@@ -420,9 +440,20 @@ test mod "hashmap_rewrite" {
         assert(hashmap_family_method_target("hash::ii", "remove_entry") == "hashmap_remove_entry_pair")
         assert(hashmap_family_method_target("hash::ii", "extend") == "hashmap_extend")
     }
-    test "store_maintenance_stays_on_the_flat_pair" {
-        assert(len(hashmap_family_method_target("hash_string::hashmap_str", "capacity")) == 0)
-        assert(len(hashmap_family_method_target("hash_fn::hashmap_i32_fn", "drain")) == 0)
-        assert(len(hashmap_family_method_target("hash_string::hashmap_str", "insert")) > 0)
+    test "store_maintenance_targets_every_pair" {
+        assert(hashmap_family_method_target("hash_string::hashmap_str", "capacity") ==
+            "hash_string::hashmap_str_capacity")
+        assert(hashmap_family_method_target("hash_string::hashmap_str", "drain") ==
+            "hash_string::hashmap_str_drain")
+        assert(hashmap_family_method_target("hash_string::hashmap_i32_str", "remove_entry") ==
+            "hash_string::hashmap_i32_str_remove_entry")
+        assert(hashmap_family_method_target("hash_string::hashmap_str_str", "extend") ==
+            "hash_string::hashmap_str_str_extend")
+        assert(hashmap_family_method_target("hash_fn::hashmap_i32_fn", "try_reserve") ==
+            "hash_fn::hashmap_i32_fn_try_reserve")
+        assert(hashmap_family_method_target("hash_str_fn::hashmap_str_fn", "shrink_to_fit") ==
+            "hash_str_fn::hashmap_str_fn_shrink_to_fit")
+        assert(hashmap_family_method_target("hash_string::hashmap_str", "insert") ==
+            "hash_string::hashmap_str_insert")
     }
 }
