@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-27
+Updated: 2026-10-31
 ID: 934
 Track: compiler
 Depends on: none
@@ -49,10 +49,10 @@ signature. Ambiguity is a diagnostic, never "first match by name".
 - [ ] The checker records the resolved FunctionId (and MonoInstanceId for
       generic calls) per call node and exposes it in `TypeCheckResult` for
       #933.
-- [ ] Two modules exporting the same function name and calling each other's
+- [x] Two modules exporting the same function name and calling each other's
       function with different signatures type-check correctly (new fixture
       under `tests/fixtures/modules/`).
-- [ ] `Vec::from_iter`-style multiple impls of one associated name are
+- [x] `Vec::from_iter`-style multiple impls of one associated name are
       selected by type, not declaration order (fixture).
 - [ ] `python3 scripts/manager.py selfhost fixpoint` stays green.
 
@@ -115,3 +115,79 @@ general bare-name fallback in `call_method.ark` / `sigs.ark`, the
 module-qualified key for every symbol, and the Vec shell's untyped self are
 unchanged. Items 3 and 4 have no change.
 
+## Update (2026-10-31, `wave/decl-identity-rest`) — items 3/4
+
+### Item 3 — conversion impls are selected by declaration identity
+
+The signature index no longer aliases a conversion impl's family spelling
+(`Vec_String::from_iter`) to whichever impl happens to be registered first.
+An impl method whose mangled name carries a conversion source
+(`Vec_String::from_iter__VecIter_String`) now gets no `Owner::method` index key
+from `typechecker/entry.ark`; its only identity is the mangled name.
+
+`typechecker/call_fn.ark` resolves the source call instead: when
+`Owner::method` does not name a declaration, `conversion_impl_candidate`
+infers the first argument's type, builds the declared identity
+`Owner::method__<Source>`, and selects the unique signature whose owner family
+matches (`Vec` / `Vec_String`, `HashSet_i32`, `HashMap_String_i32`, ...). The
+call is then typed and arity-checked from that declaration. This replaces the
+two hardcoded family probes (`hashset_from_iter_candidate`,
+`hashmap_from_iter_candidate`) with one declaration-driven rule for the
+concrete conversion families (Vec, HashSet, HashMap) and the `from_iter`,
+`try_from`, `from` method names their impls use.
+
+Before: `let xs = Vec::from_iter(<Vec<String> iterator>)` bound the first Vec
+impl (`Vec::from_iter__VecIter_i32`) and typed `xs` as `Vec<i32>`; a `let`
+annotation then silently overrode the wrong element type. After: the call
+binds `Vec_String::from_iter__VecIter_String` (or the `MapIter_String_String`
+/ `TakeIter_...` / `Skip...` impl matching the source) and returns the
+declared `Vec<String>` type.
+
+Fixture: `tests/fixtures/stdlib_trait/vec_from_iter_impl_selection.ark`
+covers i32, String and mapped-String sources, each read back through
+`get_unchecked` with a typed `let`. Pre-fix it fails with
+`E0200 type mismatch: i32 vs String`; post-fix it compiles and runs. A probe
+with `<Vec<String> iterator> -> let n: i32` now reports `String vs i32`
+instead of the old `Vec vs i32`.
+
+### Item 4 — module-same-name fixture
+
+`tests/fixtures/modules/same_name_export/` exports `describe` from two
+modules: `counter::describe(i32) -> i32` and `labeler::describe(String) ->
+String`. `labeler::describe_count` calls `counter::describe` across the module
+boundary, and `main` binds each result to its declared type before printing
+`42`, `ready!`, `10-ok`. The fixture is registered as `module-run:` and
+`run:` in the manifest.
+
+Module-qualified keying already resolved these calls before this change (the
+fixture also passes on the pinned compiler), so item 4 needed the fixture, not
+new resolution code. The fixture fails if either qualified call binds the
+other module's declaration: `let label: String` would receive `i32`.
+
+### Remaining
+
+Item 1 stays partial: only the conversion-impl alias is gone. The general
+bare-name fallback in `call_method.ark` / `sigs.ark` and the flat
+`Owner::method` key for non-conversion impls are unchanged.
+
+Item 2 is unchanged: the conversion call is typed from its declaration, but
+the checker does not yet record a resolved FunctionId / MonoInstanceId per
+call node in `TypeCheckResult`.
+
+### Evidence
+
+- `selfhost build-compiler`: PASS, 55.7s (pin `56ff0808`).
+- `verify fixtures`: PASS=1967 FAIL=0 COMPILE_VALIDATE=1967 EXECUTED=113
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane` (quality changed): PASS. `docs check`: 6/6 PASS.
+- `selfhost diag-parity`: PASS.
+- `selfhost fixpoint`: s2 == s3 =
+  `e6e4f49a5157fce286485bc6c3ca0476270bd5b332df95356a3eafa43ef0c42e`
+  on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+- Isolated-worktree note: the lint step of `verify lane` resolves the compiler
+  from `<root>/.build/selfhost` and ignores `ARUKELLT_BUILD_DIR`, so this lane
+  ran it with
+  `ARUKELLT_SELFHOST_WASM=<build-dir>/selfhost/arukellt-s2-runtime.wasm`
+  (the documented override). Without it the step lints with the pinned
+  bootstrap and reports the pre-fix fixture error.

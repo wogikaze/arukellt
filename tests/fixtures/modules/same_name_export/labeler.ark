@@ -1,0 +1,10 @@
+use std::text
+import counter
+
+pub fn describe(value: String) -> String {
+    value.concat(String_from("!"))
+}
+
+pub fn describe_count(value: i32) -> String {
+    (counter::describe(value)).to_string().concat(String_from("-ok"))
+}

@@ -1,0 +1,16 @@
+//! Two modules export a function with the same name and different signatures.
+//! Each qualified call must bind its own module's declaration: `counter` takes
+//! and returns i32, `labeler` takes and returns String.
+
+use std::host::stdio::Stdio
+import counter
+import labeler
+
+fn main() {
+    let count: i32 = counter::describe(41)
+    let label: String = labeler::describe(String_from("ready"))
+    let combined: String = labeler::describe_count(9)
+    Stdio::println((count).to_string())
+    Stdio::println(label)
+    Stdio::println(combined)
+}

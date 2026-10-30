@@ -78,9 +78,9 @@ fn check_let_stmt(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<FnSig>, 
         // the annotation: `let ys: Vec<String> = [x * 2 for x in xs]`
         // over Vec<i32> is a real mismatch that must reach unify,
         // not an annotation-override (#815). Other initializers keep
-        // the lenient path because overloaded/weakly-inferred calls
-        // (for example Vec::from_iter picking the first impl by name)
-        // still produce concrete-but-wrong argument types.
+        // the lenient path because an unannotated collection constructor
+        // or an unresolved call can leave a bare `Vec` / `HashMap` whose
+        // element or pair type only the annotation supplies.
         let init_is_comprehension = ast_access::node_child_count(node) > 0 &&
         ast_expr_predicates::node_is_comprehension(ast_access::node_child_at(node, 0))
         if should_prefer_annotation(bind_ty, ann_ty) && !init_is_comprehension {
