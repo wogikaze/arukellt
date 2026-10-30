@@ -29,6 +29,10 @@ pub fn view_body_source(view: CoreHirMirView) -> CoreHirMirBodySource {
     mir_view::view_body_source(view)
 }
 
+pub fn view_resolved_calls(view: CoreHirMirView) -> Vec<CoreHirResolvedCall> {
+    mir_view::view_resolved_calls(view)
+}
+
 pub fn view_signature_source(view: CoreHirMirView) -> CoreHirMirSignatureSource {
     mir_view::view_signature_source(view)
 }

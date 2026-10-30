@@ -1,32 +1,28 @@
 use corehir::raw_dto
-use corehir::frontend_ast_identity
-use corehir::frontend_ast_children
-use corehir::frontend_expr_kind
-use corehir::frontend_ast_span
+use typechecker::contract_resolved_call
+use typechecker::contract_result_state
 
-fn scan_resolved_calls(decls: Vec<AstNode>) -> Vec<CoreHirResolvedCall> {
+// Convert the checker's per-call receiver-owner resolutions into the CoreHIR
+// handoff table. Only the calls the checker actually resolved are present;
+// lowering must not fall back to a syntactic callee scan (#933).
+fn resolved_calls_from_check_result(check_result: TypeCheckResult) -> Vec<CoreHirResolvedCall> {
+    let owners = contract_result_state::typecheck_result_resolved_call_owners(check_result)
     let mut calls = Vec::new<CoreHirResolvedCall>()
-    let decl_count = len(decls)
-    let mut di = 0
-    while di < decl_count {
-        scan_calls_in_node(get_unchecked(decls, di), calls)
-        di = di + 1
+    let count = len(owners)
+    let mut i = 0
+    while i < count {
+        let owner = get_unchecked(owners, i)
+        push(
+            calls,
+            raw_dto::CoreHirResolvedCall_new(
+                contract_resolved_call::ResolvedCallOwner_decl_index(owner.clone()),
+                contract_resolved_call::ResolvedCallOwner_body_child_index(owner.clone()),
+                contract_resolved_call::ResolvedCallOwner_span_start(owner.clone()),
+                contract_resolved_call::ResolvedCallOwner_callee_name(owner.clone()),
+                contract_resolved_call::ResolvedCallOwner_owner_name(owner)
+            )
+        )
+        i = i + 1
     }
     calls
-}
-
-fn scan_calls_in_node(node: AstNode, mut calls: Vec<CoreHirResolvedCall>) {
-    let kind = frontend_ast_identity::corehir_node_kind(node)
-    if frontend_expr_kind::corehir_kind_is_expr_call(kind) {
-        push(calls, raw_dto::CoreHirResolvedCall_new(frontend_ast_identity::corehir_node_text(node), false, frontend_ast_span::corehir_node_span_start(node)))
-    }
-    if frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
-        push(calls, raw_dto::CoreHirResolvedCall_new(frontend_ast_identity::corehir_node_text(node), true, frontend_ast_span::corehir_node_span_start(node)))
-    }
-    let child_count = frontend_ast_children::corehir_node_child_count(node)
-    let mut ci = 0
-    while ci < child_count {
-        scan_calls_in_node(frontend_ast_children::corehir_node_child_at(node, ci), calls)
-        ci = ci + 1
-    }
 }

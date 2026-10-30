@@ -16,7 +16,17 @@ struct TypeEnv {
     // `len` receivers that were still type variables at their call. The body
     // may bind such a variable to String or Vec afterwards, so the owner
     // contract is finalized once the whole body has run (#936).
-    deferred_len_receiver_types: Vec<TypeInfo>,
+    deferred_len_receivers: Vec<DeferredLenReceiver>,
+    // Per-call receiver owners resolved by the checker and handed to MIR
+    // lowering. This is the #933 handoff: lowering must not re-derive the
+    // owner from a local type spelling.
+    resolved_call_owners: Vec<ResolvedCallOwner>,
+    // Source body that the current check belongs to: the decl index in the
+    // checked program and, for impl methods, the method ordinal inside the
+    // impl (-1 for top-level decls). MIR uses the same identity when it
+    // lowers the body, so resolutions never collide across modules.
+    current_decl_index: i32,
+    current_body_child_index: i32,
     // Shared monotonic counter backing fresh inference-var ids. Envs derived
     // for nested inference (generic-call scratch envs, per-fn check envs)
     // share the parent box so t<id> names can never collide across scopes
@@ -63,7 +73,10 @@ fn TypeEnv_new() -> TypeEnv {
     push(var_id_box, 0)
     TypeEnv {
         vars: Vec::new<TypeVar>(),
-        deferred_len_receiver_types: Vec::new<TypeInfo>(),
+        deferred_len_receivers: Vec::new<DeferredLenReceiver>(),
+        resolved_call_owners: Vec::new<ResolvedCallOwner>(),
+        current_decl_index: 0 - 1,
+        current_body_child_index: 0 - 1,
         var_id_box: var_id_box,
         errors: Vec::new<String>(),
         error_count: 0,

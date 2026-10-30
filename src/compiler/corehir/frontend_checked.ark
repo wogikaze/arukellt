@@ -28,11 +28,10 @@ fn build_checked_program_from_bundle_mode(bundle: FrontendBundle, include_bodies
         frontend_bundle::bundle_module_stdlib_flags(bundle),
         len(decls)
     )
-    let resolved_calls = if include_bodies {
-        frontend_resolved_calls::scan_resolved_calls(decls)
-    } else {
-        Vec::new<CoreHirResolvedCall>()
-    }
+    // Checker resolutions are body-independent: the wasm32-gc path lowers
+    // bodies from the AST fallback and does not build the CoreHIR body
+    // artifact, but still needs the per-call owner table (#933).
+    let resolved_calls = frontend_resolved_calls::resolved_calls_from_check_result(check_result)
     let typed_locals = if include_bodies {
         frontend_typed_locals::scan_typed_locals(decls)
     } else {

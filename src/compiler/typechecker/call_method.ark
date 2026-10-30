@@ -124,6 +124,18 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
             return simple_type(commands::TY_UNKNOWN())
         }
     }
+    // A receiver the checker could not type leaves the method call unresolved,
+    // which in turn leaves every downstream local untyped and blocks the
+    // per-call owner record (#933). When exactly one declared `Owner::method`
+    // has this name, that signature is the only possible resolution, so use it
+    // to type the result instead of falling through to TY_UNKNOWN.
+    if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_UNKNOWN() {
+        let unique_index = unique_method_signature_index(fn_sigs.clone(), method_name.clone())
+        if unique_index >= 0 {
+            let unique_sig = get_unchecked(fn_sigs, unique_index)
+            return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, unique_sig, recv_ty, child_count)
+        }
+    }
     let builtin_vec_return = infer_builtin_vec_method(
         env,
         scope,
@@ -751,4 +763,28 @@ fn receiver_exposes_iterator_api(recv_ty: TypeInfo) -> bool {
         return true
     }
     name.clone().eq(String_from("Range")) || name.clone().eq(String_from("RangeInclusive"))
+}
+
+// Index of the only declared impl signature named `Owner::method`, or -1 when
+// the name is absent or ambiguous. Unknown-receiver calls use this to type
+// their result without inventing an owner dispatch the checker cannot prove.
+fn unique_method_signature_index(fn_sigs: Vec<FnSig>, method_name: String) -> i32 {
+    let suffix = String_from("::").concat(method_name.clone())
+    let mut found = 0 - 1
+    let mut count = 0
+    let mut i = 0
+    while i < len(fn_sigs) {
+        let name = contract_fn_sig::FnSig_name(get_unchecked(fn_sigs, i))
+        let matches = name.clone().ends_with(suffix.clone()) ||
+        name.clone().eq(String_from("::").concat(method_name.clone()))
+        if matches {
+            count = count + 1
+            found = i
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return found
+    }
+    0 - 1
 }

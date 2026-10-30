@@ -86,6 +86,63 @@ infers types.
       `wasm32-gc`; `python3 scripts/manager.py verify fixtures` and
       `python3 scripts/manager.py selfhost fixpoint` stay green.
 
+## Update (2026-10-30, `wave/functionid-handoff`) — first checked call-resolution table
+
+Landed the per-call receiver-owner slice for the #936 prelude callable set,
+without keeping a lowering-side fallback:
+
+- `TypeCheckResult` exports `resolved_call_owners`, keyed by the source body
+  (`decl_index` + impl-method ordinal), span, and callee. The typechecker
+  records `String` / `Vec` for `len` and for the first parameter of generic
+  Vec/String calls (`push`, `get`, `pop`, ...). `CoreHirResolvedCall` now
+  carries this real resolution instead of the syntactic callee scan;
+  `frontend_resolved_calls::scan_resolved_calls` is deleted.
+- MIR lowering registers the table on `LowerCtx` and sets the body identity
+  when it lowers a top-level body or impl method. `len` and `pop` bind their
+  owner-qualified FunctionId (`String::len` / `Vec::len` / `Vec::pop`) from
+  that table; `len` no longer reads the receiver local's type spelling, and a
+  site with no resolution is not treated as the prelude free.
+- Builtin `Result` match payload bindings were `TY_UNKNOWN` because
+  `match_enum_info` only knows declared enums, so a `Result<T, _>::Ok(v)`
+  binding lost `v`'s type and downstream calls (for example `len(keys)` after
+  `table_keys()`) never reached the owner record. `match.ark` now binds
+  `Ok`/`Err` payloads from the scrutinee's type arguments when no nominal
+  `EnumInfo` exists. This exposed a previously masked i64/i32 comparison in
+  `std/core/raw.ark`'s self-check (`9000000000` vs an `i64` payload); the
+  literal now carries the `i64` suffix. `Option::Some` payload binding is
+  deliberately not included yet: the same change exposes latent i32/struct
+  mismatches across std sort/collection code, which belongs to the wider
+  typed-locals item rather than this handoff.
+- `for` range bounds were not inferred at all (`for i in 0..len(values)`
+  skipped the `len` call), so those calls never reached the owner record.
+  `stmt_for.ark` now infers both range bound expressions.
+- An unknown-receiver method call now resolves through the only declared
+  `Owner::method` signature with that name when exactly one exists; this
+  types results such as `table_keys()`/`child_count()` without inventing a
+  receiver dispatch the checker cannot prove.
+- Impl bodies are keyed by impl decl index plus call span, without a method
+  ordinal: the checker and MIR enumerate impl members differently, so an
+  ordinal is not a shared identity.
+- `infer_block_expr` treated a trailing statement in an `if`/`match` arm as a
+  plain expression, so a final `while len(x) > 0` or `return Some(len(x))`
+  never had its condition/value inferred. Trailing `while` and `return`
+  statements now run through `check_stmt` before the arm's result inference.
+- String method `.len()` now lowers to the owner-qualified `String::len`
+  instead of the bare `len` spelling, so method-call sites do not depend on
+  the free call's receiver table.
+- `builtin_call_return_type` now types the `string_from_bytes` intrinsics as
+  `String`, so `len(__intrinsic_string_from_bytes(bytes))` reaches the owner
+  record instead of lowering as an unresolved free `len`.
+- Fixtures `stdlib_vec/prelude_call_owner_untracked_receiver{,_wasm32}.ark`
+  cover a receiver (if-expression result) whose MIR local loses its element
+  type.
+
+This is one table, not the full item: expression/binding TypeIds, FunctionId
+for every call, and deletion of the remaining MIR re-inference passes
+(`method_resolve`, `call_type_fallback*`, `post_pass_type_propagate`,
+`post_pass_callee_lookup`) are unchanged. `push` / `get` still lower through
+`call_rewrite_vec*` element-type predicates and #949's plan gap remains.
+
 ## Notes
 
 - No bridge that re-derives types "where the table is empty" may land

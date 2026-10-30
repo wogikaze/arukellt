@@ -226,6 +226,15 @@ pub struct LowerCtx {
     // from the fn_index discovery table, extended at each function push so
     // per-fn post passes resolve both pushed and forward callees.
     prop_cache: CalleePropCache,
+    // Checker-resolved call owners (#933). Keyed by the lowered body's
+    // source identity plus span and callee; call rewriting reads the owner
+    // here instead of re-deriving it from the receiver local's type spelling.
+    resolved_call_index: NameIndex,
+    resolved_call_owners: Vec<String>,
+    current_body_decl_index: i32,
+    // Impl-method ordinal inside the impl decl; -1 for top-level fn/const
+    // bodies. Matches the checker's body identity so resolutions agree.
+    current_body_child_index: i32,
     // Fused in-loop body emit (#851 Phase 3): when the driver attaches an
     // enabled MirLowerEmitSpec for a GC target, emit_ctx is the shared
     // SelfEmitCtx (its mir/functions/string handles are the live module

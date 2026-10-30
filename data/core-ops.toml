@@ -43,10 +43,10 @@ check_fallback_signature_compat = true
 # Removal is tracked by #818.
 
 # `len` is the one prelude free with two receiver owners. Its declaration is
-# signature-only, so a call site binds the owner's CoreOp spelling selected by
-# MIR lowering from the receiver type; there is deliberately no bare `len`
-# alias to dispatch through (#936 acceptance item 3, FunctionId/CoreOp
-# handoff #933).
+# signature-only, and the typechecker records the receiver owner per call site;
+# MIR lowering binds the matching owner-qualified spelling here. There is
+# deliberately no bare `len` alias to dispatch through (#936 acceptance item 3,
+# FunctionId/CoreOp handoff #933).
 [[legacy_bindings]]
 alias = "String::len"
 core_op_id = "string.len"
@@ -54,6 +54,12 @@ core_op_id = "string.len"
 [[legacy_bindings]]
 alias = "Vec::len"
 core_op_id = "vec.len"
+
+# `pop` uses the same handoff: the checker records the Vec receiver owner and
+# MIR emits `Vec::pop` instead of dispatching through the bare prelude name.
+[[legacy_bindings]]
+alias = "Vec::pop"
+core_op_id = "vec.pop"
 
 [[legacy_bindings]]
 alias = "String_from"

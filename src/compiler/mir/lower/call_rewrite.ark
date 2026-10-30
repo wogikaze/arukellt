@@ -129,7 +129,7 @@ fn mir_rewrite_call_target(mut ctx: LowerCtx, callee_name: String, first_arg_idx
         rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
         return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
     }
-    let vec_rewrite = call_rewrite_vec::mir_rewrite_vec_call(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
+    let vec_rewrite = call_rewrite_vec::mir_rewrite_vec_call(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args, span_start)
     rewritten = call_rewrite_vec::mir_vec_call_rewrite_callee_name(vec_rewrite)
     push_i64_needs_extend = call_rewrite_vec::mir_vec_call_rewrite_push_i64_needs_extend(vec_rewrite)
     // Extend i32 literals to i64 when the callee's trailing arg is i64

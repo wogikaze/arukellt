@@ -65,7 +65,7 @@ fn lower_entry_input_to_mir(mut input: MirLowerEntryInput, export_roots: Vec<Str
     mir_lower_trace_line(mir_tr, -1, decl_count, entry_fn_index_facade::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
     let source_text = input.source_text.clone()
     let fn_source_locations = entry_source_locations::compute_fn_source_locations(view, input.decl_nodes, source_text.clone())
-    let mut ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target, source_text, fn_source_locations)
+    let mut ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target, source_text, fn_source_locations, corehir_mod::view_resolved_calls(view))
     // #851 Phase 3: hand the emit spec to the lowering ctx so per-push
     // post passes (per-fn opt now, body emit next) see the same opt
     // level and target spelling the drain spec carries.

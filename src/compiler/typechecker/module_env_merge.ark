@@ -92,6 +92,12 @@ fn merge_type_env(mut dst: TypeEnv, src: TypeEnv) {
     merge_mono_template_sites(dst, src)
     merge_mono_instances(dst, src)
     vec_extend::Vec_extend_MonoCallSite(dst.mono_call_sites, src.mono_call_sites)
+    let owner_count = len(src.resolved_call_owners)
+    let mut oi = 0
+    while oi < owner_count {
+        push(dst.resolved_call_owners, get_unchecked(src.resolved_call_owners, oi))
+        oi = oi + 1
+    }
 }
 
 fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {

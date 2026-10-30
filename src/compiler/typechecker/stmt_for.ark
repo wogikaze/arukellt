@@ -31,6 +31,21 @@ fn check_for_source(
     }
     let source = ast_access::node_child_at(node, 0)
     if ast_access::node_kind_is(source, kinds::NK_RANGE()) {
+        // Range bounds are ordinary expressions. They used to skip
+        // inference entirely, so a call such as `0..len(values)` never
+        // reached the checker's per-call owner resolution (#933).
+        let bound_count = ast_access::node_child_count(source)
+        let mut bound_index = 0
+        while bound_index < bound_count {
+            infer_expr(
+                env,
+                scope,
+                fn_sigs,
+                enum_defs,
+                ast_access::node_child_at(source, bound_index)
+            )
+            bound_index = bound_index + 1
+        }
         return
     }
     let source_ty = infer_expr(env, scope, fn_sigs, enum_defs, source)

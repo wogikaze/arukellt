@@ -8,6 +8,9 @@ struct TypeCheckResult {
     warnings: Vec<Diagnostic>,
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,
+    // Per-call receiver-owner resolutions. CoreHIR forwards these to MIR
+    // lowering as the checked call-resolution table (#933).
+    resolved_call_owners: Vec<ResolvedCallOwner>,
 }
 
 fn TypeCheckResult_new() -> TypeCheckResult {
@@ -17,7 +20,8 @@ fn TypeCheckResult_new() -> TypeCheckResult {
         diagnostics: Vec::new<Diagnostic>(),
         warnings: Vec::new<Diagnostic>(),
         typed_fns: Vec::new<TypedFn>(),
-        mono_instances: Vec::new<MonoInstance>()
+        mono_instances: Vec::new<MonoInstance>(),
+        resolved_call_owners: Vec::new<ResolvedCallOwner>()
     }
 }
 
@@ -88,4 +92,12 @@ fn typecheck_result_mono_instance_at(result: TypeCheckResult, index: i32) -> Mon
 
 fn typecheck_result_mono_instances(result: TypeCheckResult) -> Vec<MonoInstance> {
     result.mono_instances
+}
+
+fn typecheck_result_set_resolved_call_owners(mut result: TypeCheckResult, owners: Vec<ResolvedCallOwner>) {
+    result.resolved_call_owners = owners
+}
+
+fn typecheck_result_resolved_call_owners(result: TypeCheckResult) -> Vec<ResolvedCallOwner> {
+    result.resolved_call_owners
 }
