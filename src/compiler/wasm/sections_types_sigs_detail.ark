@@ -1,6 +1,7 @@
 // Extracted from sections_types_sigs.ark
 
 use std::text
+use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
@@ -889,7 +890,8 @@ fn build_param_type_sig(
         target,
         wasi_version,
         memory64,
-        mir
+        mir,
+        function_identity::MirFunction_decl_fid(uf)
     )
 }
 
@@ -905,7 +907,8 @@ fn build_param_type_sig_named(
     target: String,
     wasi_version: String,
     memory64: bool,
-    mir: MirModule
+    mir: MirModule,
+    decl_fid: i32
 ) -> String {
     // Uniform env param of pair-ABI trampolines/thunks (#872). On GC it is
     // a plain structref so every closure env type fits one call signature;
@@ -960,12 +963,25 @@ fn build_param_type_sig_named(
             return nested_coll
         }
     }
-    let typed_sig = sections_types_gc_plan::typed_function_param_sig(
-        mir,
-        fn_name.clone(),
-        pi,
-        target.clone()
-    )
+    // A body that knows its declaration entry reads that entry's MVT. A
+    // primitive entry yields no typed sig and falls through to the scalar
+    // branch; only a body without a declaration id may consult the name index
+    // (#934).
+    let typed_sig = if decl_fid >= 0 {
+        sections_types_gc_plan::typed_function_param_sig_by_fid(
+            mir,
+            decl_fid,
+            pi,
+            target.clone()
+        )
+    } else {
+        sections_types_gc_plan::typed_function_param_sig(
+            mir,
+            fn_name.clone(),
+            pi,
+            target.clone()
+        )
+    }
     if typed_sig.len() > 0 {
         return typed_sig
     }
@@ -1105,7 +1121,8 @@ fn build_return_type_value_sig(
         target,
         wasi_version,
         memory64,
-        mir
+        mir,
+        function_identity::MirFunction_decl_fid(uf)
     )
 }
 
@@ -1118,7 +1135,8 @@ fn build_return_type_value_sig_named(
     target: String,
     wasi_version: String,
     memory64: bool,
-    mir: MirModule
+    mir: MirModule,
+    decl_fid: i32
 ) -> String {
     // fn returns carry the same {fnptr, env} pair as params (#872).
     if return_type_name.clone().eq(String_from("fnref")) ||
@@ -1135,7 +1153,15 @@ fn build_return_type_value_sig_named(
         }
         return funcref_return_sig_for_target(target.clone(), memory64)
     }
-    let typed_sig = sections_types_gc_plan::typed_function_return_sig(mir, fn_name.clone(), target.clone())
+    let typed_sig = if decl_fid >= 0 {
+        sections_types_gc_plan::typed_function_return_sig_by_fid(
+            mir,
+            decl_fid,
+            target.clone()
+        )
+    } else {
+        sections_types_gc_plan::typed_function_return_sig(mir, fn_name.clone(), target.clone())
+    }
     if typed_sig.len() > 0 {
         // Typed spine may classify a registered user struct as ENUM/RESULT open
         // (e.g. WitParsedInterface on some return paths). Prefer the concrete

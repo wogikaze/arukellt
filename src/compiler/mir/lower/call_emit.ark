@@ -8,6 +8,8 @@ use mir::lower::call_emit_staged
 use mir::lower::call_rewrite
 use mir::lower::call_type_vec
 use mir::lower::call_types
+use mir::lower::ctx_resolved_calls
+use mir::inst_draft
 use mir::value_types
 // Position (1-based argument index) of the compile-time lane operand, or -1
 // when the callee has none. The SIMD lane intrinsics put the lane second;
@@ -54,14 +56,18 @@ fn mir_emit_direct_call(
     lane_immediate: i32,
     receiver_writeback: i32
 ) -> i32 {
+    // Declaration identity the checker recorded for this call site. It keys
+    // both the call target and the result storage, so a same-named loaded
+    // declaration never answers for this call (#934).
+    let decl_fid = ctx_resolved_calls::ctx_resolved_call_decl_fid(ctx, span_start, callee_text.clone())
     let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, callee_text.clone(), first_arg_idx, second_arg_idx, stage_call_args, span_start)
     let return_local = call_rewrite::MirCallRewrite_return_local(call_rewrite)
     if return_local >= 0 {
         return return_local
     }
     let callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, callee_name.clone(), first_arg_idx)
-    call_types::mir_mark_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, callee_name.clone(), first_arg_idx, decl_fid)
+    call_types::mir_mark_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx, decl_fid)
     let mut dest_vt = value_types::VT_VOID()
     if dest >= 0 {
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
@@ -100,16 +106,27 @@ fn mir_emit_direct_call(
     // instead of scanning stack operands (#730, #917).
     // Do not record first_arg on len/is_empty: STRUCT_GET→CALL stack-compose
     // keeps the vec on the stack only when CALL.arg0 < 0 (#807 / #834).
-    if recorded_first >= 0 && (
+    let mut call_inst = if recorded_first >= 0 && (
         call_args::mir_is_printlike_callee(callee_name.clone()) ||
         call_type_vec::is_vec_receiver_recording_callee(callee_name.clone())
     ) {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(callee_name.clone(), arg_count, dest, recorded_first, dest_vt))
+        inst_call::MirInst_call_with_first_arg_vt(callee_name.clone(), arg_count, dest, recorded_first, dest_vt)
     } else if lane_immediate >= 0 && mir_simd_lane_immediate_argument_index(callee_name.clone()) >= 0 {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane_vt(callee_name.clone(), arg_count, dest, lane_immediate, dest_vt))
+        inst_call::MirInst_call_with_lane_vt(callee_name.clone(), arg_count, dest, lane_immediate, dest_vt)
     } else {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_val_type(callee_name.clone(), arg_count, dest, dest_vt))
+        inst_call::MirInst_call_with_val_type(callee_name.clone(), arg_count, dest, dest_vt)
+    };
+    // Bind the declaration's FunctionId before the general name lookup can
+    // pick the first same-named entry (two modules may export one bare fn
+    // name, #934).
+    if decl_fid >= 0 {
+        call_inst = inst_draft::MirInstDraft_with_call_target(
+            call_inst,
+            callee_name.clone(),
+            decl_fid
+        )
     }
+    ctx_api_emit::ctx_emit(ctx, call_inst)
     if dest < 0 {
         return 0 - 1
     }

@@ -1,5 +1,6 @@
 use mir::lower::call_type_fallback
 use mir::lower::call_type_hash
+use mir::lower::ctx_decl_return
 use mir::lower::call_rewrite_hashset
 use mir::lower::call_type_vec
 use mir::inst_accessors_operands
@@ -10,7 +11,29 @@ use mir::lower::ctx_types
 use mir::lower::core_call_arg_names
 use mir::lower::gc_layout_plan_build
 use mir::value_types
-fn mir_mark_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+fn mir_mark_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32, decl_fid: i32) {
+    // The checker resolved this call site to one declaration. Its registry
+    // return is the authoritative storage contract: name-keyed fallbacks must
+    // not let a same-named loaded declaration retype the dest (#934).
+    if dest >= 0 &&
+    ctx_decl_return::ctx_decl_return_shadows_name(ctx, callee_name.clone(), decl_fid) {
+        let decl_vt = ctx_decl_return::ctx_decl_return_vt(ctx, decl_fid)
+        if decl_vt >= 0 {
+            let decl_type_name = ctx_decl_return::ctx_decl_return_type_name(ctx, decl_fid)
+            if decl_type_name.len() > 0 {
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, decl_type_name)
+            }
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, decl_vt)
+            // Set the typed MVT last: the legacy-vt setters resync it from the
+            // old width.
+            ctx_api_local_types::ctx_set_local_mvt(
+                ctx,
+                dest,
+                ctx_decl_return::ctx_decl_return_mvt(ctx, decl_fid)
+            )
+            return
+        }
+    }
     call_rewrite_hashset::mark_hashset_result_type(ctx, callee_name.clone(), dest)
     call_type_vec::mark_vec_call_result_type(ctx, callee_name.clone(), dest, first_arg_idx)
     call_type_hash::mark_hash_call_result_type(ctx, callee_name.clone(), dest)

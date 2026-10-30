@@ -88,7 +88,8 @@ fn infer_generic_method_call_expr(
         method_name,
         String_new(),
         contract_fn_sig::FnSig_name(sig),
-        mangled_name
+        mangled_name,
+        0 - 1
     )
     ret_ty
 }

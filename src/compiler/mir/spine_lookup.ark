@@ -34,7 +34,21 @@ fn function_param_mvt(m: MirModule, func_name: String, param_idx: i32) -> MirVal
     if !function_id::function_id_is_valid(fid) {
         return mvt_invalid()
     }
-    let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    function_param_mvt_by_fid(m, function_id::FunctionId_raw(fid), param_idx)
+}
+
+// Declaration-keyed form: the body already knows which registry entry it was
+// lowered from, so a same-named declaration in another module cannot answer
+// for it (#934).
+fn function_param_mvt_by_fid(m: MirModule, fid_raw: i32, param_idx: i32) -> MirValueType {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return mvt_invalid()
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    if fid_raw < 0 || fid_raw >= signature_registry::signature_registry_entry_count(registry) {
+        return mvt_invalid()
+    }
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
     let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
     if mono_id >= 0 {
         let mono_table = module_spine::MirModule_mono_instance_table(m)
@@ -61,7 +75,18 @@ fn function_return_mvt(m: MirModule, func_name: String) -> MirValueType {
     if !function_id::function_id_is_valid(fid) {
         return mvt_invalid()
     }
-    let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    function_return_mvt_by_fid(m, function_id::FunctionId_raw(fid))
+}
+
+fn function_return_mvt_by_fid(m: MirModule, fid_raw: i32) -> MirValueType {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return mvt_invalid()
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    if fid_raw < 0 || fid_raw >= signature_registry::signature_registry_entry_count(registry) {
+        return mvt_invalid()
+    }
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
     if signature_entry::signature_entry_return_count(entry) <= 0 {
         return mvt_invalid()
     }

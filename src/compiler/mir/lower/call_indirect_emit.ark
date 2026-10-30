@@ -119,8 +119,8 @@ fn mir_lower_indirect_call(mut ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     // Zero-arg calls need a dest too: without one the call result stays on
     // the stack untyped and expression consumers (println arg, let rhs)
     // store it into a local of the wrong type (#872).
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
-    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1, 0 - 1)
+    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1, 0 - 1)
     mark_indirect_callback_result_type(ctx, callee_type_name.clone(), dest)
     let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, Vec::new<i32>())
@@ -154,8 +154,8 @@ fn mir_lower_ast_indirect_call(mut ctx: LowerCtx, node: AstNode, child_count: i3
         }
         a = a + 1
     }
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
-    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1, 0 - 1)
+    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1, 0 - 1)
     mark_indirect_callback_result_type(ctx, callee_type_name.clone(), dest)
     let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     call_emit_staged::mir_emit_staged_call_args(ctx, arg_lis, Vec::new<i32>())

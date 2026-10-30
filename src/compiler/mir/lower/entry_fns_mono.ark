@@ -21,7 +21,8 @@ fn mir_emit_top_level_fn_mono_bodies(
     entry_view: MirLowerEntryView,
     fn_info_index: i32,
     midx: MonoIndex,
-    mir_tr: i32
+    mir_tr: i32,
+    decl_fid: i32
 ) {
     // Instances can be recorded under two keys for one decl: a same-module
     // wrapper records the bare name (binary_search_by__i32 under
@@ -96,7 +97,8 @@ fn mir_emit_top_level_fn_mono_bodies(
                 typed_index,
                 mir_tr,
                 entry_view,
-                fn_info_index
+                fn_info_index,
+                0 - 1
             )
             mono_emit_i = mono_emit_i + 1
         }
@@ -140,7 +142,8 @@ fn mir_emit_top_level_fn_mono_bodies(
         typed_index,
         mir_tr,
         entry_view,
-        fn_info_index
+        fn_info_index,
+        decl_fid
     )
 }
 

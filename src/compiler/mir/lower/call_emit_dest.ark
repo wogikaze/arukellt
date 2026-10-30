@@ -1,3 +1,4 @@
+use mir::lower::ctx_decl_return
 use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
@@ -5,10 +6,18 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::call_rewrite_vec
 use mir::value_types
-fn mir_prepare_direct_call_dest(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> i32 {
+fn mir_prepare_direct_call_dest(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i32, decl_fid: i32) -> i32 {
     // Direct calls take the callee's return value type as-is (f64 included);
     // narrowing to i32/i64 only mistypes f64-returning call destinations.
-    let mut dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, callee_name.clone())
+    // A checker-resolved declaration owns its return contract, so a same-named
+    // declaration in another module cannot decide the dest width (#934).
+    let mut dest_vt = 0 - 1
+    if ctx_decl_return::ctx_decl_return_shadows_name(ctx, callee_name.clone(), decl_fid) {
+        dest_vt = ctx_decl_return::ctx_decl_return_vt(ctx, decl_fid)
+    }
+    if dest_vt < 0 {
+        dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, callee_name.clone())
+    }
     if dest_vt == value_types::VT_VOID() {
         dest_vt = mir_vec_call_dest_vt(ctx, callee_name.clone(), first_arg_idx)
         if dest_vt == value_types::VT_VOID() {

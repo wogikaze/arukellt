@@ -19,7 +19,8 @@ fn resolved_calls_from_check_result(check_result: TypeCheckResult) -> Vec<CoreHi
                 contract_resolved_call::ResolvedCall_callee_name(call.clone()),
                 contract_resolved_call::ResolvedCall_owner_name(call.clone()),
                 contract_resolved_call::ResolvedCall_function_id(call.clone()),
-                contract_resolved_call::ResolvedCall_mono_instance_id(call)
+                contract_resolved_call::ResolvedCall_mono_instance_id(call.clone()),
+                contract_resolved_call::ResolvedCall_callee_decl_index(call)
             ))
         i = i + 1
     }

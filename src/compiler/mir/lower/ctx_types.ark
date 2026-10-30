@@ -235,6 +235,12 @@ pub struct LowerCtx {
     resolved_call_owners: Vec<String>,
     resolved_call_function_ids: Vec<String>,
     resolved_call_mono_ids: Vec<String>,
+    resolved_call_callee_decls: Vec<i32>,
+    // Top-level decl index -> registry FunctionId raw, parallel to the decl
+    // list (-1 when the decl has no registry entry). Filled from the fn index
+    // before bodies lower so a resolved call binds its declaration identity
+    // instead of the first registry entry sharing a bare name (#934).
+    decl_function_ids: Vec<i32>,
     current_body_decl_index: i32,
     // Impl-method ordinal inside the impl decl; -1 for top-level fn/const
     // bodies. Matches the checker's body identity so resolutions agree.

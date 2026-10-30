@@ -11,6 +11,7 @@ fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall
     ctx.resolved_call_owners = Vec::new<String>()
     ctx.resolved_call_function_ids = Vec::new<String>()
     ctx.resolved_call_mono_ids = Vec::new<String>()
+    ctx.resolved_call_callee_decls = Vec::new<i32>()
     let mut i = 0
     while i < count {
         let call = calls.get_unchecked(i)
@@ -24,10 +25,27 @@ fn ctx_register_resolved_calls(mut ctx: LowerCtx, calls: Vec<CoreHirResolvedCall
             name_index::name_index_set(ctx.resolved_call_index, key, ctx.resolved_call_owners.len())
             ctx.resolved_call_owners.push(raw_dto::CoreHirResolvedCall_owner_name(call.clone()))
             ctx.resolved_call_function_ids.push(raw_dto::CoreHirResolvedCall_function_id(call.clone()))
-            ctx.resolved_call_mono_ids.push(raw_dto::CoreHirResolvedCall_mono_instance_id(call))
+            ctx.resolved_call_mono_ids.push(raw_dto::CoreHirResolvedCall_mono_instance_id(call.clone()))
+            ctx.resolved_call_callee_decls.push(raw_dto::CoreHirResolvedCall_callee_decl_index(call))
         }
         i = i + 1
     }
+}
+
+// Install the decl-index -> registry FunctionId map built with the signature
+// spine. It is indexed by the declaration identity the checker records, not
+// by a mangled name, so a shared bare name cannot redirect the call (#934).
+fn ctx_set_decl_function_ids(mut ctx: LowerCtx, decl_function_ids: Vec<i32>) {
+    ctx.decl_function_ids = decl_function_ids
+}
+
+// Registry FunctionId of a top-level declaration, or -1 when it has no
+// registry entry (skipped shadow decl, out-of-range index).
+fn ctx_decl_function_id(ctx: LowerCtx, decl_index: i32) -> i32 {
+    if decl_index < 0 || decl_index >= ctx.decl_function_ids.len() {
+        return 0 - 1
+    }
+    ctx.decl_function_ids.get_unchecked(decl_index)
 }
 
 fn ctx_set_body_identity(mut ctx: LowerCtx, decl_index: i32, child_index: i32) {
@@ -84,6 +102,28 @@ fn ctx_resolved_call_mono_instance_id(ctx: LowerCtx, span_start: i32, callee_nam
         return String_new()
     }
     ctx.resolved_call_mono_ids.get_unchecked(index).clone()
+}
+
+// Declaration index the checker selected for this call site, or -1 when the
+// callable has no top-level declaration (method, intrinsic, WIT import).
+fn ctx_resolved_call_callee_decl_index(ctx: LowerCtx, span_start: i32, callee_name: String) -> i32 {
+    let index = ctx_resolved_call_slot(ctx, span_start, callee_name)
+    if index < 0 {
+        return 0 - 1
+    }
+    ctx.resolved_call_callee_decls.get_unchecked(index)
+}
+
+// Registry FunctionId of the declaration this call site resolved to, or -1
+// when lowering must resolve the callee another way. A generic call targets
+// its minted mono instance, whose FunctionId is registered under the instance
+// spelling, so the declaration entry is deliberately not used there.
+fn ctx_resolved_call_decl_fid(ctx: LowerCtx, span_start: i32, callee_name: String) -> i32 {
+    if ctx_resolved_call_mono_instance_id(ctx, span_start, callee_name.clone()).len() > 0 {
+        return 0 - 1
+    }
+    let decl_index = ctx_resolved_call_callee_decl_index(ctx, span_start, callee_name)
+    ctx_decl_function_id(ctx, decl_index)
 }
 
 fn resolved_call_key(decl_index: i32, child_index: i32, span_start: i32, callee_name: String) -> String {

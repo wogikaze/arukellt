@@ -8,6 +8,12 @@ use mir::opcodes
 use mir::lower::ctx_current_storage
 use mir::module_spine
 fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, mut inst: MirInstDraft, symbol: String) -> MirInstDraft {
+    // A call site already bound to the checker-resolved declaration keeps that
+    // FunctionId. Re-binding by spelling would let the first same-named
+    // registry entry win again (#934).
+    if inst_draft::MirInstDraft_func_id_raw(inst) >= 0 {
+        return inst
+    }
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {
         return inst

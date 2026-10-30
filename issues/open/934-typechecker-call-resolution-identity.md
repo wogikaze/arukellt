@@ -277,3 +277,83 @@ intrinsic fallbacks.
   `1dc9f1c856e20201019f61704d35e596a21f4c1d991d5f6c6641ea89ac7be67b`
   on pin
   `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+
+## Update (2026-10-31, `wave/decl-identity-loaded`) — MIR consumes the declaration-keyed callee
+
+### Item 1 / MIR — the checker's declaration selects the emitted callee
+
+`ResolvedCall` gained `callee_decl_index`: the selected signature's top-level
+declaration in the combined loaded+entry decl list. `FnSig` carries the
+declaration index it was collected from (`module_fns::collect_fn_sigs`), so a
+concrete call records it without a second name lookup; CoreHIR forwards it as
+`CoreHirResolvedCall.callee_decl_index`.
+
+MIR consumes it where lowering previously keyed on the bare callee name:
+
+- `fn_index_view::mir_build_decl_function_ids` maps each top-level decl index to
+  the registry FunctionId the signature spine assigned it (the declaration
+  entry only; generic mono variants and impl methods carry mangled base names
+  and do not claim the slot). `ctx_resolved_calls` publishes the map on
+  `LowerCtx`.
+- `call_emit::mir_emit_direct_call` binds the recorded declaration's FunctionId
+  per call site before `call_func_id`'s name lookup; the lookup is skipped when
+  the site already carries an id, and `call_func_id` keeps an already attached
+  FunctionId instead of re-binding by spelling.
+- `MirFunction.decl_fid` carries the declaration id of a top-level body and
+  `sections_types_sigs_detail` reads params/return through
+  `spine_lookup::function_param_mvt_by_fid` /
+  `function_return_mvt_by_fid`. Two modules exporting `measure` no longer share
+  the first `measure` signature, so the emitted entry body has its own i32
+  parameter/return type.
+- Call-dest storage and print-argument conversion read the declaration's return
+  contract (`ctx_decl_return`) when the flat name index would give a different
+  width. Without this, the opposite collision direction (loaded scalar, entry
+  String) still emitted invalid core Wasm.
+
+### Fixture
+
+`tests/fixtures/modules/bare_decl_shadow/main.ark` now calls `shadow_probe()`
+from `main` before the qualified `shapes::measure` call; expected output is
+`42` then `shapes:x`. The pre-change compiler could not emit the colliding call
+(invalid core Wasm); the changed compiler compiles and runs it.
+
+Both targets were exercised:
+
+- wasm32-gc through the manifest `run:` fixture and
+  `python3 scripts/check/check-cross-backend-parity.py --fixture
+  modules/bare_decl_shadow/main.ark` (`status=parity`, `gc_rc=0`, `lm_rc=0`);
+- wasm32 linear through the same cross-backend gate, plus a direct
+  `compile --target wasm32 --wasi-version wasi-p1 --memory-width memory32`
+  run that prints `42` / `shapes:x`.
+
+### Remaining item 1 blockers
+
+- Loaded-module bodies still resolve bare names through the flat signature index
+  (`sig_lookup::lookup_fn_sig`). Removing that needs module-graph resolution of
+  loaded bodies; the compiler source itself calls `infer_expr`-style helpers
+  bare across modules, so the fallback cannot be deleted locally.
+- Non-conversion impl methods still share the flat `Owner::method` key
+  (`entry.ark::push_sig_index_key`); disambiguating them needs a qualified impl
+  identity in the signature spine (#940 owns the type side).
+- Function values and a few call-ABI decisions still consult the name index:
+  `call_arg_i64`'s parameter MVT, impl-method rewriting, and `MIR_REF_FUNC`
+  attachment. A collision that changes a parameter width or a function-value
+  target in those positions is not covered by this increment.
+- Generic calls keep the minted `MonoInstance` identity (unique) rather than the
+  declaration index.
+
+### Evidence
+
+- `selfhost build-compiler`: PASS (pin `56ff0808`, 60.4s), s2 =
+  `bbc1f2b4d5d62e5930e2e57c0628ad30f54b13f110017093ccdbaccecd2587d1`.
+- `verify fixtures`: PASS=1971 FAIL=0 COMPILE_VALIDATE=1971 EXECUTED=114
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane`: PASS (quality changed; lint checked=36 failed=0).
+- `docs check`: 6/6 PASS.
+- `selfhost diag-parity`: PASS.
+- `selfhost fixpoint`: s2 == s3 =
+  `bbc1f2b4d5d62e5930e2e57c0628ad30f54b13f110017093ccdbaccecd2587d1`
+  on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+- Cross-backend receipt: `.build-lane/parity/bare_decl_shadow.json`
+  (`compiler_sha256` starts `bbc1f2b4d5d62e59`, `status=parity`).

@@ -1,3 +1,4 @@
+use mir::function_identity
 use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
@@ -8,6 +9,15 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_gc_enum
 use mir::local_mutation
 use mir::value_types
+// Bind the declaration identity of the body being lowered. Signature
+// emission uses it to read the declaration's own params/return instead of the
+// first registry entry sharing the bare name (#934).
+fn ctx_set_decl_function_id(mut ctx: LowerCtx, decl_fid: i32) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    function_identity::MirFunction_set_decl_fid(f, decl_fid)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
 fn ctx_push_func_param(mut ctx: LowerCtx, mut ml: MirLocal) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     function_param_mutation::MirFunction_push_param(f, ml)

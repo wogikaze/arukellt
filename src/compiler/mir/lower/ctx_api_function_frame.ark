@@ -1,5 +1,6 @@
 use mir::lower::ctx_locals_fn
 
+fn ctx_set_decl_function_id(mut ctx: LowerCtx, decl_fid: i32) { ctx_locals_fn::ctx_set_decl_function_id(ctx, decl_fid) }
 fn ctx_push_func_param(mut ctx: LowerCtx, mut ml: MirLocal) { ctx_locals_fn::ctx_push_func_param(ctx, ml) }
 fn ctx_set_current_return_type(mut ctx: LowerCtx, vt: i32) { ctx_locals_fn::ctx_set_current_return_type(ctx, vt) }
 fn ctx_set_current_return_type_name(mut ctx: LowerCtx, type_name: String) { ctx_locals_fn::ctx_set_current_return_type_name(ctx, type_name) }

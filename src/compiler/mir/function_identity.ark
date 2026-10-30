@@ -8,3 +8,11 @@ fn MirFunction_name(f: MirFunction) -> String {
 fn MirFunction_source_location(f: MirFunction) -> SourceLocation {
     f.source_location
 }
+
+fn MirFunction_decl_fid(f: MirFunction) -> i32 {
+    f.decl_fid
+}
+
+fn MirFunction_set_decl_fid(mut f: MirFunction, decl_fid: i32) {
+    f.decl_fid = decl_fid
+}

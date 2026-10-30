@@ -9,6 +9,11 @@ pub struct MirFunction {
     blocks: Vec<MirBlock>,
     return_type: i32,
     return_type_name: String,
+    // Registry FunctionId of the declaration this body was lowered from
+    // (-1 for synth/closure/export bodies). Signature emission reads the
+    // declaration's entry through this id instead of the first registry
+    // entry sharing the body's bare name (#934).
+    decl_fid: i32,
     next_local: i32,
     next_block: i32,
     source_location: SourceLocation,
@@ -22,6 +27,7 @@ fn MirFunction_new(name: String, source_location: SourceLocation) -> MirFunction
         blocks: Vec::new<MirBlock>(),
         return_type: value_types::VT_VOID(),
         return_type_name: String_new(),
+        decl_fid: 0 - 1,
         next_local: 0,
         next_block: 0,
         source_location: source_location,

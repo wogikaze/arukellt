@@ -23,6 +23,10 @@ fn mir_emit_top_level_fn_decl(
     // Call resolutions are keyed by the source body, which stays the same for
     // every monomorphized copy of this decl (#933).
     ctx_resolved_calls::ctx_set_body_identity(ctx, decl_index, 0 - 1)
+    // The signature spine knows this declaration's FunctionId even when
+    // another module exports the same bare fn name; the body carries it so
+    // signature emission reads the right entry (#934).
+    let decl_fid = ctx_resolved_calls::ctx_decl_function_id(ctx, decl_index)
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let fn_info_index = entry_view_fn::mir_entry_fn_info_index_for_decl(entry_view, decl_index)
     let mut typed_index = fn_idx
@@ -52,7 +56,7 @@ fn mir_emit_top_level_fn_decl(
                 legacy_body::mir_legacy_body_node(entry_fallback_body::mir_entry_fallback_body_legacy(fb))
             )
         }
-        entry_fns_mono::mir_emit_top_level_fn_mono_bodies(ctx, body_input, decl_name, typed_index, param_count, entry_view, fn_info_index, midx, mir_tr)
+        entry_fns_mono::mir_emit_top_level_fn_mono_bodies(ctx, body_input, decl_name, typed_index, param_count, entry_view, fn_info_index, midx, mir_tr, decl_fid)
         let core_body = entry_body_input::mir_entry_body_input_core(body_input)
         corehir_mod::release_body_expr_subtree(
             entry_core_body::mir_entry_core_body_exprs(core_body),

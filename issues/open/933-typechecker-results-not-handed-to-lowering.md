@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-27
-Updated: 2026-10-27
+Updated: 2026-10-31
 ID: 933
 Track: compiler
 Depends on: "#934"
@@ -142,6 +142,19 @@ for every call, and deletion of the remaining MIR re-inference passes
 (`method_resolve`, `call_type_fallback*`, `post_pass_type_propagate`,
 `post_pass_callee_lookup`) are unchanged. `push` / `get` still lower through
 `call_rewrite_vec*` element-type predicates and #949's plan gap remains.
+
+## Update (2026-10-31, `wave/decl-identity-loaded`) — declaration-keyed call targets reach lowering
+
+The checked per-call table now carries the selected declaration index, and
+lowering consumes it: call FunctionId binding, per-body signature emission,
+call-dest storage and print-argument conversion read the declaration the
+checker selected instead of the first registry entry sharing the bare name.
+Fixture `modules/bare_decl_shadow` runs a bare call that collides with a loaded
+declaration on both wasm32-gc and wasm32; #934 records the remaining name-keyed
+call-ABI positions and the loaded-body resolution gap.
+
+Expression/binding TypeIds, the MIR re-inference passes and
+`frontend_typed_locals`'s `i32` default are unchanged.
 
 ## Notes
 
