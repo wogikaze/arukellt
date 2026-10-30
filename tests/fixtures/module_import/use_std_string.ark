@@ -1,9 +1,14 @@
 // Fixture: use_std_string.ark
-// Slice 2 of issue #039: verify that `use std::collections::string` resolves the module
-// and `string::eq(...)` is callable via the qualified form.
+// Slice 2 of issue #039: verify that `use std::collections::string` resolves the
+// module and registers the String receiver surface. The module-qualified call
+// uses `std::host::stdio`, whose free function remains public after the String
+// free-function retirement.
+//
+// Expected output: true
 use std::collections::string
+use std::host::stdio
 
 fn main() {
-    let equal = string::eq("a,b,c", "a,b,c")
-    __intrinsic_println(equal.to_string())
+    let equal = "a,b,c".eq("a,b,c")
+    stdio::println(equal.to_string())
 }

@@ -376,12 +376,15 @@ receiver を指す hint を返す。
   5,729 件を `.eq()` へ移行し、`use std::prelude::{eq}` を除去した。
 - **Fixtures**: `operators/string_eq`（gc / wasm32、32/32 行）、
   `stdlib_trait/eq_*`、E0100 hint の `removed_name_hint("eq")`。
-- **Residual**: `std::collections::string::eq` は qualified call 解決の
-  module_import fixture（`string::eq(...)`）が使うため public のまま残る。
-  `docs/data/stdlib-api-eradication.toml` で `must delete` / #917 として
-  分類した。また、括弧付き receiver を `if` 直後に置く lowering bug 自体は
-  未修正であり、移行側で形を避けている。`lower_method_call_expr` の
-  composed-receiver 判定を修正する follow-up で解消する。
+- **Residual (resolved in part)**: `std::collections::string::eq` は qualified
+  call 解決の module_import fixture（`string::eq(...)`）が使うため public の
+  まま残していたが、fixture を `std::io` / `std::host::stdio` の qualified call
+  へ移して 2026-10-30 に public surface から退役した（#917）。ただし resolver の
+  generic method candidate selection が symbol set に依存するため、非公開の
+  `fn eq` resolver-stability shim は残る。括弧付き receiver を `if` 直後に
+  置く lowering bug 自体は未修正であり、移行側で形を避けている。
+  `lower_method_call_expr` の composed-receiver 判定を修正する follow-up で
+  解消する。
 
 ## 参照
 

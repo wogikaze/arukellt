@@ -16,6 +16,44 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
+## 2026-10-30 — `std::collections::string::eq` の退役 (#917 / ADR-046, wave/string-eq-qualified)
+
+- **Removed**: `std/collections/string.ark` の public `pub fn eq(a, b)` を
+  退役した。replacement は `a.eq(b)`。qualified `string::eq(...)` は E0100 と
+  `use \`a.eq(b)\` on the \`String\` receiver instead` の hint を返す。public
+  surface は `impl String` / `impl Vec<String>` の receiver surface のみで、
+  compiler が使う `__core_string_eq_impl` CoreOp fallback は非公開のまま残る。
+  ただし下記 Residual の resolver-stability shim として private `fn eq` は残る。
+- **Migration**: module_import fixture の qualified-call coverage を
+  `std::io::read_stdin_line` / `std::host::stdio::{println}` へ移した。
+  `data/core-ops.toml` から `string::eq` / `std::collections::string::eq` の
+  legacy CoreOp alias を削除し、generated binding を再生成した（650 -> 648
+  bindings）。`scripts/gen/ark_fnv_index.py` と registry/bindings generator が
+  生成する bare `eq(...)` import / 呼び出しも `.eq()` に同期し、生成物と
+  generator の drift を解消した。
+- **Fixtures**: `module_import/use_{qualified_call_typed,std_string,destructure_multi,destructure_typed,prelude_coexist}`、
+  selective import の `use_func_destructure`、check-only の
+  `stdlib_inline/abs_probe`。E0100 hint の golden は
+  `diagnostics/removed_string_eq_free`。`use_func_destructure.expected` は
+  receiver 化後の出力 `true` に対し `1` のままだった既存 golden を `true` に
+  直した。
+- **Scorecard**: eradication scope 84 -> **83**、`pub fn` declarations 84 -> **83**、
+  unregistered 2 -> **1**、`must delete` 67 -> **66**。`std::io::io_error_message`
+  が最後の unregistered declaration として残る（`associated-or-method` / #693）。
+- **Evidence**: 変更した 6 run fixture は pinned / current ×
+  wasm32-gc（`--memory-width memory32` の P2 component）/ `--target wasm32`
+  の全 24 legs が byte-exact PASS。`verify fixtures` **1929/1929**
+  compile+validate PASS（111 runtime executed、38/38 `test:` PASS、2
+  runtime-unsupported、0 FAIL）、`selfhost diag-parity` PASS（新規 golden
+  含む）、`docs check` 6/6、`verify lane` PASS、ADR-029 fixpoint PASS
+  （s2 == s3 = `35913e9d…`、pinned base `56ff0808…`）。
+- **Residual**: 非公開の `fn eq` resolver-stability shim は残る。宣言ごと削除
+  すると `stdlib_deque/deque_from_iter_eq` の generic `i32.eq` が
+  `Deque::eq` に解決され、`wasm-tools validate` が type mismatch で落ちる
+  （pinned / current の両 compiler で再現）。generic method candidate selection
+  が symbol set に依存しなくなった時点で削除する。public surface ではないため
+  scorecard は 83 / must delete 66 のまま。
+
 ## 2026-10-30 — prelude free `eq` の退役 (#917 / ADR-091, wave/eq-retire)
 
 - **Removed**: `std/prelude.ark` の `eq(a, b)` と `std/manifest.toml` の

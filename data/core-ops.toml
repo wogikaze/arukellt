@@ -2079,14 +2079,6 @@ alias = "string_eq"
 core_op_id = "text.string_eq"
 
 [[legacy_bindings]]
-alias = "string::eq"
-core_op_id = "text.string_eq"
-
-[[legacy_bindings]]
-alias = "std::collections::string::eq"
-core_op_id = "text.string_eq"
-
-[[legacy_bindings]]
 alias = "string_from_bytes"
 core_op_id = "text.string_from_bytes"
 

@@ -660,6 +660,10 @@ fn removed_private_member_hint(module: String, name: String) -> String {
     name.clone().eq("clone") {
         return String_from("use `x.clone()` on the value instead")
     }
+    if (module.clone().eq("string") || module.clone().eq("collections::string") ||
+        module.clone().eq("std::collections::string")) && name.clone().eq("eq") {
+        return String_from("use `a.eq(b)` on the `String` receiver instead")
+    }
     if is_retired_hash_free_module(module.clone()) && name.clone().starts_with("hashset_") {
         return hashset_free_replacement_hint()
     }
@@ -867,7 +871,8 @@ fn removed_module_member_hint(module: String, name: String) -> String {
     if module.clone().eq("text") {
         return removed_text_member_hint(name)
     }
-    if module.clone().eq("string") {
+    if module.clone().eq("string") || module.clone().eq("collections::string") ||
+    module.clone().eq("std::collections::string") {
         return removed_string_member_hint(name)
     }
     if module.clone().eq("iter") {
@@ -1185,6 +1190,7 @@ fn removed_rope_member_hint(name: String) -> String {
 }
 
 fn removed_string_member_hint(name: String) -> String {
+    if name.clone().eq("eq") { return String_from("use `a.eq(b)` on the `String` receiver instead") }
     if name.clone().eq("concat") { return String_from("use `a.concat(b)` on `String` instead") }
     if name.clone().eq("chars") { return String_from("use `s.chars()` on `String` instead") }
     if name.clone().eq("len_chars") { return String_from("use `s.len_chars()` on `String` instead") }
@@ -1754,6 +1760,14 @@ test mod "removed_names" {
         assert(len(removed_name_hint("clone")) > 0)
         assert(len(removed_module_member_hint("string", "clone")) > 0)
         assert(len(removed_private_member_hint("prelude", "clone")) > 0)
+    }
+    test "retired string eq free has qualified member hints" {
+        assert(len(removed_name_hint("eq")) > 0)
+        assert(len(removed_module_member_hint("string", "eq")) > 0)
+        assert(len(removed_module_member_hint("collections::string", "eq")) > 0)
+        assert(len(removed_module_member_hint("std::collections::string", "eq")) > 0)
+        assert(len(removed_private_member_hint("string", "eq")) > 0)
+        assert(len(removed_private_member_hint("std::collections::string", "eq")) > 0)
     }
     test "retired text prelude frees have method hints" {
         assert(len(removed_name_hint("byte_at")) > 0)

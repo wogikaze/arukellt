@@ -1,15 +1,18 @@
 // Fixture: use_prelude_coexist.ark
 // Acceptance item 5 of issue #039: verify that prelude auto-import functions
-// (len, push, i32_to_string) coexist with explicit module imports
-// (use std::collections::string) without conflict or regression.
+// (len, push, Vec::new) coexist with explicit module imports without conflict
+// or regression. The qualified `io::read_stdin_line` call keeps
+// module-qualified resolution in the same fixture.
 //
 // Expected output: true,hello world,2
-use std::collections::string
-use std::text
+use std::io
 
 fn main() {
-    let equal = string::eq("a,b,c", "a,b,c")
-    let n = equal
+    let line = match io::read_stdin_line() {
+        Ok(text) => text,
+        Err(_) => "error",
+    }
+    let n = line.is_empty() && "a,b,c".eq("a,b,c")
     let greeting = "hello".concat(" world")
     let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
@@ -17,7 +20,3 @@ fn main() {
     let vlen = len(v)
     __intrinsic_println(n.to_string().concat(",").concat(greeting.concat(",".concat(__intrinsic_i32_to_string(vlen)))))
 }
-// Module-qualified call via `use std::collections::string`
-// Prelude function `len` works alongside module import
-// String method `concat` still available
-// Prelude function for vec creation

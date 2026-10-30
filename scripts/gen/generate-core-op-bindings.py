@@ -131,7 +131,7 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
         "// legacy_binding_patterns + std/manifest.toml.",
         "// Compact table + index. Do not edit by hand.",
         "",
-        "use std::prelude::{byte_at, eq, substring}",
+        "use std::prelude::{byte_at, substring}",
         "use std::text",
         "use corehir::table_blob",
         "",

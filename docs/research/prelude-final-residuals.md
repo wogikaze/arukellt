@@ -167,12 +167,14 @@ theirs). With that, the pin builds a non-trapping eq-source s2
 (`12ba70e6…`), and `operators/string_eq` runs 32/32 on `wasm32-gc` and
 `wasm32`.
 
-Residuals: `std::collections::string::eq` stays public for the qualified-call
-fixtures and is classified `must delete` (#917) in
-`docs/data/stdlib-api-eradication.toml`; the underlying composed-receiver
-bug in `lower_method_call_expr` / the emitter is still present for
-parenthesized receivers after `if`, so the migration avoids the shape rather
-than fixing it.
+Residuals: `std::collections::string::eq` stayed public for the qualified-call
+fixtures and was classified `must delete` (#917); it was retired from the public
+surface on 2026-10-30 after those fixtures moved to `std::io` /
+`std::host::stdio` qualified calls. A private `fn eq` resolver-stability shim
+remains: removing the symbol makes generic `i32.eq` calls inside `Deque` resolve
+to `Deque::eq` and emit invalid Wasm. The underlying composed-receiver bug in
+`lower_method_call_expr` / the emitter is still present for parenthesized
+receivers after `if`, so the migration avoids the shape rather than fixing it.
 
 ## `clone` — `.clone()` has no polymorphic resolution
 

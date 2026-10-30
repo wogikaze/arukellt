@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-10-11
-Updated: 2026-10-27
+Updated: 2026-10-30
 ID: 917
 Track: stdlib-api
 Depends on: "709"
@@ -1713,3 +1713,36 @@ classified there, in dependency-safe waves.
   String-keyed); making it pair-aware is a separate E0100 slice. Borrowed
   `entry` / `iter` / `retain` and `FromIterator` parity remain deferred with
   the collection iterator design.
+
+### Landed slice (wave/string-eq-qualified, 2026-10-30)
+
+- **Removed**: `std/collections/string.ark` の public `pub fn eq` を退役した。
+  public surface は `impl String` / `impl Vec<String>` の receiver surface のみ
+  で、compiler が使う `__core_string_eq_impl` CoreOp fallback は非公開のまま
+  残る。qualified `string::eq(...)` は E0100 と
+  `use \`a.eq(b)\` on the \`String\` receiver instead` を返す。
+- **Fixtures**: module_import の 5 run fixture を
+  `std::io::read_stdin_line` / `std::host::stdio::{println}` の qualified call
+  へ移した。selective import の `use_func_destructure` と check-only の
+  `stdlib_inline/abs_probe` も更新し、`use_func_destructure.expected` の
+  stale `1` を `true` に直した。E0100 golden は
+  `diagnostics/removed_string_eq_free`。
+- **CoreOp**: `data/core-ops.toml` の `string::eq` /
+  `std::collections::string::eq` legacy alias を削除し、binding を 650 -> 648
+  に再生成した。`scripts/gen/ark_fnv_index.py` と registry/bindings generator
+  の bare `eq(...)` 出力も `.eq()` に同期した。
+- **Scorecard**: eradication scope 84 -> **83**、`pub fn` declarations 84 ->
+  **83**、unregistered 2 -> **1**、`must delete` 67 -> **66**。
+  `std::io::io_error_message` が最後の unregistered declaration として残る
+  （`associated-or-method` / #693）。
+- **Residual**: 非公開の `fn eq` は resolver-stability shim として残る。宣言ごと
+  削除すると `stdlib_deque/deque_from_iter_eq` の generic `i32.eq` が
+  `Deque::eq` に解決され、`wasm-tools validate` が type mismatch で落ちる
+  （pinned / current の両 compiler で再現）。generic method candidate selection
+  が symbol set に依存しなくなった時点で削除する。
+- **Verification**: 変更した 6 run fixture は pinned / current × wasm32-gc
+  （`--memory-width memory32` の P2 component）/ `--target wasm32` の全 24 legs
+  が byte-exact PASS。`verify fixtures` **1929/1929** compile+validate PASS
+  （111 runtime executed、38/38 `test:` PASS、2 runtime-unsupported、0 FAIL）、
+  `selfhost diag-parity` PASS、`docs check` 6/6、`verify lane` PASS、
+  ADR-029 fixpoint PASS（s2 == s3 = `35913e9d…`、pinned base `56ff0808…`）。

@@ -1,0 +1,1 @@
+error[E0100|resolve]: removed module member: string::eq; use `a.eq(b)` on the `String` receiver instead

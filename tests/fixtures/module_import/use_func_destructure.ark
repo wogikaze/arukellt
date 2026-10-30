@@ -1,13 +1,13 @@
 // Fixture: use_func_destructure.ark
-// Issue #717: `use std::collections::string::{eq}` imports the function
-// directly into scope. The bare call `eq(...)` resolves to
-// `string::eq(...)` via the use-alias mechanism.
+// Issue #717: `use std::host::stdio::{println}` imports the function directly
+// into scope, so the bare `println(...)` call resolves through the use-alias
+// mechanism.
 //
 // Expected output: true
-use std::collections::string::{eq}
+use std::host::stdio::{println}
 
 fn main() {
     let s: String = "a,b"
     let equal = s.eq("a,b")
-    __intrinsic_println(equal.to_string())
+    println(equal.to_string())
 }
