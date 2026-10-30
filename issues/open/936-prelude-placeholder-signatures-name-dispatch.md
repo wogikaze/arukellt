@@ -373,6 +373,66 @@ are unchanged. Remaining name-keyed tables and their blockers:
   the `len` declaration keeps the String spelling until the committed pin is
   refreshed. #928 is unchanged.
 
+## Update (2026-10-30, `wave/builtin-tables`) — intrinsic return tables narrowed; hashmap method table stays behind #934
+
+Enumerated the remaining name-keyed return tables and narrowed the two whose
+spellings are compiler intrinsics with no Ark declaration. Neither is fully
+retirable: the checker still needs a return type for an unresolved intrinsic
+name, so the reduction is in the table shape, not in the call path.
+
+- `typechecker/builtins_hash.ark`: the 37 typed `__hm_<key><value>_*` storage
+  bridge spellings are now derived from the two-letter family and the
+  operation suffix. The typed set is unchanged: `new` / `new_with_cap` → the
+  pair, `cap` / `size` / `get_flag` → `i32`, `get_key` / `get_val` → the
+  family's key / value type. The two `i31_box` spellings stay as explicit
+  checks. File: 111 → 73 lines.
+- `typechecker/builtins_simd.ark` and `builtins_simd_lanes.ark`: the 179
+  distinct `__simd_*` / `__wasm_v128_*` spellings were replaced by a
+  classifier over the lane family prefix and the `extract_lane` / `all_true`
+  / `bitmask` / `wasm_v128_load|store` suffixes. The 145-line
+  `builtins_simd_lanes.ark` is deleted and its tests are replaced by five
+  classifier tests in `builtins_simd.ark`. A one-off Python equivalence check
+  over the 259 names reachable from `std/**`, `tests/fixtures/**` and
+  `resolver/builtins_simd.ark` produced no difference from the old
+  classifier; the unsigned `extract_lane_u` cases keep their pre-existing
+  unknown result so MIR continues to assign their value type.
+- `typechecker/hashmap_methods.ark`: attempted to let the `HashMap::*` shell
+  signatures in `std/collections/hash_map.ark` type the method surface and
+  keep the builtin table only as the capacity-group fallback. That is blocked
+  before #934: with the builtin pre-emption removed, the flat name index
+  resolves `HashMap::insert` through a same-named impl
+  (`callee=hashset_str_insert`, mono `insert__String__i32` instead of
+  `HashMap::insert__String__i32`). Six `stdlib_hashmap` test fixtures trap,
+  including `hashmap_string_i32`, `hashmap_i32_string`,
+  `hashmap_string_string`, `hashmap_pair_capacity` and
+  `hashmap_string_capacity`. #935 forbids restoring the behavior with a
+  per-method allowlist, so the table and both call sites are unchanged in
+  this increment.
+- `typechecker/builtins.ark` (`is_concrete_prelude_builtin`,
+  `is_scalar_conversion_builtin`, `builtin_call_return_type`): unchanged;
+  the concrete-call and flat-index dependency is the same #935 / #934 pair.
+
+Evidence (s2 built in `.build-lane`, pin `56ff0808…`):
+
+- `selfhost build-compiler`: PASS, 62.6 s.
+- `verify fixtures`: PASS=1943 FAIL=0 COMPILE_VALIDATE=1943 EXECUTED=112
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=42 FAIL=0. The targeted
+  `selfhost fixture-parity --filter-dir stdlib_hashmap --filter-dir
+  stdlib_simd` run is 77/77 compile+validate, 21/21 test.
+- `verify lane`, `docs check` 6/6, `selfhost diag-parity` pass.
+- `selfhost fixpoint`: s2 == s3 =
+  `1c7181a3c8bd04d9c982a35c46f2cb8abf69ddcf9daf28e6db89baffa13e0e2b`.
+  Stage 3 is the s2 self-build of the trimmed bootstrap overlay, so the
+  classifier changes are covered on the pin's prelude path as well.
+
+Acceptance movement: item 2 is still open. The remaining tables and their
+exact blockers are unchanged from the previous update, except that the two
+intrinsic return tables are now family/suffix derivations rather than exact
+spelling lists. Full retirement needs declarations for the intrinsic
+spellings (the bootstrap overlay ships `std/prelude.ark`, whose SIMD fallback
+bodies call `__simd_*`), which is the #936 signature migration itself; the
+HashMap method table additionally needs #934's non-overloaded identity.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

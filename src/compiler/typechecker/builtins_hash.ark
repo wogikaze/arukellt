@@ -2,110 +2,72 @@ use typechecker::kinds
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
-use typechecker::types
+
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-fn hashmap_type(key: String, val: String) -> TypeInfo {
+fn hashmap_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
     let mut hm = simple_type(commands::TY_HASHMAP())
-    contract_type_mutation::TypeInfo_push_type_arg(hm, types::resolve_type_name(key))
-    contract_type_mutation::TypeInfo_push_type_arg(hm, types::resolve_type_name(val))
+    contract_type_mutation::TypeInfo_push_type_arg(hm, key_ty)
+    contract_type_mutation::TypeInfo_push_type_arg(hm, value_ty)
     hm
 }
 
-fn hashmap_string_i32_type() -> TypeInfo {
-    hashmap_type("String", "i32")
-}
-
-fn hashmap_i32_string_type() -> TypeInfo {
-    hashmap_type("i32", "String")
-}
-
-fn hashmap_i32_fn_type() -> TypeInfo {
-    let mut hm = simple_type(commands::TY_HASHMAP())
-    contract_type_mutation::TypeInfo_push_type_arg(hm, simple_type(commands::TY_I32()))
-    contract_type_mutation::TypeInfo_push_type_arg(hm, simple_type(kinds::TY_FN()))
-    hm
-}
-
-fn hashmap_string_fn_type() -> TypeInfo {
-    let mut hm = simple_type(commands::TY_HASHMAP())
-    contract_type_mutation::TypeInfo_push_type_arg(hm, simple_type(commands::TY_STRING()))
-    contract_type_mutation::TypeInfo_push_type_arg(hm, simple_type(kinds::TY_FN()))
-    hm
-}
-
-fn hashmap_string_string_type() -> TypeInfo {
-    hashmap_type("String", "String")
-}
-
-// The high-level HashMap_<K>_<V>_* builtins were retired by #917: the
-// source spelling is `HashMap::new<K, V>()` plus receiver methods, which
-// `typechecker::hashmap_methods` types. Only the non-public __hm_* storage
-// bridge keeps builtin call typing here.
+// The non-public __hm_<key><value>_* storage bridge has no Ark declarations;
+// the resolver registers the spellings and MIR lowers them to the per-pair
+// bucket arrays. The pair is encoded in the two-letter family, so derive the
+// return type from the family and the operation suffix instead of repeating
+// every pair × operation combination. Remove this once the bridge has real
+// declarations (#936).
 fn hashmap_builtin_return_type(name: String) -> TypeInfo {
-    if name.clone().eq("__hm_si_new") || name.clone().eq("__hm_si_new_with_cap") {
-        return hashmap_string_i32_type()
-    }
-    if name.clone().eq("__hm_si_cap") ||
-    name.clone().eq("__hm_si_size") ||
-    name.clone().eq("__hm_si_get_flag") ||
-    name.clone().eq("__hm_si_get_val") {
-        return simple_type(commands::TY_I32())
-    }
-    if name.clone().eq("__hm_si_get_key") {
-        return simple_type(commands::TY_STRING())
-    }
-    if name.clone().eq("__hm_is_new") || name.clone().eq("__hm_is_new_with_cap") {
-        return hashmap_i32_string_type()
-    }
-    if name.clone().eq("__hm_is_cap") ||
-    name.clone().eq("__hm_is_size") ||
-    name.clone().eq("__hm_is_get_flag") ||
-    name.clone().eq("__hm_is_get_key") {
-        return simple_type(commands::TY_I32())
-    }
-    if name.clone().eq("__hm_is_get_val") {
-        return simple_type(commands::TY_STRING())
-    }
-    if name.clone().eq("__hm_if_new") || name.clone().eq("__hm_if_new_with_cap") {
-        return hashmap_i32_fn_type()
-    }
-    if name.clone().eq("__hm_if_cap") ||
-    name.clone().eq("__hm_if_size") ||
-    name.clone().eq("__hm_if_get_flag") ||
-    name.clone().eq("__hm_if_get_key") {
-        return simple_type(commands::TY_I32())
-    }
-    if name.clone().eq("__hm_if_get_val") {
-        return simple_type(kinds::TY_FN())
-    }
-    if name.clone().eq("__hm_sf_new") || name.clone().eq("__hm_sf_new_with_cap") {
-        return hashmap_string_fn_type()
-    }
-    if name.clone().eq("__hm_sf_cap") ||
-    name.clone().eq("__hm_sf_size") ||
-    name.clone().eq("__hm_sf_get_flag") {
-        return simple_type(commands::TY_I32())
-    }
-    if name.clone().eq("__hm_sf_get_key") {
-        return simple_type(commands::TY_STRING())
-    }
-    if name.clone().eq("__hm_sf_get_val") {
-        return simple_type(kinds::TY_FN())
-    }
-    if name.clone().eq("__hm_ss_new") || name.clone().eq("__hm_ss_new_with_cap") {
-        return hashmap_string_string_type()
-    }
-    if name.clone().eq("__hm_ss_cap") || name.clone().eq("__hm_ss_size") || name.clone().eq("__hm_ss_get_flag") {
-        return simple_type(commands::TY_I32())
-    }
-    if name.clone().eq("__hm_ss_get_key") || name.clone().eq("__hm_ss_get_val") {
-        return simple_type(commands::TY_STRING())
-    }
     if name.clone().eq("__intrinsic_i31_box") || name.clone().eq("i31_box") {
         return simple_type(commands::TY_I32())
+    }
+    if !name.clone().starts_with("__hm_") || len(name) < 9 {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    let family = name.slice(5, 7)
+    let key_ty = hashmap_family_key_type(family.clone())
+    if contract_type_access::TypeInfo_tag(key_ty) == commands::TY_UNKNOWN() {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    let value_ty = hashmap_family_value_type(family)
+    let op = name.slice(8, len(name))
+    if op.clone().eq("new") || op.clone().eq("new_with_cap") {
+        return hashmap_type(key_ty, value_ty)
+    }
+    if op.clone().eq("cap") || op.clone().eq("size") || op.clone().eq("get_flag") {
+        return simple_type(commands::TY_I32())
+    }
+    if op.clone().eq("get_key") {
+        return key_ty
+    }
+    if op.clone().eq("get_val") {
+        return value_ty
+    }
+    simple_type(commands::TY_UNKNOWN())
+}
+
+fn hashmap_family_key_type(family: String) -> TypeInfo {
+    if family.clone().eq("si") || family.clone().eq("sf") || family.clone().eq("ss") {
+        return simple_type(commands::TY_STRING())
+    }
+    if family.clone().eq("is") || family.clone().eq("if") {
+        return simple_type(commands::TY_I32())
+    }
+    simple_type(commands::TY_UNKNOWN())
+}
+
+fn hashmap_family_value_type(family: String) -> TypeInfo {
+    if family.clone().eq("si") {
+        return simple_type(commands::TY_I32())
+    }
+    if family.clone().eq("if") || family.clone().eq("sf") {
+        return simple_type(kinds::TY_FN())
+    }
+    if family.clone().eq("is") || family.clone().eq("ss") {
+        return simple_type(commands::TY_STRING())
     }
     simple_type(commands::TY_UNKNOWN())
 }
