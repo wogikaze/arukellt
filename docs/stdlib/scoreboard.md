@@ -5,11 +5,11 @@
 
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
-| `prelude` | 18 | 4 | 1 | 0 | 13 | 5/5 (100%) | no |
+| `prelude` | 14 | 4 | 1 | 0 | 9 | 5/5 (100%) | no |
 | `std::collections::linear` | 11 | 0 | 0 | 0 | 11 | 0/0 (—) | no |
 | `std::host::fs` | 3 | 0 | 0 | 3 | 0 | **0/3 (0%)** | yes |
 
-**Total**: 32 APIs, 4 stable, 1 provisional, 3 experimental, 24 deprecated, 5/8 (62%) fixture coverage
+**Total**: 28 APIs, 4 stable, 1 provisional, 3 experimental, 20 deprecated, 5/8 (62%) fixture coverage
 
 ## Legend
 

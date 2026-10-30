@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 8
-- **Historical/deprecated names:** 24
-- **Total entries:** 32
+- **Historical/deprecated names:** 20
+- **Total entries:** 28
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -39,10 +39,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
 | ~~`as_slice`~~ | `Vec::as_slice` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq`~~ | `Test::assert_eq_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_i64`~~ | `Test::assert_eq_i64` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_eq_str`~~ | `Test::assert_eq_string` | Assert | [migration-guidance.md](migration-guidance.md) |
-| ~~`assert_ne`~~ | `Test::assert_ne_i32` | Assert | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_back`~~ | `Deque::back` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_clear`~~ | `Deque::clear` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`deque_front`~~ | `Deque::front` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -73,10 +69,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 |------|--------|--------|---------------------|
 | ~~`as_slice`~~ | ⚠️ deprecated | `prelude` | → `Vec::as_slice` · [migration guide](migration-guidance.md) |
 | `assert` | ✅ `stable` | `prelude` | Assert |
-| ~~`assert_eq`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i32` · [migration guide](migration-guidance.md) |
-| ~~`assert_eq_i64`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_i64` · [migration guide](migration-guidance.md) |
-| ~~`assert_eq_str`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_eq_string` · [migration guide](migration-guidance.md) |
-| ~~`assert_ne`~~ | ⚠️ deprecated | `prelude` | → `Test::assert_ne_i32` · [migration guide](migration-guidance.md) |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | ~~`deque_back`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::back` · [migration guide](migration-guidance.md) |
 | ~~`deque_clear`~~ | ⚠️ deprecated | `std::collections::linear` | → `Deque::clear` · [migration guide](migration-guidance.md) |
