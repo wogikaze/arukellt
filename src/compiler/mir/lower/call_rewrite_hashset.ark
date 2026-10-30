@@ -8,7 +8,38 @@ use mir::lower::ctx_fn_return_type
 // (HashSet_i32::insert), or as a bare method name. The HashSet local marker
 // distinguishes `len` / `is_empty` from the Vec core-op rewrites that share
 // those names, and selects the i32 or String store (#917).
+
+// `with_capacity` is the second associated constructor. Its source spelling
+// carries the element type through monomorphization just like `new`, while
+// the lowered store target restates the family in the bare name.
+fn hashset_with_capacity_source_family(callee_name: String) -> String {
+    if callee_name.clone().eq(String_from("HashSet__with_capacity__i32")) ||
+    callee_name.clone().eq(String_from("HashSet::with_capacity__i32")) {
+        return String_from("i32")
+    }
+    if callee_name.clone().eq(String_from("HashSet__with_capacity__String")) ||
+    callee_name.clone().eq(String_from("HashSet::with_capacity__String")) {
+        return String_from("String")
+    }
+    String_new()
+}
+
+fn is_hashset_with_capacity_store(callee_name: String) -> bool {
+    callee_name.clone().eq(String_from("hashset_with_capacity")) ||
+    callee_name.clone().eq(String_from("hashset_str_with_capacity"))
+}
+
 fn hashset_constructor_family(callee_name: String) -> String {
+    let capacity_family = hashset_with_capacity_source_family(callee_name.clone())
+    if capacity_family.clone().len() > 0 {
+        return capacity_family
+    }
+    if is_hashset_with_capacity_store(callee_name.clone()) {
+        if callee_name.clone().eq(String_from("hashset_with_capacity")) {
+            return String_from("i32")
+        }
+        return String_from("String")
+    }
     if callee_name.clone().eq(String_from("HashSet__new__i32")) ||
     callee_name.clone().eq(String_from("HashSet::new__i32")) ||
     callee_name.clone().eq(String_from("hashset_new")) {
@@ -23,6 +54,16 @@ fn hashset_constructor_family(callee_name: String) -> String {
 }
 
 fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
+    let capacity_family = hashset_with_capacity_source_family(callee_name.clone())
+    if capacity_family.clone().eq(String_from("i32")) {
+        return String_from("hashset_with_capacity")
+    }
+    if capacity_family.clone().eq(String_from("String")) {
+        return String_from("hashset_str_with_capacity")
+    }
+    if is_hashset_with_capacity_store(callee_name.clone()) {
+        return callee_name
+    }
     let family = hashset_constructor_family(callee_name.clone())
     if family.clone().eq(String_from("i32")) {
         return String_from("hashset_new")
@@ -37,6 +78,13 @@ fn mir_rewrite_hashset_constructor(callee_name: String) -> String {
 // vec:i32 / hashmap:si32, but the source expression keeps the set type so
 // receiver-type dispatch still sees a HashSet (#917).
 fn mir_hashset_constructor_type_name(callee_name: String) -> String {
+    let capacity_family = hashset_with_capacity_source_family(callee_name.clone())
+    if capacity_family.clone().eq(String_from("i32")) {
+        return String_from("HashSet<i32>")
+    }
+    if capacity_family.clone().eq(String_from("String")) {
+        return String_from("HashSet<String>")
+    }
     if callee_name.clone().eq(String_from("HashSet__new__i32")) ||
     callee_name.clone().eq(String_from("HashSet::new__i32")) {
         return String_from("HashSet<i32>")
@@ -411,6 +459,14 @@ test mod "hashset_rewrite" {
         assert(mir_rewrite_hashset_constructor("HashSet__new__String") == "hashset_str_new")
         assert(mir_hashset_constructor_type_name("HashSet__new__i32") == "HashSet<i32>")
         assert(mir_hashset_constructor_type_name("HashSet__new__String") == "HashSet<String>")
+        assert(mir_rewrite_hashset_constructor("HashSet__with_capacity__i32") == "hashset_with_capacity")
+        assert(mir_rewrite_hashset_constructor("HashSet__with_capacity__String") == "hashset_str_with_capacity")
+        assert(mir_rewrite_hashset_constructor("HashSet::with_capacity__i32") == "hashset_with_capacity")
+        assert(mir_rewrite_hashset_constructor("HashSet::with_capacity__String") == "hashset_str_with_capacity")
+        assert(mir_hashset_constructor_type_name("HashSet__with_capacity__i32") == "HashSet<i32>")
+        assert(mir_hashset_constructor_type_name("HashSet::with_capacity__String") == "HashSet<String>")
+        assert(mir_rewrite_hashset_constructor("hashset_with_capacity") == "hashset_with_capacity")
+        assert(hashset_constructor_family("hashset_str_with_capacity") == "String")
     }
     test "method_targets" {
         assert(mir_rewrite_hashset_method("HashSet_i32::insert") == "hashset_insert")

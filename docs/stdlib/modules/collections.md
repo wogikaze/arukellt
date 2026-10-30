@@ -80,9 +80,11 @@ Hash-based collection helpers.
 
 Provides the raw HashMap and HashSet implementation layer backed by a flat
 `Vec<i32>` with open addressing and linear probing. The canonical source
-surface is `HashMap::new<K,V>()` and receiver methods; the compiler
-monomorphizes those calls to per-pair implementation functions and uses
-these helpers where the selected representation is linear memory.
+surface is `HashMap::new<K,V>()` / `HashMap::with_capacity<K,V>(n)` and
+`HashSet::new<T>()` / `HashSet::with_capacity<T>(n)` plus receiver
+methods; the compiler monomorphizes those calls to per-pair implementation
+functions and uses these helpers where the selected representation is
+linear memory.
 
 ### Generic dispatch
 
@@ -188,14 +190,14 @@ the flat `i32` set store in `std::collections::hash` and the String-keyed
 bucket store in `std::collections::hash_string`. MIR rewrites the shell
 calls to the store functions, so the shell bodies never recurse at runtime.
 
-The aggregate operations (`to_vec`, `union`, `intersection`, `difference`,
-`capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`)
-are available on both element families. `HashSet<String>` is a key view
-over the `HashMap<String, i32>` bucket store: membership uses the same
-keys/flags arrays, the value slot is always 0, and the capacity group
-reuses the map's 0.75 load-factor machinery. Both element families
-implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
-`Debug`.
+The constructors (`new`, `with_capacity`) and the aggregate operations
+(`to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`,
+`try_reserve`, `shrink_to_fit`, `clear`, `extend`) are available on both
+element families. `HashSet<String>` is a key view over the
+`HashMap<String, i32>` bucket store: membership uses the same keys/flags
+arrays, the value slot is always 0, and the capacity group reuses the
+map's 0.75 load-factor machinery. Both element families implement
+`FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and `Debug`.
 
 `iter` returns a `VecIter<T>` over a snapshot and `retain` evaluates its
 predicate against a snapshot before reinserting kept elements; Arukellt v2
@@ -211,7 +213,7 @@ required.
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `iter`, `retain`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
+| `HashSet` | `struct` | `new`, `with_capacity`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `iter`, `retain`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
 
 _No manifest-backed functions in this module._
 

@@ -118,6 +118,12 @@ fn is_hashset_i32_new(callee_name: String) -> bool {
     if callee_eq(callee_name.clone(), "hash::hashset_new") {
         return true
     }
+    if callee_eq(callee_name.clone(), "hashset_with_capacity") {
+        return true
+    }
+    if callee_eq(callee_name.clone(), "hash::hashset_with_capacity") {
+        return true
+    }
     if callee_eq(callee_name.clone(), "hashset_i32_new") {
         return true
     }
@@ -518,7 +524,8 @@ fn mark_hash_call_result_type(mut ctx: LowerCtx, callee_name: String, dest: i32)
     if snapshot_ty.len() > 0 {
         mark_hash_type_ref(ctx, dest, snapshot_ty)
     }
-    if callee_eq(callee_name.clone(), "hashset_str_new") {
+    if callee_eq(callee_name.clone(), "hashset_str_new") ||
+    callee_eq(callee_name.clone(), "hashset_str_with_capacity") {
         mark_hash_type_ref(ctx, dest, "hashmap:si32")
     }
     mark_hash_query_result_type(ctx, callee_name, dest)

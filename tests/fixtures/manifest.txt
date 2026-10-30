@@ -1187,6 +1187,8 @@ test:stdlib_hashmap/insert_owner_identity.ark
 run:stdlib_hashmap/hashmap_typed_remove_extend.ark
 run:stdlib_hashset/hashset_string_capacity.ark
 run:stdlib_hashset/hashset_string_capacity_wasm32.ark
+run:stdlib_hashset/hashset_with_capacity.ark
+run:stdlib_hashset/hashset_with_capacity_wasm32.ark
 run:stdlib_hashset/hashset_methods.ark
 run:stdlib_hashset/hashset_methods_wasm32.ark
 run:stdlib_hashset/hashset_from_iter.ark

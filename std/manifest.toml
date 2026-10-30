@@ -672,18 +672,19 @@ availability = { t1 = true, t3 = true }
 name = "std::collections::hash_set"
 stability = "provisional"
 family = "collections"
-doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 methods lower to the flat hash store, and the String methods are a key view over the String-keyed `HashMap` bucket store. Both families expose the capacity group (`capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`), a snapshot `iter`, in-place `retain`, and implement `FromIterator<VecIter<T>>`."
+doc = "Concrete `HashSet<i32>` / `HashSet<String>` type surface (ADR-086); the i32 methods lower to the flat hash store, and the String methods are a key view over the String-keyed `HashMap` bucket store. Both families expose the constructors `new` / `with_capacity` and the capacity group (`capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`), a snapshot `iter`, in-place `retain`, and implement `FromIterator<VecIter<T>>`."
 availability = { t1 = true, t3 = true }
 
 [[types]]
 name = "HashSet"
 kind = "struct"
-doc = "Set of unique `i32` / `String` values; both families cover membership, set algebra, `iter`, `retain`, and the bucket capacity group (`capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`). `HashSet<String>` is a key view over the String-keyed `HashMap` bucket store, with the value slot fixed at 0. Both families implement `FromIterator<VecIter<T>>`."
+doc = "Set of unique `i32` / `String` values; both families cover construction (`new`, `with_capacity`), membership, set algebra, `iter`, `retain`, and the bucket capacity group (`capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend`). `HashSet<String>` is a key view over the String-keyed `HashMap` bucket store, with the value slot fixed at 0. Both families implement `FromIterator<VecIter<T>>`."
 module = "std::collections::hash_set"
 stability = "provisional"
 generic_params = ["T"]
 methods = [
     "new",
+    "with_capacity",
     "insert",
     "contains",
     "remove",

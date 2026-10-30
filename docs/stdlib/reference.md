@@ -33,7 +33,7 @@
 | `DequeIntoIter` | T | no | provisional | Owning front-to-back cursor over a Deque<T>. |
 | `DequeIter` | T | no | provisional | Read-only front-to-back cursor over a Deque<T>. |
 | `DequeIterMut` | T | no | provisional | Writable front-to-back cursor over a Deque<T> with set_current. |
-| `Entry` | K, V | no | provisional | Owned handle for one HashMap key. or_insert returns the stored value or writes the default, or_insert_with defers the default to a callback, and or_default writes 0 / the empty String for i32 / String values. The handle captures the map and key rather than a borrowed slot because v2 has no general borrow; every supported pair lowers. |
+| `Entry` | K, V | no | provisional | Owned handle for one HashMap key. or_insert returns the stored value or writes the default, and or_insert_with defers the default to a callback. The handle captures the map and key rather than a borrowed slot because v2 has no general borrow. |
 | `Env` | - | no | provisional | Namespace for the host environment reads: Env::args, Env::var, Env::arg_count, Env::arg_at, Env::var_or_default, and Env::has_flag. |
 | `F32x4` | - | no | experimental | 4 × 32-bit float lane associated operations over v128. |
 | `F64x2` | - | no | experimental | 2 × 64-bit float lane associated operations over v128. |
@@ -41,9 +41,9 @@
 | `Fs` | - | no | provisional | Namespace for the one-shot whole-path host filesystem operations: Fs::read_to_string / read_bytes / write_string / write_bytes / is_readable_file / is_file / is_dir / read_dir / metadata. File owns the image handle and the Read / Write / Seek adapters; read_dir and metadata stay honest unsupported rejections until the corresponding WASI intrinsics land. |
 | `FuncType` | - | no | experimental | A Wasm function signature: parameter types followed by result types. Both lists hold ValType constants. |
 | `HandleTableI32` | - | no | experimental | SlotMap-backed Component Model handle table for i32 payloads; new, insert, get, remove, and len are receiver methods. |
-| `HashMap` | K, V | yes | provisional | Hash-based key/value map. new, insert, get, contains_key, remove, len, is_empty, keys, values, entries, iter, entry, retain, and the capacity / bulk-maintenance group (with_capacity, capacity, reserve, try_reserve, shrink_to_fit, clear, drain, remove_entry, extend) are generic over the supported pairs. Each pair lowers to its own store: the flat HashMap<i32, i32> implementation or the compiler-managed bucket arrays behind the non-public __hm_ bridge. drain returns typed Vec<(K, V)> pairs, remove_entry returns Option<(K, V)>, and try_reserve returns true when the reserve completed. iter returns a snapshot HashMapIter<K, V> cursor, IntoIterator yields the same owned (K, V) pairs, and entry an owned Entry<K, V> handle because v2 has no borrowed iterator; retain removes rejected keys in place. |
-| `HashMapIter` | K, V | no | provisional | Snapshot cursor over the (K, V) pairs of a HashMap. The cursor owns the pairs captured by HashMap::iter and HashMap::into_iter, so later map writes are not observed; pair order is implementation-defined bucket order. |
-| `HashSet` | T | no | provisional | Set of unique i32 / String values; both families cover membership, set algebra, iter, retain, and the bucket capacity group (capacity, reserve, try_reserve, shrink_to_fit, clear, extend). HashSet<String> is a key view over the String-keyed HashMap bucket store, with the value slot fixed at 0. Both families implement FromIterator<VecIter<T>>. |
+| `HashMap` | K, V | yes | provisional | Hash-based key/value map. new, insert, get, contains_key, remove, len, is_empty, keys, values, entries, iter, entry, retain, and the capacity / bulk-maintenance group (with_capacity, capacity, reserve, try_reserve, shrink_to_fit, clear, drain, remove_entry, extend) are generic over the supported pairs. Each pair lowers to its own store: the flat HashMap<i32, i32> implementation or the compiler-managed bucket arrays behind the non-public __hm_ bridge. drain returns typed Vec<(K, V)> pairs, remove_entry returns Option<(K, V)>, and try_reserve returns true when the reserve completed. iter returns a snapshot HashMapIter<K, V> cursor and entry an owned Entry<K, V> handle because v2 has no borrowed iterator; retain removes rejected keys in place. |
+| `HashMapIter` | K, V | no | provisional | Snapshot cursor over the (K, V) pairs of a HashMap. The cursor owns the pairs captured by HashMap::iter, so later map writes are not observed; pair order is implementation-defined bucket order. |
+| `HashSet` | T | no | provisional | Set of unique i32 / String values; both families cover construction (new, with_capacity), membership, set algebra, iter, retain, and the bucket capacity group (capacity, reserve, try_reserve, shrink_to_fit, clear, extend). HashSet<String> is a key view over the String-keyed HashMap bucket store, with the value slot fixed at 0. Both families implement FromIterator<VecIter<T>>. |
 | `I16x8` | - | no | experimental | 8 × 16-bit signed integer lane associated operations over v128. |
 | `I32x4` | - | no | experimental | 4 × 32-bit signed integer lane associated operations over v128. |
 | `I64x2` | - | no | experimental | 2 × 64-bit signed integer lane associated operations over v128. |
@@ -147,7 +147,7 @@
 | `DequeIntoIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIter` | - | `Iterator`, `IntoIterator` |
 | `DequeIterMut` | `set_current` | `Iterator`, `IntoIterator` |
-| `Entry` | `key`, `or_insert`, `or_insert_with`, `or_default` | - |
+| `Entry` | `key`, `or_insert`, `or_insert_with` | - |
 | `Env` | `args`, `var`, `arg_count`, `arg_at`, `var_or_default`, `has_flag` | - |
 | `Error` | `message` | - |
 | `F32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `div`, `sqrt`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `min`, `max`, `ceil`, `floor`, `trunc`, `nearest`, `abs`, `neg` | - |
@@ -159,7 +159,7 @@
 | `HandleTableI32` | `new`, `insert`, `get`, `remove`, `len` | - |
 | `HashMap` | `new`, `insert`, `get`, `contains_key`, `remove`, `len`, `is_empty`, `keys`, `values`, `entries`, `iter`, `entry`, `retain`, `with_capacity`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`, `remove_entry`, `extend` | `IntoIterator`, `FromIterator` |
 | `HashMapIter` | `is_empty` | `Iterator`, `IntoIterator` |
-| `HashSet` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `iter`, `retain`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
+| `HashSet` | `new`, `with_capacity`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `iter`, `retain`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` |
 | `I16x8` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `ge_u`, `min_s`, `min_u`, `max_s`, `max_u`, `shl`, `shr_s`, `shr_u`, `extadd_pairwise_i8x16_s`, `extadd_pairwise_i8x16_u`, `extend_low_i8x16_s`, `extend_high_i8x16_s`, `extend_low_i8x16_u`, `extend_high_i8x16_u`, `narrow_i32x4_s`, `narrow_i32x4_u`, `mul`, `neg`, `abs`, `add_sat_s`, `add_sat_u`, `sub_sat_s`, `sub_sat_u`, `eq`, `ne`, `lt_s`, `le_s`, `gt_s`, `ge_s`, `lt_u`, `le_u`, `gt_u` | - |
 | `I32x4` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `add`, `sub`, `mul`, `neg`, `abs`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `and`, `or`, `xor`, `not`, `shl`, `shr_s`, `shr_u`, `min_s`, `max_s`, `min_u`, `max_u` | - |
 | `I64x2` | `splat`, `new`, `zero`, `extract_lane`, `replace_lane`, `eq`, `ne`, `lt_s`, `le_s`, `ge_s`, `add`, `sub`, `mul`, `neg`, `abs`, `gt_s`, `shl`, `shr_s`, `shr_u` | - |

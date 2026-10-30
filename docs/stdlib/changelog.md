@@ -16,25 +16,24 @@
 - このファイルの過去 entry は削除時点の履歴であり、現在の API 一覧ではない。現在の
   事実は manifest と生成 docs から取得する。
 
-## 2026-10-31 — HashMap pair iteration / Entry の owned surface 改訂 (ADR-093, #917, #974, wave/borrowed-entry)
+## 2026-10-31 — `HashSet::with_capacity` の追加 (#917, wave/hashset-with-capacity)
 
-- **Changed**: `impl<K, V> IntoIterator for HashMap<K, V>` の item を keys から
-  owned `(K, V)` pairs へ変更した。`for (k, v) in map` は `HashMapIter<K, V>` の
-  snapshot を走査し、`for pair in map.iter()` と同じ item 型になる。旧 `for k in map`
-  は型エラーになるため、keys だけが必要な利用側は `map.keys()` へ移行する。
-  HashMap は provisional のため、ADR-014 の deprecation window は要求しない。
-- **Fixed**: `Entry<String, String>` / `Entry<i32, String>` など String 値を含む
-  pair の GC field が String→i32 slot に落ちていた。`Entry.map` の annotation を
-  pair storage alias に正規化し、6 つの supported pair すべてで
-  `entry` / `or_insert` / `or_insert_with` が lower するようにした。
-  `HashMapIter::collect` / `count` も generic impl 内の `next` 再解決に依存せず、
-  snapshot field を直接走査するため fn-valued pair で壊れない。
-- **Added**: `Entry::or_default()`（`i32` は `0`、`String` は空文字列）を
-  `Entry<i32, i32>` / `Entry<String, i32>` / `Entry<i32, String>` /
-  `Entry<String, String>` に追加した。fn 値の pair は Default を持たないため対象外。
-- **Deferred**: borrowed `Entry<'a, K, V>` / `iter() -> (&K, &V)` は、v2 に参照型・
-  lifetime・borrow checker がないため引き続き公開しない。snapshot / owned API を
-  borrowed 風の綴りで偽装しない。再検討条件は ADR-093 が所有する。
+- **Added**: `HashSet<i32>` / `HashSet<String>` の associated constructor
+  `HashSet::with_capacity<T>(n)`。i32 family は flat store の
+  `hashmap_with_capacity`、String family は String-keyed map の
+  `hashmap_str_with_capacity` へ delegate し、default 16 slots ではなく要求した
+  bucket capacity で構築する。0 以下は 1 に clamp する。
+- **Contract**: 構築直後の `capacity()` は要求した bucket 数（0 は 1）を返す。
+  その後の insert は既存の 0.75 load-factor rehash で成長し、既存 member は
+  保持される。型引数は turbofish で指定する。
+- **Fixtures**: `stdlib_hashset/hashset_with_capacity` と `_wasm32` variant を
+  追加し、両 family の要求 capacity・0 clamp・40 要素成長後の member 保持を
+  両 target で検証する。registry 3667 -> 3669。
+- **Evidence**: `verify fixtures` PASS=1963 FAIL=0（113 runtime smoke、43/43
+  `test:`、2 runtime-unsupported）、`verify lane` PASS、`docs check` 6/6 PASS、
+  `selfhost diag-parity` PASS、ADR-029 fixpoint PASS（s2 == s3 at sha256
+  `e92df1090d97d179a6eec784343e7dd9c4ac08460d1d13fcdaf8602334fcd201`、
+  pinned base `56ff0808…`）。
 
 ## 2026-10-30 — vec intrinsic-compat / provisional seq free の退役と ADR-092 例外の記録 (ADR-046, ADR-087, ADR-091, ADR-092, #917, wave/seq-fd-remain)
 

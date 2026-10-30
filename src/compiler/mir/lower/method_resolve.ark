@@ -693,6 +693,16 @@ fn mir_bare_method_name(mangled: String) -> String {
     mangled.slice(pos + 2, mangled.len())
 }
 
+// `with_capacity` takes a bucket count as its first argument, not a value
+// whose type selects a specialization. The constructed type lives in the
+// turbofish and is resolved by span-based mono lookup, so probing the count's
+// i32 type would pin the i32 family of a generic container whenever both
+// families are instantiated in the same module.
+fn mir_method_is_capacity_constructor(name: String) -> bool {
+    name.clone().ends_with(String_from("::with_capacity")) ||
+    name.clone().ends_with(String_from("__with_capacity"))
+}
+
 fn mir_is_builtin_type_prefix(mangled: String) -> bool {
     let prefix = mir_type_prefix(mangled)
     if prefix.clone().eq(String_from("Vec")) { return true }

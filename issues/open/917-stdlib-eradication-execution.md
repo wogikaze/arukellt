@@ -2112,3 +2112,46 @@ classified there, in dependency-safe waves.
   `get_unchecked` calls (the sample already fails current typechecking at
   HEAD), matching the earlier `len` wave. The 7 remaining public symbols are
   the ADR-091 stable-free exception (4) and the ADR-092 fd exception (3).
+
+### Landed slice (wave/hashset-with-capacity, 2026-10-31)
+
+- **Feasibility**: yes. Both stores already own real bucket counters, so the
+  constructor only had to reach the map capacity group; no new runtime
+  primitive was needed. The residual from `wave/hashset-capacity` was a
+  source-surface gap, not a representation gap.
+- **Landed**: `HashSet::with_capacity<T>(n)` for `HashSet<i32>` and
+  `HashSet<String>`, declared beside the generic `HashSet::new<T>` shell.
+  `hashset_with_capacity` delegates to the flat map's
+  `hashmap_with_capacity`; `hashset_str_with_capacity` delegates to
+  `hashmap_str_with_capacity`, keeping its zero-clamp and load-factor plan.
+  The requested capacity is the store's real bucket capacity (0 clamps to 1),
+  and later inserts use the existing 0.75 load-factor rehash so members stay
+  reachable.
+- **Lowering**: `call_rewrite_hashset` maps the mono constructor spellings
+  (`HashSet__with_capacity__i32` / `HashSet::with_capacity__i32`,
+  `...__String`) to the per-family store and marks the result local as
+  `HashSet<i32>` / `HashSet<String>`. `call_type_hash` types the store
+  results (`vec:i32` / `hashmap:si32`) and the GC signature override emits the
+  i32 store ref for the new constructor.
+- **Compiler fix**: a capacity constructor's first argument is a count, not
+  the operand that selects a specialization. `mir_try_resolve_associated_function`
+  and the mono by-type path now skip `with_capacity`, so the turbofish type is
+  resolved by span-based mono lookup. Without the guard, a module that
+  instantiated both families resolved every String call to the i32 store as
+  soon as an i32 instantiation existed.
+- **Fixtures**: dual-target `stdlib_hashset/hashset_with_capacity` (+
+  `_wasm32`), covering both families' requested capacity, the zero clamp, and
+  member survival across 40-element growth. Registry 3667 -> **3669**; manifest
+  and generated docs regenerated.
+- **Verification**: `verify fixtures` **1963/1963** compile+validate PASS
+  (113 runtime, 43/43 `test:` PASS, 2 runtime-unsupported, 0 FAIL); `verify
+  lane` PASS; `docs check` 6/6; `selfhost diag-parity` PASS; ADR-029 fixpoint
+  PASS, s2 == s3 sha256
+  `e92df1090d97d179a6eec784343e7dd9c4ac08460d1d13fcdaf8602334fcd201`
+  (pinned base `56ff0808…`). The new fixture ran on wasm32-gc as a P2
+  component and on `--target wasm32`; both exited 0.
+- **Residuals**: `HashMap::with_capacity` already exists for every supported
+  pair, so no map-side residual remains. `try_reserve` still reports `true`
+  because neither store has a recoverable allocation-error channel.
+  Borrowed `entry` / `iter` / `retain`, `FromIterator` parity, and a true
+  unit-value (`()`) set representation remain deferred.

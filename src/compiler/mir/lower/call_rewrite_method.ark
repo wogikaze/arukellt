@@ -150,6 +150,11 @@ fn mir_try_resolve_associated_function(ctx: LowerCtx, associated_name: String, f
     if first_arg_idx < 0 || !associated_name.clone().contains(String_from("::")) {
         return associated_name
     }
+    // A capacity constructor's first argument is the requested bucket count,
+    // not the operand type that selects an impl specialization.
+    if method_resolve::mir_method_is_capacity_constructor(associated_name.clone()) {
+        return associated_name
+    }
     let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
     let mut source_name = mir_bare_receiver_type_name(arg_type.clone())
     // Direct numeric literals carry only a value type, not a type-name
