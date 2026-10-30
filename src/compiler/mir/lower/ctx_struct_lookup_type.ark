@@ -1,4 +1,6 @@
 use mir::lower::ctx_struct_storage
+use mir::lower::ctx_struct_field_type
+
 fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) -> String {
     let li = ctx_struct_storage::ctx_struct_layout_preferred_index(ctx, struct_name.clone())
     if li < 0 {
@@ -10,7 +12,9 @@ fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) ->
     while fi < fc {
         let fn_name = ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, offset + fi)
         if fn_name.clone().eq(field_name.clone()) {
-            return ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + fi)
+            return ctx_struct_field_type::ctx_struct_field_hashmap_alias(
+                ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + fi)
+            )
         }
         fi = fi + 1
     }

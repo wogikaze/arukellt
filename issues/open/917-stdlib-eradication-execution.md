@@ -1860,3 +1860,46 @@ classified there, in dependency-safe waves.
   yet, so construction still starts at the store default; borrowed
   `entry` / `iter` / `retain`, `FromIterator` parity, and a true unit-value
   (`()`) set representation remain deferred.
+
+### Landed slice (wave/borrowed-iter, 2026-10-30)
+
+- **Feasibility**: yes, as snapshot/owned rather than borrowed. v2 has no
+  general `&T` / `&mut T`, so `iter` returns `HashMapIter<K, V>` owning
+  key/value snapshots and `entry` returns `Entry<K, V>` owning the map handle
+  plus key. `VecIter<(K, V)>` was rejected: tuple elements lose their payload
+  in `next()` on both targets. The design is recorded in ADR-093.
+- **Landed**: `HashMap<K, V>::iter`, `HashMap<K, V>::entry`
+  (`key`, `or_insert`, `or_insert_with`), and
+  `HashMap<K, V>::retain(keep: fn((K, V)) -> bool)`. `HashSet<i32>` /
+  `HashSet<String>` gain snapshot `iter()` and `retain(fn(T) -> bool)`.
+  `HashMap` gains concrete `FromIterator<HashMapIter<...>>` impls for all six
+  supported pairs, invoked as `HashMap::from_iter(m.iter())`. The existing
+  `IntoIterator for HashMap` keys contract is unchanged; pairs are reached
+  through `m.iter()`.
+- **Lowering**: `iter` / `entry` are source-level concrete pair impls selected
+  by `mir_rewrite_hashmap_method`; `retain` lowers to new store targets
+  (`hashmap_retain`, `hashmap_str_retain`, `hashmap_i32_str_retain`,
+  `hashmap_str_str_retain`, `hashmap_i32_fn_retain`,
+  `hashmap_str_fn_retain`). The typechecker HashMap table types `iter` /
+  `entry` / `retain`, unifies `retain`'s predicate with `fn((K, V)) -> bool`,
+  and `call_fn` / `mir_try_resolve_associated_function` select the concrete
+  `FromIterator` impl from the `HashMapIter` source type. The field-type
+  lookup normalizes `HashMap<i32, i32>` to the flat Vec store alias so
+  `Entry.map` and user struct fields keep the same GC ref as the map value.
+- **Fixtures**: added dual-target
+  `stdlib_hashmap/hashmap_entry_iter_retain` (+ `_wasm32`) and
+  `stdlib_hashset/hashset_iter_retain` (+ `_wasm32`), covering i32, String,
+  and fn-valued pairs on both targets.
+- **Verification**: `verify fixtures` **1949/1949** compile+validate PASS
+  (112 runtime executed, 42/42 `test:` PASS, 2 runtime-unsupported, 0 FAIL);
+  `verify lane` PASS; `docs check` 6/6; `selfhost diag-parity` PASS;
+  ADR-029 fixpoint PASS, s2 == s3 sha256
+  `b4cd5a221941d6dafba9aefb586cc572980fb4051e647848bb968e75bbaf87cd`
+  (pinned base `56ff0808…`). The new fixtures ran on wasm32-gc as P2
+  components and on `--target wasm32`.
+- **Residuals**: `HashMap::into_iter` still yields keys; `retain` is a
+  snapshot pass plus per-key removal (worst-case O(n²) for the flat store);
+  borrow-based `iter` / `Entry` waits for the lifetime design. The
+  `VecIter<(K, V)>` tuple cursor and the std-method multi-parameter String
+  callback ABI remain compiler residuals (the owned-pair predicate avoids the
+  latter).

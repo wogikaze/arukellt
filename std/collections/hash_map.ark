@@ -17,6 +17,15 @@
 //! HashMap method table so the pinned bootstrap can still typecheck this
 //! module. MIR rewrites every call to the implementation function for the
 //! receiver's pair, so the shell bodies never run.
+//!
+//! `iter`, `entry`, and `retain` are source-level generic methods rather than
+//! store lowering targets. Arukellt v2 has no general `&T` / `&mut T`, so a
+//! borrowed cursor cannot be expressed soundly: `iter` snapshots the occupied
+//! pairs into `HashMapIter<K, V>`, and `entry` returns an owned `Entry<K, V>`
+//! handle that writes back through the map. Both carry the map/element values
+//! by handle and document the snapshot boundary. `retain` rebuilds in place by
+//! removing the rejected keys, so the map handle and its bucket capacity are
+//! preserved.
 
 use std::core::iter
 
@@ -66,6 +75,297 @@ impl<K, V> HashMap<K, V> {
     fn entries(self) -> Vec<(K, V)> {
         self.entries()
     }
+
+    /// Keeps only entries for which `keep` accepts the `(K, V)` pair.
+    ///
+    /// The predicate receives one owned pair rather than two borrowed
+    /// arguments because v2 has no reference pairs. The shell only carries
+    /// the source contract; MIR rewrites the call to the per-pair store
+    /// target, which evaluates the predicate against a snapshot before
+    /// removing rejected keys.
+    fn retain(mut self, keep: fn((K, V)) -> bool) {
+        self.retain(keep)
+    }
+}
+
+/// Owned handle for one map key.
+///
+/// Rust's `Entry<'a, K, V>` borrows the map; without a borrow checker the
+/// handle owns the map and key instead. `or_insert` / `or_insert_with` resolve
+/// the current value when consumed, so another write between `entry` and
+/// `or_insert` is visible. The handle must not outlive the map value it was
+/// opened from.
+pub struct Entry<K, V> {
+    map: HashMap<K, V>,
+    key: K,
+}
+
+impl Entry<i32, i32> {
+    /// Returns the key this entry was opened for.
+    fn key(self: Entry<i32, i32>) -> i32 {
+        let key: i32 = self.key
+        key
+    }
+
+    /// Returns the stored value, inserting `default` when the key is absent.
+    fn or_insert(mut self: Entry<i32, i32>, default: i32) -> i32 {
+        let lookup: i32 = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let store_key: i32 = self.key
+                let _ = self.map.insert(store_key, default)
+                default
+            },
+        }
+    }
+
+    /// Returns the stored value, inserting `make()` when the key is absent.
+    fn or_insert_with(mut self: Entry<i32, i32>, make: fn() -> i32) -> i32 {
+        let lookup: i32 = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let inserted: i32 = make()
+                let store_key: i32 = self.key
+                let _ = self.map.insert(store_key, inserted)
+                inserted
+            },
+        }
+    }
+}
+impl Entry<String, i32> {
+    /// Returns the key this entry was opened for.
+    fn key(self: Entry<String, i32>) -> String {
+        let key: String = self.key
+        key
+    }
+
+    /// Returns the stored value, inserting `default` when the key is absent.
+    fn or_insert(mut self: Entry<String, i32>, default: i32) -> i32 {
+        let lookup: String = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let store_key: String = self.key
+                let _ = self.map.insert(store_key, default)
+                default
+            },
+        }
+    }
+
+    /// Returns the stored value, inserting `make()` when the key is absent.
+    fn or_insert_with(mut self: Entry<String, i32>, make: fn() -> i32) -> i32 {
+        let lookup: String = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let inserted: i32 = make()
+                let store_key: String = self.key
+                let _ = self.map.insert(store_key, inserted)
+                inserted
+            },
+        }
+    }
+}
+impl Entry<i32, String> {
+    /// Returns the key this entry was opened for.
+    fn key(self: Entry<i32, String>) -> i32 {
+        let key: i32 = self.key
+        key
+    }
+
+    /// Returns the stored value, inserting `default` when the key is absent.
+    fn or_insert(mut self: Entry<i32, String>, default: String) -> String {
+        let lookup: i32 = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let store_key: i32 = self.key
+                let _ = self.map.insert(store_key, default)
+                default
+            },
+        }
+    }
+
+    /// Returns the stored value, inserting `make()` when the key is absent.
+    fn or_insert_with(mut self: Entry<i32, String>, make: fn() -> String) -> String {
+        let lookup: i32 = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let inserted: String = make()
+                let store_key: i32 = self.key
+                let _ = self.map.insert(store_key, inserted)
+                inserted
+            },
+        }
+    }
+}
+impl Entry<String, String> {
+    /// Returns the key this entry was opened for.
+    fn key(self: Entry<String, String>) -> String {
+        let key: String = self.key
+        key
+    }
+
+    /// Returns the stored value, inserting `default` when the key is absent.
+    fn or_insert(mut self: Entry<String, String>, default: String) -> String {
+        let lookup: String = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let store_key: String = self.key
+                let _ = self.map.insert(store_key, default)
+                default
+            },
+        }
+    }
+
+    /// Returns the stored value, inserting `make()` when the key is absent.
+    fn or_insert_with(mut self: Entry<String, String>, make: fn() -> String) -> String {
+        let lookup: String = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let inserted: String = make()
+                let store_key: String = self.key
+                let _ = self.map.insert(store_key, inserted)
+                inserted
+            },
+        }
+    }
+}
+impl Entry<i32, fn(i32) -> i32> {
+    /// Returns the key this entry was opened for.
+    fn key(self: Entry<i32, fn(i32) -> i32>) -> i32 {
+        let key: i32 = self.key
+        key
+    }
+
+    /// Returns the stored value, inserting `default` when the key is absent.
+    fn or_insert(mut self: Entry<i32, fn(i32) -> i32>, default: fn(i32) -> i32) -> fn(i32) -> i32 {
+        let lookup: i32 = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let store_key: i32 = self.key
+                let _ = self.map.insert(store_key, default)
+                default
+            },
+        }
+    }
+
+    /// Returns the stored value, inserting `make()` when the key is absent.
+    fn or_insert_with(mut self: Entry<i32, fn(i32) -> i32>, make: fn() -> fn(i32) -> i32) -> fn(i32) -> i32 {
+        let lookup: i32 = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let inserted: fn(i32) -> i32 = make()
+                let store_key: i32 = self.key
+                let _ = self.map.insert(store_key, inserted)
+                inserted
+            },
+        }
+    }
+}
+impl Entry<String, fn(i32) -> i32> {
+    /// Returns the key this entry was opened for.
+    fn key(self: Entry<String, fn(i32) -> i32>) -> String {
+        let key: String = self.key
+        key
+    }
+
+    /// Returns the stored value, inserting `default` when the key is absent.
+    fn or_insert(mut self: Entry<String, fn(i32) -> i32>, default: fn(i32) -> i32) -> fn(i32) -> i32 {
+        let lookup: String = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let store_key: String = self.key
+                let _ = self.map.insert(store_key, default)
+                default
+            },
+        }
+    }
+
+    /// Returns the stored value, inserting `make()` when the key is absent.
+    fn or_insert_with(mut self: Entry<String, fn(i32) -> i32>, make: fn() -> fn(i32) -> i32) -> fn(i32) -> i32 {
+        let lookup: String = self.key
+        match self.map.get(lookup) {
+            Option::Some(value) => value,
+            Option::None => {
+                let inserted: fn(i32) -> i32 = make()
+                let store_key: String = self.key
+                let _ = self.map.insert(store_key, inserted)
+                inserted
+            },
+        }
+    }
+}
+
+/// Snapshot cursor over the `(K, V)` pairs of a `HashMap`.
+///
+/// The cursor owns the pairs captured by `HashMap::iter`; later map writes are
+/// not observed. Pair order is bucket order, which is implementation-defined.
+pub struct HashMapIter<K, V> {
+    keys: Vec<K>,
+    values: Vec<V>,
+    index: i32,
+    length: i32,
+}
+
+impl<K, V> HashMapIter<K, V> {
+    /// Returns true when no more pairs remain.
+    fn is_empty(self: HashMapIter<K, V>) -> bool {
+        self.index >= self.length
+    }
+}
+
+impl<K, V> Iterator for HashMapIter<K, V> {
+    type Item = (K, V)
+
+    fn next(mut self: HashMapIter<K, V>) -> Option<(K, V)> {
+        if self.index >= self.length {
+            return Option::None
+        }
+        let key: K = get_unchecked(self.keys, self.index)
+        let value: V = get_unchecked(self.values, self.index)
+        self.index = self.index + 1
+        Option::Some((key, value))
+    }
+
+    fn collect(mut self: HashMapIter<K, V>) -> Vec<(K, V)> {
+        let mut result: Vec<(K, V)> = Vec::new<(K, V)>()
+        while true {
+            match self.next() {
+                Option::Some(pair) => push(result, pair),
+                Option::None => { break },
+            }
+        }
+        result
+    }
+
+    fn count(mut self: HashMapIter<K, V>) -> i32 {
+        let mut total: i32 = 0
+        while true {
+            match self.next() {
+                Option::Some(_) => total = total + 1,
+                Option::None => { break },
+            }
+        }
+        total
+    }
+}
+
+impl<K, V> IntoIterator for HashMapIter<K, V> {
+    type Item = (K, V)
+    type IntoIter = HashMapIter<K, V>
+
+    fn into_iter(self: HashMapIter<K, V>) -> HashMapIter<K, V> {
+        self
+    }
 }
 
 // Flat-pair declarations for the capacity / bulk-maintenance surface. MIR
@@ -73,6 +373,7 @@ impl<K, V> HashMap<K, V> {
 // (the non-flat targets live in `std::collections::hash_string` / `hash_fn` /
 // `hash_str_fn`); the bodies here only carry the source contract and never
 // run.
+
 impl HashMap<i32, i32> {
     /// Creates an empty map with at least `cap` bucket slots (minimum 1).
     fn with_capacity(cap: i32) -> HashMap<i32, i32> {
@@ -119,6 +420,170 @@ impl HashMap<i32, i32> {
     fn extend(mut self: HashMap<i32, i32>, other: HashMap<i32, i32>) {
         self.extend(other)
     }
+
+    /// Returns a snapshot cursor over the map's `(K, V)` pairs.
+    ///
+    /// The cursor owns the snapshots, so later map writes are not observed.
+    /// Pair order is the store's bucket order, which is implementation-defined.
+    fn iter(self: HashMap<i32, i32>) -> HashMapIter<i32, i32> {
+        let keys: Vec<i32> = self.keys()
+        let values: Vec<i32> = self.values()
+        HashMapIter {
+            keys: keys,
+            values: values,
+            index: 0,
+            length: len(keys),
+        }
+    }
+
+    /// Opens an owned entry handle for `key`.
+    fn entry(self: HashMap<i32, i32>, key: i32) -> Entry<i32, i32> {
+        Entry {
+            map: self,
+            key: key,
+        }
+    }
+
+}
+
+/// `HashMap<String, i32>` source-level iterator / entry / retain surface.
+///
+/// These methods live on the concrete pair so their return types stay
+/// concrete; a generic shell cannot allocate or infer the pair's cursor
+/// without the borrowed-reference machinery v2 does not have yet.
+impl HashMap<String, i32> {
+    /// Returns a snapshot cursor over the map's `(K, V)` pairs.
+    fn iter(self: HashMap<String, i32>) -> HashMapIter<String, i32> {
+        let keys: Vec<String> = self.keys()
+        let values: Vec<i32> = self.values()
+        HashMapIter {
+            keys: keys,
+            values: values,
+            index: 0,
+            length: len(keys),
+        }
+    }
+
+    /// Opens an owned entry handle for `key`.
+    fn entry(self: HashMap<String, i32>, key: String) -> Entry<String, i32> {
+        Entry {
+            map: self,
+            key: key,
+        }
+    }
+
+}
+
+/// `HashMap<i32, String>` source-level iterator / entry / retain surface.
+///
+/// These methods live on the concrete pair so their return types stay
+/// concrete; a generic shell cannot allocate or infer the pair's cursor
+/// without the borrowed-reference machinery v2 does not have yet.
+impl HashMap<i32, String> {
+    /// Returns a snapshot cursor over the map's `(K, V)` pairs.
+    fn iter(self: HashMap<i32, String>) -> HashMapIter<i32, String> {
+        let keys: Vec<i32> = self.keys()
+        let values: Vec<String> = self.values()
+        HashMapIter {
+            keys: keys,
+            values: values,
+            index: 0,
+            length: len(keys),
+        }
+    }
+
+    /// Opens an owned entry handle for `key`.
+    fn entry(self: HashMap<i32, String>, key: i32) -> Entry<i32, String> {
+        Entry {
+            map: self,
+            key: key,
+        }
+    }
+
+}
+
+/// `HashMap<String, String>` source-level iterator / entry / retain surface.
+///
+/// These methods live on the concrete pair so their return types stay
+/// concrete; a generic shell cannot allocate or infer the pair's cursor
+/// without the borrowed-reference machinery v2 does not have yet.
+impl HashMap<String, String> {
+    /// Returns a snapshot cursor over the map's `(K, V)` pairs.
+    fn iter(self: HashMap<String, String>) -> HashMapIter<String, String> {
+        let keys: Vec<String> = self.keys()
+        let values: Vec<String> = self.values()
+        HashMapIter {
+            keys: keys,
+            values: values,
+            index: 0,
+            length: len(keys),
+        }
+    }
+
+    /// Opens an owned entry handle for `key`.
+    fn entry(self: HashMap<String, String>, key: String) -> Entry<String, String> {
+        Entry {
+            map: self,
+            key: key,
+        }
+    }
+
+}
+
+/// `HashMap<i32, fn(i32) -> i32>` source-level iterator / entry / retain surface.
+///
+/// These methods live on the concrete pair so their return types stay
+/// concrete; a generic shell cannot allocate or infer the pair's cursor
+/// without the borrowed-reference machinery v2 does not have yet.
+impl HashMap<i32, fn(i32) -> i32> {
+    /// Returns a snapshot cursor over the map's `(K, V)` pairs.
+    fn iter(self: HashMap<i32, fn(i32) -> i32>) -> HashMapIter<i32, fn(i32) -> i32> {
+        let keys: Vec<i32> = self.keys()
+        let values: Vec<fn(i32) -> i32> = self.values()
+        HashMapIter {
+            keys: keys,
+            values: values,
+            index: 0,
+            length: len(keys),
+        }
+    }
+
+    /// Opens an owned entry handle for `key`.
+    fn entry(self: HashMap<i32, fn(i32) -> i32>, key: i32) -> Entry<i32, fn(i32) -> i32> {
+        Entry {
+            map: self,
+            key: key,
+        }
+    }
+
+}
+
+/// `HashMap<String, fn(i32) -> i32>` source-level iterator / entry / retain surface.
+///
+/// These methods live on the concrete pair so their return types stay
+/// concrete; a generic shell cannot allocate or infer the pair's cursor
+/// without the borrowed-reference machinery v2 does not have yet.
+impl HashMap<String, fn(i32) -> i32> {
+    /// Returns a snapshot cursor over the map's `(K, V)` pairs.
+    fn iter(self: HashMap<String, fn(i32) -> i32>) -> HashMapIter<String, fn(i32) -> i32> {
+        let keys: Vec<String> = self.keys()
+        let values: Vec<fn(i32) -> i32> = self.values()
+        HashMapIter {
+            keys: keys,
+            values: values,
+            index: 0,
+            length: len(keys),
+        }
+    }
+
+    /// Opens an owned entry handle for `key`.
+    fn entry(self: HashMap<String, fn(i32) -> i32>, key: String) -> Entry<String, fn(i32) -> i32> {
+        Entry {
+            map: self,
+            key: key,
+        }
+    }
+
 }
 
 // For-in over a map converts through this parametric impl. The body
@@ -134,5 +599,76 @@ impl<K, V> IntoIterator for HashMap<K, V> {
     fn into_iter(self: HashMap<K, V>) -> VecIter<K> {
         let ks: Vec<K> = self.keys()
         VecIter { vec: ks, index: 0, length: len(ks) }
+    }
+}
+
+// FromIterator consumes the snapshot cursor produced by `iter`; a generic
+// body cannot allocate the pair-specific store (the `HashMap::new<K, V>()`
+// shell would recurse instead of lowering), so each concrete pair owns one
+// impl. The body drains the cursor with `next` because `collect` forwards to
+// a generic helper whose mono instance is not specialized here (#917).
+impl FromIterator<HashMapIter<i32, i32>> for HashMap<i32, i32> {
+    fn from_iter(mut it: HashMapIter<i32, i32>) -> HashMap<i32, i32> {
+        let mut result: HashMap<i32, i32> = HashMap::new<i32, i32>()
+        for pair in it {
+            let (key, value) = pair
+            let _ = result.insert(key, value)
+        }
+        result
+    }
+}
+
+impl FromIterator<HashMapIter<String, i32>> for HashMap<String, i32> {
+    fn from_iter(mut it: HashMapIter<String, i32>) -> HashMap<String, i32> {
+        let mut result: HashMap<String, i32> = HashMap::new<String, i32>()
+        for pair in it {
+            let (key, value) = pair
+            let _ = result.insert(key, value)
+        }
+        result
+    }
+}
+
+impl FromIterator<HashMapIter<i32, String>> for HashMap<i32, String> {
+    fn from_iter(mut it: HashMapIter<i32, String>) -> HashMap<i32, String> {
+        let mut result: HashMap<i32, String> = HashMap::new<i32, String>()
+        for pair in it {
+            let (key, value) = pair
+            let _ = result.insert(key, value)
+        }
+        result
+    }
+}
+
+impl FromIterator<HashMapIter<String, String>> for HashMap<String, String> {
+    fn from_iter(mut it: HashMapIter<String, String>) -> HashMap<String, String> {
+        let mut result: HashMap<String, String> = HashMap::new<String, String>()
+        for pair in it {
+            let (key, value) = pair
+            let _ = result.insert(key, value)
+        }
+        result
+    }
+}
+
+impl FromIterator<HashMapIter<i32, fn(i32) -> i32>> for HashMap<i32, fn(i32) -> i32> {
+    fn from_iter(mut it: HashMapIter<i32, fn(i32) -> i32>) -> HashMap<i32, fn(i32) -> i32> {
+        let mut result: HashMap<i32, fn(i32) -> i32> = HashMap::new<i32, fn(i32) -> i32>()
+        for pair in it {
+            let (key, value) = pair
+            let _ = result.insert(key, value)
+        }
+        result
+    }
+}
+
+impl FromIterator<HashMapIter<String, fn(i32) -> i32>> for HashMap<String, fn(i32) -> i32> {
+    fn from_iter(mut it: HashMapIter<String, fn(i32) -> i32>) -> HashMap<String, fn(i32) -> i32> {
+        let mut result: HashMap<String, fn(i32) -> i32> = HashMap::new<String, fn(i32) -> i32>()
+        for pair in it {
+            let (key, value) = pair
+            let _ = result.insert(key, value)
+        }
+        result
     }
 }

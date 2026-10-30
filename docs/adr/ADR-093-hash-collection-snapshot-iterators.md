@@ -1,0 +1,160 @@
+# ADR-093: Hash collection の snapshot iterator / owned entry と retain 契約
+
+ステータス: **ACCEPTED** — borrow の代わりに snapshot cursor と owned entry を公開し、
+`HashMap` / `HashSet` の `iter` / `entry` / `retain` / `FromIterator` を確定する
+
+決定日: 2026-10-30
+
+関連: [ADR-044](ADR-044-trait-method-syntax-adopted.md)、[ADR-046](ADR-046-free-function-eradication.md)、[ADR-059](ADR-059-language-v2-ownership-copy-mutability.md)、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)、[ADR-066](ADR-066-language-v2-generic-public-api.md)、[ADR-076](ADR-076-language-v2-iterator-consumer-boundary.md)、[ADR-078](ADR-078-language-v2-parametric-trait-impl.md)、[ADR-080](ADR-080-language-v2-generic-element-boxing-policy.md)、[ADR-086](ADR-086-linear-collection-adts.md)、[ADR-088](ADR-088-language-v2-call-boundary-borrow-and-mut-parameters.md)、[#917](../../issues/open/917-stdlib-eradication-execution.md)、[#974](../../issues/open/974-hashmap-iteration-traps.md)
+
+## 文脈
+
+`HashMap` / `HashSet` の Rust 相当 surface のうち、`entry` / `iter` / `retain` と
+`HashMap` の `FromIterator` は「collection iterator 設計」待ちとして複数 lane で
+繰り返し延期されてきた（#917 の hashmap-generic / hashset-capacity / collection
+residuals）。現行 surface は `keys()` / `values()` / `entries()` の eager snapshot と、
+`IntoIterator for HashMap` の keys 走査である。
+
+Arukellt v2 には一般的な `&T` / `&mut T` がなく、[ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)
+は `Slice<T>` を読み取り view に留めている。Rust の `iter()` / `Entry<'a, K, V>` を
+borrow として表現すると、borrow checker なしで map の構造変更と cursor の生存期間を
+静的に排他できず、壊れた ABI を先に固定することになる。一方で snapshot を cursor として
+公開することは、コレクションの観測順序が implementation-defined である現行契約と整合する。
+
+`VecIter<(K, V)>` は tuple 要素の generic cursor として実装できるように見えるが、
+両 target で `next()` が payload を落とす（linear では 0 を返し、GC では型が
+unbound になる）。これは fake な borrowed iterator になるため採用しない。
+
+## 決定
+
+### 1. `HashMap::iter` は snapshot cursor を返す
+
+- `HashMap::iter(self) -> HashMapIter<K, V>` を公開する。
+- `HashMapIter<K, V>` は `keys: Vec<K>` / `values: Vec<V>` / `index` / `length` を持ち、
+  `Iterator<Item = (K, V)>` と `IntoIterator<IntoIter = Self>` を実装する。
+- `HashMap::iter` は `keys()` と `values()` の snapshot を取る。両者は同じ bucket 順で
+  走査されるため index で対応する。cursor の生存中に map を変更しても cursor は影響を
+  受けない。順序は実装定義であり、`Eq` の代用にしない。
+- 既存の `IntoIterator for HashMap<K, V>` は keys を yield する契約のまま維持する。
+  `iter()` は pairs を yield する別 surface であり、既存の `for k in map` の意味を
+  silently 変更しない。
+
+### 2. `HashMap::entry` は owned handle を返す
+
+- `HashMap::entry(self, key: K) -> Entry<K, V>` を公開する。
+- `Entry<K, V>` は map handle と key を所有し、borrow ではない。`key()` /
+  `or_insert(default)` / `or_insert_with(make)` を持ち、`or_insert*` は呼ばれた時点で
+  map を lookup し、無ければ insert して値を返す。`entry` から `or_insert` の間に
+  別の書き込みがあれば観測される。
+- `Entry` は map の生存期間を越えて保持してはならない。borrow checker が入るまでの
+  契約として docs に明記する。
+- `Entry` の method は pair ごとの concrete impl に置く。generic な
+  `Entry<K, V>` field は GC layout で `HashMap` を bucket struct ref に写像し、
+  flat pair の Vec store と一致しないため、concrete impl で field 型を確定させる。
+
+### 3. `retain` は owned pair predicate を取る
+
+- `HashMap::retain(self, keep: fn((K, V)) -> bool)` を公開する。predicate は
+  borrowed `&K` / `&V` ではなく owned pair を 1 個受け取る。v2 に参照 pair がなく、
+  multi-parameter callback の std method ABI も String を含む signature を正しく
+  往復できないため、single-parameter の pair が現時点で sound な形である。
+- 実装は keys / values の snapshot に対して predicate を評価し、拒否された key を
+  live store から削除する。predicate の実行中に bucket layout は変更しない。
+- `HashSet::retain(self, keep: fn(T) -> bool)` も同じ 2 段階で実装する。predicate は
+  snapshot に対して評価し、残す要素を再挿入する。
+- 計算量は snapshot O(n) + 拒否 key ごとの remove である。flat i32 store の remove は
+  O(n) なので最悪 O(n²) であり、この点は provisional の制約として docs に残す。
+
+### 4. `FromIterator` は snapshot cursor を source にする
+
+- 6 つの supported pair それぞれに
+  `impl FromIterator<HashMapIter<...>> for HashMap<...>` を置く。
+- source は `m.iter()`、呼び出しは `HashMap::from_iter(m.iter())` を正規形とする。
+  `HashMap` は builtin type なので、typechecker が source cursor の mangled pair から
+  対応する concrete impl を選び、MIR がその impl へ解決する。
+- `VecIter<(K, V)>` は tuple cursor の不具合があるため `FromIterator` の source に
+  しない。generic な `impl<K, V> FromIterator<HashMapIter<K, V>> for HashMap<K, V>` は
+  body で `HashMap::new<K, V>()` が pair store に lower されず再帰するため採用しない。
+
+### 5. `HashSet::iter` / `retain`
+
+- `HashSet<i32>` と `HashSet<String>` の `iter()` は `VecIter<T>` を返す。要素は
+  `to_vec()` snapshot と同順（bucket order、実装定義）である。
+- `retain` は §3 と同じ 2 段階で、snapshot の predicate 評価後に kept 要素を再挿入する。
+- `HashSet` の既存 `IntoIterator` / `FromIterator<VecIter<T>>` は変更しない。
+
+## 帰結
+
+- `entry` / `iter` / `retain` / `FromIterator` は borrowed API ではなく、snapshot と
+  owned handle として一貫した契約を持つ。borrow が無いことを型で隠さない。
+- `iter()` は O(n) の snapshot を作る。大きな map を繰り返し走査する用途では
+  `keys()` / `values()` / `entries()` と同じコストであり、borrow 実装が入るまでの
+  制約である。
+- `Entry` は key の lookup を `or_insert*` の時点で行うため、「entry を開いた時点の
+  値」を保持しない。borrow 実装が入ったら `Entry<'a, K, V>` へ置き換えるか、
+  snapshot 版を併存させるかを再検討する。
+- `retain` の predicate は owned pair なので、Rust の `retain(|&k, &v| ...)` とは
+  綴りが異なる。migration 時は `retain(|(k, v)| ...)` 相当の 1 引数 predicate へ
+  書き換える。
+- `VecIter<(K, V)>` の tuple 不具合と、std method の multi-parameter String callback
+  ABI は別の言語/compiler 作業として残る。本 ADR はそれらを前提にしない。
+- `HashMap` の `IntoIterator` は keys のままなので、Rust の `for (k, v) in map` と
+  同じ綴りにはならない。pairs 走査は `for pair in map.iter()` を使う。
+
+## 却下した代替案
+
+### borrowed `&K` / `&V` を返す iterator / `Entry<'a, K, V>`
+
+現行 v2 に一般参照と borrow checker がなく、cursor 生存中の構造変更を静的に禁止
+できない。参照を模した ABI を先に固定すると [ADR-060](ADR-060-language-v2-owned-adts-box-slice.md)
+の後続 borrow 設計と衝突する。
+
+### `VecIter<(K, V)>` を `iter` / `FromIterator` の cursor にする
+
+tuple 要素の generic `VecIter` は実測で `next()` が payload を落とす。borrowed 風の
+見た目だけを提供する fake になるため採用しない。
+
+### `Entry<K, V>` に `HashMap<K, V>` field を持たせ、generic method で実装する
+
+GC layout が generic field の `HashMap` を bucket struct ref に写像し、flat pair の
+Vec store と一致しない。pair ごとの concrete `Entry` impl で field 型を確定させる。
+
+### multi-parameter `fn(K, V) -> bool` predicate を std method に置く
+
+std module の method signature では `fn(String, V) -> bool` の callback ABI が
+call_indirect の引数/戻り値を失い、runtime で type mismatch になる。free function へ
+逃がす方法もあるが、API ごとに ABI が変わるより single-parameter の owned pair に
+固定する方が契約として単純である。
+
+### `HashMap` の `IntoIterator` を pairs に変更する
+
+既存の `for k in map` は keys を yield する契約として docs と fixture に存在する。
+`iter()` 追加と同時に意味を変えると、既存コードの型エラーと無言の意味変更を招く。
+
+## 再検討条件
+
+- borrow / lifetime 検査が採択され、`&T` / `&mut T` を cursor と `Entry` に安全に
+  表現できるようになった場合。
+- tuple 要素の generic cursor が両 target で正しく lower できるようになり、
+  `VecIter<(K, V)>` を `FromIterator` の source にできる場合。
+- std method の multi-parameter callback ABI が修正され、`fn(K, V) -> bool` を
+  String pair でも使えるようになった場合。
+- `retain` の計算量が問題になり、bucket 再構築を 1 pass で行う store target が必要に
+  なった場合。
+
+## 関連文書
+
+- [ADR-044: trait とメソッド構文](ADR-044-trait-method-syntax-adopted.md)
+- [ADR-046: 公開 free function の根絶](ADR-046-free-function-eradication.md)
+- [ADR-059: 所有権・Copy・可変性](ADR-059-language-v2-ownership-copy-mutability.md)
+- [ADR-060: owned ADT・Box・Slice](ADR-060-language-v2-owned-adts-box-slice.md)
+- [ADR-066: generic 公開 API と HashMap](ADR-066-language-v2-generic-public-api.md)
+- [ADR-076: Iterator の producer / consumer 境界](ADR-076-language-v2-iterator-consumer-boundary.md)
+- [ADR-078: parametric trait impl](ADR-078-language-v2-parametric-trait-impl.md)
+- [ADR-080: ジェネリクス要素 boxing ポリシー](ADR-080-language-v2-generic-element-boxing-policy.md)
+- [ADR-086: 線形コレクション ADT](ADR-086-linear-collection-adts.md)
+- [issue #974](../../issues/open/974-hashmap-iteration-traps.md)
+- [issue #917](../../issues/open/917-stdlib-eradication-execution.md)
+- `std/collections/hash_map.ark`, `std/collections/hash_set.ark`,
+  `std/collections/hash.ark`, `std/collections/hash_string.ark`,
+  `std/collections/hash_fn.ark`, `std/collections/hash_str_fn.ark`

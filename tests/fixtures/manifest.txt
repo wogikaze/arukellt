@@ -1134,6 +1134,8 @@ run:stdlib_hashmap/native_hashmap_string_i32_family.ark
 run:stdlib_hashmap/native_hashmap_string_string_family.ark
 run:stdlib_hashmap/hashmap_capacity_extend.ark
 run:stdlib_hashmap/hashmap_capacity_pairs.ark
+run:stdlib_hashmap/hashmap_entry_iter_retain.ark
+run:stdlib_hashmap/hashmap_entry_iter_retain_wasm32.ark
 test:stdlib_hashmap/hashmap_capacity_reserve.ark
 test:stdlib_hashmap/hashmap_extended.ark
 run:stdlib_hashmap/hashmap_fn_growth.ark
@@ -1159,6 +1161,8 @@ run:stdlib_hashset/hashset_methods.ark
 run:stdlib_hashset/hashset_methods_wasm32.ark
 run:stdlib_hashset/hashset_from_iter.ark
 run:stdlib_hashset/hashset_from_iter_wasm32.ark
+run:stdlib_hashset/hashset_iter_retain.ark
+run:stdlib_hashset/hashset_iter_retain_wasm32.ark
 run:stdlib_hashset/hashset_string_agg.ark
 run:stdlib_hashset/hashset_string_agg_wasm32.ark
 run:stdlib_hashset/hashset_family_split.ark
@@ -2609,6 +2613,7 @@ t3-compile:stdlib_linked_list/linked_list_traits.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
 t3-compile:stdlib_hashmap/hashmap_capacity_extend.ark
 t3-compile:stdlib_hashmap/hashmap_capacity_pairs.ark
+t3-compile:stdlib_hashmap/hashmap_entry_iter_retain.ark
 t3-compile:stdlib_hashmap/hashmap_capacity_reserve.ark
 t3-compile:stdlib_hashmap/hashmap_generic_demo.ark
 t3-compile:stdlib_hashmap/hashmap_i32_string.ark
@@ -3149,6 +3154,7 @@ t3-run:stdlib_linked_list/linked_list_traits.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark
 t3-run:stdlib_hashmap/hashmap_capacity_extend.ark
 t3-run:stdlib_hashmap/hashmap_capacity_pairs.ark
+t3-run:stdlib_hashmap/hashmap_entry_iter_retain.ark
 t3-run:stdlib_hashmap/hashmap_capacity_reserve.ark
 t3-run:stdlib_hashmap/hashmap_fn_growth.ark
 t3-run:stdlib_hashmap/hashmap_generic_demo.ark

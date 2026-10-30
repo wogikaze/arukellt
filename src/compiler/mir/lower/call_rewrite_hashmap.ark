@@ -76,7 +76,44 @@ fn mir_rewrite_hashmap_method(ctx: LowerCtx, callee_name: String, receiver_idx: 
     if len(method) == 0 {
         return String_new()
     }
+    // `iter` and `entry` are source-level methods on the concrete pair impls,
+    // not per-pair store targets; `retain` lowers to a store target and is
+    // handled by the family table below. The call arrives with the generic
+    // `HashMap` owner, so select the pair impl that declared it; the body
+    // then lowers its `keys` / `values` / `insert` calls per pair (#974).
+    if hashmap_method_is_source_level(method.clone()) {
+        return hashmap_source_method_owner(family.clone(), method)
+    }
     hashmap_family_method_target(family.clone(), method.clone())
+}
+
+fn hashmap_method_is_source_level(method: String) -> bool {
+    method.clone().eq(String_from("iter")) ||
+    method.clone().eq(String_from("entry"))
+}
+
+// Concrete pair owner for the source-level surface. The impl target name
+// matches `impl_self_type_name`; fn-valued pairs share the fnref owner.
+fn hashmap_source_method_owner(family: String, method: String) -> String {
+    let owner = if family.clone().eq(String_from("hash::ii")) {
+        String_from("HashMap_i32_i32")
+    } else if family.clone().eq(String_from("hash_string::hashmap_str")) {
+        String_from("HashMap_String_i32")
+    } else if family.clone().eq(String_from("hash_string::hashmap_i32_str")) {
+        String_from("HashMap_i32_String")
+    } else if family.clone().eq(String_from("hash_string::hashmap_str_str")) {
+        String_from("HashMap_String_String")
+    } else if family.clone().eq(String_from("hash_fn::hashmap_i32_fn")) {
+        String_from("HashMap_i32_fnref")
+    } else if family.clone().eq(String_from("hash_str_fn::hashmap_str_fn")) {
+        String_from("HashMap_String_fnref")
+    } else {
+        String_new()
+    }
+    if len(owner) == 0 {
+        return String_new()
+    }
+    owner.concat(String_from("::").concat(method))
 }
 
 // Method name -> implementation spelling for one pair family. The i32->i32
@@ -135,6 +172,9 @@ fn hashmap_i32_i32_method_target(method: String) -> String {
     if method.clone().eq(String_from("extend")) {
         return String_from("hashmap_extend")
     }
+    if method.clone().eq(String_from("retain")) {
+        return String_from("hashmap_retain")
+    }
     String_new()
 }
 
@@ -188,6 +228,9 @@ fn hashmap_str_i32_method_target(method: String) -> String {
     }
     if method.clone().eq(String_from("entries")) {
         return String_from("hash_string::hashmap_str_i32_entries")
+    }
+    if method.clone().eq(String_from("retain")) {
+        return String_from("hash_string::hashmap_str_retain")
     }
     text::concat(String_from("hash_string::hashmap_str_"), method)
 }
@@ -248,9 +291,17 @@ fn hashmap_method_name(callee_name: String) -> String {
     }
     // The capacity / bulk methods are declared on the concrete
     // `impl HashMap<i32, i32>`; impl-method resolution can hand the call
-    // over as `HashMap_i32_i32::capacity` (#917).
-    if callee_name.clone().starts_with(String_from("HashMap_i32_i32::")) {
-        return strip_hashmap_method_suffix(callee_name.slice(17, len(callee_name)))
+    // over as `HashMap_i32_i32::capacity` (#917). The source-level pair
+    // impls (iter / entry) register under every supported pair owner
+    // (`HashMap_String_i32::iter`, `HashMap_i32_fnref::entry`), and
+    // field receivers can keep the angle spelling, so strip the owner from
+    // any HashMap-qualified method call.
+    if callee_name.clone().starts_with(String_from("HashMap_")) ||
+    callee_name.clone().starts_with(String_from("HashMap<")) {
+        let separator = callee_name.clone().index_of(String_from("::"))
+        if separator > 0 {
+            return strip_hashmap_method_suffix(callee_name.slice(separator + 2, len(callee_name)))
+        }
     }
     String_new()
 }
@@ -432,6 +483,12 @@ test mod "hashmap_rewrite" {
         assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__i32__fn") == "hash_fn::hashmap_i32_fn_with_capacity")
         assert(mir_rewrite_hashmap_constructor("HashMap__with_capacity__String__fn") == "hash_str_fn::hashmap_str_fn_with_capacity")
     }
+    test "source_level_methods_are_not_family_targets" {
+        assert(hashmap_method_is_source_level(String_from("iter")))
+        assert(hashmap_method_is_source_level(String_from("entry")))
+        assert(hashmap_method_is_source_level(String_from("retain")) == false)
+        assert(hashmap_method_is_source_level(String_from("insert")) == false)
+    }
     test "store_maintenance_targets" {
         assert(hashmap_method_name("HashMap_i32_i32::capacity") == "capacity")
         assert(hashmap_method_name("capacity") == "capacity")
@@ -439,6 +496,7 @@ test mod "hashmap_rewrite" {
         assert(hashmap_family_method_target("hash::ii", "drain") == "hashmap_drain_pairs")
         assert(hashmap_family_method_target("hash::ii", "remove_entry") == "hashmap_remove_entry_pair")
         assert(hashmap_family_method_target("hash::ii", "extend") == "hashmap_extend")
+        assert(hashmap_family_method_target("hash::ii", "retain") == "hashmap_retain")
     }
     test "store_maintenance_targets_every_pair" {
         assert(hashmap_family_method_target("hash_string::hashmap_str", "capacity") ==

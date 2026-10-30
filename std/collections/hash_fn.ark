@@ -326,3 +326,27 @@ fn hashmap_i32_fn_extend(
         }
     }
 }
+
+/// `HashMap<i32, fn(i32) -> i32>` retain lowering target: evaluate the predicate against
+/// key/value snapshots, then remove the rejected keys from the live store.
+fn hashmap_i32_fn_retain(mut map: HashMap<i32, fn(i32) -> i32>, keep: fn((i32, fn(i32) -> i32)) -> bool) {
+    let keys: Vec<i32> = hashmap_i32_fn_keys(map)
+    let values: Vec<fn(i32) -> i32> = hashmap_i32_fn_values(map)
+    let mut drop_indices: Vec<i32> = Vec::new<i32>()
+    let mut index: i32 = 0
+    while index < len(keys) {
+        let key: i32 = get_unchecked(keys, index)
+        let value: fn(i32) -> i32 = get_unchecked(values, index)
+        if keep((key, value)) == false {
+            push(drop_indices, index)
+        }
+        index = index + 1
+    }
+    let mut drop_index: i32 = 0
+    while drop_index < len(drop_indices) {
+        let removed_index: i32 = get_unchecked(drop_indices, drop_index)
+        let key: i32 = get_unchecked(keys, removed_index)
+        let _ = hashmap_i32_fn_remove(map, key)
+        drop_index = drop_index + 1
+    }
+}

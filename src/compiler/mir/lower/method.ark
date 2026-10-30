@@ -45,6 +45,17 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
             struct_name = resolved
         }
     }
+    // A marked HashSet<i32> local is stored as vec:i32, so the generic Vec
+    // normalization below would turn `iter` / `retain` into the Vec store
+    // methods over the set's bucket metadata. Keep the set spelling and let
+    // the HashSet rewrite select the concrete cursor / retain body (#974).
+    if receiver_idx >= 0 && (method_name.clone().eq(String_from("iter")) ||
+        method_name.clone().eq(String_from("retain"))) {
+        let set_family = ctx_api_local_types::ctx_hashset_local_family(ctx, receiver_idx)
+        if len(set_family) > 0 {
+            return String_from("HashSet::").concat(method_name)
+        }
+    }
     // Normalize builtin type names so method calls resolve correctly.
     // Vec locals carry type "vec:i32" / "vec:String" etc.; the String
     // conversion has its own impl owner because GC references are distinct.

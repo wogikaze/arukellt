@@ -126,6 +126,50 @@ where flags are `0 = empty`, `1 = occupied`.
 
 _No manifest-backed functions in this module._
 
+## Module `std::collections::hash_map`
+
+- Source: [`../../../std/collections/hash_map.ark`](../../../std/collections/hash_map.ark)
+- Manifest-backed functions: 0
+- Stability: n/a
+
+std::collections::hash_map — HashMap generic API
+
+`impl HashMap<K, V>` is the only public spelling: `HashMap::new<K, V>()`
+plus receiver methods. `HashMap<i32, i32>` is the flat `Vec<i32>` store in
+`std::collections::hash`, so its methods lower directly there. The other
+supported pairs lower to the non-public implementation functions in
+`std::collections::hash_string` / `hash_fn` / `hash_str_fn`; no typed
+adapter is part of the public surface.
+
+The capacity / bulk-maintenance surface (`with_capacity`, `capacity`,
+`reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `drain`,
+`remove_entry`, `extend`) is accepted for every supported pair and lowered
+per pair: the flat `HashMap<i32, i32>` store exposes its counters directly,
+while the String and fn-valued stores use their compiler-managed bucket
+arrays through the non-public `__hm_*` bridge. The declarations below are
+the flat pair's shells; the other pairs are checked by the typechecker's
+HashMap method table so the pinned bootstrap can still typecheck this
+module. MIR rewrites every call to the implementation function for the
+receiver's pair, so the shell bodies never run.
+
+`iter`, `entry`, and `retain` are source-level generic methods rather than
+store lowering targets. Arukellt v2 has no general `&T` / `&mut T`, so a
+borrowed cursor cannot be expressed soundly: `iter` snapshots the occupied
+pairs into `HashMapIter<K, V>`, and `entry` returns an owned `Entry<K, V>`
+handle that writes back through the map. Both carry the map/element values
+by handle and document the snapshot boundary. `retain` rebuilds in place by
+removing the rejected keys, so the map handle and its bucket capacity are
+preserved.
+
+### `std::collections::hash_map` — Public Types
+
+| Name | Kind | Methods | Trait impls | Summary |
+|------|------|---------|-------------|---------|
+| `Entry` | `struct` | `key`, `or_insert`, `or_insert_with` | - | Owned handle for one map key. |
+| `HashMapIter` | `struct` | `is_empty` | `Iterator`, `IntoIterator` | Snapshot cursor over the (K, V) pairs of a HashMap. |
+
+_No manifest-backed functions in this module._
+
 ## Module `std::collections::hash_set`
 
 - Source: [`../../../std/collections/hash_set.ark`](../../../std/collections/hash_set.ark)
@@ -148,6 +192,10 @@ reuses the map's 0.75 load-factor machinery. Both element families
 implement `FromIterator<VecIter<T>>`, `IntoIterator`, `Clone`, `Eq`, and
 `Debug`.
 
+`iter` returns a `VecIter<T>` over a snapshot and `retain` evaluates its
+predicate against a snapshot before reinserting kept elements; Arukellt v2
+has no general borrow, so a borrowed set cursor is not exposed.
+
 The `hashset_i32_*` / `hashset_str_*` compatibility adapters were retired in
 #917; this module's only public symbols are `HashSet` and its methods.
 
@@ -158,7 +206,7 @@ required.
 
 | Name | Kind | Methods | Trait impls | Summary |
 |------|------|---------|-------------|---------|
-| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
+| `HashSet` | `struct` | `new`, `insert`, `contains`, `remove`, `len`, `is_empty`, `to_vec`, `iter`, `retain`, `union`, `intersection`, `difference`, `capacity`, `reserve`, `try_reserve`, `shrink_to_fit`, `clear`, `extend` | `FromIterator`, `IntoIterator`, `Clone`, `Eq`, `Debug` | A set of unique i32 or String values. |
 
 _No manifest-backed functions in this module._
 

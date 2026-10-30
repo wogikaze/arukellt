@@ -94,23 +94,41 @@ The deprecated raw `hashmap_set` returned `bool`; its method replacement is
 ## Entries, Drain, And Iteration
 
 Rust exposes borrow-based iterators and APIs such as `entry`, `iter`, `drain`,
-`retain`, and `remove_entry`.
+`retain`, and `remove_entry`. Arukellt v2 has no general `&T` / `&mut T`, so
+the source surface uses owned snapshots and an owned entry handle instead
+(ADR-093):
 
-Arukellt does not yet have a stable borrowed iterator abstraction for these
-collections. The method surface therefore exposes snapshot values:
+- `m.iter() -> HashMapIter<K, V>` yields snapshot `(K, V)` pairs. The cursor
+  owns the key/value snapshots, so later map writes are not observed. Pair
+  order is implementation-defined bucket order.
+- `m.entry(key) -> Entry<K, V>` returns an owned handle that holds the map and
+  key. `key()`, `or_insert(value)`, and `or_insert_with(make)` resolve the
+  value when the handle is consumed, and write through the map handle when the
+  key is absent. Keep the handle inside the map's lifetime.
+- `m.retain(keep: fn((K, V)) -> bool)` evaluates the predicate against
+  key/value snapshots and then removes rejected keys. The single owned-pair
+  argument is the sound form without reference pairs; it is not Rust's
+  `retain(|&k, &v| ...)`.
+- `m.keys() -> Vec<K>`, `m.values() -> Vec<V>`, `m.entries() -> Vec<(K, V)>`,
+  `m.drain() -> Vec<(K, V)>`, and `m.remove_entry(key) -> Option<(K, V)>` stay
+  as eager snapshots.
+- `HashMap::from_iter(m.iter())` collects the snapshot cursor into a map. Each
+  supported pair owns its concrete `FromIterator<HashMapIter<...>>` impl, so
+  the call spelling carries the pair through the cursor type.
+- `for k in m` still iterates keys through the existing `IntoIterator`
+  contract; pairs are reached with `for pair in m.iter()`.
 
-- `m.keys() -> Vec<K>`
-- `m.values() -> Vec<V>`
-- `m.entries() -> Vec<(K, V)>`
-- `m.drain() -> Vec<(K, V)>`, then empties the map
-- `m.remove_entry(key) -> Option<(K, V)>`
+`VecIter<(K, V)>` is not used as the pair cursor: tuple elements in the
+generic `VecIter` do not lower correctly on both targets, so a dedicated
+`HashMapIter<K, V>` owns the key and value snapshots instead.
 
 The deprecated flat frees used `Vec<i32>` snapshots
 (`[key0, value0, key1, value1, ...]`); the typed method results are the
 replacement, not a shape-compatible rename.
 
-Rust-style `entry`, borrowed iteration, `retain`, and `FromIterator` parity are
-deferred until the language/runtime has the necessary abstraction layer.
+`retain` performs a snapshot pass plus per-key removal, which is O(n²) for the
+flat `i32 -> i32` store in the worst case. A one-pass bucket rebuild is a
+separate store optimization.
 
 ## HashSet
 
@@ -123,7 +141,12 @@ Arukellt uses:
 
 The String set therefore shares the String-keyed map's bucket arrays and
 0.75 load-factor growth instead of keeping a parallel `Vec<String>` facade.
-Its `to_vec`, `IntoIterator`, `Clone`, and `Debug` snapshot in bucket order,
-which is implementation-defined; compare sets with `Eq`, not iteration order.
-A true unit-value set representation should be addressed with a later
-collection representation cleanup.
+Its `to_vec`, `iter`, `IntoIterator`, `Clone`, and `Debug` snapshot in bucket
+order, which is implementation-defined; compare sets with `Eq`, not iteration
+order.
+
+Both element families expose `iter() -> VecIter<T>` over a `to_vec` snapshot
+and `retain(keep: fn(T) -> bool)`, which evaluates the predicate against the
+snapshot before reinserting kept elements. A true unit-value set
+representation should be addressed with a later collection representation
+cleanup.

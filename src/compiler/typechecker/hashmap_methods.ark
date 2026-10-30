@@ -98,6 +98,18 @@ fn infer_builtin_hashmap_method(
         // receiver's pair so the previous key-typed default does not report
         // `i32` vs `HashMap<...>` for the shell body (#917).
         unify_hashmap_method_arg(env, scope, fn_sigs, enum_defs, node, 1, recv_ty)
+    } else if method_name.clone().eq(String_from("retain")) {
+        // The predicate is `fn(K, V) -> bool`, not a key value. Unifying with
+        // `key_ty` would report `i32 vs fn(...)` for String-keyed maps.
+        unify_hashmap_method_arg(
+            env,
+            scope,
+            fn_sigs,
+            enum_defs,
+            node,
+            1,
+            hashmap_predicate_type(key_ty, value_ty)
+        )
     } else if is_reserve {
         // Both take an entry count, not a key. Unifying with `key_ty` worked
         // only while every pair was i32-keyed; a String key would bind the
@@ -143,6 +155,7 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
         method_name.clone().eq(String_from("keys")) ||
         method_name.clone().eq(String_from("values")) ||
         method_name.clone().eq(String_from("entries")) ||
+        method_name.clone().eq(String_from("iter")) ||
         method_name.clone().eq(String_from("capacity")) ||
         method_name.clone().eq(String_from("shrink_to_fit")) ||
         method_name.clone().eq(String_from("clear")) ||
@@ -155,6 +168,8 @@ fn hashmap_method_has_arity(method_name: String, explicit_args: i32) -> bool {
         method_name.clone().eq(String_from("reserve")) ||
         method_name.clone().eq(String_from("try_reserve")) ||
         method_name.clone().eq(String_from("remove_entry")) ||
+        method_name.clone().eq(String_from("entry")) ||
+        method_name.clone().eq(String_from("retain")) ||
         method_name.clone().eq(String_from("extend"))
     }
     if explicit_args == 2 {
@@ -178,6 +193,12 @@ fn unify_hashmap_method_arg(
 }
 
 fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    if method_name.clone().eq(String_from("iter")) {
+        return hashmap_iterator_type(key_ty, value_ty)
+    }
+    if method_name.clone().eq(String_from("entry")) {
+        return hashmap_entry_type(key_ty, value_ty)
+    }
     if method_name.clone().eq(String_from("keys")) {
         return hashmap_vec_type(key_ty)
     }
@@ -205,12 +226,48 @@ fn hashmap_method_return_type(method_name: String, key_ty: TypeInfo, value_ty: T
     if method_name.clone().eq(String_from("reserve")) ||
     method_name.clone().eq(String_from("shrink_to_fit")) ||
     method_name.clone().eq(String_from("clear")) ||
-    method_name.clone().eq(String_from("extend")) {
+    method_name.clone().eq(String_from("extend")) ||
+    method_name.clone().eq(String_from("retain")) {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
     }
     let mut option = contract_type_constructors::TypeInfo_simple(commands::TY_OPTION())
     contract_type_mutation::TypeInfo_push_type_arg(option, value_ty)
     option
+}
+
+fn hashmap_predicate_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    let mut predicate = contract_type_constructors::TypeInfo_simple(commands::TY_FN())
+    contract_type_mutation::TypeInfo_push_type_arg(
+        predicate,
+        hashmap_pair_type(key_ty, value_ty)
+    )
+    let is_mut = false
+    contract_type_mutation::TypeInfo_push_param_mode(predicate, is_mut)
+    contract_type_mutation::TypeInfo_push_type_arg(
+        predicate,
+        contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())
+    )
+    predicate
+}
+
+fn hashmap_iterator_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    let mut iter_ty = contract_type_constructors::TypeInfo_named(
+        commands::TY_STRUCT(),
+        String_from("HashMapIter")
+    )
+    contract_type_mutation::TypeInfo_push_type_arg(iter_ty, key_ty)
+    contract_type_mutation::TypeInfo_push_type_arg(iter_ty, value_ty)
+    iter_ty
+}
+
+fn hashmap_entry_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
+    let mut entry_ty = contract_type_constructors::TypeInfo_named(
+        commands::TY_STRUCT(),
+        String_from("Entry")
+    )
+    contract_type_mutation::TypeInfo_push_type_arg(entry_ty, key_ty)
+    contract_type_mutation::TypeInfo_push_type_arg(entry_ty, value_ty)
+    entry_ty
 }
 
 fn hashmap_pair_type(key_ty: TypeInfo, value_ty: TypeInfo) -> TypeInfo {
