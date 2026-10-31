@@ -38,6 +38,19 @@ fixpoint s2 == s3 == `61aa349b…`。warm build-compiler は負荷 ~13 で 51.4 
 [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)、
 [`../research/pin-refresh-blocker-20261030.md`](../research/pin-refresh-blocker-20261030.md)。
 
+2026-10-31 の refresh は、gc self-build が `Vec<String>` の `.clone()` を
+`Vec__clone__TypeInfo` に誤解決していた問題を修正した。method 呼び出しの
+mono 選択が span だけを key にしており、module ごとの byte offset が同じ
+`Vec::clone` site 同士が別 module で衝突していた。checker の resolved-call
+table（decl/body/span/callee）を span pool より優先し、さらに記録された
+instance が callee の owner と一致する場合だけ採用する。新 pin は
+`bc81d60b…`（component 8 334 637 B）、fixed-point s2 / p1 identity
+`d2224704…`（11 313 129 B）、gc self-reproduction core `439f0dcb…`
+（8 326 872 B）。`verify fixtures` は 1978 compile+validate / 43 test PASS、
+`verify lane`、`docs check` 6/6、`selfhost diag-parity`、`selfhost fixpoint`
+（s2 == s3 == `d2224704…`）が PASS。詳細:
+[`../research/pin-refresh-blocker-20261031.md`](../research/pin-refresh-blocker-20261031.md)。
+
 ### 現行床（2026-10-29、gc pin、clean `7438a59fb`）
 
 | 条件 | wall | RSS |
