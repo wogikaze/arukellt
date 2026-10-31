@@ -423,8 +423,8 @@ path, so `seq::sort_by` was retired (#965).
 
 **Before:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
 ```ark
+// before
 let doubled = map_i32_i32(values, double)
 let total = sum_i32(values)
 sort_i32(values)
@@ -432,16 +432,24 @@ sort_i32(values)
 
 **After:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::collections::vec
 use std::core
 use std::core::cmp
 use std::core::iter
 
-let doubled: Vec<i32> = values.iter().map(double).collect()
-let total: i32 = values.iter().sum()
-values.sort()
+fn double(value: i32) -> i32 {
+    value * 2
+}
+
+fn main() {
+    let mut values: Vec<i32> = Vec::new()
+    values.push(1)
+    values.push(2)
+    let doubled: Vec<i32> = values.iter().map(double).collect()
+    let total: i32 = values.iter().sum()
+    values.sort()
+}
 ```
 
 ---
@@ -1352,8 +1360,8 @@ Behavior differences to account for while migrating:
 
 **Before:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
 ```ark
+// before
 let r = io::reader_from_bytes(data)
 let chunk = io::reader_read_exact(r, 4)?
 let w = io::writer_new()
@@ -1363,18 +1371,22 @@ let pos = io::seek_to(w, 0)
 
 **After:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-let r: Reader = Reader::from_bytes(data)
-let chunk = Io::read_exact(r, 4)?
-let w: Writer = Writer::new()
-w.write(chunk)?
-let pos = w.into_reader().seek(SeekFrom::Start(0))?
+use std::io::{Io, IoError, Reader, SeekFrom, Writer}
+
+fn round_trip(data: Vec<i32>) -> Result<i64, IoError> {
+    let r: Reader = Reader::from_bytes(data)
+    let chunk = Io::read_exact(r, 4)?
+    let mut w: Writer = Writer::new()
+    w.write(chunk)?
+    let mut reader: Reader = w.into_reader()
+    let pos = reader.seek(SeekFrom::Start(0))?
+    return Ok(pos)
+}
 ```
 
 **Tagged output writers before / after:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 // before
 let w: Vec<i32> = io::stdout()
@@ -1424,9 +1436,8 @@ surface and retire without a replacement.
 | `io::stdin()` | no replacement; read all of stdin with `Stdio::read_stdin()` |
 | `io::read_stdin_line()` | no replacement; read all of stdin with `Stdio::read_stdin()` |
 
-**Before / after:**
+**Before:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 // before
 use std::host::stdio
@@ -1439,14 +1450,16 @@ io::print_bytes(io::stdin())
 
 **After:**
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#693" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::host::stdio::Stdio
 use std::io
+use std::io::IoError
 
-Stdio::println("hello")
-let out: io::Stdout = io::Stdout::new()
-out.write_string("text")?
+fn announce() -> Result<i32, IoError> {
+    Stdio::println("hello")
+    let out: io::Stdout = io::Stdout::new()
+    return out.write_string("text")
+}
 ```
 
 Evidence for the wave:
@@ -1467,7 +1480,8 @@ wave moves 72 manifest entries and all 34 unregistered declarations to seven
 namespace / value types. The qualified call shape changes from a module free
 call to an associated function or receiver method:
 
-<!-- skip-doc-check reason="migration shape example; not fixture-backed" owner="#917" kind="non-runnable" expires="2026-12-31" -->
+**Before:**
+
 ```ark
 // before
 use std::wasm
@@ -1475,10 +1489,16 @@ let m = wasm::module_new()
 let ft = wasm::functype_new(params, results)
 let ti = wasm::module_add_type(m, ft)
 let op = wasm::op_i32_add()
+```
 
-// after
+**After:**
+
+```ark
 use std::wasm
-let m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
+
+let params: Vec<i32> = Vec::new()
+let results: Vec<i32> = Vec::new()
+let mut m: wasm::WasmModuleBuilder = wasm::WasmModuleBuilder::new()
 let ft: wasm::FuncType = wasm::FuncType::new(params, results)
 let ti: i32 = m.add_type(ft)
 let op: i32 = wasm::Opcode::i32_add()
@@ -2305,11 +2325,12 @@ well as the key order. The deprecated free
 functions share the corrected helpers, so they receive the same fix during
 their window.
 
-## Planned Deprecations
+## Completed planned deprecations
 
-The following APIs are scheduled for deprecation via the same monomorphic →
-generic pattern. They still work without warnings today but will follow the same
-lifecycle once their generic counterparts are wired.
+The following APIs were scheduled for deprecation via the same monomorphic →
+generic pattern and have since been removed; old spellings fail with E0100. The
+tables record the replacement spellings, and the before snippets are kept only
+as migration context.
 
 ### Vec Constructors
 
@@ -2323,15 +2344,14 @@ lifecycle once their generic counterparts are wired.
 
 **Before:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+// before
 let v = Vec_new_f64()
 let buf = Vec_new_i32_with_cap(64)
 ```
 
 **After:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let v = Vec::new<f64>()
 let buf = Vec::with_capacity<i32>(64)
@@ -2430,8 +2450,8 @@ needed. A bare `panic(msg)` fails with E0100 and a hint naming `Std::panic`.
 
 **Before:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+// before
 let m = HashMap_new_i32_i32()
 HashMap_i32_i32_insert(m, 1, 100)
 let v = HashMap_i32_i32_get(m, 1)
@@ -2439,9 +2459,8 @@ let v = HashMap_i32_i32_get(m, 1)
 
 **After:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
-let m = HashMap::new<i32, i32>()
+let mut m = HashMap::new<i32, i32>()
 let _ = m.insert(1, 100)
 let v = m.get(1)
 ```
@@ -2517,8 +2536,8 @@ rest.
 
 **Before:**
 
-<!-- skip-doc-check reason="historical removed-API example" owner="#917" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+// before
 let s = hash_set::hashset_i32_new()
 hash_set::hashset_i32_insert(s, 1)
 let n = hash_set::hashset_i32_len(s)
@@ -2526,9 +2545,10 @@ let n = hash_set::hashset_i32_len(s)
 
 **After:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#917" kind="non-runnable" expires="2026-10-31" -->
 ```ark
-let s: HashSet<i32> = HashSet::new<i32>()
+use std::collections::hash_set::HashSet
+
+let mut s: HashSet<i32> = HashSet::new<i32>()
 let _ = s.insert(1)
 let n = s.len()
 ```
@@ -2609,8 +2629,8 @@ with typed `Vec<(K, V)>` / `Option<(K, V)>` results.
 
 **Before:**
 
-<!-- skip-doc-check reason="historical removed-API example" owner="#917" kind="non-runnable" expires="2026-10-31" -->
 ```ark
+// before
 let m = hash::hashmap_with_capacity(4)
 let _ = hash::hashmap_set(m, 1, 10)
 let n = hash::hashmap_size(m)
@@ -2619,7 +2639,6 @@ let cap = hash::hashmap_capacity(m)
 
 **After:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#917" kind="non-runnable" expires="2026-10-31" -->
 ```ark
 let mut m: HashMap<i32, i32> = HashMap::with_capacity<i32, i32>(4)
 let _ = m.insert(1, 10)
@@ -2643,15 +2662,15 @@ the `Option<i32>` method covers the callable `map_option_i32_i32` replacement.
 
 **Before:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+// before
 let doubled = map_option_i32_i32(maybe_val, fn(x: i32) -> i32 { x * 2 })
 ```
 
 **After:**
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+let maybe_val: Option<i32> = Some(21)
 let doubled = match maybe_val {
     Some(v) => Some(v * 2),
     None => None,

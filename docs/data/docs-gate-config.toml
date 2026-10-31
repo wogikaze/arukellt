@@ -127,10 +127,14 @@ ratchet_max = 36
 path = "docs/history/stdlib/std.md"
 max = 11
 ratchet_max = 11
+# migration-guidance uses in-body `// before` notation for removed APIs and
+# carries no HTML skip-doc-check markers; every runnable after snapshot is a
+# checked doc example. The zero deferral budget rejects reintroducing a
+# deferral marker in this file.
 [[skip_doc_check.budgets]]
 path = "docs/stdlib/migration-guidance.md"
-max = 16
-ratchet_max = 16
+max = 0
+ratchet_max = 0
 [[skip_doc_check.budgets]]
 path = "docs/rfcs/002-semantic-type-spine.md"
 max = 10
