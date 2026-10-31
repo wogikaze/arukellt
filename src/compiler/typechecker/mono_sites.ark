@@ -31,6 +31,6 @@ fn record_mono_call_site(mut env: TypeEnv, span_start: i32, fn_name: String, man
     let mut marker_args = Vec::new<TypeInfo>()
     marker_args.push(simple_type(0 - span_start - 1000))
     let mut marker = contract_mono::MonoInstance_new(fn_name.clone(), mangled_name, marker_args)
-    contract_mono::MonoInstance_set_call_site(marker, decl_index, body_child_index)
+    contract_mono::MonoInstance_set_site_body(marker, decl_index, body_child_index)
     contract_env_mono_record::type_env_push_mono_instance(env, marker)
 }

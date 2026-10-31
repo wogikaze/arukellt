@@ -62,6 +62,14 @@ fn record_mono_instance(mut env: TypeEnv, fn_name: String, resolved_types: Vec<T
     }
     let mut inst = contract_mono::MonoInstance_new(fn_name.clone(), mangled.clone(), resolved_types.clone())
     contract_mono::MonoInstance_set_demanded(inst)
+    // The minting body scopes the name rewrite pool the same way call-site
+    // markers scope the span pool (#934). Instances minted outside a body
+    // (module merge, synthesized signatures) keep -1 and stay body-less.
+    contract_mono::MonoInstance_set_site_body(
+        inst,
+        env.current_decl_index,
+        env.current_body_child_index
+    )
     contract_env_mono_record::type_env_push_mono_instance(env, inst)
     rebind_enclosing_template_sites(env, fn_name, resolved_types)
     mangled

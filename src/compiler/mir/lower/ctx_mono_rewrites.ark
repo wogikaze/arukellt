@@ -95,12 +95,20 @@ fn ctx_mono_mark_name_rewrite_used(mut ctx: LowerCtx, index: i32) {
     ctx.mono_call_used.set(index, 1)
 }
 
-fn ctx_mono_push_name_rewrite(mut ctx: LowerCtx, source: String, target: String) {
+fn ctx_mono_push_name_rewrite(
+    mut ctx: LowerCtx,
+    decl_index: i32,
+    body_child_index: i32,
+    source: String,
+    target: String
+) {
     let index = ctx.mono_call_sources.len()
     let bare = mono_bare_source(source.clone())
     ctx.mono_call_sources.push(source)
     ctx.mono_call_name_targets.push(target)
     ctx.mono_call_used.push(0)
+    ctx.mono_call_name_decls.push(decl_index)
+    ctx.mono_call_name_children.push(body_child_index)
     ctx.mono_call_bare_next.push(0 - 1)
     let tail = name_index::name_index_get(ctx.mono_call_bare_tail, bare.clone())
     if tail < 0 {
@@ -109,6 +117,15 @@ fn ctx_mono_push_name_rewrite(mut ctx: LowerCtx, source: String, target: String)
         ctx.mono_call_bare_next.set(tail, index)
     }
     name_index::name_index_set(ctx.mono_call_bare_tail, bare, index)
+}
+
+// A name rewrite belongs to the body that minted the instance. The bare
+// source (`pick` for `alpha::pick`) is shared by every module declaring that
+// name, so without the body identity a lookup can pick another declaration's
+// specialization of a different type (#934).
+fn ctx_mono_name_rewrite_is_in_body(ctx: LowerCtx, index: i32, decl_index: i32, body_child_index: i32) -> bool {
+    ctx.mono_call_name_decls.get_unchecked(index) == decl_index &&
+    ctx.mono_call_name_children.get_unchecked(index) == body_child_index
 }
 
 // First rewrite index whose source has the same bare name as `source`, or -1.

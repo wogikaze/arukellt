@@ -266,7 +266,13 @@ fn mono_owner_inst_base(owner: String) -> String {
     owner
 }
 
-fn ctx_register_mono_name_rewrite(mut ctx: LowerCtx, source: String, target: String) {
+fn ctx_register_mono_name_rewrite(
+    mut ctx: LowerCtx,
+    decl_index: i32,
+    body_child_index: i32,
+    source: String,
+    target: String
+) {
     // Template instantiations (?Var args) are not callable
     // specializations; they exist so span rewrites can pin the template
     // spelling for per-enclosing-instance concretization.
@@ -276,7 +282,7 @@ fn ctx_register_mono_name_rewrite(mut ctx: LowerCtx, source: String, target: Str
     if !ctx_fn_exists::ctx_has_fn_name(ctx, target.clone()) && !is_vec_ctor_mono_target(target.clone()) {
         return
     }
-    ctx_mono_rewrites::ctx_mono_push_name_rewrite(ctx, source, target)
+    ctx_mono_rewrites::ctx_mono_push_name_rewrite(ctx, decl_index, body_child_index, source, target)
 }
 
 fn ctx_mono_source_rewrite_count(ctx: LowerCtx) -> i32 {
@@ -284,8 +290,15 @@ fn ctx_mono_source_rewrite_count(ctx: LowerCtx) -> i32 {
 }
 
 // Candidates are exactly the rewrites sharing the bare source: an exact
-// source match implies a bare match, so the chain loses nothing.
+// source match implies a bare match, so the chain loses nothing. The chain
+// is also body-scoped: a bare source is shared by every module declaring that
+// name, so an unscoped candidate can hand this body another declaration's
+// specialization of a different type (#934).
 fn ctx_resolve_unused_mono_by_name(mut ctx: LowerCtx, source: String) -> String {
+    // Read the body identity first: passing `ctx` and one of its fields to
+    // the same call trips the ADR-088 same-place rule.
+    let decl_index = ctx.current_body_decl_index
+    let body_child_index = ctx.current_body_child_index
     // A callee that exists as a real function (concrete impl method such as
     // Vec::into_iter) must not be stolen by a pooled specialization of a
     // different owner's same-named method (Take::into_iter__VecIter).
@@ -295,6 +308,7 @@ fn ctx_resolve_unused_mono_by_name(mut ctx: LowerCtx, source: String) -> String 
     let mut i = ctx_mono_rewrites::ctx_mono_name_rewrite_first_for_source(ctx, source.clone())
     while i >= 0 {
         if ctx_mono_rewrites::ctx_mono_name_rewrite_used_at(ctx, i) == 0 &&
+        ctx_mono_rewrites::ctx_mono_name_rewrite_is_in_body(ctx, i, decl_index, body_child_index) &&
         mono_target_matches_source(ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i), source.clone()) {
             ctx_mono_rewrites::ctx_mono_mark_name_rewrite_used(ctx, i)
             return ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
@@ -305,12 +319,15 @@ fn ctx_resolve_unused_mono_by_name(mut ctx: LowerCtx, source: String) -> String 
 }
 
 fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
+    let decl_index = ctx.current_body_decl_index
+    let body_child_index = ctx.current_body_child_index
     if ctx_fn_exists::ctx_has_fn_name(ctx, source.clone()) {
         return String_new()
     }
     let mut i = ctx_mono_rewrites::ctx_mono_name_rewrite_first_for_source(ctx, source.clone())
     while i >= 0 {
-        if mono_target_matches_source(ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i), source.clone()) {
+        if ctx_mono_rewrites::ctx_mono_name_rewrite_is_in_body(ctx, i, decl_index, body_child_index) &&
+        mono_target_matches_source(ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i), source.clone()) {
             return ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
         }
         i = ctx_mono_rewrites::ctx_mono_name_rewrite_next_same_source(ctx, i)

@@ -185,6 +185,12 @@ pub struct LowerCtx {
     mono_call_sources: Vec<String>,
     mono_call_name_targets: Vec<String>,
     mono_call_used: Vec<i32>,
+    // Declaring body of each name rewrite, same identity as the span pool.
+    // The pool is keyed by bare source, so `alpha::pick` and `beta::pick`
+    // share one chain; without this body check a call can consume the other
+    // module's specialization of a different type (#934).
+    mono_call_name_decls: Vec<i32>,
+    mono_call_name_children: Vec<i32>,
     // Name rewrites sharing one bare source (`mono_bare_source`) form a
     // forward chain: head/tail indexed by bare source, next per rewrite.
     // Every CALL lowering asks "unused rewrite for this source?", which was a

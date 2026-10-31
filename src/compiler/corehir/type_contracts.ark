@@ -4,9 +4,10 @@ struct MonoInstance {
     type_args: Vec<TypeInfo>,
     return_type: TypeInfo,
     demanded: bool,
-    // Call-site markers only: the declaration index and body child index of
-    // the recording body (combined loaded+entry decl list). MIR scopes the
-    // span rewrite pool by this identity (#934); -1 for real instances.
+    // The declaration index and body child index of the body that recorded
+    // or minted this instance (combined loaded+entry decl list). MIR scopes
+    // both rewrite pools by this identity (#934); -1 when minted outside a
+    // body.
     site_decl_index: i32,
     site_body_child_index: i32,
 }
