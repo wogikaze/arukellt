@@ -19,6 +19,7 @@ use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_mono_rewrites
+use mir::lower::ctx_resolved_calls
 use mir::lower::fn_index_method_return_type
 use mir::lower::for_iter_resolve
 use mir::lower::mono_suffix_parse
@@ -339,17 +340,25 @@ fn edge_mono_sources_match(candidate: String, requested: String) -> bool {
     ctx_mono_rewrites::mono_bare_source(candidate).eq(ctx_mono_rewrites::mono_bare_source(requested))
 }
 
-// Every span rewrite whose source matches raw, concretized to emit
-// names. Unlike ctx_mono_lookup_call this does not require the target to
-// share the source__ prefix shape — typed adapter names such as
-// hashmap_str_i32_set are valid resolutions for source insert — and it
-// collects all same-source targets instead of consuming the first unused
-// one (emit-time cursor semantics are an emit concern, not an edge one).
+// Every span rewrite whose source matches raw and whose declaring body is
+// the body being walked, concretized to emit names. Unlike ctx_mono_lookup_call
+// this does not require the target to share the source__ prefix shape — typed
+// adapter names such as hashmap_str_i32_set are valid resolutions for source
+// insert — and it collects all same-source targets instead of consuming the
+// first unused one (emit-time cursor semantics are an emit concern, not an edge
+// one). The body identity keeps a same-offset call in another module out of
+// this body's candidate set (#934).
 fn edge_mono_span_targets(ctx: LowerCtx, span_start: i32, raw: String, mut out: Vec<String>) {
     let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
     while cursor > 0 {
         let i = cursor - 1
-        if ctx.mono_call_starts.get_unchecked(i) == span_start {
+        if ctx.mono_call_starts.get_unchecked(i) == span_start &&
+        ctx_mono_rewrites::ctx_mono_span_rewrite_is_in_body(
+            ctx,
+            i,
+            ctx.current_body_decl_index,
+            ctx.current_body_child_index
+        ) {
             let cand_source = ctx_mono_rewrites::ctx_mono_span_rewrite_source_at(ctx, i)
             if edge_mono_sources_match(cand_source, raw.clone()) {
                 let target = ctx_fn_mono::ctx_mono_concretize_span_target(
@@ -1479,6 +1488,10 @@ fn mir_ast_edge_table_build(mut ctx: LowerCtx, mut body_source: MirLowerEntryBod
     }
     let mut di = 0
     while di < decl_count {
+        // Mono span rewrites are scoped by declaring body (#934); the walk
+        // below runs before any body lowering, so it publishes the identity
+        // the call-site lookups would otherwise read from current_body_*.
+        ctx_resolved_calls::ctx_set_body_identity(ctx, di, 0 - 1)
         let decl_name = decl_source::mir_decl_source_name_at(dsource, di)
         if decl_source::mir_decl_source_is_fn_at(dsource, di) {
             let fn_info_index = entry_view_fn::mir_entry_fn_info_index_for_decl(entry_view, di)

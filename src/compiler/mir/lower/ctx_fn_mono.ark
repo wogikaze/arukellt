@@ -42,12 +42,21 @@ fn ctx_register_fn_signature(mut ctx: LowerCtx, name: String, return_vt: i32, re
     name_index::name_index_insert_first(ctx.prop_cache.disc_names, name.clone(), names.len() - 1)
 }
 
+// A mono call site is keyed by the declaring body (the checker's decl index
+// plus body child index), the span inside that body, and the callee source.
+// `node_span_start` is a per-module byte offset, so without the body identity
+// two modules' calls at equal offsets would share one pool slot (#934).
 fn ctx_mono_lookup_call(mut ctx: LowerCtx, span_start: i32, source: String) -> String {
+    // Read the body identity first: passing `ctx` and one of its fields to the
+    // same call trips the ADR-088 same-place rule.
+    let decl_index = ctx.current_body_decl_index
+    let body_child_index = ctx.current_body_child_index
     let mut first_match = 0 - 1
     let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
     while cursor > 0 {
         let i = cursor - 1
-        if ctx.mono_call_starts.get_unchecked(i) == span_start {
+        if ctx.mono_call_starts.get_unchecked(i) == span_start &&
+        ctx_mono_rewrites::ctx_mono_span_rewrite_is_in_body(ctx, i, decl_index, body_child_index) {
             let candidate_source = ctx.mono_call_span_sources.get_unchecked(i)
             let candidate_target = ctx.mono_call_span_targets.get_unchecked(i)
             if mono_sources_match(candidate_source, source.clone()) &&
@@ -142,7 +151,14 @@ fn ctx_mono_replace_var_token(target: String, token: String, replacement: String
     out
 }
 
-fn ctx_register_mono_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: String, target: String) {
+fn ctx_register_mono_span_rewrite(
+    mut ctx: LowerCtx,
+    span_start: i32,
+    decl_index: i32,
+    body_child_index: i32,
+    source: String,
+    target: String
+) {
     // Associated Vec::new__T / with_capacity__T lower via wasm name fallback
     // (no MIR body). Still register the span rewrite so call sites get the
     // mangled callee for mark_vec / layout (#845).
@@ -157,7 +173,7 @@ fn ctx_register_mono_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: St
     if !accept {
         return
     }
-    ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, source, target)
+    ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, decl_index, body_child_index, source, target)
 }
 
 fn is_vec_ctor_mono_target(target: String) -> bool {

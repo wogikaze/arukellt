@@ -1,0 +1,8 @@
+//! Regression module: this call must select `pair_ops__pair_first__i32__String`.
+//! `collide_text.ark` records `pair_ops__pair_first__String__i32` at the same byte
+//! offset; a span-only mono-site key hands this site the String instance.
+use pair_ops
+
+pub fn probe_int() -> i32 {
+    pair_ops::pair_first(41, String_from("unused"))
+}

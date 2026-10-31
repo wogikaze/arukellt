@@ -1,0 +1,8 @@
+//! Regression module: this call must select `pair_ops__pair_first__String__i32`.
+//! It starts at the same source byte offset as `collide_int.ark`'s call.
+use pair_ops
+
+pub fn probe_text() -> String {
+    // callee offset must match collide_int.ark's call site: pad here! aligned!!
+    pair_ops::pair_first(String_from("seven"), 7)
+}

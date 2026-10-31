@@ -4,6 +4,11 @@ struct MonoInstance {
     type_args: Vec<TypeInfo>,
     return_type: TypeInfo,
     demanded: bool,
+    // Call-site markers only: the declaration index and body child index of
+    // the recording body (combined loaded+entry decl list). MIR scopes the
+    // span rewrite pool by this identity (#934); -1 for real instances.
+    site_decl_index: i32,
+    site_body_child_index: i32,
 }
 
 struct TypeCheckResult {
@@ -98,7 +103,9 @@ fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeIn
         mangled_name: mangled_name,
         type_args: type_args,
         return_type: TypeInfo_simple(commands::TY_UNKNOWN()),
-        demanded: false
+        demanded: false,
+        site_decl_index: 0 - 1,
+        site_body_child_index: 0 - 1
     }
 }
 
@@ -108,4 +115,12 @@ fn MonoInstance_demanded(instance: MonoInstance) -> bool {
 
 fn MonoInstance_set_demanded(mut instance: MonoInstance) {
     instance.demanded = true
+}
+
+fn MonoInstance_site_decl_index(instance: MonoInstance) -> i32 {
+    instance.site_decl_index
+}
+
+fn MonoInstance_site_body_child_index(instance: MonoInstance) -> i32 {
+    instance.site_body_child_index
 }

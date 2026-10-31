@@ -1,0 +1,7 @@
+//! Shared generic callable. Both collide modules instantiate it at the same
+//! source byte offset with a different type-argument order, so the call-site
+//! mono pool must be scoped by the declaring body, not by the offset alone.
+
+pub fn pair_first<A, B>(a: A, b: B) -> A {
+    a
+}

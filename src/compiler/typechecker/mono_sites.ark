@@ -5,18 +5,32 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
+// The same call site is re-inferred by the return-contract pass, so the
+// ledger dedupes by the full site identity. The span alone is a per-module
+// byte offset: two modules can place the same callee at the same offset, and
+// treating those as one site would drop the second module's marker (#934).
 fn record_mono_call_site(mut env: TypeEnv, span_start: i32, fn_name: String, mangled_name: String) {
+    let decl_index = env.current_decl_index
+    let body_child_index = env.current_body_child_index
     let count = contract_env_mono_record::type_env_mono_call_site_count(env)
     let mut i = 0
     while i < count {
         let site = contract_env_mono_record::type_env_mono_call_site_at(env, i)
-        if contract_mono::MonoCallSite_span_start(site) == span_start && contract_mono::MonoCallSite_fn_name(site).eq(fn_name.clone()) {
+        if contract_mono::MonoCallSite_decl_index(site) == decl_index &&
+        contract_mono::MonoCallSite_body_child_index(site) == body_child_index &&
+        contract_mono::MonoCallSite_span_start(site) == span_start &&
+        contract_mono::MonoCallSite_fn_name(site).eq(fn_name.clone()) {
             return
         }
         i = i + 1
     }
-    contract_env_mono_record::type_env_push_mono_call_site(env, contract_mono::MonoCallSite_new(span_start, fn_name.clone(), mangled_name.clone()))
+    contract_env_mono_record::type_env_push_mono_call_site(
+        env,
+        contract_mono::MonoCallSite_new(decl_index, body_child_index, span_start, fn_name.clone(), mangled_name.clone())
+    )
     let mut marker_args = Vec::new<TypeInfo>()
     marker_args.push(simple_type(0 - span_start - 1000))
-    contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(fn_name.clone(), mangled_name, marker_args))
+    let mut marker = contract_mono::MonoInstance_new(fn_name.clone(), mangled_name, marker_args)
+    contract_mono::MonoInstance_set_call_site(marker, decl_index, body_child_index)
+    contract_env_mono_record::type_env_push_mono_instance(env, marker)
 }

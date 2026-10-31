@@ -173,6 +173,12 @@ pub struct LowerCtx {
     mono_call_span_sources: Vec<String>,
     mono_call_span_targets: Vec<String>,
     mono_call_span_used: Vec<i32>,
+    // Declaring body of each span rewrite: top-level decl index plus body
+    // child index in the combined loaded+entry decl list. `span_start` is a
+    // byte offset inside one module's source, so matching it alone lets two
+    // modules' calls alias (#934).
+    mono_call_span_decls: Vec<i32>,
+    mono_call_span_children: Vec<i32>,
     // Chains of rewrite indices (1-based) keyed by span_start % capacity.
     mono_span_buckets: Vec<i32>,
     mono_span_next: Vec<i32>,
