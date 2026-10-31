@@ -10,6 +10,7 @@ use typechecker::module_fns
 use typechecker::module_traits
 use typechecker::module_wit
 use typechecker::contract_fn_sig
+use typechecker::loaded_body_scope
 use corehir::decl_impl_target
 use collections::name_index
 use resolver::ctx_record
@@ -225,11 +226,24 @@ fn typecheck_module_with_options(
     let modules = ctx_record::resolve_ctx_modules(resolve_ctx)
     let qualified_keys = sig_qualified_keys(decls, modules)
     env.entry_decl_start = entry_decl_start(decl_count, modules)
-    env.bare_fn_sig_index = build_bare_fn_sig_index(fn_sigs, qualified_keys)
     env.fn_sig_index = build_fn_sig_index(fn_sigs, qualified_keys)
+    env.bare_fn_sig_index = build_bare_fn_sig_index(fn_sigs, qualified_keys)
+    env.loaded_module_names = loaded_body_scope::loaded_module_names(modules)
+    env.loaded_bare_sig_index = loaded_body_scope::build_loaded_bare_sig_index(
+        fn_sigs,
+        qualified_keys,
+        modules,
+        env.fn_sig_index
+    )
+    let module_starts = loaded_body_scope::module_decl_starts(modules)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {
+        env.current_module_index = loaded_body_scope::module_index_at(
+            module_starts,
+            env.entry_decl_start,
+            i
+        )
         let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(node) {
             module::append_typed_fn(result, node)

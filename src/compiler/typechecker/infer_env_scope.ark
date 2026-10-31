@@ -15,7 +15,10 @@ fn borrow_generic_infer_env(parent: TypeEnv) -> TypeEnv {
     // Nested calls in generic arguments resolve through the same declaration
     // identities as the parent body and must keep its entry-body boundary.
     env.bare_fn_sig_index = parent.bare_fn_sig_index
+    env.loaded_bare_sig_index = parent.loaded_bare_sig_index
+    env.loaded_module_names = parent.loaded_module_names
     env.entry_decl_start = parent.entry_decl_start
+    env.current_module_index = parent.current_module_index
     // A mono call site recorded from the scratch env must carry the parent
     // body's identity, or MIR cannot scope it back to this body (#934).
     env.current_decl_index = parent.current_decl_index

@@ -357,3 +357,86 @@ Both targets were exercised:
   `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
 - Cross-backend receipt: `.build-lane/parity/bare_decl_shadow.json`
   (`compiler_sha256` starts `bbc1f2b4d5d62e59`, `status=parity`).
+
+## Update (2026-10-31, `wave/loaded-body-sigs`) — loaded bodies resolve bare names in their module graph
+
+### Item 1 — the loaded-body module-graph increment
+
+Loaded-module bodies are still not resolver-processed, but their bare names now
+have a module-graph scope instead of the flat declaration-order index.
+`typechecker/loaded_body_scope.ark` builds `loaded_bare_sig_index`, keyed
+`<module>::<bare name>`, from three sources in lexical precedence order:
+
+- the module's own top-level fn/const decls;
+- the symbols its `use` decls import (the member form; a leaf naming a loaded
+  module is a module import and claims no callable bare name);
+- the prelude decls (last, so an own declaration or explicit import shadows a
+  same-named prelude free).
+
+`TypeEnv` carries `loaded_module_names`, the index, and
+`current_module_index`; `entry.ark` maps each decl index to its loaded module
+(entry module is `-1`) and `sig_lookup::lookup_declared_fn_sig` routes a bare
+name in a loaded body through `<module>::<name>` first. An imported symbol keeps
+its defining module's exact identity: the import edge maps
+`<owner>::<symbol>` from the flat index to `<importing module>::<symbol>`.
+
+The flat lookup remains only as the fallback for a bare name the module graph
+does not define. That is required by the compiler source itself, whose loaded
+modules call helpers such as `infer_expr` bare across `typechecker/` without
+importing them; those bodies are not resolver-processed. Qualified names and
+impl-mangled names still use the exact flat keys, and a name the module graph
+does define can no longer bind a same-named declaration from an earlier loaded
+module.
+
+### Fixture
+
+`tests/fixtures/modules/loaded_bare_decl_scope/` (registered as
+`module-run:` and `run:`):
+
+- `alpha::label(i32)` and `beta::label(String)` collide by bare name; `beta`'s
+  own body calls its own declaration. The flat index loads `alpha` first.
+- `gamma` imports `delta::measure(i32)` while `alpha::measure(String)` holds the
+  flat bare slot; `gamma`'s bare `measure(2)` must bind the import.
+
+The pinned compiler rejects both bodies (`E0200` for `label` and `measure`, plus
+the wrong `probe_beta` / `probe_gamma` return contracts). The changed compiler
+accepts them and the run fixture prints `42`, `beta!`, `12`. The fixture also
+documents the remaining resolver gap: the pinned and changed compilers both
+report `W0006` unused import `delta::measure`, because loaded-module bodies are
+not resolver-processed.
+
+### Evidence
+
+- `selfhost build-compiler`: PASS, 66.4s, s2 =
+  `5c6aadaad0376af304e040f253083f52c3cc98c0631e43fe8832ba1ee438461c`.
+- `verify fixtures`: PASS=1980 FAIL=0 COMPILE_VALIDATE=1980 EXECUTED=115
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane`: PASS (quality changed; lint checked=13 failed=0).
+- `docs check`: 6/6 PASS after regenerating the fixture-registry count
+  (`3701` → `3703`; `fixture_not_in_last_harness_snapshot` `2113` → `2115`).
+- `selfhost diag-parity`: PASS.
+- `selfhost fixpoint`: s2 == s3 =
+  `5c6aadaad0376af304e040f253083f52c3cc98c0631e43fe8832ba1ee438461c`
+  on pin
+  `bc81d60b338480bce5b45f185652e409a4af4235b34a655b0ebeac5411734aff`.
+
+### Remaining item 1 blockers
+
+- The flat fallback is still reachable for a loaded-body bare name that the
+  module graph does not define (the compiler source's bare cross-module helper
+  calls). Closing it needs resolver processing of loaded bodies — imports and
+  accepted identities on those ASTs — not another local lookup change.
+- Import resolution follows direct `use owner::symbol` edges. A symbol imported
+  from a module that only re-exports it (`pub use source::symbol`) has no
+  signature key under the facade module, so it still falls back to the bare flat
+  lookup. Resolving `pub use` chains in the typechecker module graph is the next
+  increment.
+- The qualified-name fallbacks (`call_fn.ark` prefix strip, `sigs.ark` leaf) and
+  the flat `Owner::method` impl key are unchanged; they are name-derived, not
+  module-graph-derived, and are tracked by the existing residual bullets above
+  and #940.
+- `reg-vt-audit` reports return-VT mismatches for the fixture's colliding callee
+  names (`label`, `probe_beta`) because the emitter's legacy name-keyed return
+  lookup still sees the first same-named declaration. The recorded declaration
+  drives the emitted call and the runtime output is correct; the audit path is
+  not a gate.

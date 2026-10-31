@@ -1,0 +1,9 @@
+//! `measure(2)` names the symbol imported from `delta`, but the flat index
+//! lists `alpha::measure(String) -> String` first. The imported declaration is
+//! this module's import graph, so the call must bind it.
+
+use delta::measure
+
+pub fn probe_gamma() -> i32 {
+    measure(2)
+}

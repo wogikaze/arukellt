@@ -7,20 +7,26 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-fn lookup_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    let index = name_index::name_index_get(env.fn_sig_index, name)
+fn fn_sig_at(fn_sigs: Vec<FnSig>, index: i32) -> FnSig {
     if index >= 0 && index < fn_sigs.len() {
         return fn_sigs.get_unchecked(index)
     }
     contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
 }
 
+// The flat index. An exact module-qualified or impl-mangled name is a
+// declaration identity and must keep resolving through it. A bare name is
+// only a fallback for a loaded body whose module graph does not define the
+// name (see `lookup_declared_fn_sig`).
+fn lookup_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    fn_sig_at(fn_sigs, name_index::name_index_get(env.fn_sig_index, name))
+}
+
 // A resolver-processed body: the entry module. Its bare calls carry a
 // declaration identity (the unit's own decl or the prelude). Loaded-module
-// bodies are not resolver-processed and still resolve bare names through the
-// flat signature index, which is the remaining #934 gap.
+// bodies are not resolver-processed and use the module-graph scope below.
 fn is_entry_body(env: TypeEnv) -> bool {
-    env.entry_decl_start >= 0 && env.current_decl_index >= env.entry_decl_start
+    env.current_module_index < 0
 }
 
 // The declaration a bare name is allowed to name in an entry body: one of the
@@ -29,21 +35,49 @@ fn is_entry_body(env: TypeEnv) -> bool {
 // shadows a same-named prelude one; declaration order in the flat signature
 // index never decides (#934).
 fn lookup_bare_identity(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    let index = name_index::name_index_get(env.bare_fn_sig_index, name)
-    if index >= 0 && index < fn_sigs.len() {
-        return fn_sigs.get_unchecked(index)
+    fn_sig_at(fn_sigs, name_index::name_index_get(env.bare_fn_sig_index, name))
+}
+
+// The bare-name scope of the loaded module that owns this body: its own
+// top-level decls, the symbols it imports and the prelude, keyed
+// `<module>::<name>` in `loaded_bare_sig_index`. A name the module graph does
+// not define returns empty; the caller then keeps the flat fallback.
+fn loaded_bare_lookup_key(env: TypeEnv, name: String) -> String {
+    let module_index = env.current_module_index
+    if module_index < 0 || module_index >= env.loaded_module_names.len() {
+        return String_new()
     }
-    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+    env.loaded_module_names.get_unchecked(module_index).clone().concat(
+        String_from("::").concat(name)
+    )
+}
+
+fn lookup_loaded_bare_identity(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    let key = loaded_bare_lookup_key(env, name)
+    if key.len() == 0 {
+        return fn_sig_at(fn_sigs, 0 - 1)
+    }
+    fn_sig_at(fn_sigs, name_index::name_index_get(env.loaded_bare_sig_index, key))
 }
 
 // Identity-aware signature lookup for a call or callee name. Qualified names
 // are already an identity (module-qualified or impl-mangled) and go through
 // the exact index. A bare name in a resolver-processed entry body goes through
 // the bare-identity index instead of the declaration-order-dependent flat
-// index; a loaded-module body keeps the flat lookup.
+// index. A loaded body goes through its module's import graph first; a name
+// that graph does not define keeps the flat fallback, because the compiler
+// source itself calls helpers bare across modules without importing them and
+// their bodies are not resolver-processed (#934).
 fn lookup_declared_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    if is_entry_body(env) && !name.clone().contains(String_from("::")) {
+    if name.clone().contains(String_from("::")) {
+        return lookup_fn_sig(env, fn_sigs, name)
+    }
+    if is_entry_body(env) {
         return lookup_bare_identity(env, fn_sigs, name)
+    }
+    let scoped = lookup_loaded_bare_identity(env, fn_sigs, name.clone())
+    if contract_fn_sig::FnSig_has_name(scoped) {
+        return scoped
     }
     lookup_fn_sig(env, fn_sigs, name)
 }

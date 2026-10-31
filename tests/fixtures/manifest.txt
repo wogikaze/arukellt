@@ -537,6 +537,7 @@ module-run:modules/bare_decl_shadow/main.ark
 module-run:modules/mono_site_scope/main.ark
 module-run:modules/non_main_associated_call/main.ark
 module-run:modules/same_name_export/main.ark
+module-run:modules/loaded_bare_decl_scope/main.ark
 parse-only:module_import/pub_use_basic.ark
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
@@ -895,6 +896,7 @@ run:modules/bare_decl_shadow/main.ark
 run:modules/mono_site_scope/main.ark
 run:modules/non_main_associated_call/main.ark
 run:modules/same_name_export/main.ark
+run:modules/loaded_bare_decl_scope/main.ark
 # Issue #877 — normative doc examples connected to executable fixtures
 run:spec_examples/array_comprehension.ark
 run:spec_examples/memory_model_move.ark

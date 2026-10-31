@@ -1,0 +1,10 @@
+//! `label` has a different signature than `alpha::label`, so binding the
+//! first loaded declaration by bare name rejects this body with E0200.
+
+pub fn label(text: String) -> String {
+    text.concat(String_from("!"))
+}
+
+pub fn probe_beta() -> String {
+    label(String_from("beta"))
+}

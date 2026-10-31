@@ -1,0 +1,15 @@
+//! A loaded module's own top-level declarations are its bare-name scope. Its
+//! `label` call must bind this i32 declaration, not the same-named String
+//! declaration in `beta`, whichever module the flat index lists first.
+
+pub fn label(value: i32) -> i32 {
+    value + 1
+}
+
+pub fn measure(text: String) -> String {
+    text.concat(String_from("?"))
+}
+
+pub fn probe_alpha() -> i32 {
+    label(41)
+}

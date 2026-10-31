@@ -1,0 +1,20 @@
+//! Regression guard for #934 item 1: a loaded-module body resolves a bare
+//! call in that module's own import graph (own declaration or explicit
+//! import), not by the first same-named declaration in the flat index.
+//!
+//! `beta::probe_beta` calls its own `label(String)` while `alpha::label(i32)`
+//! is the flat first match; `gamma::probe_gamma` calls the `measure` it
+//! imports from `delta` while `alpha::measure(String)` is the flat first
+//! match. Both would be E0200 argument mismatches (and a wrong probe return
+//! contract) under the flat lookup.
+
+use std::host::stdio::Stdio
+use alpha
+use beta
+use gamma
+
+fn main() {
+    Stdio::println(alpha::probe_alpha().to_string())
+    Stdio::println(beta::probe_beta())
+    Stdio::println(gamma::probe_gamma().to_string())
+}

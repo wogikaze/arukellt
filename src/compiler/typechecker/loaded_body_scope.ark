@@ -1,0 +1,243 @@
+use std::text
+use collections::name_index
+use typechecker::ast_access
+use typechecker::ast_decl_predicates
+use typechecker::contract_fn_sig
+use resolver::modules
+use resolver::paths
+
+// Loaded-module bodies are not resolver-processed, so their bare names carry
+// no accepted declaration identity on the AST. Their lexical scope is still
+// recoverable from the module graph: the module's own top-level decls, the
+// symbols its `use` decls import, and the prelude. One table keyed
+// `<module>::<name>` answers every loaded body; insert order encodes lexical
+// precedence (own decl, import, prelude), so a same-named declaration in an
+// earlier loaded module can no longer claim the bare slot (#934).
+fn build_loaded_bare_sig_index(
+    fn_sigs: Vec<FnSig>,
+    qualified_keys: Vec<String>,
+    modules: Vec<ModuleDecls>,
+    flat_index: NameIndex
+) -> NameIndex {
+    let mut index = name_index::NameIndex_empty()
+    index = insert_module_own_sigs(index, fn_sigs, qualified_keys)
+    index = insert_module_imports(index, modules, flat_index)
+    insert_module_prelude_sigs(index, fn_sigs, qualified_keys, modules)
+}
+
+// A module-owned top-level fn/const registers under `module::name`, so the
+// key's symbol part equals the signature name. Impl methods keep `::` in the
+// signature name and conversion impls have no module key; a bare call never
+// denotes either, so they earn no bare entry.
+fn insert_module_own_sigs(
+    mut index: NameIndex,
+    fn_sigs: Vec<FnSig>,
+    qualified_keys: Vec<String>
+) -> NameIndex {
+    let count = fn_sigs.len()
+    let mut i = 0
+    while i < count {
+        if i < qualified_keys.len() {
+            let key = qualified_keys.get_unchecked(i)
+            let sig_name = contract_fn_sig::FnSig_name(fn_sigs.get_unchecked(i))
+            if is_module_member_key(key.clone(), sig_name) {
+                name_index::name_index_insert_first(index, key, i)
+            }
+        }
+        i = i + 1
+    }
+    index
+}
+
+fn is_module_member_key(key: String, sig_name: String) -> bool {
+    if key.len() == 0 || sig_name.clone().contains(String_from("::")) {
+        return false
+    }
+    paths::path_symbol_part(key).eq(sig_name)
+}
+
+// Only the member form of a `use` path imports a callable bare name; a leaf
+// that names a loaded module binds the module itself, and qualified calls
+// still go through the exact module-keyed signature index.
+fn insert_module_imports(
+    mut index: NameIndex,
+    modules: Vec<ModuleDecls>,
+    flat_index: NameIndex
+) -> NameIndex {
+    let module_count = modules.len()
+    let mut mi = 0
+    while mi < module_count {
+        let module = modules.get_unchecked(mi)
+        let module_name = modules::module_name(module)
+        let decl_count = modules::module_decl_count(module)
+        let mut di = 0
+        while di < decl_count {
+            let decl = modules::module_decl_at(module, di)
+            if ast_decl_predicates::node_is_use(decl) {
+                index = insert_use_decl_imports(
+                    index,
+                    modules,
+                    flat_index,
+                    module_name.clone(),
+                    decl
+                )
+            }
+            di = di + 1
+        }
+        mi = mi + 1
+    }
+    index
+}
+
+// A braced group keeps the first member in the declaration text and the rest
+// as child `use` nodes, so both levels are imports of this module.
+fn insert_use_decl_imports(
+    mut index: NameIndex,
+    modules: Vec<ModuleDecls>,
+    flat_index: NameIndex,
+    module_name: String,
+    decl: AstNode
+) -> NameIndex {
+    index = insert_use_path_import(
+        index,
+        modules,
+        flat_index,
+        module_name.clone(),
+        ast_access::node_text(decl)
+    )
+    let child_count = ast_access::node_child_count(decl)
+    let mut ci = 0
+    while ci < child_count {
+        let child = ast_access::node_child_at(decl, ci)
+        if ast_decl_predicates::node_is_use(child) {
+            index = insert_use_path_import(
+                index,
+                modules,
+                flat_index,
+                module_name.clone(),
+                ast_access::node_text(child)
+            )
+        }
+        ci = ci + 1
+    }
+    index
+}
+
+// The imported declaration keeps the identity of its defining module: the
+// flat index already keys it `<owner>::<symbol>`, so only the owning module of
+// this body has to be added to the key. A re-exported symbol has no signature
+// key under the facade module; it is left to the documented fallback.
+fn insert_use_path_import(
+    mut index: NameIndex,
+    modules: Vec<ModuleDecls>,
+    flat_index: NameIndex,
+    module_name: String,
+    use_path: String
+) -> NameIndex {
+    let symbol = paths::use_module_short_name(use_path.clone())
+    if modules::module_registered(modules, symbol.clone()) {
+        return index
+    }
+    let parent_path = paths::use_module_parent_path(use_path)
+    if parent_path.len() == 0 {
+        return index
+    }
+    let owner = paths::use_module_short_name(parent_path)
+    if !modules::module_registered(modules, owner.clone()) {
+        return index
+    }
+    let position = name_index::name_index_get(
+        flat_index,
+        owner.concat(String_from("::").concat(symbol.clone()))
+    )
+    if position < 0 {
+        return index
+    }
+    name_index::name_index_insert_first(
+        index,
+        module_name.concat(String_from("::").concat(symbol)),
+        position
+    )
+    index
+}
+
+// Prelude decls stay in scope for every loaded body. They are inserted last,
+// so a module's own declaration or explicit import shadows a same-named
+// prelude free instead of the declaration order deciding.
+fn insert_module_prelude_sigs(
+    mut index: NameIndex,
+    fn_sigs: Vec<FnSig>,
+    qualified_keys: Vec<String>,
+    modules: Vec<ModuleDecls>
+) -> NameIndex {
+    let count = fn_sigs.len()
+    let module_count = modules.len()
+    let mut i = 0
+    while i < count {
+        if i < qualified_keys.len() {
+            let key = qualified_keys.get_unchecked(i)
+            let sig_name = contract_fn_sig::FnSig_name(fn_sigs.get_unchecked(i))
+            if is_prelude_member_key(key.clone(), sig_name.clone()) {
+                let mut mi = 0
+                while mi < module_count {
+                    let module_key = modules::module_name(modules.get_unchecked(mi)).concat(
+                        String_from("::").concat(sig_name.clone())
+                    )
+                    name_index::name_index_insert_first(index, module_key, i)
+                    mi = mi + 1
+                }
+            }
+        }
+        i = i + 1
+    }
+    index
+}
+
+fn is_prelude_member_key(key: String, sig_name: String) -> bool {
+    key.clone().starts_with(String_from("prelude::")) &&
+    is_module_member_key(key, sig_name)
+}
+
+fn loaded_module_names(modules: Vec<ModuleDecls>) -> Vec<String> {
+    let mut names = Vec::new<String>()
+    let module_count = modules.len()
+    let mut mi = 0
+    while mi < module_count {
+        names.push(modules::module_name(modules.get_unchecked(mi)))
+        mi = mi + 1
+    }
+    names
+}
+
+// Start decl offset of each loaded module. Body checks identify their module
+// from the decl index alone, without carrying a second module cursor through
+// every nested check environment.
+fn module_decl_starts(modules: Vec<ModuleDecls>) -> Vec<i32> {
+    let mut starts = Vec::new<i32>()
+    let mut offset = 0
+    let module_count = modules.len()
+    let mut mi = 0
+    while mi < module_count {
+        starts.push(offset)
+        offset = offset + modules::module_decl_count(modules.get_unchecked(mi))
+        mi = mi + 1
+    }
+    starts
+}
+
+fn module_index_at(starts: Vec<i32>, entry_decl_start: i32, decl_index: i32) -> i32 {
+    if decl_index >= entry_decl_start || starts.len() == 0 {
+        return 0 - 1
+    }
+    let mut low = 0
+    let mut high = starts.len() - 1
+    while low < high {
+        let mid = (low + high + 1) / 2
+        if starts.get_unchecked(mid) <= decl_index {
+            low = mid
+        } else {
+            high = mid - 1
+        }
+    }
+    low
+}

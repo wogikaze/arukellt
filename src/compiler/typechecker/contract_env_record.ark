@@ -27,6 +27,9 @@ struct TypeEnv {
     // lowers the body, so resolutions never collide across modules.
     current_decl_index: i32,
     current_body_child_index: i32,
+    // Loaded module that owns the body being checked, index-aligned with
+    // `loaded_module_names`; -1 means the entry module.
+    current_module_index: i32,
     // Shared monotonic counter backing fresh inference-var ids. Envs derived
     // for nested inference (generic-call scratch envs, per-fn check envs)
     // share the parent box so t<id> names can never collide across scopes
@@ -53,9 +56,15 @@ struct TypeEnv {
     // its own top-level decls and the prelude. Module-owned declarations are
     // reachable only through their module-qualified identity, so this index
     // (not the flat signature index) is the entry body's bare-name contract
-    // (#934). Loaded-module bodies keep the flat index because their calls are
-    // not resolver-processed.
+    // (#934).
     bare_fn_sig_index: NameIndex,
+    // Bare-name scope of every loaded module, keyed `<module>::<name>`: the
+    // module's own top-level decls, the symbols its `use` decls import, and
+    // the prelude. Loaded bodies are not resolver-processed, so their calls
+    // have no accepted identity; this recovers the module graph's answer
+    // before the flat signature index is consulted (#934).
+    loaded_bare_sig_index: NameIndex,
+    loaded_module_names: Vec<String>,
     // First decl index of the entry module inside the combined loaded+entry
     // decl list. Bodies before it belong to loaded modules.
     entry_decl_start: i32,
@@ -87,6 +96,7 @@ fn TypeEnv_new() -> TypeEnv {
         resolved_calls: Vec::new<ResolvedCall>(),
         current_decl_index: 0 - 1,
         current_body_child_index: 0 - 1,
+        current_module_index: 0 - 1,
         var_id_box: var_id_box,
         errors: Vec::new<String>(),
         error_count: 0,
@@ -106,6 +116,8 @@ fn TypeEnv_new() -> TypeEnv {
         struct_defs: Vec::new<StructInfo>(),
         fn_sig_index: name_index::NameIndex_new(0),
         bare_fn_sig_index: name_index::NameIndex_new(0),
+        loaded_bare_sig_index: name_index::NameIndex_empty(),
+        loaded_module_names: Vec::new<String>(),
         entry_decl_start: 0 - 1,
         const_names: Vec::new<String>(),
         const_types: Vec::new<TypeInfo>(),
