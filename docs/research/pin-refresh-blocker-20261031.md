@@ -423,3 +423,88 @@ the `len` fix and is the next refresh blocker.
 3. **Shims**: unchanged. The prelude `len` shim stays because the compiler
    source still calls the free `len`; the overlay still needs the declaration
    after a pin refresh.
+
+## Update 2026-10-31 — gc clone misresolution fixed; pin refreshed
+
+Lane `.worktrees/wave-clone-instance-select` (`wave/clone-instance-select`),
+base `280fcd530`, `ARUKELLT_BUILD_DIR=$PWD/.build-lane`, same toolchain. The
+fix is `09a9a2b7e` (resolved-instance selection) plus the owner-match guard in
+the same file; the refresh commit installs the pin.
+
+### WAT-level root cause
+
+`mir_resolve_method_callee` resolved method mono instances through
+`ctx_mono_lookup_call`, whose key is the source span alone. `node_span_start` is
+a byte offset inside one module's source text, not a program-wide key. Both
+`record_mono_call_site` (dedupe by `(span_start, fn_name)`) and the span
+rewrite pool therefore alias unrelated modules. `resolver/impl_target.ark`'s
+second `declared.clone()` starts at offset 4507, and
+`typechecker/call_generic_fn.ark:81` (`arg_types.clone()`, with
+`arg_types: Vec<TypeInfo>`) starts at the same offset. The pool is
+first-unused, and `mono_target_matches_source` accepts any `Vec__clone__*`
+target for a `Vec::clone` source, so one site took the other module's
+instance: `local.get $declared; call $Vec__clone__TypeInfo` for a
+`Vec<String>` receiver in `resolver_impl_target__impl_target_type_name`. The
+linear target erases both instances to i32, so p1 validated and hid the
+defect; the gc target distinguishes the ref types and failed validation.
+
+A two-module probe reproduced the mechanism without the overlay: two modules
+with a `Vec<TypeInfo>` and a `Vec<String>` clone at the same offset make the
+second site take the first module's instance and fail gc validation at func
+22 with `expected (ref null $type), found (ref null $type)`.
+
+### Fix
+
+`src/compiler/mir/lower/method_resolve.ark` now asks the checker's
+resolved-call table (`ctx_resolved_call_mono_instance_id`) for the call site
+before falling back to the span pool. That key carries the declaration index,
+body child index, span and callee name (#933), so it is module-scoped. The
+recorded instance is used only when it is a concrete, emitted function whose
+target matches the callee's owner spelling (`mono_target_matches_source`);
+template spellings (`?`) and unknown names fall through to the existing
+selection order. No bare `clone` resolution was added and the poly-clone
+prelude path is unchanged (#928).
+
+The owner guard matters for `Option<T>`: `Option::clone` records the bare
+polymorphic prelude shim (`clone__Option_String_`), which is not a method
+instance. Without the guard the shim was accepted and the emitter wrote the
+unresolved-call stub, so `clone_no_import/vec_clone_deep.ark` trapped at
+runtime on both the gc and wasm32 fixture paths; the guard keeps the identity
+fallback.
+
+### Regression fixture
+
+`tests/fixtures/clone_instance_select/` has two modules whose `Vec::clone`
+receivers start at byte offset 1000 (`collide_typeinfo.ark` uses
+`Vec<TypeInfo>`, `collide_strings.ark` uses `Vec<String>`), plus a gc entry
+and a `--target wasm32` variant. Before the fix the gc entry fails
+`wasm-tools validate` at func 22; after the fix both targets compile and the
+wasm32 variant runs.
+
+### Generation and pin contract
+
+| Gate | Result |
+|------|--------|
+| s2 fixed point | `d2224704…`, 11 313 129 B; a p1 hop s2 → s2 reproduced it byte-identically (2 421.2 s) |
+| gc self-build of the fixed-point s2 | core `439f0dcb…`, 8 326 872 B, `wasm-tools validate` PASS (func 1372 gone); component `bc81d60b…`, 8 334 637 B |
+| candidate p1 identity | PASS — the component compiles the overlay to p1 `d2224704…`, the fixed-point s2 |
+| candidate gc self-reproduction | PASS — the component compiles the overlay to core `439f0dcb…` and repackages to `bc81d60b…` |
+
+The gc core's `resolver_impl_target__impl_target_type_name` calls
+`Vec__clone__String` at all three `declared.clone()` sites. The new pin is
+installed in the refresh commit; `bootstrap/PROVENANCE.md` carries the same
+values.
+
+### Residuals after this lane
+
+1. **Span-global mono-site key**: the resolved-call preference fixes method
+   call selection, but `ctx_mono_lookup_call` still keys markers by span alone;
+   any other callee whose instance is chosen through that pool (and whose
+   target owner check passes) can alias across modules. The next step is to
+   scope the marker pool by the declaration identity as well.
+2. **Pin**: refreshed to `bc81d60b…`. The overlay shims stay; deleting them was
+   not part of this lane.
+3. **Pin-emitted s2**: a stage-2 emitted by the previous pin can still contain
+   a wrong `Vec__clone__*` call in its own dead branch (it validates on p1 and
+   is unreachable at runtime). Only the next generation removes it; the
+   refreshed fixed point does not contain it.

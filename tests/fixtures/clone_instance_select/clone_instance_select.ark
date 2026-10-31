@@ -1,0 +1,17 @@
+// Regression fixture: a Vec<String> clone must select the concrete
+// `Vec__clone__String` instance even when another module records a different
+// `Vec::clone` instance at the same source byte offset. The wasm32-gc target
+// exposes the wrong instance through distinct ref types; wasm32 erases them,
+// so the linear variant guards the same lowering path on the other target.
+use std::host::stdio::Stdio
+use collide_typeinfo
+use collide_strings
+
+fn main() {
+    let copied_infos = collide_typeinfo::clone_typed(collide_typeinfo::make_infos())
+    let mut texts: Vec<String> = Vec::new<String>()
+    texts.push(String_from("ab"))
+    let copied_texts = collide_strings::clone_texts(texts)
+    let text = copied_texts.get_unchecked(0)
+    Stdio::println(text.concat(collide_typeinfo::typed_tag(copied_infos).to_string()))
+}

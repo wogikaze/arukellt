@@ -16,13 +16,13 @@ image build).
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 8 540 660 bytes |
-| sha256 | `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8` |
-| Built from commit | `ff4ff6a4f` (clone-retirement merge regression and bootstrap stub restored; `ba4aa88b1` + `ff4ff6a4f`) |
+| Size | 8 334 637 bytes |
+| sha256 | `bc81d60b338480bce5b45f185652e409a4af4235b34a655b0ebeac5411734aff` |
+| Built from commit | `5e0de551c` (checker-resolved mono instance for method calls and the owner-match clone guard) |
 | Build target | `wasm32-gc` / `wasi-p2` component, cm32p2 command wrapper |
-| Producer | Generation-2 s2 `61aa349b…` (built by generation-1 s2 `e8a0bdb1…`, itself built by the committed pin `471855ad…`) compiled the overlay to `wasm32-gc` with `--emit component`; `wasm-tools component embed/new` packaged it |
-| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `61aa349b377432773354e633182648becd8da9c97343e53bbe57cf192b73c62d`, byte-identical to the generation-2 s2 this component was built from (fixed point) |
-| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `0ebeb365d2833ae6850ff0482b62a20fbd4298de8001f3d94cc812a817a2fd98`, the core this component packages |
+| Producer | Fixed-point s2 `d2224704…` (11 313 129 B) compiled the overlay to `wasm32-gc --emit component`; `wasm-tools component embed/new` packaged it |
+| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `d2224704444c6dadcc7a1a622be78e4c716ce810b71c743314178bede429c0fd`, byte-identical to the fixed-point s2 this component was built from |
+| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `439f0dcb6027e66083294590968791088a05fdea21726c0e094de2fead18eb86` (8 326 872 B), the core this component packages |
 
 The 2026-10-30 refresh is the first one that needed two s2 generations
 (generation convergence). The committed pin (`471855ad…`, built from
@@ -43,6 +43,19 @@ $type), found (ref null $type)`). `ba4aa88b1` restores the clone migration in
 the lowerers and `ff4ff6a4f` migrates the stub; with both, the gc self-build
 validates. The pin was not installed until the fixed source converged.
 
+The 2026-10-31 refresh bakes in the gc clone-instance selection fix
+(`09a9a2b7e`) and its owner-match guard (`5e0de551c`). The previous pin
+lowered a `Vec<String>` receiver to `Vec__clone__TypeInfo` in
+`resolver_impl_target__impl_target_type_name`: two modules recorded a
+`Vec::clone` mono site at the same per-module byte offset and the span-only
+pool handed out the other module's instance. Linear p1 erases both instances
+to i32, so only the gc self-build failed validation. The fixed source's s2 is
+`d2224704…` (11 313 129 B); a p1 hop s2 → s2 reproduced it byte-identically.
+Its gc self-build is core `439f0dcb…` (8 326 872 B, `wasm-tools validate` PASS)
+packaged as component `bc81d60b…` (8 334 637 B); the component's p1 output is
+`d2224704…` and its gc self-build reproduces that core. The overlay shims were
+not removed in this refresh.
+
 The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
 retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
 matcher changes (`corehir::name_match`, enum-variant / callee spelling /
@@ -52,7 +65,7 @@ signature-registry leaf comparisons). The `783be1b8f` refresh baked in the
 made that series build. Each refresh re-verified p1 identity and
 self-reproduction against the previous pin; the host swap itself does not
 change the emitted s2. The s2 for that `36f42b97e` source was `353473ae…`; the
-current fixed-point s2 is `61aa349b…` for the `ff4ff6a4f` source.
+`ff4ff6a4f`-era fixed-point s2 was `61aa349b…`.
 HEAD advanced while this refresh was prepared (resolver fixes + merged
 HashSet hint restoration); the new pin builds that newer source
 (s2 `1eb4a81c…`, fixpoint PASS, fixture parity PASS).
@@ -63,8 +76,8 @@ matcher changes (`corehir::name_match`, enum-variant / callee spelling /
 signature-registry leaf comparisons). This `783be1b8f` refresh bakes in the
 #944 E0212 non-call move diagnostics. Each refresh re-verified p1 identity and
 self-reproduction against the previous pin; the host swap itself does not
-change the emitted s2. The current s2 is `d917f7cd…` for the #944 source, and
-the previous pin produces the same bytes from that source.
+change the emitted s2. The then-current s2 was `d917f7cd…` for the #944 source, and
+the previous pin produced the same bytes from that source.
 
 Why the gc host was restored (2026-10-28): the core pin refresh retired the
 gc-host component because the then-current compiler did not emit a valid
