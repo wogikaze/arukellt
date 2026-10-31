@@ -1,7 +1,7 @@
 ---
 Status: done
 Created: 2026-10-28
-Updated: 2026-10-30
+Updated: 2026-10-31
 ID: 954
 Track: compiler
 Depends on: none
@@ -71,8 +71,15 @@ the const function call from the lowered module.
 
 ## Acceptance
 
-- [ ] Repro compiles and validates on `wasm32`.
-- [ ] Fixture covers i64/i32/f64 consts referenced from expressions and calls on both targets.
+- [x] Repro compiles and validates on `wasm32` — re-run at `280fcd530`:
+  `compile --target wasm32 --emit wasm` exit 0, `wasm-tools validate` OK,
+  `wasmtime run` exit 0; see [Verification](#verification-2026-10-30).
+- [x] Fixture covers i64/i32/f64 consts referenced from expressions and calls on
+  both targets — [`tests/fixtures/stdlib_core/const_reference_lowering.ark`](../../tests/fixtures/stdlib_core/const_reference_lowering.ark)
+  is registered in [`tests/fixtures/manifest.txt`](../../tests/fixtures/manifest.txt)
+  (`run:stdlib_core/const_reference_lowering.ark`) and re-ran green on
+  `wasm32` and `wasm32-gc` at `280fcd530`; see
+  [Verification](#verification-2026-10-30).
 
 ## Implementation (2026-10-30)
 
@@ -124,3 +131,13 @@ selfhost diag-parity      -> PASS
 
 Not run: `verify quick` (the 60-minute CI aggregate) and `selfhost fixpoint`;
 the gates that cover this change are the two above plus `verify lane`.
+
+Re-validated on the current tree (`280fcd530`, fix commit `35b6578fd`):
+
+- Repro: `compile --target wasm32 --emit wasm` exit 0, `wasm-tools validate`
+  OK, `wasmtime run` exit 0. Same program as a `wasm32-gc` component:
+  compile exit 0, `wasmtime run --wasm gc --wasm function-references` exit 0.
+- Fixture `stdlib_core/const_reference_lowering.ark`: `wasm32` compile exit 0,
+  validate OK, `wasmtime run` exit 0; `wasm32-gc` component compile exit 0,
+  `wasmtime run` exit 0. `Test` assertions panic on failure, so exit 0 is a
+  pass for both targets.
