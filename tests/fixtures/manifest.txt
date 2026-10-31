@@ -468,6 +468,8 @@ diag:diagnostics/error_supertrait_missing.ark
 diag:selfhost/trait_overlapping_impl.ark
 diag:diagnostics/trait_wrong_arity.ark
 diag:selfhost/trait_unresolved_var_bound.ark
+diag:diagnostics/hashmap_bridge_call_arg_type.ark
+diag:diagnostics/hashmap_bridge_call_arg_type_wasm32.ark
 diag:diagnostics/hashmap_entries_unsupported_pair.ark
 diag:diagnostics/hashmap_unsupported_pair.ark
 diag:diagnostics/iterator_methods_no_import.ark
@@ -730,6 +732,8 @@ run:integration/fibonacci.ark
 run:integration/linked_list.ark
 run:integration/sort_vec.ark
 run:integration/word_counter.ark
+run:intrinsics/hashmap_bridge_declarations.ark
+run:intrinsics/hashmap_bridge_declarations_wasm32.ark
 run:intrinsics/intrinsic_declarations.ark
 run:intrinsics/intrinsic_declarations_wasm32.ark
 run:iterator/custom_iterator.ark

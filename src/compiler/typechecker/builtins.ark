@@ -3,29 +3,26 @@ use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::types
-use typechecker::builtins_hash
 use typechecker::builtins_simd
 
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-// The string, stdin, and fs intrinsics now have sealed declarations in
-// std/prelude.ark, so their calls resolve through a real FnSig and the general
-// concrete-call path supplies the return type and checks the arguments (#936).
+// The string, stdin, fs, HashMap bridge, i31 boxing, and the v128
+// memory/splat/extract_lane subset have sealed declarations in std/prelude.ark,
+// so their calls resolve through a real FnSig and the general concrete-call
+// path supplies the return type and checks the arguments (#936).
 //
-// What remains here is the pair of compiler-owned intrinsic families whose
-// spellings are enumerated by the resolver and lowered by the wasm emitters
-// rather than an Ark declaration: the non-public __hm_* storage bridge and the
-// __simd_* / __wasm_v128_* lane intrinsics. Their family derivations encode the
-// pair/lane-dependent result type; declaring every spelling in portable
-// prelude source would duplicate the resolver registry and the target v128 /
-// bucket ABI. This table is the only remaining name-keyed return typing.
+// What remains is the rest of the __simd_* / __wasm_v128_* lane intrinsic
+// family. Its spellings are enumerated by the resolver and lowered by the wasm
+// emitters rather than an Ark declaration; the family derivation encodes the
+// lane-dependent result type, and each spelling has a different v128 signature
+// on the target ABI. Declaring every remaining spelling in portable prelude
+// source would duplicate the resolver registry before ADR-037 gives SIMD
+// nominal CoreOp signatures. This table is the only remaining name-keyed
+// return typing.
 fn builtin_call_return_type(name: String) -> TypeInfo {
-    let hash_ty = builtins_hash::hashmap_builtin_return_type(name.clone())
-    if contract_type_access::TypeInfo_tag(hash_ty) != commands::TY_UNKNOWN() {
-        return hash_ty
-    }
     let simd_ret = builtins_simd::simd_builtin_call_return_type(name.clone())
     if contract_type_access::TypeInfo_tag(simd_ret) != commands::TY_UNKNOWN() {
         return simd_ret

@@ -1,0 +1,16 @@
+// The __hm_* declarations are the call contract for the non-public HashMap
+// storage bridge, so a wrong argument type is E0200 at the call and a wrong
+// arity is E0203 instead of reaching the wasm bridge unchecked (#936).
+fn main() {
+    let _cap = __hm_si_cap(1)
+    let _size = __hm_si_size(1)
+    let m: HashMap<String, i32> = __hm_si_new()
+    let _flag = __hm_si_get_flag(m)
+    __hm_si_set_val(m, 0, String_from("x"))
+    __hm_si_set_key(m, 0, 0)
+    let is_map: HashMap<i32, String> = __hm_is_new()
+    __hm_is_set_key(is_map, 0, String_from("x"))
+    let if_map: HashMap<i32, fn(i32) -> i32> = __hm_if_new()
+    __hm_if_set_val(if_map, 0, 1)
+    __hm_if_get_val(if_map, 0, 1)
+}

@@ -11,6 +11,13 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
     if core_op_id::core_op_id_is_some(coid) {
         return true
     }
+    // The __hm_* HashMap storage bridge declarations are checker contracts:
+    // every call, including the declaration's own shell body, is lowered by
+    // the wasm HashMap handlers from the callee spelling. Emitting the body
+    // would duplicate the bridge in every module that uses a map.
+    if decl_name.clone().starts_with(String_from("__hm_")) {
+        return true
+    }
     mir_is_unbound_prelude_intrinsic_shim(decl_name)
 }
 

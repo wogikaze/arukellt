@@ -1,0 +1,16 @@
+error[E0200|typecheck]: type mismatch in call to `__hm_si_cap`: argument 1 has type i32, expected HashMap<String, i32>
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0200|typecheck]: type mismatch in call to `__hm_si_size`: argument 1 has type i32, expected HashMap<String, i32>
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0203|typecheck]: wrong number of arguments for `__hm_si_get_flag`: expected 2, found 1
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0200|typecheck]: type mismatch in call to `__hm_si_set_val`: argument 3 has type String, expected i32
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0200|typecheck]: type mismatch in call to `__hm_si_set_key`: argument 3 has type i32, expected String
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0200|typecheck]: type mismatch in call to `__hm_is_set_key`: argument 3 has type String, expected i32
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0200|typecheck]: type mismatch in call to `__hm_if_set_val`: argument 3 has type i32, expected fn<i32, i32>
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark
+error[E0203|typecheck]: wrong number of arguments for `__hm_if_get_val`: expected 2, found 3
+  --> tests/fixtures/diagnostics/hashmap_bridge_call_arg_type.ark

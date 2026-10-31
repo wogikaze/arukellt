@@ -5,12 +5,13 @@ fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
 }
 
-// The __simd_* and __wasm_v128_* intrinsics have no Ark declarations; the
-// resolver lowers them by spelling. Their result type follows the lane
-// family prefix and the lane-access suffix, so derive it instead of listing
-// every operation a second time. The canonical signatures live in
-// data/core-ops.toml. Remove this once the intrinsics have declarations
-// (#936).
+// The v128 memory, splat, and extract_lane subset now has sealed declarations
+// in std/prelude.ark, so those calls resolve through a real FnSig and never
+// reach this table. What remains is the rest of the __simd_* / __wasm_v128_*
+// lane operations; the resolver lowers them by spelling and their result type
+// follows the lane family prefix and the lane-access suffix. The canonical
+// signatures live in data/core-ops.toml. Remove this once every lane
+// operation has a declaration (#936, ADR-037).
 fn simd_builtin_call_return_type(name: String) -> TypeInfo {
     if name.clone().starts_with("__wasm_v128_store") {
         return simple_type(commands::TY_UNIT())
