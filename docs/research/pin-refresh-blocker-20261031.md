@@ -207,3 +207,133 @@ passes the legacy `--bootstrap-allow-shared-param-mutation`, which
 The next step is the canonical no-flag self-build of the fixed-point s2. If
 p1 identity still differs, the next diagnosis is a gc-host vs p1-host
 emission difference, not the func 7188 lowering.
+
+## Update 2026-10-31 — identity resolved; refresh blocked on a converged-generation miscompile
+
+Lane `.worktrees/wave-pin-refresh-final` (`wave/pin-refresh-final`), base
+`704641246`, same toolchain. The recorded accelerator-contract "failure" does
+not reproduce as a contract failure: the p1 identity and gc self-reproduction
+both hold at the generation-converged fixed point. The refresh is nevertheless
+**not adopted**, because the converged compiler miscompiles itself: it lowers
+the retired free `len` callee in the compiler source to the unresolved-call
+stub, so the built stage-2 traps in `generic_inst_args` and 290 fixtures fail.
+
+### The recorded failure was a generation hop
+
+The gc component built with producer `60a7b9c9…` is the gc image of the **next**
+generation. Its p1 output `6d19759e…` is `s2_2`, and the component used as a pin
+reproduces `6d19759e…`, so `6d19759e…` was the converged generation. The lane
+compared that p1 output with the producer `60a7b9c9…` (generation N) and read
+the 10 810-byte generation delta as an accelerator-contract failure.
+
+Evidence:
+
+- Compiling the overlay with and without the legacy
+  `--bootstrap-allow-shared-param-mutation` writes byte-identical p1 output
+  (`9a515653…` on the `704641246` overlay): the flag is emission-neutral. The
+  lane helper's leftover flag was non-canonical but not the cause.
+- The 113-function p1 WAT delta (`60a7b9c9…` vs `6d19759e…`) is confined to
+  string/printing functions and is the emitter change between compiler
+  generations, not a gc-host vs p1-host difference.
+- The gc host is faithful to the p1 host: the p1 stage-2 `d6a52c97…` and its gc
+  image (component `c1`, `2be61406…`) emit byte-identical p1 output for
+  `docs/examples/hello.ark` (`c8e35c88…`) and for the generic fixture
+  `stdlib_sort/sort_custom_ord.ark` (`5c2dd6e7…`).
+- The canonical p1 hop confirms the chain without the accelerator: the p1
+  stage-2 `d6a52c97…` compiling the flat overlay to `wasm32` / `wasi-p1` writes
+  `9a515653…` (11 295 250 B, 2 111 s), byte-identical to the gc image's p1
+  output. The generation chain is therefore canonical, not a host artifact.
+
+### Accelerator contract at 704641246 (passes)
+
+| Step | Value |
+|------|-------|
+| convergence (pre-shim overlay) | `d6a52c97…` → `9a515653…` → `9a515653…` |
+| candidate pin | `dd71ff59…`, 8 275 828 B; core `5a9ff9e9…`, 8 268 063 B |
+| p1 identity | PASS — the candidate's p1 output is `da613c3a…` (11 279 112 B), its converged generation |
+| gc self-reproduction | PASS — the candidate's gc core is `5a9ff9e9…` and repackages to `dd71ff59…` |
+| `build-compiler` / `fixpoint --build` / `diag-parity` | PASS at the candidate fixed point |
+
+### New blocker: the converged generation stubs `len`
+
+Every converged generation (`9a515653…`, `17d7764f…`, `da613c3a…` — with
+and without the shim deletions) contains unresolved-call stubs
+(`local.get <arg>; drop; unreachable`) for the retired free `len` callee in the
+compiler's own monomorphization code:
+
+- `generic_inst_args` (`ctx_struct_mono.ark`: `let n = len(name)`,
+  `let m = len(inner)`),
+- `ctx_resolve_angle_type_vars`, `ctx_resolve_fnsig_type_vars`,
+  `ctx_collect_type_var_names`, `ctx_push_fnsig_var_segments`,
+  `ctx_assoc_mono_next_names` (`.len()` method calls, which the lowering emits
+  as the bare `len` callee), and
+- `removed_csv_member_hint` (`resolver/removed_names.ark`).
+
+The WAT diff between the last good-emitted generation `d6a52c97…` and the next
+one `9a515653…` shows these seven functions as the only ones gaining an
+`unreachable` instruction (one each; 2 038 vs 2 045 in the whole module).
+
+Consequences with the converged s2 `da613c3a…` (after the `len` workaround
+below, `python3 scripts/manager.py verify fixtures`):
+
+```
+[fixture-test] test: PASS=33 FAIL=10
+[fixture-test] PASS=1681 FAIL=290 COMPILE_VALIDATE=1971 EXECUTED=94 RUNTIME_UNSUPPORTED=2
+```
+
+The failures trap the compiler in `generic_inst_args` (for example
+`stdlib_sort/sort_custom_ord.ark`, backtrace `generic_inst_args →
+generic_inst_args_for_param_count → ctx_derive_generic_struct_layout`). The same
+stubs fail two documentation examples:
+`adr/ADR-086-linear-collection-adts.md` block 0 and
+`stdlib/migration-guidance.md` block 16. The p1 stage-2 and the gc pin trap on
+the same examples, so this is not a gc-host issue.
+
+The base tree is unaffected because its stage-2 is emitted by the older
+`56ff0808…` pin. The regression only appears when a compiler generation built
+from the current source compiles the current source, which is exactly what a pin
+refresh converges to.
+
+Likely cause: `9a8616413` (entry bodies by declaration identity) made `len` and
+`pop` lower from the checker's recorded `FunctionId` instead of recomposing the
+owner-qualified spelling. `mir_rewrite_vec_len` returns the recorded id only
+when it is exactly `String::len` or `Vec::len`; otherwise it falls back to the
+owner (`String` / `Vec`) and finally to the original callee. The flat overlay's
+`len` is the free prelude declaration added by `BOOTSTRAP_PRELUDE_LEN_SHIM`
+(`pub fn len(s: String)`), not an impl method: its recorded id is `len`, the
+owner is empty, and the bare `len` callee that the method lowering still emits
+for untracked String receivers is returned unchanged. The emitter has no emitted
+`len` declaration to bind (the previous generation inlines the shim body,
+`raw_string_len_bytes`), so it emits `drop; unreachable`. The seven functions
+appear to be the ones where a `.len()` receiver comes from a `.clone()` /
+`.slice()` chain whose owner is not tracked. Fix direction: map the bootstrap overlay's
+bare `len` to the `String::len` intrinsic (or make the checker record the shim's
+receiver owner), then re-run the generation convergence.
+
+### Workaround tested (not installed)
+
+`resolver/removed_names.ark`:
+`name.clone().slice(4, len(name))` → `name.clone().slice(4, name.len())`
+removes the `removed_csv_member_hint` stub and makes `selfhost diag-parity` PASS
+at the converged generation, but leaves the six monomorphization stubs and the
+fixture failures. The overlay prelude declares `len` and the typechecker accepts
+the call, so the missing piece is the emitter binding of the bare `len` callee
+for loaded-module bodies (see the likely cause above). That is the next unit of
+work.
+
+`bootstrap/arukellt-selfhost.wasm` was restored to `56ff0808…`; no pin was
+installed and no overlay shim was deleted in the committed tree. The shim
+deletions tested in the lane (numeric-conversion bridge, printable boundary,
+stdio rewrite) are emission-neutral or benign at the candidate generation and
+can be re-applied once the generation is faithful.
+
+### Residuals
+
+1. **Converged-generation `len` stub**: the blocker above. Affected functions
+   listed; fixtures 290 fail, diag-parity 2 fail (one fixed by the workaround).
+2. **Shallow `Vec::clone` bridge and the three prelude shims** are still
+   required. Removing the clone bridge produces an s2 that traps in
+   `__clone_string_helper`; removing the `.len()` / `.get_unchecked()` / `.get()`
+   declarations fails the stage-2 build with `E0212 use of moved value
+   rest_len` in `mir/lower/call_mono.ark`.
+3. **`Env::*` / entry-module host rewrites** stay gated on the legacy core pins.
