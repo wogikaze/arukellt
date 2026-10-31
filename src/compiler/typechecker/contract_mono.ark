@@ -9,9 +9,18 @@ struct MonoInstance {
     // record_mono_instance mint is demanded, so the flag only stays false
     // for records pushed outside that path (call-site markers).
     demanded: bool,
+    // Call-site markers only: the declaration index and body child index of
+    // the body that recorded the site, in the combined loaded+entry decl
+    // list. `node_span_start` is a byte offset inside one module's text, so
+    // MIR scopes the span rewrite pool by this identity to keep equal offsets
+    // in different modules apart (#934). -1 for real instances.
+    site_decl_index: i32,
+    site_body_child_index: i32,
 }
 
 struct MonoCallSite {
+    decl_index: i32,
+    body_child_index: i32,
     span_start: i32,
     fn_name: String,
     mangled_name: String,
@@ -46,7 +55,9 @@ fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeIn
             String_new(),
             Vec::new<TypeInfo>()
         ),
-        demanded: false
+        demanded: false,
+        site_decl_index: 0 - 1,
+        site_body_child_index: 0 - 1
     }
 }
 
@@ -56,6 +67,19 @@ fn MonoInstance_demanded(instance: MonoInstance) -> bool {
 
 fn MonoInstance_set_demanded(mut instance: MonoInstance) {
     instance.demanded = true
+}
+
+fn MonoInstance_site_decl_index(instance: MonoInstance) -> i32 {
+    instance.site_decl_index
+}
+
+fn MonoInstance_site_body_child_index(instance: MonoInstance) -> i32 {
+    instance.site_body_child_index
+}
+
+fn MonoInstance_set_call_site(mut instance: MonoInstance, decl_index: i32, body_child_index: i32) {
+    instance.site_decl_index = decl_index
+    instance.site_body_child_index = body_child_index
 }
 
 fn MonoInstance_fn_name(instance: MonoInstance) -> String {
@@ -82,8 +106,28 @@ fn MonoInstance_set_return_type(mut instance: MonoInstance, return_type: TypeInf
     instance.return_type = return_type
 }
 
-fn MonoCallSite_new(span_start: i32, fn_name: String, mangled_name: String) -> MonoCallSite {
-    MonoCallSite { span_start: span_start, fn_name: fn_name, mangled_name: mangled_name }
+fn MonoCallSite_new(
+    decl_index: i32,
+    body_child_index: i32,
+    span_start: i32,
+    fn_name: String,
+    mangled_name: String
+) -> MonoCallSite {
+    MonoCallSite {
+        decl_index: decl_index,
+        body_child_index: body_child_index,
+        span_start: span_start,
+        fn_name: fn_name,
+        mangled_name: mangled_name
+    }
+}
+
+fn MonoCallSite_decl_index(site: MonoCallSite) -> i32 {
+    site.decl_index
+}
+
+fn MonoCallSite_body_child_index(site: MonoCallSite) -> i32 {
+    site.body_child_index
 }
 
 fn MonoCallSite_span_start(site: MonoCallSite) -> i32 {

@@ -19,12 +19,29 @@ fn ctx_mono_mark_span_rewrite_used(mut ctx: LowerCtx, index: i32) {
     ctx.mono_call_span_used.set(index, 1)
 }
 
-fn ctx_mono_push_span_rewrite(mut ctx: LowerCtx, span_start: i32, source: String, target: String) {
+fn ctx_mono_push_span_rewrite(
+    mut ctx: LowerCtx,
+    span_start: i32,
+    decl_index: i32,
+    body_child_index: i32,
+    source: String,
+    target: String
+) {
     ctx.mono_call_starts.push(span_start)
     ctx.mono_call_span_sources.push(source)
     ctx.mono_call_span_targets.push(target)
     ctx.mono_call_span_used.push(0)
+    ctx.mono_call_span_decls.push(decl_index)
+    ctx.mono_call_span_children.push(body_child_index)
     ctx_mono_span_hash_insert(ctx, span_start)
+}
+
+// A span rewrite belongs to the body the typechecker recorded it in. The
+// span is a byte offset inside one module's text, so equality of the span
+// alone does not name one call site (#934).
+fn ctx_mono_span_rewrite_is_in_body(ctx: LowerCtx, index: i32, decl_index: i32, body_child_index: i32) -> bool {
+    ctx.mono_call_span_decls.get_unchecked(index) == decl_index &&
+    ctx.mono_call_span_children.get_unchecked(index) == body_child_index
 }
 
 fn ctx_mono_span_hash_insert(mut ctx: LowerCtx, span_start: i32) {

@@ -40,6 +40,14 @@ fn MonoInstance_demanded(instance: MonoInstance) -> bool {
     type_contracts::MonoInstance_demanded(instance)
 }
 
+fn MonoInstance_site_decl_index(instance: MonoInstance) -> i32 {
+    type_contracts::MonoInstance_site_decl_index(instance)
+}
+
+fn MonoInstance_site_body_child_index(instance: MonoInstance) -> i32 {
+    type_contracts::MonoInstance_site_body_child_index(instance)
+}
+
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
     type_contracts::TypeInfo_simple(tag)
 }

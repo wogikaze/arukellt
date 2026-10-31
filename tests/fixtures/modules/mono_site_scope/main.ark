@@ -1,0 +1,11 @@
+//! Regression guard: two loaded modules call the same generic free function
+//! with different type arguments at the same source byte offset. The mono
+//! call-site pool must be keyed by declaration identity, not the offset.
+use std::host::stdio::Stdio
+use collide_int
+use collide_text
+
+fn main() {
+    Stdio::println(collide_int::probe_int().to_string())
+    Stdio::println(collide_text::probe_text())
+}

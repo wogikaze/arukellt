@@ -15,9 +15,13 @@ fn mir_register_mono_rewrites(mut ctx: LowerCtx, mono_instances: Vec<MonoInstanc
                 // Span rewrite only. Name rewrites come from the concrete
                 // (non-marker) MonoInstance with the same mangled name; registering
                 // both would duplicate unused-name slots and steal later sites.
+                // The marker carries its declaring body so a lookup in another
+                // module cannot consume it (#934).
                 ctx_fn_mono::ctx_register_mono_span_rewrite(
                     ctx,
                     mono_instance_shape::mir_mono_instance_marker_span_start(site_marker),
+                    mono_instance_shape::mir_mono_instance_marker_decl_index(site_marker),
+                    mono_instance_shape::mir_mono_instance_marker_body_child_index(site_marker),
                     source_name.clone(),
                     safe_target.clone()
                 )

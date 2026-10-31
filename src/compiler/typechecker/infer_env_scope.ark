@@ -16,5 +16,9 @@ fn borrow_generic_infer_env(parent: TypeEnv) -> TypeEnv {
     // identities as the parent body and must keep its entry-body boundary.
     env.bare_fn_sig_index = parent.bare_fn_sig_index
     env.entry_decl_start = parent.entry_decl_start
+    // A mono call site recorded from the scratch env must carry the parent
+    // body's identity, or MIR cannot scope it back to this body (#934).
+    env.current_decl_index = parent.current_decl_index
+    env.current_body_child_index = parent.current_body_child_index
     env
 }
