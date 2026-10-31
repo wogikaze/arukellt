@@ -23,22 +23,25 @@ semantics, and emitted user artifacts are not rewritten.
 
 The pin's builtin host modules only expose the free `std::host::*` functions,
 so the flat overlay ships the namespace sources the compiler itself imports:
-`std/host/fs.ark`, `std/host/clock.ark`, and `std/io/mod.ark`. The checked-in
-`Fs::*`, `Clock::*`, and `toml::TomlText::*` spellings therefore compile to the
-real impls instead of the unresolved-call `drop; unreachable` fallback. The
+`std/host/fs.ark`, `std/host/clock.ark`, `std/host/process.ark`,
+`std/host/stdio.ark`, and `std/io/mod.ark`. The checked-in `Fs::*`, `Clock::*`,
+`Process::*`, `Stdio::*`, and `toml::TomlText::*` spellings therefore compile to
+the real impls instead of the unresolved-call `drop; unreachable` fallback. The
 overlay no longer rewrites those call spellings or installs
 `bootstrap_toml_*` adapters.
 
-The core trust-anchor/override pins (`a2803831…`, `8df2698c…`) predate #917's
-MIR env call-result typing, so a reachable `Env::args` (a `Vec<String>` result)
-still produces invalid core Wasm under those pins.
-`_patch_bootstrap_host_env_paths` keeps the compiler's `Env::*` calls on the
-free builtin spelling, and the entry module uses the prelude `args` / `exit` /
-`println` host-intrinsic stubs. The official gc pin includes the #917 typing,
-but the shared overlay keeps the rewrite so the stage-2 source and emitted s2
-stay identical across pins. Delete both when the core pins are retired (or the
-overlay becomes pin-aware); the function docstrings carry the probe that must
-validate the lowering first.
+The overlay does not ship `std/host/env.ark`, so the checked-in entry module's
+`Env::args()` resolves only as `E0100 undefined module member` under every pin.
+`_patch_bootstrap_main_host_to_prelude` therefore always routes `main.ark`
+through the prelude `args` / `exit` / `println` host-intrinsic stubs. The core
+trust-anchor/override pins (`a2803831…`, `8df2698c…`) additionally predate
+#917's MIR env call-result typing, so `_patch_bootstrap_host_env_paths` keeps
+the compiler's remaining `Env::*` spellings on the free builtin form. The gc
+pin's `Env::*` typing is already #917-clean and that rewrite is
+emission-neutral there (gating it off leaves s2 byte-identical), so it applies
+only when a legacy core pin is selected. Delete both when `std/host/env.ark`
+ships in the overlay and the selected pins resolve the checked-in entry module;
+the function docstrings carry the probes that must validate the lowering first.
 
 Overlay mode handling is pin-aware. The official gc pin parses and checks the
 #951 parameter modes, so it compiles the overlay with the real modes:
@@ -60,6 +63,28 @@ overlay namespace. Function calls remain qualified, and the checked-in `std/`
 sources are not rewritten. This is a bootstrap namespace adapter only; it does
 not relax the language type identity or make an s2 build equivalent to an
 ADR-029 fixpoint.
+
+### Pin-only overlay adapters
+
+The `bc81d60b…` refresh retired the adapters that only the previous pin
+generation needed. These are gone from `scripts/selfhost/checks.py`:
+
+| Adapter | Evidence after the refresh |
+|---------|----------------------------|
+| numeric conversion bridge (`_patch_bootstrap_numeric_conversion_bridge`, `BOOTSTRAP_NUMERIC_*`) | the pin's CoreOp table knows the `__intrinsic_*` conversion keys; the candidate-generation probe left the stage-2 bytes unchanged |
+| `__Printable` print boundary (`_patch_bootstrap_printable_boundary`) | the pin parses `String<__Printable>`; the candidate-generation probe left the stage-2 bytes unchanged |
+| `Stdio::*` intrinsic rewrite (`_rewrite_bootstrap_stdio_calls`) | the pin lowers `Stdio::*` natively; removing it changed s2 `d2224704…` → `1d5056db…` and every gate passed |
+
+The remaining adapters are still required; delete each only under its
+condition:
+
+| Adapter | Why it stays | Delete when |
+|---------|--------------|-------------|
+| shallow `Vec::clone` bridge (`_patch_bootstrap_prelude_vector_clone_shallow_text`) | the pin lowers `String::clone`'s helper to an unresolved-call stub; the rebuilt s2 traps at startup in `__clone_string_helper` | the pin's clone lowering compiles the compiler with `use std::core::clone`; probe by removing the bridge and running one compile with the rebuilt s2 |
+| `len` / `get_unchecked` / `get` prelude shims (`BOOTSTRAP_PRELUDE_*_SHIM`) | the pin's method lowering still emits the bare retired free call; without the declarations stage 2 fails with `E0212 use of moved value rest_len` | the pin emits the intrinsic spelling from `mir_vec_method_prefer_coreop_name` instead of the bare free callee |
+| `_patch_bootstrap_main_host_to_prelude` | the overlay does not ship `std/host/env.ark`, so a checked-in `Env::args()` is `E0100 undefined module member` | `std/host/env.ark` ships in the overlay and every supported pin resolves the checked-in entry module |
+| `_patch_bootstrap_host_env_paths` | the legacy core pins cannot type a reachable `Env::args` result; the rewrite is emission-neutral under the gc pin (gated to legacy pins) | the core trust-anchor/override pins are retired |
+| `_strip_bootstrap_param_modes` | the legacy core pins predate the #951 mode syntax (gated to legacy pins) | the core pins are retired, or every supported pin accepts modes |
 
 ## Which command?
 
@@ -90,9 +115,12 @@ python3 scripts/manager.py selfhost build-compiler
 ```
 
 The component's p1 output is the fixed-point stage-2 s2 it was generated from
-(`d2224704…`), and it reproduces its own gc core (`439f0dcb…`). The Python
-compile path AOT-caches the component and passes the permissive overlay binding
-described above. The previous core pin is recoverable from commit `fb5944edb`
+(`d2224704…`), and it reproduces its own gc core (`439f0dcb…`); those values
+describe the pin artifact at the refresh commit. The shim prune changed the
+current overlay, so the same pin now builds the fixed point `1d5056db…`
+(11 296 972 B; s2 == s3). The Python compile path AOT-caches the component and
+the gc path applies no permissive body binding. The previous core pin is
+recoverable from commit `fb5944edb`
 (see [`bootstrap/PROVENANCE.md`](../../bootstrap/PROVENANCE.md)); the 2026-10-19
 core trust anchor is at `bootstrap/arukellt-selfhost-core.wasm` and can be
 selected with `ARUKELLT_PINNED_WASM=bootstrap/arukellt-selfhost-core.wasm`

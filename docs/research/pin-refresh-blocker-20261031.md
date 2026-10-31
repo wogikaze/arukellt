@@ -508,3 +508,57 @@ values.
    a wrong `Vec__clone__*` call in its own dead branch (it validates on p1 and
    is unreachable at runtime). Only the next generation removes it; the
    refreshed fixed point does not contain it.
+
+## Update 2026-10-31 — overlay shim prune against the installed pin
+
+Lane `.worktrees/wave-overlay-shim-prune` (`wave/overlay-shim-prune`), base
+`b2f5e5337`, `ARUKELLT_BUILD_DIR=$PWD/.build-lane`, Wasmtime 46.0.1,
+wasm-tools 1.252.0. The refresh commit installed `bc81d60b…` without touching
+the overlay; this lane deletes the adapters that the new pin no longer needs
+and probes the ones that stay.
+
+Baseline before the prune: `selfhost build-compiler` reproduced the refresh
+fixed point `d2224704…` (11 313 129 B).
+
+### Deleted
+
+| Adapter | Evidence |
+|---------|----------|
+| numeric conversion bridge (`_patch_bootstrap_numeric_conversion_bridge` / `BOOTSTRAP_NUMERIC_*`) | candidate-generation probe was emission-neutral; removed in the combined batch below |
+| printable boundary (`_patch_bootstrap_printable_boundary`) | candidate-generation probe was emission-neutral; removed in the combined batch below |
+| stdio rewrite (`_rewrite_bootstrap_stdio_calls` / `_BOOTSTRAP_STDIO_*`) | the real emission change in the batch |
+
+The three deletions were applied together in `scripts/selfhost/checks.py`
+(-181 lines). `build-compiler` PASS; `verify fixtures` PASS (1978
+compile+validate, 115 executed, 43/43 `test:` fixtures); `selfhost diag-parity`
+PASS; `selfhost fixpoint` PASS. The post-deletion fixed point is
+`1d5056db78d76870c733b3c133751bd2685849ac8194f5228f1b1c6e9923f1fd`
+(11 296 972 B), a 16 157-byte reduction from `d2224704…` attributable to the
+stdio rewrite.
+
+### Kept, with probes
+
+| Adapter | Probe result |
+|---------|--------------|
+| shallow `Vec::clone` bridge (`_patch_bootstrap_prelude_vector_clone_shallow_text`) | removing it builds s2 `724c18f2…` (11 383 220 B), but running that s2 traps: `__clone_string_helper` ← `String::clone` ← `parse_initial_command` ← `parse_args` ← `main` |
+| three prelude shims (`BOOTSTRAP_PRELUDE_LEN_SHIM`, `GET_UNCHECKED`, `GET`) | removing them fails stage 2 with `E0212 use of moved value rest_len` at `src/compiler/main.ark:30:1` |
+| `_patch_bootstrap_main_host_to_prelude` | skipping it fails stage 2 with `E0100 undefined module member: Env::args`; the overlay does not ship `std/host/env.ark`, so the rewrite is not pin-specific |
+| `_patch_bootstrap_host_env_paths` | gating it off for the gc pin leaves s2 byte-identical (`1d5056db…`), so the import normalization is emission-neutral under the installed pin; it stays for the legacy core pins and now runs only when `_find_gc_pin(root) is None` |
+| `_strip_bootstrap_param_modes` | unchanged; already gated on legacy core pins |
+
+### Remaining deletion conditions
+
+1. **Shallow `Vec::clone` bridge**: delete when the pin's clone lowering
+   compiles the compiler with `use std::core::clone`. Probe by removing the
+   bridge, rebuilding s2, and compiling one program; the current pin traps in
+   `__clone_string_helper`.
+2. **Three prelude shims**: delete when the pin stops emitting the bare retired
+   free callee for `.len()` / `.get_unchecked()` / `.get()` (the checked-in
+   emitter uses `String::len` / `raw_array_get_unchecked` via
+   `mir_vec_method_prefer_coreop_name`).
+3. **`_patch_bootstrap_main_host_to_prelude`**: delete when the overlay ships
+   `std/host/env.ark` and every supported pin resolves the checked-in
+   `Env::args()` entry module; retiring the core pins alone is not enough.
+4. **`_patch_bootstrap_host_env_paths` / `_strip_bootstrap_param_modes`**:
+   delete when the core trust-anchor/override pins are retired (the param
+   strip also requires every supported pin to accept modes).

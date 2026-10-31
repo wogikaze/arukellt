@@ -54,7 +54,15 @@ to i32, so only the gc self-build failed validation. The fixed source's s2 is
 Its gc self-build is core `439f0dcb…` (8 326 872 B, `wasm-tools validate` PASS)
 packaged as component `bc81d60b…` (8 334 637 B); the component's p1 output is
 `d2224704…` and its gc self-build reproduces that core. The overlay shims were
-not removed in this refresh.
+not removed in this refresh commit. The follow-up prune deleted the
+numeric-conversion bridge, the `__Printable` boundary rewrite, and the
+`Stdio::*` rewrite; the shallow `Vec::clone` bridge and the three prelude
+shims remain required, and the `Env` / entry adapters stay pin-gated or
+unconditional as recorded in
+[docs/compiler/bootstrap.md](../docs/compiler/bootstrap.md). The post-prune p1
+fixed point is `1d5056db…` (11 296 972 B; s2 == s3), so a rebuild from this tree
+no longer reproduces the `d2224704…` producer identity above, which is a
+property of the refresh commit's overlay.
 
 The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
 retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
