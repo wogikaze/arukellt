@@ -1,11 +1,15 @@
 """Fixture manifest loading helpers."""
 
+import re
 from pathlib import Path
 
 try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10 on supported development hosts
     import tomli as tomllib  # type: ignore[no-redef]
+
+_MAIN_DECLARATION = re.compile(r"\bfn\s+main\s*\(")
+_USE_LINE = re.compile(r"^\s*use\s+([A-Za-z_]\w*)", re.MULTILINE)
 
 
 def load_manifest(manifest_path: Path) -> list[dict]:
@@ -72,6 +76,39 @@ def _package_dependency_roots(package_root: Path) -> tuple[Path, ...]:
     return tuple(roots)
 
 
+def _sibling_support_modules(candidates: list[Path]) -> set[Path]:
+    """Return candidates that only exist as modules imported by a sibling.
+
+    Multi-module fixture directories without ``main.ark`` keep their entry
+    points in named files. A helper such as ``collide_strings.ark`` is compiled
+    through those entry points; it has no ``fn main`` and is only reached via a
+    sibling's ``use <module>``. Treating it as an unregistered fixture entry
+    would demand a manifest line for a file the harness cannot run on its own.
+    """
+    texts: dict[Path, str] = {}
+    for ark in candidates:
+        try:
+            texts[ark] = ark.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            texts[ark] = ""
+    by_directory: dict[Path, list[Path]] = {}
+    for ark in candidates:
+        by_directory.setdefault(ark.parent, []).append(ark)
+    support: set[Path] = set()
+    for siblings in by_directory.values():
+        if len(siblings) < 2:
+            continue
+        imported = {
+            module
+            for ark in siblings
+            for module in _USE_LINE.findall(texts[ark])
+        }
+        for ark in siblings:
+            if ark.stem in imported and not _MAIN_DECLARATION.search(texts[ark]):
+                support.add(ark)
+    return support
+
+
 def disk_fixture_paths(fixtures_root: Path) -> list[str]:
     """Return sorted list of relative .ark paths from disk.
 
@@ -80,9 +117,10 @@ def disk_fixture_paths(fixtures_root: Path) -> list[str]:
     - Skip non-main.ark files when main.ark exists in the same directory.
     - Skip non-main.ark support modules nested inside a package whose root has
       main.ark, except under a locally declared dependency/registry directory.
+    - Skip modules imported by another .ark in the same fixture directory.
     """
     dependency_roots: dict[Path, tuple[Path, ...]] = {}
-    entries = []
+    candidates: list[Path] = []
     for ark in sorted(fixtures_root.rglob("*.ark")):
         rel = ark.relative_to(fixtures_root)
         rel_str = str(rel)
@@ -103,5 +141,10 @@ def disk_fixture_paths(fixtures_root: Path) -> list[str]:
             resolved = ark.resolve()
             if not any(root == resolved.parent or root in resolved.parents for root in dependency_roots[package_root]):
                 continue
-        entries.append(rel_str)
-    return entries
+        candidates.append(ark)
+    support = _sibling_support_modules(candidates)
+    return [
+        str(ark.relative_to(fixtures_root))
+        for ark in candidates
+        if ark not in support
+    ]

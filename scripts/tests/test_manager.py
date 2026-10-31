@@ -1,5 +1,6 @@
 """Behavioral contract tests for scripts/manager.py."""
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -14,8 +15,6 @@ MANAGER = str(REPO_ROOT / "scripts" / "manager.py")
 
 
 def _run(*args: str, extra_env: dict | None = None) -> subprocess.CompletedProcess:
-    import os
-
     env = os.environ.copy()
     if extra_env:
         env.update(extra_env)
@@ -45,6 +44,62 @@ class TestVerifyQuick(unittest.TestCase):
             ),
             msg=f"Expected summary output, got:\n{combined[:2000]}",
         )
+
+
+class TestVerifyQuickCheckCache(unittest.TestCase):
+    """``_cached_quick_check`` must only replay work a check actually did."""
+
+    def _call(self, root: Path, cache_dir: Path, label: str, run_fn):
+        with mock.patch.object(
+            manager, "_VERIFY_QUICK_CHECK_CACHE_DIR", cache_dir
+        ), mock.patch.object(
+            manager, "_VERIFY_QUICK_FILE_DIGESTS", {}
+        ), mock.patch.dict(
+            os.environ, {"ARUKELLT_VERIFY_QUICK_CHECK_CACHE": "1"}
+        ):
+            return manager._cached_quick_check(root, label, "check", run_fn)
+
+    def test_dry_run_success_is_not_reused_by_a_full_run(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cache_dir = root / "cache"
+
+            def dry_run(_cmd):
+                return 0, "DRY-RUN: python3 scripts/check/example.py"
+
+            rc, out = self._call(root, cache_dir, "example gate", dry_run)
+            self.assertEqual((rc, out), (0, "DRY-RUN: python3 scripts/check/example.py"))
+            self.assertFalse(cache_dir.exists(), "dry-run output must not be cached")
+
+            executed = []
+
+            def full_run(cmd):
+                executed.append(cmd)
+                return 1, "example gate failed for real"
+
+            rc, out = self._call(root, cache_dir, "example gate", full_run)
+            self.assertEqual((rc, out), (1, "example gate failed for real"))
+            self.assertEqual(executed, ["check"])
+
+    def test_real_success_is_replayed_without_executing_again(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cache_dir = root / "cache"
+            self._call(root, cache_dir, "example gate", lambda _cmd: (0, "clean"))
+            self.assertTrue(list(cache_dir.glob("*.json")))
+
+            second = mock.Mock(return_value=(1, "must not run"))
+            rc, out = self._call(root, cache_dir, "example gate", second)
+            self.assertEqual((rc, out), (0, "clean"))
+            second.assert_not_called()
+
+    def test_failure_is_not_replayed_from_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cache_dir = root / "cache"
+            self._call(root, cache_dir, "example gate", lambda _cmd: (1, "transient"))
+            rc, out = self._call(root, cache_dir, "example gate", lambda _cmd: (0, "recovered"))
+            self.assertEqual((rc, out), (0, "recovered"))
 
 
 class TestVerifyDryRun(unittest.TestCase):
@@ -486,6 +541,34 @@ class TestFixtureDiskPaths(unittest.TestCase):
                 paths,
                 ["modules/sample/main.ark", "modules/sample/mock_reg/dep.ark"],
             )
+
+    def test_modules_imported_by_a_sibling_entry_are_not_entry_fixtures(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "pair.ark").write_text(
+                "use helper\n\nfn main() { helper::run() }\n",
+                encoding="utf-8",
+            )
+            (root / "helper.ark").write_text("pub fn run() {}\n", encoding="utf-8")
+            (root / "standalone.ark").write_text("fn main() {}\n", encoding="utf-8")
+            (root / "unused.ark").write_text("pub fn noop() {}\n", encoding="utf-8")
+
+            paths = manager.disk_fixture_paths(root)
+
+            self.assertEqual(paths, ["pair.ark", "standalone.ark", "unused.ark"])
+
+    def test_imported_module_with_main_stays_an_entry_fixture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "pair.ark").write_text(
+                "use shared\n\nfn main() {}\n",
+                encoding="utf-8",
+            )
+            (root / "shared.ark").write_text("fn main() {}\n", encoding="utf-8")
+
+            paths = manager.disk_fixture_paths(root)
+
+            self.assertEqual(paths, ["pair.ark", "shared.ark"])
 
 
 class TestEnvBehavior(unittest.TestCase):
