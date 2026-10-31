@@ -1,0 +1,9 @@
+//! `answer()` must bind the declaration behind `facade -> mid -> source`, not
+//! the flat first match `collide::answer(String)`. The import is the only
+//! place `facade` is named; resolving it needs the `pub use` chain.
+
+use facade::answer
+
+pub fn probe() -> i32 {
+    answer()
+}

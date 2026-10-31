@@ -1,3 +1,5 @@
+use resolver::paths
+
 pub struct ModuleDecls {
     name: String,
     decls: Vec<AstNode>,
@@ -32,4 +34,27 @@ fn module_registered(modules: Vec<ModuleDecls>, name: String) -> bool {
         i = i + 1
     }
     false
+}
+
+// "pub use" paths are written in use-path form (std::json::parser,
+// outer::inner, pkg::sub::sym) while module members register under the
+// module's short name (parser::json_get, inner::helper). Map the written
+// path onto the registered module key before collecting the edge: a trailing
+// segment that names a loaded module re-exports that module's members, and
+// otherwise the parent module's member is selected. Unknown shapes fall back
+// to the written path so two-segment module::member sources keep working.
+fn reexport_source_key(source: String, modules: Vec<ModuleDecls>) -> String {
+    let leaf = paths::use_module_short_name(source.clone())
+    if modules::module_registered(modules, leaf.clone()) {
+        return leaf
+    }
+    let parent = paths::use_module_parent_path(source.clone())
+    if parent.clone().len() == 0 {
+        return source.clone()
+    }
+    let parent_leaf = paths::use_module_short_name(parent)
+    if !modules::module_registered(modules, parent_leaf.clone()) {
+        return source.clone()
+    }
+    parent_leaf.concat("::".concat(leaf))
 }

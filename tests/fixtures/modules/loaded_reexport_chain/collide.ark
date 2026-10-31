@@ -1,0 +1,7 @@
+//! `gamma` loads this module before the facade, so a flat bare-name lookup
+//! binds this `answer(String)` before the re-exported `answer() -> i32`. The
+//! return types match; only the arity tells the declarations apart.
+
+pub fn answer(text: String) -> i32 {
+    text.len()
+}

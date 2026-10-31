@@ -426,11 +426,10 @@ not resolver-processed.
   module graph does not define (the compiler source's bare cross-module helper
   calls). Closing it needs resolver processing of loaded bodies — imports and
   accepted identities on those ASTs — not another local lookup change.
-- Import resolution follows direct `use owner::symbol` edges. A symbol imported
-  from a module that only re-exports it (`pub use source::symbol`) has no
-  signature key under the facade module, so it still falls back to the bare flat
-  lookup. Resolving `pub use` chains in the typechecker module graph is the next
-  increment.
+- Import resolution followed direct `use owner::symbol` edges. A symbol imported
+  from a module that only re-exports it (`pub use source::symbol`) had no
+  signature key under the facade module and fell back to the bare flat lookup.
+  Resolved by the `wave/reexport-merge` update below.
 - The qualified-name fallbacks (`call_fn.ark` prefix strip, `sigs.ark` leaf) and
   the flat `Owner::method` impl key are unchanged; they are name-derived, not
   module-graph-derived, and are tracked by the existing residual bullets above
@@ -440,3 +439,81 @@ not resolver-processed.
   lookup still sees the first same-named declaration. The recorded declaration
   drives the emitted call and the runtime output is correct; the audit path is
   not a gate.
+
+## Update (2026-10-31, `wave/reexport-merge`) — loaded bodies follow `pub use` re-export chains
+
+`wave/loaded-reexport` (`2b0921ce0`, based on `106ec0ac5`) carried the re-export
+increment together with its own copy of the loaded-body wiring restore.
+`de7614545` already has that wiring from `106ec0ac5`, so this merge re-applies
+only the re-export delta and keeps main's `entry.ark` /
+`infer_env_scope.ark` wiring. `loaded_module_names` and `module_decl_starts`
+stay in `loaded_body_scope.ark` because main still calls them from `entry.ark`.
+
+### Item 1 — re-export chains
+
+`typechecker/loaded_body_scope.ark` collects the loaded modules' `pub use`
+edges once. When `use facade::symbol` has no direct `facade::symbol` signature
+key, the scan follows the facade's edges:
+
+- `pub use source::symbol` selects the parent module's member;
+- `pub use source` re-exports the whole module, so it answers any requested
+  symbol, matching `resolver::register_imported::reexport_module_symbols`;
+- a visited-module set stops cyclic re-exports, and the recursion is bounded by
+  the loaded module count;
+- the edge resolves to the flat `declaring_module::symbol` key, so a two-hop
+  `facade -> mid -> source` chain binds `source::symbol`.
+
+The use-path-to-module-key normalization moved to
+`resolver::modules::reexport_source_key` and is shared with the resolver's
+`collect_pub_use_edges`, so the resolver and the typechecker cannot drift on
+path shapes.
+
+### Fixture
+
+`tests/fixtures/modules/loaded_reexport_chain/` (registered as `module-run:`
+and `run:`):
+
+- `source::answer() -> i32` is re-exported by `mid` (`pub use source::answer`)
+  and `facade` (`pub use mid`, the whole-module form).
+- `collide::answer(String) -> i32` loads first and owns the flat bare `answer`
+  slot; the matching return type leaves arity as the discriminator.
+- `gamma` imports `facade::answer` and calls `answer()` in a loaded body.
+
+The pinned `bc81d60b` compiler rejects the fixture with E0203 (`wrong number of
+arguments for answer: expected 1, found 0`). The changed compiler prints `42`
+on wasm32-gc and wasm32.
+
+### Evidence
+
+- `selfhost build-compiler`: PASS, 110.3s, s2 =
+  `f891a145d87fcf472076cce8b5f603fbb5c2d2aa70404ef1e2cdd5ebc2611857`.
+- `verify fixtures`: PASS=1984 FAIL=0 COMPILE_VALIDATE=1984 EXECUTED=115
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane`: PASS (quality changed; lint checked=9 failed=0).
+- `docs check`: 6/6 PASS after regenerating the fixture-registry count
+  (`3709` → `3711`; `fixture_not_in_last_harness_snapshot` `2121` → `2123`).
+- `selfhost diag-parity`: PASS.
+- `selfhost fixpoint`: s2 == s3 =
+  `f891a145d87fcf472076cce8b5f603fbb5c2d2aa70404ef1e2cdd5ebc2611857`
+  on pin
+  `bc81d60b338480bce5b45f185652e409a4af4235b34a655b0ebeac5411734aff`.
+
+### Remaining
+
+- The flat fallback is still reachable for a loaded-body bare name that the
+  module graph does not define (the compiler source's bare cross-module helper
+  calls). Closing it needs resolver processing of loaded bodies.
+- `W0006` is a separate lint defect, not the loaded-body resolver gap.
+  `lint/checks.ark::collect_referenced_modules` records only `NK_PATH` module
+  parts, while a bare call callee is an `NK_IDENT`. A selective import used as
+  `use source::measure` + `measure(2)` is therefore reported unused even in a
+  resolver-processed entry body. The new fixture's `pub use` files also warn
+  when linted as standalone entries. Fixing this changes W0006 across all
+  sources and the LSP expected outputs (for example `lsp_signature_help`), so
+  it needs its own lane.
+- The typechecker scan does not re-check `pub use` source visibility; the
+  resolver remains the visibility authority, and direct `use owner::symbol`
+  already ignored visibility.
+- Re-exported impl methods and enum variants (`pub use source::Owner::method`)
+  are not bare-name callables in this scope; only single-segment callables are
+  resolved.

@@ -1,0 +1,15 @@
+//! Regression guard for loaded-body re-export chains: `gamma` imports
+//! `facade::answer`, which is declared in `source` and re-exported through
+//! `mid`. `collide` loads first and owns the flat bare `answer` slot, so
+//! binding it would reject the zero-argument call.
+
+use std::host::stdio::Stdio
+use collide
+use gamma
+
+fn main() {
+    // Keep `collide` referenced so the fixture does not rely on an unused
+    // import, and load it before `gamma` so its declaration holds the flat slot.
+    collide::answer(String_from("x"))
+    Stdio::println(gamma::probe().to_string())
+}

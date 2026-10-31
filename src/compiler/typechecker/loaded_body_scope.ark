@@ -1,10 +1,46 @@
 use std::text
+use parser::ast
 use collections::name_index
 use typechecker::ast_access
 use typechecker::ast_decl_predicates
 use typechecker::contract_fn_sig
 use resolver::modules
 use resolver::paths
+
+struct ReexportEdge {
+    target: String,
+    source: String,
+    source_is_module: bool,
+}
+
+// Inputs a loaded-body bare-name index needs beyond the signatures: the
+// module graph itself, the flat declaration index, and the `pub use` edges
+// that connect a facade to the module that declares the symbol.
+struct LoadedScopeInputs {
+    modules: Vec<ModuleDecls>,
+    flat_index: NameIndex,
+    reexport_edges: Vec<ReexportEdge>,
+}
+
+fn ReexportEdge_new(target: String, source: String, source_is_module: bool) -> ReexportEdge {
+    ReexportEdge {
+        target: target,
+        source: source,
+        source_is_module: source_is_module,
+    }
+}
+
+fn LoadedScopeInputs_new(
+    modules: Vec<ModuleDecls>,
+    flat_index: NameIndex,
+    reexport_edges: Vec<ReexportEdge>
+) -> LoadedScopeInputs {
+    LoadedScopeInputs {
+        modules: modules,
+        flat_index: flat_index,
+        reexport_edges: reexport_edges,
+    }
+}
 
 // Loaded-module bodies are not resolver-processed, so their bare names carry
 // no accepted declaration identity on the AST. Their lexical scope is still
@@ -21,7 +57,12 @@ fn build_loaded_bare_sig_index(
 ) -> NameIndex {
     let mut index = name_index::NameIndex_empty()
     index = insert_module_own_sigs(index, fn_sigs, qualified_keys)
-    index = insert_module_imports(index, modules, flat_index)
+    let inputs = LoadedScopeInputs_new(
+        modules,
+        flat_index,
+        collect_reexport_edges(modules)
+    )
+    index = insert_module_imports(index, inputs)
     insert_module_prelude_sigs(index, fn_sigs, qualified_keys, modules)
 }
 
@@ -59,15 +100,11 @@ fn is_module_member_key(key: String, sig_name: String) -> bool {
 // Only the member form of a `use` path imports a callable bare name; a leaf
 // that names a loaded module binds the module itself, and qualified calls
 // still go through the exact module-keyed signature index.
-fn insert_module_imports(
-    mut index: NameIndex,
-    modules: Vec<ModuleDecls>,
-    flat_index: NameIndex
-) -> NameIndex {
-    let module_count = modules.len()
+fn insert_module_imports(mut index: NameIndex, inputs: LoadedScopeInputs) -> NameIndex {
+    let module_count = inputs.modules.len()
     let mut mi = 0
     while mi < module_count {
-        let module = modules.get_unchecked(mi)
+        let module = inputs.modules.get_unchecked(mi)
         let module_name = modules::module_name(module)
         let decl_count = modules::module_decl_count(module)
         let mut di = 0
@@ -76,8 +113,7 @@ fn insert_module_imports(
             if ast_decl_predicates::node_is_use(decl) {
                 index = insert_use_decl_imports(
                     index,
-                    modules,
-                    flat_index,
+                    inputs,
                     module_name.clone(),
                     decl
                 )
@@ -93,15 +129,13 @@ fn insert_module_imports(
 // as child `use` nodes, so both levels are imports of this module.
 fn insert_use_decl_imports(
     mut index: NameIndex,
-    modules: Vec<ModuleDecls>,
-    flat_index: NameIndex,
+    inputs: LoadedScopeInputs,
     module_name: String,
     decl: AstNode
 ) -> NameIndex {
     index = insert_use_path_import(
         index,
-        modules,
-        flat_index,
+        inputs,
         module_name.clone(),
         ast_access::node_text(decl)
     )
@@ -112,8 +146,7 @@ fn insert_use_decl_imports(
         if ast_decl_predicates::node_is_use(child) {
             index = insert_use_path_import(
                 index,
-                modules,
-                flat_index,
+                inputs,
                 module_name.clone(),
                 ast_access::node_text(child)
             )
@@ -125,17 +158,17 @@ fn insert_use_decl_imports(
 
 // The imported declaration keeps the identity of its defining module: the
 // flat index already keys it `<owner>::<symbol>`, so only the owning module of
-// this body has to be added to the key. A re-exported symbol has no signature
-// key under the facade module; it is left to the documented fallback.
+// this body has to be added to the key. When the path goes through a facade,
+// the symbol is declared in the module the facade re-exports from, so follow
+// the `pub use` edges before falling back.
 fn insert_use_path_import(
     mut index: NameIndex,
-    modules: Vec<ModuleDecls>,
-    flat_index: NameIndex,
+    inputs: LoadedScopeInputs,
     module_name: String,
     use_path: String
 ) -> NameIndex {
     let symbol = paths::use_module_short_name(use_path.clone())
-    if modules::module_registered(modules, symbol.clone()) {
+    if modules::module_registered(inputs.modules, symbol.clone()) {
         return index
     }
     let parent_path = paths::use_module_parent_path(use_path)
@@ -143,13 +176,21 @@ fn insert_use_path_import(
         return index
     }
     let owner = paths::use_module_short_name(parent_path)
-    if !modules::module_registered(modules, owner.clone()) {
+    if !modules::module_registered(inputs.modules, owner.clone()) {
         return index
     }
-    let position = name_index::name_index_get(
-        flat_index,
+    let mut position = name_index::name_index_get(
+        inputs.flat_index,
         owner.concat(String_from("::").concat(symbol.clone()))
     )
+    if position < 0 {
+        position = reexport_definition_position(
+            inputs,
+            owner,
+            symbol.clone(),
+            Vec::new<String>()
+        )
+    }
     if position < 0 {
         return index
     }
@@ -159,6 +200,142 @@ fn insert_use_path_import(
         position
     )
     index
+}
+
+// A facade can expose a symbol with `pub use` instead of declaring it, and a
+// chain can pass through several facades. Only the defining declaration has a
+// flat signature key (`declaring_module::symbol`), so walk the facade's
+// re-export edges until one names that key. `visited` stops a cyclic re-export
+// from looping; the graph has few `pub use` edges, so the scan stays small.
+fn reexport_definition_position(
+    inputs: LoadedScopeInputs,
+    module_name: String,
+    symbol: String,
+    visited: Vec<String>
+) -> i32 {
+    if is_name_visited(visited, module_name.clone()) {
+        return 0 - 1
+    }
+    let mut seen = visited
+    seen.push(module_name.clone())
+    let edge_count = inputs.reexport_edges.len()
+    let mut ei = 0
+    while ei < edge_count {
+        let edge = inputs.reexport_edges.get_unchecked(ei)
+        ei = ei + 1
+        if !edge.target.eq(module_name.clone()) {
+            continue
+        }
+        let source_key = reexport_edge_source_key(edge, symbol.clone())
+        if source_key.len() == 0 {
+            continue
+        }
+        let position = name_index::name_index_get(inputs.flat_index, source_key.clone())
+        if position >= 0 {
+            return position
+        }
+        let source_module = if edge.source_is_module {
+            edge.source.clone()
+        } else {
+            paths::use_module_short_name(paths::use_module_parent_path(source_key))
+        }
+        if source_module.len() == 0 || is_name_visited(seen.clone(), source_module.clone()) {
+            continue
+        }
+        let nested = reexport_definition_position(
+            inputs,
+            source_module,
+            symbol.clone(),
+            seen.clone()
+        )
+        if nested >= 0 {
+            return nested
+        }
+    }
+    0 - 1
+}
+
+// A whole-module `pub use source` re-exports every public member of `source`
+// under the target module, so it can answer any requested symbol. A symbol
+// edge (`pub use source::answer`) only answers its own leaf name.
+fn reexport_edge_source_key(edge: ReexportEdge, symbol: String) -> String {
+    if edge.source_is_module {
+        return edge.source.clone().concat(String_from("::").concat(symbol))
+    }
+    if paths::use_module_short_name(edge.source.clone()).eq(symbol.clone()) {
+        return edge.source.clone()
+    }
+    String_new()
+}
+
+// Collect the `pub use` edges once per loaded-body index rebuild. A braced
+// group keeps its first member in the declaration text and the rest as child
+// `use` nodes, matching `insert_use_decl_imports`.
+fn collect_reexport_edges(modules: Vec<ModuleDecls>) -> Vec<ReexportEdge> {
+    let mut edges = Vec::new<ReexportEdge>()
+    let module_count = modules.len()
+    let mut mi = 0
+    while mi < module_count {
+        let module = modules.get_unchecked(mi)
+        let module_name = modules::module_name(module)
+        let decl_count = modules::module_decl_count(module)
+        let mut di = 0
+        while di < decl_count {
+            let decl = modules::module_decl_at(module, di)
+            if ast_decl_predicates::node_is_use(decl) && ast::ast_node_is_pub(decl) {
+                edges = push_reexport_edge(
+                    edges,
+                    modules,
+                    module_name.clone(),
+                    ast_access::node_text(decl)
+                )
+                let child_count = ast_access::node_child_count(decl)
+                let mut ci = 0
+                while ci < child_count {
+                    let child = ast_access::node_child_at(decl, ci)
+                    if ast_decl_predicates::node_is_use(child) {
+                        edges = push_reexport_edge(
+                            edges,
+                            modules,
+                            module_name.clone(),
+                            ast_access::node_text(child)
+                        )
+                    }
+                    ci = ci + 1
+                }
+            }
+            di = di + 1
+        }
+        mi = mi + 1
+    }
+    edges
+}
+
+fn push_reexport_edge(
+    mut edges: Vec<ReexportEdge>,
+    modules: Vec<ModuleDecls>,
+    target: String,
+    source_path: String
+) -> Vec<ReexportEdge> {
+    let source = modules::reexport_source_key(source_path, modules)
+    if source.len() == 0 {
+        return edges
+    }
+    let source_is_module = modules::module_registered(modules, source.clone())
+    edges.push(ReexportEdge_new(target, source, source_is_module))
+    edges
+}
+
+fn is_name_visited(names: Vec<String>, name: String) -> bool {
+    let count = names.len()
+    let mut i = 0
+    while i < count {
+        if names.get_unchecked(i).eq(name.clone()) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 // Prelude decls stay in scope for every loaded body. They are inserted last,
@@ -225,6 +402,7 @@ fn module_decl_starts(modules: Vec<ModuleDecls>) -> Vec<i32> {
     starts
 }
 
+// Loaded module that owns a decl in the combined loaded+entry decl list.
 fn module_index_at(starts: Vec<i32>, entry_decl_start: i32, decl_index: i32) -> i32 {
     if decl_index >= entry_decl_start || starts.len() == 0 {
         return 0 - 1

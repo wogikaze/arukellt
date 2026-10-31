@@ -1,0 +1,3 @@
+//! First hop: `answer` is declared in `source` and re-exported by name.
+
+pub use source::answer

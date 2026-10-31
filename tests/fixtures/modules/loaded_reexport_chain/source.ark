@@ -1,0 +1,7 @@
+//! The declaration behind the re-export chain. `mid` re-exports it, and
+//! `facade` re-exports `mid`, so a loaded body's `use facade::answer` has no
+//! direct signature key under either facade module.
+
+pub fn answer() -> i32 {
+    42
+}

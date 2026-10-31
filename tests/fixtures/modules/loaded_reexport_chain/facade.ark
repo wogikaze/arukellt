@@ -1,0 +1,5 @@
+//! Second hop: re-export the whole `mid` module, the shape std facades use
+//! (`std::json` re-exports `std::json::parser`). The re-exported members are
+//! reached through the facade's flat name.
+
+pub use mid
