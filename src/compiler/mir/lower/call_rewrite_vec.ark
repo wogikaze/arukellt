@@ -162,7 +162,7 @@ fn mir_rewrite_vec_call(mut ctx: LowerCtx, callee_name: String, first_arg_idx: i
     )
     let mut push_i64_needs_extend = false
     if is_vec_len_callee(rewritten.clone()) {
-        rewritten = mir_rewrite_vec_len(ctx, span_start, rewritten)
+        rewritten = mir_rewrite_vec_len(ctx, first_arg_idx, span_start, rewritten)
     }
     if is_vec_push_callee(rewritten.clone()) {
         let push_rewrite = call_rewrite_vec_push::mir_rewrite_vec_push(ctx, span_start, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
@@ -242,9 +242,8 @@ fn mir_rewrite_vec_is_empty_to_local(mut ctx: LowerCtx, first_arg_idx: i32) -> i
 // `len` is a receiver method now (the free was retired). Lowering binds the
 // owner-qualified FunctionId the CoreOp registry already maps to
 // `string.len` / `vec.len`. The bare `len` branch remains only for the flat
-// bootstrap overlay declaration the pinned compiler still uses. A site
-// without a resolution stays untouched.
-fn mir_rewrite_vec_len(ctx: LowerCtx, span_start: i32, callee_name: String) -> String {
+// bootstrap overlay declaration the pinned compiler still uses.
+fn mir_rewrite_vec_len(ctx: LowerCtx, first_arg_idx: i32, span_start: i32, callee_name: String) -> String {
     if callee_name.clone().eq(String_from("String::len")) ||
     callee_name.clone().starts_with(String_from("String::len__")) {
         return String_from("String::len")
@@ -271,13 +270,34 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, span_start: i32, callee_name: String) -> S
     if owner.eq(String_from("Vec")) {
         return String_from("Vec::len")
     }
+    // The checker records no owner for a receiver it could not type (a
+    // `String` built by `.slice(...)` has no declaration in the trimmed
+    // overlay). A bare `len` has no emitted declaration to bind either, so
+    // the call would lower to the unresolved-call trap. Recover the owner
+    // from the receiver local's own spelling, which the lowering maintains.
+    if first_arg_idx >= 0 && is_prelude_len_callee(callee_name.clone()) {
+        let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if receiver_type.clone().eq(String_from("Vec")) ||
+        receiver_type.clone().starts_with("vec:") ||
+        receiver_type.clone().starts_with("array:") {
+            return String_from("Vec::len")
+        }
+        if receiver_type.clone().eq(String_from("String")) ||
+        receiver_type.clone().eq("string") {
+            return String_from("String::len")
+        }
+    }
     callee_name
 }
 
-fn is_dispatchable_len_name(callee_name: String) -> bool {
+fn is_prelude_len_callee(callee_name: String) -> bool {
     callee_name.clone().eq(String_from("len")) ||
     callee_name.clone().eq(String_from("prelude::len")) ||
-    callee_name.clone().eq(String_from("std::prelude::len")) ||
+    callee_name.clone().eq(String_from("std::prelude::len"))
+}
+
+fn is_dispatchable_len_name(callee_name: String) -> bool {
+    is_prelude_len_callee(callee_name.clone()) ||
     callee_name.clone().starts_with(String_from("len__"))
 }
 
@@ -355,4 +375,20 @@ fn mir_rewrite_vec_basic(callee_name: String) -> String {
         rewritten = String_from("raw_array_set_unchecked")
     }
     rewritten
+}
+
+test mod "vec_len_rewrite" {
+    test "prelude_len_spellings" {
+        assert(is_prelude_len_callee(String_from("len")))
+        assert(is_prelude_len_callee(String_from("prelude::len")))
+        assert(is_prelude_len_callee(String_from("std::prelude::len")))
+        assert(!is_prelude_len_callee(String_from("String::len")))
+        assert(!is_prelude_len_callee(String_from("len__String")))
+    }
+    test "dispatchable_len_names" {
+        assert(is_dispatchable_len_name(String_from("len")))
+        assert(is_dispatchable_len_name(String_from("len__String")))
+        assert(!is_dispatchable_len_name(String_from("Vec::len")))
+        assert(!is_dispatchable_len_name(String_from("byte_len")))
+    }
 }

@@ -337,3 +337,89 @@ can be re-applied once the generation is faithful.
    declarations fails the stage-2 build with `E0212 use of moved value
    rest_len` in `mir/lower/call_mono.ark`.
 3. **`Env::*` / entry-module host rewrites** stay gated on the legacy core pins.
+
+## Update 2026-10-31 — `len` stub fixed; refresh blocked by a gc clone misresolution
+
+Lane `.worktrees/wave-len-shim-bootstrap` (`wave/len-shim-bootstrap`), base
+`5ff36769d`, commit `56fedbcd8`, `ARUKELLT_BUILD_DIR=$PWD/.build-lane`, same
+toolchain (Wasmtime 46.0.1, wasm-tools 1.252.0).
+
+### The fix
+
+The seven sites all reached `mir_rewrite_vec_len` as the bare `len` callee with
+the prelude shim's FunctionId (`fid 69`). That declaration has no MIR body in
+the overlay, so no emitted function exists to bind, and the emitter's name
+fallback matches owner-qualified spellings only (`::len`); the bare callee
+therefore lowered to `drop; unreachable`. The checker's per-call record is
+present for the working neighbours and absent exactly when it could not type
+the receiver (a `String` / `Vec` produced by `.slice(...)` or another untyped
+call): the MIR receiver local still carries `String`, `string` or `vec:String`.
+
+`mir_rewrite_vec_len` now takes the receiver local index and, after the
+recorded FunctionId / owner lookups, recovers the owner from the receiver local
+spelling (`Vec` / `vec:` / `array:` -> `Vec::len`; `String` / `string` ->
+`String::len`) for the prelude `len` spellings only. A mangled `len__*`
+instance keeps its bound declaration, and no emitter-side bare-name resolution
+was added, so #917 / #928 are unchanged for user code. A `test mod` pins the
+name-set guard.
+
+Cheap probe (producer = the stage-2 s2, entry importing the seven affected
+modules): 7 bare `callee=len` -> 0, the emitted module loses exactly the seven
+`drop; unreachable` stubs, and the sites now emit `String::len` / `Vec::len`
+with the same FunctionIds as their already-working neighbours.
+
+### Convergence
+
+| Step | Value |
+|------|-------|
+| s2_1 = committed pin(source) | `ef67953636f9528a18641c30194199382876b0ada08015741cd90337b9f099d8`, 11 305 681 B |
+| s2_2 = s2_1(source), 2 413.6 s | `8e01d11c904260dca0cb320f29a72ee3eea41df363d99a33428032316e800936`, 11 316 609 B |
+| s2_3 = s2_2(source), 2 209.4 s | `8e01d11c…` — fixed point |
+| s2_2's seven functions | `unreachable` 0,0,0,2,0,1,0 (was 1,1,1,3,1,2,1); the 2+1 are `Vec` bounds traps (`i32.ge_u; if unreachable`), not unresolved calls |
+
+The p1 generation is converged and faithful: the converged generation no longer
+stubs `len`. Gates against the current pin: `verify fixtures` PASS (1974
+compile+validate, 43/43 tests), `verify lane` PASS, `docs check` 6/6,
+`selfhost diag-parity` PASS, `selfhost fixpoint` PASS (`s2 == s3 ==
+ef679536…`).
+
+`docs check` needs the doc-example gate pointed at the lane s2 through
+`ARUKELLT_SELFHOST_WASM`; with the committed pin the ADR-086 block 0 example
+fails validation (the pin miscompiles it, while the fixed s2 compiles it
+byte-identically to the pre-fix s2).
+
+### New blocker: the gc self-build misresolves `Vec::clone`
+
+The gc self-build of the fixed-point s2 is invalid, so the candidate pin cannot
+be packaged and no pin was installed:
+
+| Field | Value |
+|-------|-------|
+| producer | s2_2 `8e01d11c…` |
+| gc core | `229f7133a0da443d54f411c05e753842b49bccb9102b0f819f47128b93b3f531`, 8 330 327 B |
+| `wasm-tools validate` | FAIL — `func 1372 failed to validate: type mismatch: expected (ref null $type), found (ref null $type) (at offset 0x96a91)` |
+| component packaging | FAIL (invalid core) |
+| failing instruction | `local.get $declared; call $Vec__clone__TypeInfo` in `resolver_impl_target__impl_target_type_name`, where `declared: Vec<String>` |
+
+The same producer's **p1** output calls `Vec__clone__String` at all three
+`declared.clone()` sites, so the p1 chain validates and hides the defect; the
+gc target exposes the wrong instance through ref types. The gc core has 23
+`Vec__clone__TypeInfo` call sites; the wrong one is the second `declared.clone()`
+in the function. This is the instantiation-blind clone-instance selection (the
+name-rewrite pool picks the first unused `Vec__clone__*` instance) surfacing
+when the gc target mints the `Vec<TypeInfo>` instance, not a `len` regression:
+the pre-fix s2 at HEAD (`bbc1f2b4…`, the `len` fix reverted) builds gc core
+`0f8be83a…`, which fails at the *same* call (`func 1372`, offset `0x96a8f`,
+`call $Vec__clone__TypeInfo`). The failure is therefore present at HEAD without
+the `len` fix and is the next refresh blocker.
+
+### Residuals after this lane
+
+1. **gc clone misresolution** (the blocker above): fix the clone instance
+   selection (or the span-based mono lookup), re-run the gc self-build, then
+   the candidate p1 identity / gc self-reproduction / fixture contract.
+2. **Pin**: `56ff0808…` remains the official pin. The `len` fix is committed on
+   `wave/len-shim-bootstrap` (`56fedbcd8`), but the pin was not refreshed.
+3. **Shims**: unchanged. The prelude `len` shim stays because the compiler
+   source still calls the free `len`; the overlay still needs the declaration
+   after a pin refresh.
