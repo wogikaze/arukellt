@@ -274,59 +274,6 @@ def _rewrite_bootstrap_wit_type_paths_text(text: str) -> str:
     return re.sub(rf"\b(?:ast|types|world)::({names})\b", r"\1", text)
 
 
-def _patch_bootstrap_numeric_conversion_bridge(overlay_root: Path) -> None:
-    """Adapt the retired numeric conversion frees for the pinned bootstrap.
-
-    The pin's baked CoreOp binding table keys the conversion operations on the
-    retired bare names, and its ``ctx_fn_return_vt`` does not type the f32/f64
-    intrinsic results. Re-add the prelude declarations and rewrite the
-    ``std/core/convert.ark`` method bodies to the free-call spelling so the pin
-    emits the same operations. Overlay-only: checked-in std keeps the
-    ``__intrinsic_*`` lowering keys. Delete with the pin refresh.
-    """
-    prelude_path = overlay_root / "std" / "prelude.ark"
-    if not prelude_path.is_file():
-        raise BootstrapOverlayError(
-            "bootstrap overlay missing std/prelude.ark for the numeric conversion bridge"
-        )
-    prelude = prelude_path.read_text(encoding="utf-8")
-    if "pub fn u8_to_i32" not in prelude:
-        prelude_path.write_text(prelude + BOOTSTRAP_NUMERIC_FREE_DECLS, encoding="utf-8")
-
-    convert_path = overlay_root / "std" / "core" / "convert.ark"
-    if not convert_path.is_file():
-        raise BootstrapOverlayError(
-            "bootstrap overlay missing std/core/convert.ark for the numeric conversion bridge"
-        )
-    text = convert_path.read_text(encoding="utf-8")
-    text = _replace_required(
-        text,
-        "use std::text\n",
-        "use std::text\n" + BOOTSTRAP_NUMERIC_CONVERT_IMPORT + "\n",
-        "numeric conversion bridge: restore prelude import in convert.ark",
-    )
-    for intrinsic, free in BOOTSTRAP_NUMERIC_CONVERT_INTRINSICS:
-        text = text.replace(f"{intrinsic}(", f"{free}(")
-    if "__intrinsic_f32_to_f64(" in text or "__intrinsic_scalar_f64_bits_lo(" in text:
-        raise BootstrapOverlayError(
-            "numeric conversion bridge left a method body on an intrinsic the pin cannot lower"
-        )
-    convert_path.write_text(text, encoding="utf-8")
-
-    # `std/core/raw.ark` is in the prelude closure, so it cannot import
-    # `std::core::convert` without exposing that module's `From` trait to every
-    # program. It uses the f32 intrinsic directly; rewrite it for the pin, whose
-    # return-vt table does not type the intrinsic result.
-    raw_path = overlay_root / "std" / "core" / "raw.ark"
-    if not raw_path.is_file():
-        raise BootstrapOverlayError(
-            "bootstrap overlay missing std/core/raw.ark for the numeric conversion bridge"
-        )
-    raw_text = raw_path.read_text(encoding="utf-8")
-    raw_text = raw_text.replace("__intrinsic_f32_to_f64(", "f32_to_f64(")
-    raw_path.write_text(raw_text, encoding="utf-8")
-
-
 def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
     """Route the bootstrap compiler's ``Env::*`` calls through the free builtins.
 
@@ -336,22 +283,22 @@ def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
     type ``__intrinsic_args`` / ``Env::args`` as ``vec:String``. A reachable
     ``Env::args`` therefore stores the Vec ref in an i64 temp, and the generated
     compiler fails ``wasm-tools validate`` with ``expected i64, found (ref null
-    $type)``. The flat overlay is shared with the official gc pin, whose source
-    already includes #917, so the rewrite remains to keep the stage-2 source
-    and emitted s2 byte-identical across pins. Rewriting to the free builtin
-    spelling (and the module import) keeps the checked-in ``Env`` namespace for
-    user code and stage-3.
+    $type)``. The official gc pin's source already includes #917's env
+    call-result typing, and the rewrite is emission-neutral there, so
+    ``_prepare_flattened_selfhost_source_locked`` runs this patch only when a
+    legacy core pin is selected. The rewrite keeps the checked-in ``Env``
+    namespace for user code while spelling the compiler's own calls as the free
+    builtin.
 
     The current entry module goes through the prelude ``args`` stub (see
     ``_patch_bootstrap_main_host_to_prelude``) and the duplicate legacy
-    ``driver/cli.ark`` entry is stripped by overlay dedupe, so this patch
-    currently normalizes imports only. Keep it as the guard for any reachable
-    ``Env::*`` call added to the compiler.
+    ``driver/cli.ark`` entry is stripped by overlay dedupe, so on the legacy
+    path this patch currently normalizes imports only. Keep it as the guard for
+    any reachable ``Env::*`` call added to the compiler.
 
-    Delete condition: the core trust-anchor/override pins are retired, or the
-    overlay becomes pin-aware and ships the real ``Env`` namespace to pins that
-    include #917's typing. Verify with a probe that ``Env::args`` lowers to
-    ``call $Env::args`` (not the unresolved fallback) and validates before
+    Delete condition: the core trust-anchor/override pins are retired. Verify
+    with a probe that ``Env::args`` lowers to ``call $Env::args`` (not the
+    unresolved fallback) and validates under the selected core pin before
     removing this patch.
     """
     compiler_root = workspace_root / "src" / "compiler"
@@ -372,28 +319,6 @@ def _patch_bootstrap_host_env_paths(workspace_root: Path) -> None:
             patched = patched.replace(f"Env::{member}(", f"env::{member}(")
         if patched != source:
             path.write_text(patched, encoding="utf-8")
-
-
-def _patch_bootstrap_printable_boundary(overlay_root: Path) -> None:
-    """Spell the print boundary as String for the pinned compiler.
-
-    The checked-in ``Stdio::print(s: String<__Printable>)`` marks the emitter's
-    scalar-to-String conversion boundary. The pin predates the marker: it would
-    type the parameter as an unknown struct, while its own print lowering still
-    passes the converted String, so the stage-2 function ABI would not match the
-    call sites. The pin only has to build the compiler, so spell the boundary as
-    ``String`` in the overlay. Delete this patch when the pin knows the
-    ``__Printable`` marker (the next pin refresh).
-    """
-    stdio = overlay_root / "std" / "host" / "stdio.ark"
-    if not stdio.is_file():
-        raise BootstrapOverlayError(
-            "bootstrap overlay missing std/host/stdio.ark for the print boundary"
-        )
-    text = stdio.read_text(encoding="utf-8")
-    if "String<__Printable>" not in text:
-        return
-    stdio.write_text(text.replace("String<__Printable>", "String"), encoding="utf-8")
 
 
 def _assert_bootstrap_overlay_clock_reads_stubbed(workspace_root: Path) -> None:
@@ -791,64 +716,6 @@ pub fn bootstrap_emit_wit_from_decls_with_world(decls: Vec<AstNode>, world: Stri
 pub fn bootstrap_collect_wit_export_roots(decls: Vec<AstNode>) -> Vec<String> {
     component_wit_text__collect_export_roots(decls)
 }
-"""
-
-# Numeric conversion bridge for the pinned bootstrap.
-#
-# The checked-in tree retired the 17 `*_to_*` / `*_bits_*` prelude frees and
-# moved the lowering keys onto the `__intrinsic_*` names (ADR-046 / ADR-067).
-# The committed pin's baked CoreOp binding table still keys those operations on
-# the bare free names, so the overlay supplies the retired declarations and
-# rewrites the method bodies for the pin only. Delete this bridge when the pin
-# is refreshed to a compiler whose table contains the intrinsic aliases.
-BOOTSTRAP_NUMERIC_CONVERT_INTRINSICS = (
-    ("__intrinsic_i32_to_i64", "i32_to_i64"),
-    ("__intrinsic_i64_to_i32", "i64_to_i32"),
-    ("__intrinsic_u8_to_i32", "u8_to_i32"),
-    ("__intrinsic_u16_to_i32", "u16_to_i32"),
-    ("__intrinsic_i8_to_i32", "i8_to_i32"),
-    ("__intrinsic_i16_to_i32", "i16_to_i32"),
-    ("__intrinsic_i32_to_u8", "i32_to_u8"),
-    ("__intrinsic_i32_to_i8", "i32_to_i8"),
-    ("__intrinsic_i32_to_u16", "i32_to_u16"),
-    ("__intrinsic_i32_to_i16", "i32_to_i16"),
-    ("__intrinsic_i32_to_u32", "i32_to_u32"),
-    ("__intrinsic_u32_to_u64", "u32_to_u64"),
-    ("__intrinsic_u64_to_u32", "u64_to_u32"),
-    ("__intrinsic_f32_to_f64", "f32_to_f64"),
-    ("__intrinsic_f64_to_f32", "f64_to_f32"),
-    ("__intrinsic_scalar_f64_bits_lo", "f64_bits_lo"),
-    ("__intrinsic_scalar_f64_bits_hi", "f64_bits_hi"),
-)
-
-BOOTSTRAP_NUMERIC_CONVERT_IMPORT = (
-    "use std::prelude::{i32_to_i64, i64_to_i32, u8_to_i32, u16_to_i32, "
-    "i8_to_i32, i16_to_i32, i32_to_u8, i32_to_i8, i32_to_u16, i32_to_i16, "
-    "i32_to_u32, u32_to_u64, u64_to_u32, f32_to_f64, f64_to_f32, "
-    "f64_bits_lo, f64_bits_hi}"
-)
-
-BOOTSTRAP_NUMERIC_FREE_DECLS = """
-// Bootstrap overlay bridge: the pin's CoreOp binding table keys these
-// conversions on the pre-retirement free names. Overlay-only; never shipped
-// as checked-in std source.
-pub fn u8_to_i32(x: u8) -> i32 { Std::panic(String_new()); return 0 }
-pub fn u16_to_i32(x: u16) -> i32 { Std::panic(String_new()); return 0 }
-pub fn i8_to_i32(x: i8) -> i32 { Std::panic(String_new()); return 0 }
-pub fn i16_to_i32(x: i16) -> i32 { Std::panic(String_new()); return 0 }
-pub fn i32_to_u8(x: i32) -> u8 { Std::panic(String_new()); return 0 }
-pub fn i32_to_u16(x: i32) -> u16 { Std::panic(String_new()); return 0 }
-pub fn i32_to_i8(x: i32) -> i8 { Std::panic(String_new()); return 0 }
-pub fn i32_to_i16(x: i32) -> i16 { Std::panic(String_new()); return 0 }
-pub fn u32_to_u64(x: u32) -> u64 { Std::panic(String_new()); return 0_u64 }
-pub fn u64_to_u32(x: u64) -> u32 { Std::panic(String_new()); return 0 }
-pub fn i32_to_i64(x: i32) -> i64 { Std::panic(String_new()); return 0_i64 }
-pub fn i64_to_i32(x: i64) -> i32 { Std::panic(String_new()); return 0 }
-pub fn f32_to_f64(x: f32) -> f64 { Std::panic(String_new()); return 0.0 }
-pub fn f64_to_f32(x: f64) -> f32 { Std::panic(String_new()); return 0.0f32 }
-pub fn i32_to_u32(n: i32) -> u32 { Std::panic(String_new()); return 0 }
-pub fn f64_bits_lo(x: f64) -> i32 { __core_scalar_f64_bits_lo_impl(x) }
-pub fn f64_bits_hi(x: f64) -> i32 { __core_scalar_f64_bits_hi_impl(x) }
 """
 
 LOCAL_COMPILER_NAMESPACES = {
@@ -4806,8 +4673,10 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_component_contract_delegate(compiler_out)
     _patch_bootstrap_driver_wit_delegate(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
+    # The overlay does not ship ``std/host/env.ark``, so every pin resolves the
+    # entry module's checked-in ``Env::args`` only as an undefined member. The
+    # prelude-stub rewrite is therefore not pin-specific.
     _patch_bootstrap_main_host_to_prelude(compiler_out)
-    _rewrite_bootstrap_stdio_calls(compiler_out)
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
@@ -4911,8 +4780,10 @@ def _prepare_flattened_selfhost_source_locked(
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source_path, dest_path)
     _patch_bootstrap_wit_type_paths(overlay_root)
-    _patch_bootstrap_host_env_paths(overlay_root)
-    _patch_bootstrap_printable_boundary(overlay_root)
+    # The gc pin's source already includes #917's env call-result typing; only
+    # the legacy core pins need the free-builtin spelling.
+    if _find_gc_pin(root) is None:
+        _patch_bootstrap_host_env_paths(overlay_root)
     _assert_bootstrap_overlay_clock_reads_stubbed(overlay_root)
     error_src = root / "std" / "core" / "error.ark"
     if not error_src.is_file():
@@ -4958,7 +4829,6 @@ def _prepare_flattened_selfhost_source_locked(
                 "bootstrap overlay missing canonical core source: std/core/" + core_rel
             )
         shutil.copyfile(core_src, core_dst / core_rel)
-    _patch_bootstrap_numeric_conversion_bridge(overlay_root)
     # The official gc pin parses and checks the #951 parameter modes, so the
     # gc path gets the real modes from the checked-in source.  The legacy core
     # trust-anchor/override pins predate the mode syntax and can only parse
@@ -4971,67 +4841,23 @@ def _prepare_flattened_selfhost_source_locked(
     return overlay_root
 
 
-_BOOTSTRAP_STDIO_INTRINSIC = {
-    "println": "__intrinsic_println",
-    "print": "__intrinsic_print",
-    "eprintln": "__intrinsic_eprintln",
-    "read_stdin": "__intrinsic_stdin_read_to_string",
-}
-
-# Calls at statement indentation only: the checked-in compiler also carries
-# `Stdio::...` inside generated-source string literals (init templates, test
-# desugar, lexer self-check) which must stay source text, not become intrinsic
-# calls in the compiler being built.
-_BOOTSTRAP_STDIO_CALL_RE = re.compile(
-    r"^(?P<indent>[ \t]+)(?:stdio::)?Stdio::(?P<method>println|print|eprintln|read_stdin)\(",
-    re.MULTILINE,
-)
-
-
-def _rewrite_bootstrap_stdio_calls(compiler_out: Path) -> None:
-    """Lower the checked-in ``Stdio::*`` calls to pin-known intrinsics.
-
-    The official/gc pins only know the retired free stdio surface and the
-    ``__intrinsic_*`` bridges, so a direct ``Stdio::println`` call uses the
-    pin's ordinary-call lowering while stage-2/3 treat the same spelling as a
-    printlike call that stages its argument. Rewriting the overlay source to
-    the intrinsic spelling keeps the pin and the stage-2/3 builds byte
-    identical without changing the checked-in public ``Stdio`` surface
-    (ADR-094). Delete this bridge when the pin knows ``Stdio::*`` natively.
-
-    The regex is anchored to indented statement starts so generated-source
-    string literals keep their ``Stdio::`` spelling.
-    """
-    for path in compiler_out.rglob("*.ark"):
-        if path.name == _OVERLAY_MAIN_ENTRY_REL:
-            continue
-        source = path.read_text(encoding="utf-8")
-        rewritten = _BOOTSTRAP_STDIO_CALL_RE.sub(
-            lambda match: match.group("indent")
-            + _BOOTSTRAP_STDIO_INTRINSIC[match.group("method")]
-            + "(",
-            source,
-        )
-        if rewritten != source:
-            path.write_text(rewritten, encoding="utf-8")
-
-
 def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
-    """Rewrite main.ark host calls to prelude free functions.
+    """Rewrite the entry module's host calls to prelude stubs.
 
-    The entry module only needs a line for the ``cli_has_error`` path. The pin
-    cannot lower ``Env::args`` (see ``_patch_bootstrap_host_env_paths``), and
-    the entry module therefore calls the prelude host-intrinsic stubs ``args``
-    / ``println`` and imports them explicitly. ``std/host/process.ark`` and
-    ``std/host/stdio.ark`` now ship in the overlay, so ``Process::exit`` and
-    ``Stdio::*`` resolve in other compiler files; the legacy ``process::exit``
-    / ``Stdio::eprintln`` rewrites below keep the entry module on the known
-    stubs.
+    The overlay does not ship ``std/host/env.ark``, so a checked-in
+    ``Env::args()`` resolves only as ``E0100 undefined module member`` under the
+    gc pin (and cannot be typed under the core pins, see
+    ``_patch_bootstrap_host_env_paths``). The entry module therefore calls the
+    prelude host-intrinsic stubs ``args`` / ``println`` and imports them
+    explicitly. ``std/host/process.ark`` and ``std/host/stdio.ark`` ship in the
+    overlay, so ``Process::exit`` and ``Stdio::*`` resolve in other compiler
+    files; the legacy ``process::exit`` / ``Stdio::eprintln`` rewrites below
+    keep the entry module on the known stubs.
 
-    Delete condition: a pin/overlay pair that resolves the checked-in
-    ``Env::args()`` / ``Stdio::eprintln`` entry module and validates the
-    generated compiler. Until then this keeps ``main`` on the known
-    host-intrinsic stubs instead of the unresolved-call fallback.
+    Delete condition: ship ``std/host/env.ark`` in the overlay so both pin
+    families resolve the checked-in ``Env::args()`` entry module, then probe
+    that the generated compiler validates. Retiring the core pins alone is not
+    enough while the entry module still references the shipped-out ``Env``.
     """
     main_path = compiler_out / "main.ark"
     if not main_path.is_file():
