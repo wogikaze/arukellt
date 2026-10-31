@@ -62,8 +62,13 @@ fn infer_method_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec<
     // so that impl-block methods are resolved to the correct signature.
     let recv_type_name = type_name_for_mangling(recv_ty)
     if recv_type_name.len() > 0 {
-        let mangled = recv_type_name.clone().concat(String_from("::").concat(method_name.clone()))
-        let mangled_sig = sigs::lookup_fn_sig(env, fn_sigs, mangled)
+        let mangled_sig = sigs::lookup_impl_method_sig(
+            env,
+            fn_sigs,
+            qualified_owner_name_for_mangling(recv_ty),
+            recv_type_name.clone(),
+            method_name.clone()
+        )
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
         }
@@ -493,6 +498,28 @@ fn infer_resolved_method_call(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: 
         return contract_fn_sig::FnSig_return_type(sig)
     }
     call_generic::infer_generic_method_call_expr(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
+}
+
+// Receiver-owner spelling that keeps the declaring module (`beta::Counter`).
+// The method signature index also registers loaded-module methods under that
+// qualified spelling, so two same-named owner types in different modules pick
+// their own declaration instead of the first flat `Owner::method` alias.
+// Builtin and bare receivers keep the existing flat lookup.
+fn qualified_owner_name_for_mangling(ty: TypeInfo) -> String {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag != commands::TY_STRUCT() && tag != commands::TY_ENUM() {
+        return String_new()
+    }
+    let type_name = contract_type_access::TypeInfo_name(ty)
+    let prefix = names::module_prefix(type_name)
+    if prefix.len() == 0 {
+        return String_new()
+    }
+    let owner = type_name_for_mangling(ty)
+    if owner.len() == 0 {
+        return String_new()
+    }
+    prefix.concat(String_from("::").concat(owner))
 }
 
 // Map a receiver TypeInfo to the type name used for impl method mangling.

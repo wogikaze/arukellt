@@ -36,3 +36,19 @@ fn unqualified_type_name(name: String) -> String {
     }
     name
 }
+
+// Module prefix of a qualified nominal spelling (`beta::Counter` -> `beta`),
+// or "" for a bare name. Impl methods are keyed by `module::Owner::method`, so
+// a receiver that kept its import path can name the declaring module instead
+// of relying on the flat owner alias.
+fn module_prefix(name: String) -> String {
+    let n = name.len()
+    let mut i = n - 2
+    while i >= 0 {
+        if name.byte_at(i) == 58 && name.byte_at(i + 1) == 58 {
+            return name.slice(0, i)
+        }
+        i = i - 1
+    }
+    String_new()
+}

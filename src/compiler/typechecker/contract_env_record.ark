@@ -59,6 +59,12 @@ struct TypeEnv {
     // First decl index of the entry module inside the combined loaded+entry
     // decl list. Bodies before it belong to loaded modules.
     entry_decl_start: i32,
+    // Loaded-module ranges in the combined decl list, parallel to
+    // `module_names`. Method calls in a loaded module body resolve through
+    // `module::Owner::method`, which keeps equal owner spellings from two
+    // modules apart (#934).
+    module_decl_starts: Vec<i32>,
+    module_names: Vec<String>,
     const_names: Vec<String>,
     const_types: Vec<TypeInfo>,
     current_fn_name: String,
@@ -107,6 +113,8 @@ fn TypeEnv_new() -> TypeEnv {
         fn_sig_index: name_index::NameIndex_new(0),
         bare_fn_sig_index: name_index::NameIndex_new(0),
         entry_decl_start: 0 - 1,
+        module_decl_starts: Vec::new<i32>(),
+        module_names: Vec::new<String>(),
         const_names: Vec::new<String>(),
         const_types: Vec::new<TypeInfo>(),
         current_fn_name: String_new(),

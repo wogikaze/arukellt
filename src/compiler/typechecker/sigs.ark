@@ -13,6 +13,61 @@ fn lookup_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     sig_lookup::lookup_fn_sig(env, fn_sigs, name)
 }
 
+// Module owning the body currently being checked, or "" for the entry module
+// (and for a body outside the loaded ranges).
+fn type_env_current_module_name(env: TypeEnv) -> String {
+    let decl_index = env.current_decl_index
+    if decl_index < 0 {
+        return String_new()
+    }
+    let count = env.module_decl_starts.len()
+    let mut i = 0
+    while i < count {
+        let start = env.module_decl_starts.get_unchecked(i)
+        let end = if i + 1 < count {
+            env.module_decl_starts.get_unchecked(i + 1)
+        } else {
+            env.entry_decl_start
+        }
+        if decl_index >= start && (end < 0 || decl_index < end) {
+            return env.module_names.get_unchecked(i).clone()
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// Resolve an impl method by the receiver's owner spelling. A loaded module
+// registers its methods under `module::Owner::method`, and a receiver whose
+// nominal name kept the module prefix (`beta::Counter`) can name that module
+// directly. Both paths are tried before the flat `Owner::method` alias, which
+// only the first declaration claiming the spelling can own. The fallback is
+// what keeps imported-type calls and builtin owners (Vec / String) working.
+fn lookup_impl_method_sig(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    qualified_owner: String,
+    owner: String,
+    method: String
+) -> FnSig {
+    if qualified_owner.len() > 0 {
+        let qualified = qualified_owner.clone().concat(String_from("::").concat(method.clone()))
+        let sig = lookup_fn_sig(env, fn_sigs, qualified)
+        if contract_fn_sig::FnSig_has_name(sig) {
+            return sig
+        }
+    }
+    let module_name = type_env_current_module_name(env)
+    if module_name.len() > 0 && owner.len() > 0 {
+        let scoped = module_name.clone().concat(String_from("::").concat(owner.clone().concat(String_from("::").concat(method.clone()))))
+        let sig = lookup_fn_sig(env, fn_sigs, scoped)
+        if contract_fn_sig::FnSig_has_name(sig) {
+            return sig
+        }
+    }
+    lookup_fn_sig(env, fn_sigs, owner.concat(String_from("::").concat(method)))
+}
+
 fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     sig_decl::fn_sig_from_fn_decl(node)
 }

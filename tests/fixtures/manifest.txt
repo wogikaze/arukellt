@@ -534,6 +534,7 @@ module-run:stdlib_test/expect_result.ark
 module-run:stdlib_time/duration.ark
 module-run:stdlib_time/monotonic.ark
 module-run:modules/bare_decl_shadow/main.ark
+module-run:modules/impl_method_identity/main.ark
 module-run:modules/mono_site_scope/main.ark
 module-run:modules/non_main_associated_call/main.ark
 module-run:modules/same_name_export/main.ark
@@ -892,6 +893,7 @@ run:simd_gc_storage/v128_struct_field.ark
 run:simd_lowering/t1_scalar_expansion.ark
 run:simd_lowering/v128_type_check.ark
 run:modules/bare_decl_shadow/main.ark
+run:modules/impl_method_identity/main.ark
 run:modules/mono_site_scope/main.ark
 run:modules/non_main_associated_call/main.ark
 run:modules/same_name_export/main.ark

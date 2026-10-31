@@ -110,6 +110,8 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
     child.fn_sig_index = parent.fn_sig_index
     child.bare_fn_sig_index = parent.bare_fn_sig_index
     child.entry_decl_start = parent.entry_decl_start
+    child.module_decl_starts = parent.module_decl_starts
+    child.module_names = parent.module_names
     child.const_names = parent.const_names
     child.const_types = parent.const_types
     child.current_fn_name = parent.current_fn_name

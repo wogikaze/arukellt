@@ -1,7 +1,9 @@
+use collections::name_index
 use corehir::decl_impl_target
 use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::decl_node_identity
+use corehir::impl_method_identity
 use corehir::method_info
 use corehir::param_shape
 use corehir::param_shape_declared
@@ -33,6 +35,10 @@ fn build_method_infos(
 ) -> Vec<CoreHirMethodInfo> {
     let mut infos = Vec::new<CoreHirMethodInfo>()
     let known_type_names = param_shape_declared::corehir_nominal_type_names(nominal_types)
+    // Flat impl method spellings repeat across modules; identity-name later
+    // claims exactly like the checker's signature collection so the MIR
+    // function index and the emitted symbol agree with the checker.
+    let mut seen = name_index::NameIndex_empty()
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
@@ -60,10 +66,21 @@ fn build_method_infos(
                     nominal_types
                 )
                 let method_name = decl_node_identity::method_name(method)
-                let mangled = decl_impl_target::impl_method_mangled_name(
+                let flat_mangled = decl_impl_target::impl_method_mangled_name(
                     decl,
                     method_name.clone(),
                     known_type_names.clone()
+                )
+                let mangled = impl_method_identity::impl_method_emitted_name(
+                    seen,
+                    flat_mangled,
+                    i,
+                    mi,
+                    impl_method_identity::impl_method_is_generic(
+                        decl,
+                        method,
+                        known_type_names.clone()
+                    )
                 )
                 let return_vt = return_type::return_value_type_tag_for_impl(
                     decl,

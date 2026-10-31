@@ -1,0 +1,59 @@
+use collections::name_index
+use corehir::decl_impl_target
+use corehir::frontend_fns
+
+// Non-conversion impl methods are registered under their source-level
+// `Owner::method` spelling. Two modules can declare a same-named owner type,
+// so that spelling is not unique: without an identity the signature index and
+// the MIR function index collapse the two declarations onto the first one.
+//
+// The first method that claims a flat spelling keeps it. A later non-generic
+// method gets its (impl decl, child) identity appended, which both indexes and
+// the emitted function name carry. Generic methods keep the flat spelling:
+// their monomorphized names extend the method base (`Owner::method__Arg`), and
+// the mono naming/matching paths would have to understand the suffix before
+// the template can move off the flat base. Generic collisions therefore keep
+// the historical first-writer behavior for now.
+fn impl_method_is_generic(impl_decl: AstNode, method_decl: AstNode, known_type_names: Vec<String>) -> bool {
+    if decl_impl_target::effective_impl_param_names(impl_decl, known_type_names).len() > 0 {
+        return true
+    }
+    frontend_fns::build_fn_type_params(method_decl).len() > 0
+}
+
+fn impl_method_identity_marker() -> String {
+    String_from("__impl_")
+}
+
+fn impl_method_identity_suffix(impl_decl_index: i32, method_index: i32) -> String {
+    impl_method_identity_marker()
+    .concat(impl_decl_index.to_string().concat("_").concat(method_index.to_string()))
+}
+
+// Whether `name` was given a per-method identity by
+// `impl_method_emitted_name`. Lowering uses this to accept only the identity
+// handoff from the checker's resolved-call table; ordinary flat method names
+// keep their existing rewrite paths.
+fn impl_method_has_identity_suffix(name: String) -> bool {
+    name.clone().contains(impl_method_identity_marker())
+}
+
+// Resolve the symbol one impl method registers. `seen` records the flat
+// spellings earlier methods already claimed, in declaration order, so callers
+// must walk the combined loaded+entry decl list with impl children in order
+// (the signature index, the checker's FnSig collection, and CoreHIR's method
+// infos all do).
+fn impl_method_emitted_name(
+    mut seen: NameIndex,
+    flat_name: String,
+    impl_decl_index: i32,
+    method_index: i32,
+    is_generic: bool
+) -> String {
+    let is_claimed = name_index::name_index_get(seen, flat_name.clone()) >= 0
+    name_index::name_index_increment(seen, flat_name.clone())
+    if !is_claimed || is_generic {
+        return flat_name
+    }
+    flat_name.concat(impl_method_identity_suffix(impl_decl_index, method_index))
+}
