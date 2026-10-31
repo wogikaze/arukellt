@@ -10,20 +10,20 @@ use typechecker::module_fns
 use typechecker::module_traits
 use typechecker::module_wit
 use typechecker::contract_fn_sig
+use typechecker::loaded_body_scope
 use corehir::decl_impl_target
 use collections::name_index
 use resolver::ctx_record
 use resolver::modules
 
-// Index keys parallel to `collect_fn_sigs` output: a module-owned fn, const,
-// or non-conversion impl method earns a `mod::name` key so qualified calls hit
-// the signature of the module the resolver accepted, while entry-module decls
-// stay bare-only. An impl method's key adds the module to its source-level
-// `Owner::method` spelling: a loaded module body (and a receiver whose nominal
-// name kept the module prefix) names the declaring module, so two same-named
-// impl methods in different modules do not alias. `combine_loaded_and_main_decls`
-// lists each loaded module's decls before the entry module's, so one decl
-// cursor tracks the module boundaries.
+// Index keys parallel to `collect_fn_sigs` output: a module-owned fn or
+// const decl earns a `mod::name` key so qualified calls hit the signature
+// of the module the resolver accepted, while entry-module decls stay
+// bare-only. An impl method's key is its source-level `Owner::method`
+// spelling, an alias for the mangled signature name that keeps associated
+// calls resolving. `combine_loaded_and_main_decls` lists each loaded
+// module's decls before the entry module's, so one decl cursor tracks the
+// module boundaries.
 fn sig_qualified_keys(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> Vec<String> {
     let mut keys = Vec::new<String>()
     let known_type_names = module_traits::collect_declared_type_names(decls)
@@ -94,12 +94,10 @@ fn push_sig_index_key(
                 // not one declaration. Index only the mangled identity;
                 // `call_fn` selects it from the call's source argument
                 // instead of letting the first impl claim the alias (#934).
-                if !mangled_name.clone().eq(base_name) {
-                    keys.push(String_new())
-                } else if module_name.len() == 0 {
+                if mangled_name.clone().eq(base_name) {
                     keys.push(base_name)
                 } else {
-                    keys.push(module_name.clone().concat(String_from("::").concat(base_name)))
+                    keys.push(String_new())
                 }
             }
             ci = ci + 1
@@ -228,12 +226,24 @@ fn typecheck_module_with_options(
     let modules = ctx_record::resolve_ctx_modules(resolve_ctx)
     let qualified_keys = sig_qualified_keys(decls, modules)
     env.entry_decl_start = entry_decl_start(decl_count, modules)
-    set_module_decl_ranges(env, modules)
-    env.bare_fn_sig_index = build_bare_fn_sig_index(fn_sigs, qualified_keys)
     env.fn_sig_index = build_fn_sig_index(fn_sigs, qualified_keys)
+    env.bare_fn_sig_index = build_bare_fn_sig_index(fn_sigs, qualified_keys)
+    env.loaded_module_names = loaded_body_scope::loaded_module_names(modules)
+    env.loaded_bare_sig_index = loaded_body_scope::build_loaded_bare_sig_index(
+        fn_sigs,
+        qualified_keys,
+        modules,
+        env.fn_sig_index
+    )
+    let module_starts = loaded_body_scope::module_decl_starts(modules)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {
+        env.current_module_index = loaded_body_scope::module_index_at(
+            module_starts,
+            env.entry_decl_start,
+            i
+        )
         let node = decls.get_unchecked(i)
         if ast_decl_predicates::node_is_fn_decl(node) {
             module::append_typed_fn(result, node)
@@ -272,10 +282,9 @@ fn typecheck_module_with_options(
 
 fn check_impl_methods(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, decl_index: i32) {
     let impl_child_count = ast_access::node_child_count(node)
-    // The child index is the method's identity inside the impl. CoreHIR and
-    // MIR enumerate the same children, so the checker publishes the ordinal
-    // and MIR lowering restores it; call records then key on the method, not
-    // just the impl declaration (#933 / #934).
+    // Calls inside one impl are told apart by span, so the impl-method
+    // ordinal is deliberately not part of the body identity: the checker and
+    // MIR enumerate impl members differently (#933).
     let mut ic = 0
     while ic < impl_child_count {
         let meth = ast_access::node_child_at(node, ic)
@@ -303,25 +312,6 @@ fn check_impl_methods(mut env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<Enum
         }
         ic = ic + 1
     }
-}
-
-// Loaded-module boundaries let a method call name its own module without
-// threading the module list through every call site (#934).
-fn set_module_decl_ranges(mut env: TypeEnv, modules: Vec<ModuleDecls>) {
-    let mut starts = Vec::new<i32>()
-    let mut names = Vec::new<String>()
-    let mut pos = 0
-    let count = modules.len()
-    let mut i = 0
-    while i < count {
-        let module = modules.get_unchecked(i)
-        starts.push(pos)
-        names.push(modules::module_name(module))
-        pos = pos + modules::module_decl_count(module)
-        i = i + 1
-    }
-    env.module_decl_starts = starts
-    env.module_names = names
 }
 
 // Strict ADR-088 callee-side rule: a shared parameter or receiver is immutable
