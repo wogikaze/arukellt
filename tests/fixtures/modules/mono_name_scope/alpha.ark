@@ -1,0 +1,10 @@
+//! Same-named generic function in a loaded module. The HashMap store bridge
+//! also records `insert` rewrites, so the name-rewrite pool must not hand
+//! this module's instance to another body's call (#934).
+pub fn insert<T>(value: T) -> String {
+    String_from("alpha")
+}
+
+pub fn alpha_insert() -> String {
+    insert(String_from("alpha-value"))
+}

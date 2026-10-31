@@ -9,11 +9,12 @@ struct MonoInstance {
     // record_mono_instance mint is demanded, so the flag only stays false
     // for records pushed outside that path (call-site markers).
     demanded: bool,
-    // Call-site markers only: the declaration index and body child index of
-    // the body that recorded the site, in the combined loaded+entry decl
-    // list. `node_span_start` is a byte offset inside one module's text, so
-    // MIR scopes the span rewrite pool by this identity to keep equal offsets
-    // in different modules apart (#934). -1 for real instances.
+    // The declaration index and body child index of the body that recorded
+    // or minted this instance, in the combined loaded+entry decl list.
+    // `node_span_start` is a byte offset inside one module's text, so MIR
+    // scopes the span rewrite pool and the name rewrite pool by this
+    // identity to keep equal offsets and same-named callees in different
+    // modules apart (#934). -1 when the instance was minted outside a body.
     site_decl_index: i32,
     site_body_child_index: i32,
 }
@@ -77,7 +78,7 @@ fn MonoInstance_site_body_child_index(instance: MonoInstance) -> i32 {
     instance.site_body_child_index
 }
 
-fn MonoInstance_set_call_site(mut instance: MonoInstance, decl_index: i32, body_child_index: i32) {
+fn MonoInstance_set_site_body(mut instance: MonoInstance, decl_index: i32, body_child_index: i32) {
     instance.site_decl_index = decl_index
     instance.site_body_child_index = body_child_index
 }

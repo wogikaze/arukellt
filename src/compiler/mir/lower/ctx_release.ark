@@ -95,6 +95,8 @@ fn ctx_release_lowering_scratch(mut ctx: LowerCtx) {
     ctx.mono_call_sources = Vec::new<String>()
     ctx.mono_call_name_targets = Vec::new<String>()
     ctx.mono_call_used = Vec::new<i32>()
+    ctx.mono_call_name_decls = Vec::new<i32>()
+    ctx.mono_call_name_children = Vec::new<i32>()
     ctx.wit_call_names = Vec::new<String>()
     ctx.wit_call_iface_ids = Vec::new<String>()
     ctx.wit_call_func_names = Vec::new<String>()

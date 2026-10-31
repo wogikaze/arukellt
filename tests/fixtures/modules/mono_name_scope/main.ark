@@ -1,0 +1,15 @@
+//! A loaded module and the HashMap store bridge both use the bare name
+//! `insert`. The pool is keyed by that bare name, so the bridge's
+//! `hashmap:...::insert` lookup must stay inside its own declaring body and
+//! not consume the loaded module's `insert__String` instance (#934).
+use std::host::stdio::Stdio
+use std::collections::hash_map::HashMap
+use alpha
+
+fn main() {
+    Stdio::println(alpha::alpha_insert())
+    let mut map: HashMap<String, i32> = HashMap::new<String, i32>()
+    Stdio::println(map.insert(String_from("key"), 41).is_none().to_string())
+    Stdio::println(map.get(String_from("key")).unwrap_or(0).to_string())
+    Stdio::println(map.len().to_string())
+}

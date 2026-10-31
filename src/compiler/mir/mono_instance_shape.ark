@@ -29,10 +29,12 @@ fn mir_mono_instance_marker_span_start(instance: MonoInstance) -> i32 {
     0 - mir_mono_instance_type_arg_tag_at(instance, 0) - 1000
 }
 
-fn mir_mono_instance_marker_decl_index(instance: MonoInstance) -> i32 {
+// Declaring body of the instance: a marker's call-site body, or the body
+// that minted a real instance. Both pools scope by this identity (#934).
+fn mir_mono_instance_site_decl_index(instance: MonoInstance) -> i32 {
     type_contracts::MonoInstance_site_decl_index(instance)
 }
 
-fn mir_mono_instance_marker_body_child_index(instance: MonoInstance) -> i32 {
+fn mir_mono_instance_site_body_child_index(instance: MonoInstance) -> i32 {
     type_contracts::MonoInstance_site_body_child_index(instance)
 }
