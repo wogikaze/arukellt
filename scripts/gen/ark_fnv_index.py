@@ -58,7 +58,7 @@ def emit_lookup_fn(fn_name: str, key_at_fn: str, bucket_fn: str, keys: list[str]
             "    let fnv_offset = 216613626",
             "    let fnv_prime = 16777619",
             "    let mut hash = fnv_offset",
-            "    let name_len = len(name)",
+            "    let name_len = name.len()",
             "    let mut hi = 0",
             "    while hi < name_len {",
             "        hash = hash * fnv_prime ^ byte_at(name, hi)",
