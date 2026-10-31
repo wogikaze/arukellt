@@ -19,7 +19,7 @@ wasm_resolution_order = [
 [[stages]]
 id = "0"
 name = "trust_base"
-description = "Pinned wasm32-gc/wasi-p2 component is the trust base; it emits its own fixed-point wasm32/wasi-p1 memory32 s2 (61aa349b) in ~30-34 s and reproduces its own gc core (0ebeb365)"
+description = "Pinned wasm32-gc/wasi-p2 component is the trust base; it emits its own fixed-point wasm32/wasi-p1 memory32 s2 (83567b5e) in ~30-34 s and reproduces its own gc core (57d79c74)"
 artifact = "bootstrap/arukellt-selfhost.wasm"
 comparison = "n/a"
 

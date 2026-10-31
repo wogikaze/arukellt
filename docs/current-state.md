@@ -89,7 +89,7 @@ closure_capture/nested_capture fixtures produce 5/6/7 and 5/10 on both
 targets; two mutable-borrow nested captures of one source are E0214.
 The retired
 capability diagnostic E0220 no longer exists in the implementation.
-The committed pinned bootstrap (sha256 `bc81d60b…`, a `wasm32-gc` / `wasi-p2`
+The committed pinned bootstrap (sha256 `27f76004…`, a `wasm32-gc` / `wasi-p2`
 command component) handles the current generic enum `Box` / `Slice` prelude
 directly. `selfhost build-compiler` retains the guarded, source-only structural
 overlay as a fallback path for older pinned artifacts; the checked-in prelude
@@ -97,7 +97,7 @@ and user artifacts are unchanged. The pin-only numeric-conversion, printable
 boundary, and stdio rewrite adapters were removed after the refresh; the
 remaining overlay adapters and their deletion conditions are recorded in
 [compiler/bootstrap.md](compiler/bootstrap.md). The bootstrap chain on the
-current source is fixpoint-clean (`s2 == s3`, sha256 `1d5056db…`).
+current source is fixpoint-clean (`s2 == s3`, sha256 `83567b5e…`).
 
 ### Language v2 trait core (#856 / ADR-062)
 
