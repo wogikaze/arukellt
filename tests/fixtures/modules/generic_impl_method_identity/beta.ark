@@ -1,0 +1,20 @@
+//! Same-named owner type and generic method as `alpha`; the per-method
+//! identity has to distinguish this declaration's mono instances even though
+//! both modules spell `Holder::score__i32`.
+
+pub struct Holder {
+    base: i32,
+}
+
+impl Holder {
+    fn score<T>(self: Holder, items: Vec<T>) -> i32 {
+        self.base + items.len() + 10
+    }
+}
+
+pub fn probe() -> i32 {
+    let holder = Holder { base: 10 }
+    let mut items: Vec<i32> = Vec::new<i32>()
+    items.push(7)
+    holder.score(items)
+}

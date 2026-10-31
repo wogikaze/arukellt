@@ -462,16 +462,23 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
 fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
     // A per-method identity from the checker names one exact impl declaration
     // (`Counter::bump__impl_12_0`) when two modules declare the same flat
-    // owner spelling. It is a registered function, so bind it before the
-    // receiver-type and rewrite paths can collapse the call onto the first
-    // declaration (#934). Ordinary flat names skip this and keep their
-    // existing resolution order.
+    // owner spelling. A non-generic identity is itself the emitted function,
+    // so bind it before the receiver-type and rewrite paths can collapse the
+    // call onto the first declaration (#934). A generic method's identity
+    // name is only its mono instance base: the emitted function is the
+    // instance, and binding the pruned template would emit a call to nothing.
     let recorded_function = ctx_resolved_calls::ctx_resolved_call_function_id(
         ctx,
         span_start,
         mir_bare_method_name(callee_name.clone())
     )
+    let recorded_instance = ctx_resolved_calls::ctx_resolved_call_mono_instance_id(
+        ctx,
+        span_start,
+        mir_bare_method_name(callee_name.clone())
+    )
     if impl_method_identity::impl_method_has_identity_suffix(recorded_function.clone()) &&
+    recorded_instance.len() == 0 &&
     ctx_has_fn_name(ctx, recorded_function.clone()) {
         return recorded_function
     }
@@ -481,6 +488,18 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     let early_vec = mir_vec_method_prefer_coreop_name(callee_name.clone())
     if early_vec.len() > 0 {
         return early_vec
+    }
+    // The checker's per-call instance outranks the receiver-derived type-key
+    // guess below: two same-named generic impl declarations both emit an
+    // `Owner::method__Arg` candidate, and only the recorded instance names
+    // the declaration this body resolved.
+    if recorded_instance.len() > 0 {
+        let recorded_target = mono::mono_safe_name(recorded_instance)
+        if !recorded_target.clone().contains(String_from("?")) &&
+        mono_target_matches_source(recorded_target.clone(), callee_name.clone()) &&
+        ctx_has_fn_name(ctx, recorded_target.clone()) {
+            return recorded_target
+        }
     }
     let method_mono_type_key = mir_method_mono_type_key(ctx, first_method_arg_idx)
     if method_mono_type_key.len() > 0 {
@@ -504,29 +523,9 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     bare_builtin.clone().eq(String_from("char_at")) {
         return bare_builtin
     }
-    // The checker records the mono instance for a generic call site keyed by
-    // the declaring body and span (#933), so it survives two modules that
-    // place a call at the same byte offset. The span-rewrite pool below is
-    // keyed by the span alone and hands out first-unused instances, so it
-    // must not outrank the checker's module-scoped answer: `Vec<String>`
-    // clone must stay `Vec__clone__String` even when another module records
-    // `Vec__clone__TypeInfo` at the same offset. The recorded target must
-    // still match the callee's owner: `Option::clone` records the bare
-    // polymorphic `clone__Option_String_` shim, which is not a method
-    // instance and must keep the identity fallback.
-    let recorded_instance = ctx_resolved_calls::ctx_resolved_call_mono_instance_id(
-        ctx,
-        span_start,
-        mir_bare_method_name(callee_name.clone())
-    )
-    if recorded_instance.len() > 0 {
-        let recorded_target = mono::mono_safe_name(recorded_instance)
-        if !recorded_target.clone().contains(String_from("?")) &&
-        mono_target_matches_source(recorded_target.clone(), callee_name.clone()) &&
-        ctx_has_fn_name(ctx, recorded_target.clone()) {
-            return recorded_target
-        }
-    }
+    // The span-rewrite pool below is keyed by the span alone and hands out
+    // first-unused instances, so it must not outrank any answer above: the
+    // recorded instance already handled the checker's module-scoped choice.
     let mono_target = ctx_mono_lookup_call(ctx, span_start, callee_name.clone())
     if mono_target.len() > 0 {
         return mono_target

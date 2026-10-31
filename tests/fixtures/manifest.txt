@@ -536,6 +536,7 @@ module-run:stdlib_time/monotonic.ark
 module-run:modules/bare_decl_shadow/main.ark
 module-run:modules/mono_name_scope/main.ark
 module-run:modules/impl_method_identity/main.ark
+module-run:modules/generic_impl_method_identity/main.ark
 module-run:modules/mono_site_scope/main.ark
 module-run:modules/non_main_associated_call/main.ark
 module-run:modules/same_name_export/main.ark
@@ -897,6 +898,7 @@ run:simd_lowering/v128_type_check.ark
 run:modules/bare_decl_shadow/main.ark
 run:modules/mono_name_scope/main.ark
 run:modules/impl_method_identity/main.ark
+run:modules/generic_impl_method_identity/main.ark
 run:modules/mono_site_scope/main.ark
 run:modules/non_main_associated_call/main.ark
 run:modules/same_name_export/main.ark

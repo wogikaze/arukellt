@@ -1,4 +1,5 @@
 use std::text
+use corehir::impl_method_identity
 use typechecker::ast_access
 use typechecker::call_generic_common
 use typechecker::call_generic_fn_args
@@ -93,9 +94,20 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
     if !hashmap_api::validate_hashmap_constructor(env, fn_name.clone(), resolved_type_args) {
         return ret_ty
     }
-    let mangled_name = mono::record_mono_instance(env, fn_name.clone(), resolved_type_args)
+    // An impl associated function that lost the flat `Owner::method`
+    // spelling mints its instances under the identity-suffixed base, the
+    // spelling its MIR method info is emitted from (#934).
+    let sig_name = contract_fn_sig::FnSig_name(sig.clone())
+    let mut mono_fn_name = fn_name.clone()
+    if impl_method_identity::impl_method_has_identity_suffix(sig_name.clone()) {
+        mono_fn_name = sig_name.clone()
+    }
+    let mangled_name = mono::record_mono_instance(env, mono_fn_name.clone(), resolved_type_args)
     mono::record_mono_return_type(env, mangled_name.clone(), ret_ty)
-    mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled_name.clone())
+    // The marker shares the instance base so the mono index groups it with
+    // the concrete instance; the lowering pools strip the identity back to
+    // the source spelling a call site sees.
+    mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name.clone())
     // Complete the call record with the declaration identity and the mono
     // instance the checker selected (#933 / #934). The owner record above may
     // already exist for this site; completion fills its remaining fields.
@@ -104,7 +116,7 @@ fn infer_generic_call_expr(mut env: TypeEnv, mut scope: LocalScope, fn_sigs: Vec
         ast_access::node_span_start(node),
         ast_access::node_text(ast_access::node_child_at(node, 0)),
         String_new(),
-        contract_fn_sig::FnSig_name(sig),
+        sig_name,
         mangled_name,
         0 - 1
     )

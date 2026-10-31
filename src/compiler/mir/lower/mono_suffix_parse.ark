@@ -1,4 +1,5 @@
 use std::text
+use corehir::impl_method_identity
 fn split_mono_suffix(suffix: String) -> Vec<String> {
     let mut result = Vec::new<String>()
     let slen = suffix.len()
@@ -114,11 +115,16 @@ fn extract_first_type_var(rest: String) -> String {
 }
 
 fn extract_mono_suffix(fn_name: String) -> String {
-    let name_len = fn_name.len()
+    // The per-method identity (`__impl_<decl>_<child>`) names the declaring
+    // impl, not a mono type key. Remove it before the separator scan so
+    // `Owner::method__impl_3_0__Arg` parses exactly like `Owner::method__Arg`
+    // instead of depending on `impl_3_0` failing the type-key test.
+    let name = impl_method_identity::impl_method_source_name(fn_name)
+    let name_len = name.len()
     let mut sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
-        if fn_name.byte_at(i) == 95 && fn_name.byte_at(i + 1) == 95 {
+        if name.byte_at(i) == 95 && name.byte_at(i + 1) == 95 {
             sep_positions.push(i)
         }
         i = i + 1
@@ -130,7 +136,7 @@ fn extract_mono_suffix(fn_name: String) -> String {
     let mut si = 0
     while si < sep_count {
         let sep_pos = sep_positions.get_unchecked(si)
-        let suffix = fn_name.slice(sep_pos + 2, name_len)
+        let suffix = name.slice(sep_pos + 2, name_len)
         let type_keys = split_mono_suffix(suffix)
         let key_count = type_keys.len()
         if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {

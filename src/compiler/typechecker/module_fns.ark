@@ -14,9 +14,9 @@ use corehir::decl_impl_target
 fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
     let mut fn_sigs = Vec::new<FnSig>()
     // Flat impl method spellings are only unique per module boundary; the
-    // first claim keeps the spelling and later non-generic claims take their
-    // declaration identity (impl_method_identity). Walk order matches
-    // CoreHIR's method info collection and the signature index.
+    // first claim keeps the spelling and later claims take their declaration
+    // identity (impl_method_identity). Walk order matches CoreHIR's method
+    // info collection and the signature index.
     let mut seen = name_index::NameIndex_empty()
     let decl_count = decls.len()
     let mut i = 0
@@ -70,12 +70,7 @@ fn collect_impl_method_sigs(
                 seen,
                 flat_name,
                 decl_index,
-                ic,
-                impl_method_identity::impl_method_is_generic(
-                    node,
-                    meth,
-                    env.declared_type_names.clone()
-                )
+                ic
             )
             fn_sigs.push(contract_fn_sig::FnSig_with_identity(
                     impl_method_sig(env, node, meth, emitted_name),

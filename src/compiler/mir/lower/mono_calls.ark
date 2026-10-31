@@ -1,3 +1,4 @@
+use corehir::impl_method_identity
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
 use mir::mono
@@ -10,7 +11,13 @@ fn mir_register_mono_rewrites(mut ctx: LowerCtx, mono_instances: Vec<MonoInstanc
         let site_marker = mono_instances.get_unchecked(mono_site_i)
         if mono_instance_shape::mir_mono_instance_type_arg_count(site_marker) > 0 {
             let safe_target = mono::mono_safe_name(mono_instance_shape::mir_mono_instance_mangled_name(site_marker))
-            let source_name = mono_instance_shape::mir_mono_instance_fn_name(site_marker)
+            // Both pools key on the call-site source spelling. An instance
+            // minted under an identity-suffixed base must still answer a
+            // plain `Owner::method` call, so the identity is not part of the
+            // registered source (#934).
+            let source_name = impl_method_identity::impl_method_source_name(
+                mono_instance_shape::mir_mono_instance_fn_name(site_marker)
+            )
             if mono_instance_shape::mir_mono_instance_is_marker(site_marker) {
                 // Span rewrite only. Name rewrites come from the concrete
                 // (non-marker) MonoInstance with the same mangled name; registering

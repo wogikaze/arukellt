@@ -1,4 +1,5 @@
 use std::text
+use corehir::impl_method_identity
 use typechecker::kinds
 use typechecker::ast_access
 use typechecker::call_generic_common
@@ -59,12 +60,21 @@ fn infer_generic_method_call_expr(
     traits::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
     let resolved_recv_ty = unify::resolve_type_deep(infer_env, inst_p0)
     let method_name = ast_access::node_text(node)
-    let mut mono_fn_name = method_name.clone()
+    let mut call_source_name = method_name.clone()
     let type_prefix = type_name_for_mono(resolved_recv_ty)
     if type_prefix.len() > 0 {
-        mono_fn_name = type_prefix.concat("::".concat(method_name))
+        call_source_name = type_prefix.concat("::".concat(method_name))
     }
-    if !hashmap_api::validate_hashmap_method(env, mono_fn_name.clone(), resolved_recv_ty) {
+    // An impl method that lost the flat `Owner::method` spelling mints its
+    // instances under the identity-suffixed base, the same spelling its MIR
+    // method info is emitted from. Two same-named declarations then cannot
+    // alias `Owner::method__Arg` (#934).
+    let sig_name = contract_fn_sig::FnSig_name(sig.clone())
+    let mut mono_fn_name = call_source_name.clone()
+    if impl_method_identity::impl_method_has_identity_suffix(sig_name.clone()) {
+        mono_fn_name = sig_name.clone()
+    }
+    if !hashmap_api::validate_hashmap_method(env, call_source_name.clone(), resolved_recv_ty) {
         return ret_ty
     }
     // A receiver that is still a bare type variable may resolve to an
@@ -81,13 +91,16 @@ fn infer_generic_method_call_expr(
     }
     let mangled_name = mono::record_mono_instance(env, mono_fn_name.clone(), resolved_type_args)
     mono::record_mono_return_type(env, mangled_name.clone(), ret_ty)
+    // The marker shares the instance base so the mono index groups it with
+    // the concrete instance; the lowering pools strip the identity back to
+    // the `Holder::score` spelling a call site sees.
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name.clone())
     contract_env_resolved_record::type_env_record_resolved_call(
         env,
         ast_access::node_span_start(node),
         method_name,
         String_new(),
-        contract_fn_sig::FnSig_name(sig),
+        sig_name,
         mangled_name,
         0 - 1
     )

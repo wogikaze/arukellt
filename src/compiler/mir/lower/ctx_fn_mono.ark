@@ -1,4 +1,5 @@
 use std::text
+use corehir::impl_method_identity
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_mono_rewrites
@@ -191,19 +192,25 @@ fn mono_sources_match(candidate: String, requested: String) -> bool {
 }
 
 fn mono_target_matches_source(target: String, source: String) -> bool {
-    let bare_source = ctx_mono_rewrites::mono_bare_source(source)
+    // The identity suffix names the impl declaration, not the method owner.
+    // Strip it from both sides so a suffixed target resolves through the same
+    // owner checks as the flat spelling it extends, and a suffixed source
+    // (a recorded identity handoff) still matches its flat call spelling.
+    let target_name = impl_method_identity::impl_method_source_name(target)
+    let source_name = impl_method_identity::impl_method_source_name(source)
+    let bare_source = ctx_mono_rewrites::mono_bare_source(source_name.clone())
     let prefix = bare_source.clone().concat("__")
-    if target.clone().starts_with(prefix.clone()) {
+    if target_name.clone().starts_with(prefix.clone()) {
         // The owner guard exists for Type::method sources (Vec::into_iter
         // must not steal a free into_iter__X target). Module-qualified free
         // functions (seq::min_by_key) record their specialization under the
         // bare name, so a lowercase module owner has nothing to check
         // against and must not be rejected (#691).
-        if !mono_source_has_module_owner(source.clone()) &&
-        !mono_source_owner_matches(source.clone(), String_new()) {
+        if !mono_source_has_module_owner(source_name.clone()) &&
+        !mono_source_owner_matches(source_name.clone(), String_new()) {
             return false
         }
-        let rest = target.slice(prefix.len(), target.len())
+        let rest = target_name.slice(prefix.len(), target_name.len())
         // Reject opaque numeric stubs like eq__1; accept type keys
         // such as eq__Person / pair_first__i32__String.
         if rest.len() == 0 {
@@ -220,11 +227,11 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
     // __method__ infix; a per-instantiation source owner (Take_VecIter)
     // relaxes to its constructor base (Take).
     let infix = String_from("__").concat(bare_source.clone().concat(String_from("__")))
-    let pos = target.clone().index_of(infix.clone())
+    let pos = target_name.clone().index_of(infix.clone())
     if pos < 0 {
         return false
     }
-    mono_source_owner_matches(source.clone(), target.clone().slice(0, pos))
+    mono_source_owner_matches(source_name, target_name.slice(0, pos))
 }
 
 // A lowercase owner segment before the module separator is a module path

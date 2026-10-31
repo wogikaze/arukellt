@@ -1,26 +1,16 @@
 use collections::name_index
-use corehir::decl_impl_target
-use corehir::frontend_fns
 
-// Non-conversion impl methods are registered under their source-level
-// `Owner::method` spelling. Two modules can declare a same-named owner type,
-// so that spelling is not unique: without an identity the signature index and
-// the MIR function index collapse the two declarations onto the first one.
+// Impl methods are registered under their source-level `Owner::method`
+// spelling. Two modules can declare a same-named owner type, so that spelling
+// is not unique: without an identity the signature index and the MIR function
+// index collapse the two declarations onto the first one.
 //
-// The first method that claims a flat spelling keeps it. A later non-generic
-// method gets its (impl decl, child) identity appended, which both indexes and
-// the emitted function name carry. Generic methods keep the flat spelling:
-// their monomorphized names extend the method base (`Owner::method__Arg`), and
-// the mono naming/matching paths would have to understand the suffix before
-// the template can move off the flat base. Generic collisions therefore keep
-// the historical first-writer behavior for now.
-fn impl_method_is_generic(impl_decl: AstNode, method_decl: AstNode, known_type_names: Vec<String>) -> bool {
-    if decl_impl_target::effective_impl_param_names(impl_decl, known_type_names).len() > 0 {
-        return true
-    }
-    frontend_fns::build_fn_type_params(method_decl).len() > 0
-}
-
+// The first method that claims a flat spelling keeps it. A later method gets
+// its (impl decl, child) identity appended, which both indexes and the emitted
+// function name carry. A generic method's monomorphized instances extend the
+// identity-suffixed base (`Owner::method__impl_3_0__Arg`), so the mono naming
+// and matching paths carry the same identity and two same-named generic
+// declarations cannot alias.
 fn impl_method_identity_marker() -> String {
     String_from("__impl_")
 }
@@ -38,6 +28,33 @@ fn impl_method_has_identity_suffix(name: String) -> bool {
     name.clone().contains(impl_method_identity_marker())
 }
 
+// Remove the `__impl_<decl>_<child>` segment from a spelling that carries it,
+// wherever it sits: `Owner::method__impl_3_0__Arg` -> `Owner::method__Arg`.
+// The identity names the declaration, not the callable, so mono suffix
+// parsing and source-spelling matching must see the keys and owner they see
+// for the declaration that claimed the flat name.
+fn impl_method_source_name(name: String) -> String {
+    let marker = impl_method_identity_marker()
+    let name_len = name.len()
+    let start = name.clone().index_of(marker.clone())
+    if start < 0 {
+        return name
+    }
+    // The identity segment ends at the next `__` mono separator (the type
+    // arguments follow it) or at the end of the spelling.
+    let mut end = name_len
+    let mut scan = start + marker.len()
+    while scan + 1 < name_len {
+        if name.byte_at(scan) == 95 && name.byte_at(scan + 1) == 95 {
+            end = scan
+            scan = name_len
+        } else {
+            scan = scan + 1
+        }
+    }
+    name.slice(0, start).concat(name.slice(end, name_len))
+}
+
 // Resolve the symbol one impl method registers. `seen` records the flat
 // spellings earlier methods already claimed, in declaration order, so callers
 // must walk the combined loaded+entry decl list with impl children in order
@@ -47,12 +64,11 @@ fn impl_method_emitted_name(
     mut seen: NameIndex,
     flat_name: String,
     impl_decl_index: i32,
-    method_index: i32,
-    is_generic: bool
+    method_index: i32
 ) -> String {
     let is_claimed = name_index::name_index_get(seen, flat_name.clone()) >= 0
     name_index::name_index_increment(seen, flat_name.clone())
-    if !is_claimed || is_generic {
+    if !is_claimed {
         return flat_name
     }
     flat_name.concat(impl_method_identity_suffix(impl_decl_index, method_index))

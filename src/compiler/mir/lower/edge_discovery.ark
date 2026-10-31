@@ -633,7 +633,11 @@ fn edge_resolve_method_site(
     // variants, and making the site "precise" with the template would drop
     // the concrete instance the call actually targets.
     let recorded_function = ctx_resolved_calls::ctx_resolved_call_function_id(ctx, span_start, method.clone())
-    if impl_method_identity::impl_method_has_identity_suffix(recorded_function.clone()) {
+    // A generic method's identity names its mono instance base, not an
+    // emitted function: its callable is the recorded instance, which the
+    // owner candidates below keep alive through the desugar resolver.
+    if impl_method_identity::impl_method_has_identity_suffix(recorded_function.clone()) &&
+    ctx_resolved_calls::ctx_resolved_call_mono_instance_id(ctx, span_start, method.clone()).len() == 0 {
         edge_push_resolved_once(out, recorded_function)
     }
     let mut owner_ty = recv_ty.clone()

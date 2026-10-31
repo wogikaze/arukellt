@@ -1,0 +1,20 @@
+//! Regression guard: two loaded modules declare a generic `Holder::score<T>`,
+//! so the flat `Owner::method` key aliases their signatures and their
+//! `Owner::method__Arg` mono instances. Calls from each module body and from
+//! module-qualified receivers must reach the declaration that owns them.
+use std::host::stdio::Stdio
+use alpha
+use beta
+
+fn main() {
+    Stdio::println(alpha::probe().to_string())
+    Stdio::println(beta::probe().to_string())
+    let mut from_alpha: Vec<i32> = Vec::new<i32>()
+    from_alpha.push(1)
+    from_alpha.push(2)
+    Stdio::println((alpha::Holder { base: 5 }).score(from_alpha).to_string())
+    let mut from_beta: Vec<i32> = Vec::new<i32>()
+    from_beta.push(1)
+    from_beta.push(2)
+    Stdio::println((beta::Holder { base: 5 }).score(from_beta).to_string())
+}

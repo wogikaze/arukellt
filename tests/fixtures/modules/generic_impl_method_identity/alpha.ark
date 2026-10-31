@@ -1,0 +1,21 @@
+//! Same-named owner type and generic method as `beta`. The flat
+//! `Holder::score` spelling and the mono instance `Holder::score__i32` are
+//! claimed by whichever module is collected first, so a call from this body
+//! must still reach this declaration's body.
+
+pub struct Holder {
+    base: i32,
+}
+
+impl Holder {
+    fn score<T>(self: Holder, items: Vec<T>) -> i32 {
+        self.base + items.len() + 1
+    }
+}
+
+pub fn probe() -> i32 {
+    let holder = Holder { base: 10 }
+    let mut items: Vec<i32> = Vec::new<i32>()
+    items.push(7)
+    holder.score(items)
+}

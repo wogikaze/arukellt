@@ -75,12 +75,7 @@ fn build_method_infos(
                     seen,
                     flat_mangled,
                     i,
-                    mi,
-                    impl_method_identity::impl_method_is_generic(
-                        decl,
-                        method,
-                        known_type_names.clone()
-                    )
+                    mi
                 )
                 let return_vt = return_type::return_value_type_tag_for_impl(
                     decl,
