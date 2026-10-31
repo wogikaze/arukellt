@@ -1,0 +1,14 @@
+// Regression module: keep the clone below at the same byte offset as the
+// one in `collide_typeinfo.ark`. A concrete Vec<String> receiver must select
+// `Vec__clone__String`, never the neighbouring TypeInfo instance.
+pub fn clone_texts(value: Vec<String>) -> Vec<String> {
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // ppppppppppppp
+    value.clone()
+}

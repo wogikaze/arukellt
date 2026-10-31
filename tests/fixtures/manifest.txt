@@ -3741,6 +3741,10 @@ diag:diagnostics/return_type_arg_mismatch.ark
 run:clone_no_import/clone_call_arg_in_block.ark
 run:clone_no_import/vec_clone_deep.ark
 test:clone_no_import/vec_clone_deep_wasm32.ark
+# A Vec<String> clone selects its concrete instance even when a sibling
+# module records a different Vec::clone instance at the same byte offset.
+run:clone_instance_select/clone_instance_select.ark
+run:clone_instance_select/clone_instance_select_wasm32.ark
 # The runnable Gloss parser sample lives outside tests/fixtures (like the
 # bench entry above), so it is registered with a repo-relative `..` path.
 # Its `main` asserts parser output and exits non-zero on failure.

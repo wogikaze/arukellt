@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
+use mir::lower::ctx_resolved_calls
 use mir::mono
 use mir::mono_instance_shape
 use mir::value_types
@@ -486,6 +487,25 @@ fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_metho
     if mir_type_prefix(callee_name.clone()).eq(String_from("String")) &&
     bare_builtin.clone().eq(String_from("char_at")) {
         return bare_builtin
+    }
+    // The checker records the mono instance for a generic call site keyed by
+    // the declaring body and span (#933), so it survives two modules that
+    // place a call at the same byte offset. The span-rewrite pool below is
+    // keyed by the span alone and hands out first-unused instances, so it
+    // must not outrank the checker's module-scoped answer: `Vec<String>`
+    // clone must stay `Vec__clone__String` even when another module records
+    // `Vec__clone__TypeInfo` at the same offset.
+    let recorded_instance = ctx_resolved_calls::ctx_resolved_call_mono_instance_id(
+        ctx,
+        span_start,
+        mir_bare_method_name(callee_name.clone())
+    )
+    if recorded_instance.len() > 0 {
+        let recorded_target = mono::mono_safe_name(recorded_instance)
+        if !recorded_target.clone().contains(String_from("?")) &&
+        ctx_has_fn_name(ctx, recorded_target.clone()) {
+            return recorded_target
+        }
     }
     let mono_target = ctx_mono_lookup_call(ctx, span_start, callee_name.clone())
     if mono_target.len() > 0 {

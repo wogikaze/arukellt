@@ -1,0 +1,28 @@
+// Regression module: this module's `Vec<TypeInfo>` clone is recorded at the same
+// source byte offset as the `Vec<String>` clone in `collide_strings.ark`.
+// The old span-global mono-site key aliased the two, so the String clone
+// resolved to `Vec__clone__TypeInfo` and the wasm32-gc core failed to validate.
+pub struct TypeInfo {
+    tag: i32,
+}
+
+pub fn clone_typed(value: Vec<TypeInfo>) -> Vec<TypeInfo> {
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    // ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+    value.clone()
+}
+
+// Kept after `clone_typed` so the padded clone offset stays fixed.
+pub fn make_infos() -> Vec<TypeInfo> {
+    let mut infos: Vec<TypeInfo> = Vec::new<TypeInfo>()
+    infos.push(TypeInfo { tag: 7 })
+    infos
+}
+
+pub fn typed_tag(value: Vec<TypeInfo>) -> i32 {
+    value.get_unchecked(0).tag
+}
