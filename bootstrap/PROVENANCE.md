@@ -16,13 +16,13 @@ image build).
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 8 334 637 bytes |
-| sha256 | `bc81d60b338480bce5b45f185652e409a4af4235b34a655b0ebeac5411734aff` |
-| Built from commit | `5e0de551c` (checker-resolved mono instance for method calls and the owner-match clone guard) |
+| Size | 8 310 033 bytes |
+| sha256 | `27f76004594344b20c42d6c7c49b72181d9f9ba7358f8ccdf37b5bfa9f3827e0` |
+| Built from commit | `de7614545` (generic impl identity carried into generic method instances) |
 | Build target | `wasm32-gc` / `wasi-p2` component, cm32p2 command wrapper |
-| Producer | Fixed-point s2 `d2224704…` (11 313 129 B) compiled the overlay to `wasm32-gc --emit component`; `wasm-tools component embed/new` packaged it |
-| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `d2224704444c6dadcc7a1a622be78e4c716ce810b71c743314178bede429c0fd`, byte-identical to the fixed-point s2 this component was built from |
-| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `439f0dcb6027e66083294590968791088a05fdea21726c0e094de2fead18eb86` (8 326 872 B), the core this component packages |
+| Producer | Fixed-point s2 `83567b5e…` (11 333 684 B) compiled the overlay to `wasm32-gc --emit component`; `wasm-tools component embed/new` packaged it |
+| p1 identity | Compiling the overlay with `--target wasm32 --wasi-version wasi-p1` writes `83567b5ed8c2f0f48ef99556961f5f6184bbe208b1d8eb6cdcd27daacf5127b3`, byte-identical to the fixed-point s2 this component was built from |
+| Self-reproduction | Compiling the overlay to `wasm32-gc --emit component` writes core `57d79c746e34fe63fa77ee357fc004648b6176d2706d80940320193fd03f5580` (8 302 268 B), the core this component packages |
 
 The 2026-10-30 refresh is the first one that needed two s2 generations
 (generation convergence). The committed pin (`471855ad…`, built from
@@ -63,6 +63,16 @@ unconditional as recorded in
 fixed point is `1d5056db…` (11 296 972 B; s2 == s3), so a rebuild from this tree
 no longer reproduces the `d2224704…` producer identity above, which is a
 property of the refresh commit's overlay.
+
+The later 2026-10-31 refresh follows the generic impl identity merge
+(`de7614545`). The previous pin (`bc81d60b…`, built from `5e0de551c`) was one
+emission generation behind that source: compiling the overlay with it wrote s2
+`18413ce2…` (11 332 832 B), and that s2 compiling the same overlay to
+`--target wasm32 --wasi-version wasi-p1` wrote `83567b5e…` (11 333 684 B,
++852 B). The fixed-point s2 `83567b5e…` compiled the overlay to `wasm32-gc
+--emit component`; the core `57d79c74…` (8 302 268 B, `wasm-tools validate`
+PASS) was packaged as component `27f76004…` (8 310 033 B). The component's p1
+output is `83567b5e…` and its gc self-build reproduces that core.
 
 The `3c02d18b` refresh restored the gc host after the 2026-10-28 core pin
 retired it. The `35a2585a` refresh baked in the 2026-10-29 allocation-free
