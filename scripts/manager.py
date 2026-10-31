@@ -390,7 +390,10 @@ def _cached_quick_check(
         except (OSError, json.JSONDecodeError, ValueError):
             pass
     rc, out = run_fn(cmd_str)
-    if rc == 0:
+    # A dry run only proves that the gate would be selected; it never executes
+    # the underlying check. Caching its success would let a later full run
+    # replay a check that never ran, so dry-run output is never cached.
+    if rc == 0 and not out.lstrip().startswith("DRY-RUN:"):
         try:
             _VERIFY_QUICK_CHECK_CACHE_DIR.mkdir(parents=True, exist_ok=True)
             cache_file.write_text(
