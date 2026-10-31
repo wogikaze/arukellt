@@ -1,0 +1,64 @@
+// The non-public __hm_<pair> storage bridge declares its five key/value
+// families in std/prelude.ark, so a direct call takes the ordinary call path,
+// unifies its arguments against the declaration, and lowers to the wasm
+// HashMap handler (#936).
+use std::test::Test
+
+fn main() {
+    // Keep the public HashMap module graph loaded: the linear bridge emits a
+    // call to hash::hashmap_new, which is only linked for HashMap users.
+    let mut public_map = HashMap::new<String, i32>()
+    let _ = public_map.insert("linked", 1)
+    Test::assert_eq_i32(public_map.len(), 1)
+
+    let si: HashMap<String, i32> = __hm_si_new()
+    Test::assert_true(__hm_si_cap(si) > 0)
+    __hm_si_set_key(si, 0, String_from("key"))
+    __hm_si_set_val(si, 0, 7)
+    __hm_si_set_flag(si, 0, 1)
+    __hm_si_set_size(si, 1)
+    Test::assert_eq_i32(__hm_si_size(si), 1)
+    Test::assert_eq_i32(__hm_si_get_flag(si, 0), 1)
+    Test::assert_eq_string(__hm_si_get_key(si, 0), "key")
+    Test::assert_eq_i32(__hm_si_get_val(si, 0), 7)
+
+    let donor: HashMap<String, i32> = __hm_si_new_with_cap(32)
+    Test::assert_eq_i32(__hm_si_cap(donor), 32)
+    __hm_si_adopt(si, donor)
+    Test::assert_eq_i32(__hm_si_size(si), 0)
+    Test::assert_eq_i32(__hm_si_cap(si), 32)
+
+    let is_map: HashMap<i32, String> = __hm_is_new()
+    __hm_is_set_key(is_map, 0, 4)
+    __hm_is_set_val(is_map, 0, String_from("four"))
+    __hm_is_set_flag(is_map, 0, 1)
+    __hm_is_set_size(is_map, 1)
+    Test::assert_eq_i32(__hm_is_size(is_map), 1)
+    Test::assert_eq_i32(__hm_is_get_flag(is_map, 0), 1)
+    Test::assert_eq_i32(__hm_is_get_key(is_map, 0), 4)
+    Test::assert_eq_string(__hm_is_get_val(is_map, 0), "four")
+    Test::assert_true(__hm_is_cap(is_map) > 0)
+
+    let ss: HashMap<String, String> = __hm_ss_new()
+    __hm_ss_set_key(ss, 0, String_from("a"))
+    __hm_ss_set_val(ss, 0, String_from("b"))
+    __hm_ss_set_flag(ss, 0, 1)
+    __hm_ss_set_size(ss, 1)
+    Test::assert_eq_i32(__hm_ss_size(ss), 1)
+    Test::assert_eq_i32(__hm_ss_get_flag(ss, 0), 1)
+    Test::assert_eq_string(__hm_ss_get_key(ss, 0), "a")
+    Test::assert_eq_string(__hm_ss_get_val(ss, 0), "b")
+    Test::assert_true(__hm_ss_cap(ss) > 0)
+
+    // fn-valued families: the declaration binds the fn ABI; the stdlib
+    // HashMap fn-family fixtures exercise the value round trip.
+    let if_map: HashMap<i32, fn(i32) -> i32> = __hm_if_new()
+    Test::assert_true(__hm_if_cap(if_map) > 0)
+    Test::assert_eq_i32(__hm_if_size(if_map), 0)
+    Test::assert_eq_i32(__hm_if_get_flag(if_map, 0), 0)
+
+    let sf: HashMap<String, fn(i32) -> i32> = __hm_sf_new()
+    Test::assert_true(__hm_sf_cap(sf) > 0)
+    Test::assert_eq_i32(__hm_sf_size(sf), 0)
+    Test::assert_eq_i32(__hm_sf_get_flag(sf, 0), 0)
+}

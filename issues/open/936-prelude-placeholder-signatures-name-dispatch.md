@@ -538,6 +538,94 @@ name-keyed return-table entries are gone and their arguments are checked).
 Items 1, 3 and 4 are unchanged; the two family derivations above remain with
 the reasons recorded here.
 
+## Update (2026-10-31, `wave/simd-decls`) — HashMap bridge sealed, SIMD subset declared
+
+The `__hm_*` family is now declaration-checked end to end, and the v128
+memory / splat / extract_lane SIMD subset gained declarations. The
+`hashmap_builtin_return_type` table is gone.
+
+`std/prelude.ark` declares all 5 key/value families × 12 operations plus the
+`__intrinsic_i31_box` / `i31_box` pair. Each body is a self-call shell, so the
+declaration is the typechecker contract and the wasm HashMap handler remains
+the only implementation. `mir_should_defer_stdlib_body` defers the `__hm_*`
+bodies, so a call is signature-checked by the declaration and still lowered by
+the bridge (`call_hash` by spelling); nothing duplicates the storage code.
+`src/compiler/typechecker/builtins_hash.ark` is deleted and
+`builtin_call_return_type` now only delegates to the SIMD derivation.
+
+The declaration exposed a reachability gap that the name-keyed builtin did not
+have. `ctx_edge_record_name` returned after the fn_index hit, so once
+`__hm_si_new` resolved to a declaration the `hashmap_new` alias edge was never
+recorded. On `wasm32` the bridge emits a call to `hashmap_new`, so the prune
+dropped that body and the emitted call index resolved to an import
+(`W0004 ... type mismatch: expected i32 but nothing on stack`). The function
+now records the callee edge *and* its hash alias edge; this is the
+reachability half of the FunctionId → bridge handoff.
+
+`std/prelude.ark` also declares 33 SIMD spellings: the 11 `__wasm_v128_*`
+memory operations, 10 `*_splat` spellings, and 12 `*_extract_lane` spellings
+(signed and unsigned families). Every one already has a `data/core-ops.toml`
+legacy binding, so MIR defers the shell body and the call reaches
+`try_emit_call_via_core_op_registry` through the declaration's FunctionId:
+the first SIMD path where the registry entry (not a name table) supplies the
+return contract. `simd_builtin_call_return_type` remains for the rest of the
+family.
+
+Why the SIMD subset stops there:
+
+- The non-public `__simd_*` spellings are not resolver-registered
+  (`resolver::builtins_simd` is not wired into `resolver_builtins`), so only
+  loaded std modules can call them. A user-facing direct-call fixture would
+  require exposing them, and the negative contract is covered by the std
+  module bodies that call the declarations.
+- The remaining ~204 typechecker-visible spellings (261 aliases in
+  `data/core-ops.toml`) reduce to a small set of signature shapes:
+  `(v128, v128) -> v128` binops / compares / min / max; `(v128) -> v128`
+  unary and conversions; `(v128, i32) -> v128` shifts and replace_lane;
+  `(v128, i32) -> scalar` extract_lane; `(v128) -> i32` all_true / bitmask /
+  any_true; `(i32, i32) -> v128` loads; `(i32, v128, i32) -> v128` load_lane;
+  `(v128, v128, v128) -> v128` bitselect; and the 16-argument v128_const.
+  Declaring them by hand duplicates the resolver registry and the target lane
+  signatures. The scaling path is to give the `target_raw` entries in
+  `data/core-ops.toml` their real lane signatures (ADR-037 nominal CoreOp
+  signatures) and generate the prelude block from that table, with a sync
+  check, instead of a second hand-maintained list.
+
+Fixtures:
+
+- `diagnostics/hashmap_bridge_call_arg_type{,_wasm32}` assert E0200 for wrong
+  key/value/map arguments and E0203 for a missing lane/index argument on both
+  targets.
+- `intrinsics/hashmap_bridge_declarations{,_wasm32}` calls all 12 operations
+  for the String/i32 family (including `adopt` and `new_with_cap`) and checks
+  the other four families' constructors on both targets.
+- SIMD coverage comes from `simd_conformance`, `simd_lowering`,
+  `simd_gc_storage`, `stdlib_simd`, and `stdlib_wasm/v128_memory_surface`.
+
+Evidence (current s2):
+
+- `selfhost build-compiler`: PASS.
+- `verify fixtures`: PASS=1976 FAIL=0 COMPILE_VALIDATE=1976 EXECUTED=114
+  RUNTIME_UNSUPPORTED=2; `test:` PASS=43 FAIL=0.
+- `verify lane`, `docs check` 6/6, `selfhost diag-parity`, `selfhost fixpoint`.
+- Fixpoint s2 == s3: `24d5f984eccb76ae7f6ec30ee01340db4f9f04e3eba8471b2069cab3d15f82f1` on pin
+  `56ff0808171dcc3c521b0e85d07f2b16a349a59419483ad71148a5ee928d23e8`.
+
+Acceptance movement: item 2 moves for the `__hm_*` and i31 names (their
+name-keyed return-table entries are gone and their arguments are checked) and
+for the 33 declared SIMD spellings. Items 1, 3 and 4 are unchanged; the SIMD
+family derivation remains for the reasons above.
+
+Residuals:
+
+- The remaining SIMD lane operations keep `simd_builtin_call_return_type`
+  until their declarations are generated from nominal CoreOp signatures.
+- The `__hm_*` declarations remain non-public resolver builtins; the wasm
+  bridge is still selected by callee spelling (`call_hash`), not by a CoreOp
+  id, because the HashMap storage ABI is target-specific.
+- `i31_box` is only exercised by the T3 boxing fixture; the declarations make
+  its arguments checked on every target.
+
 ## Notes
 
 #917 is converting stdlib free functions to methods; this issue owns the

@@ -211,6 +211,409 @@ fn __runtime_abi_fs_write_bytes(_path: String, _bytes: Vec<i32>) -> Result<(), S
     Err(String_new())
 }
 
+// Non-public HashMap storage bridge (`__hm_<key><value>_*`).
+//
+// These declarations are the call contract for the 5 key/value families × 12
+// storage operations. The wasm HashMap handlers still select the storage
+// operation from the callee spelling, so the self-call body lowers to that same
+// bridge instead of recursing; the declaration exists so the checker unifies
+// arguments against a real signature. The spelling set mirrors
+// `src/compiler/resolver/builtins_hash.ark`, which stays the resolver
+// authority: a name without a declaration here would fall back to the retired
+// name-keyed return table (#936).
+
+fn __hm_si_new() -> HashMap<String, i32> {
+    __hm_si_new()
+}
+
+fn __hm_si_new_with_cap(cap: i32) -> HashMap<String, i32> {
+    __hm_si_new_with_cap(cap)
+}
+
+fn __hm_si_adopt(dst: HashMap<String, i32>, src: HashMap<String, i32>) {
+    __hm_si_adopt(dst, src)
+}
+
+fn __hm_si_cap(m: HashMap<String, i32>) -> i32 {
+    __hm_si_cap(m)
+}
+
+fn __hm_si_size(m: HashMap<String, i32>) -> i32 {
+    __hm_si_size(m)
+}
+
+fn __hm_si_set_size(m: HashMap<String, i32>, size: i32) {
+    __hm_si_set_size(m, size)
+}
+
+fn __hm_si_get_flag(m: HashMap<String, i32>, idx: i32) -> i32 {
+    __hm_si_get_flag(m, idx)
+}
+
+fn __hm_si_get_val(m: HashMap<String, i32>, idx: i32) -> i32 {
+    __hm_si_get_val(m, idx)
+}
+
+fn __hm_si_set_flag(m: HashMap<String, i32>, idx: i32, flag: i32) {
+    __hm_si_set_flag(m, idx, flag)
+}
+
+fn __hm_si_set_val(m: HashMap<String, i32>, idx: i32, value: i32) {
+    __hm_si_set_val(m, idx, value)
+}
+
+fn __hm_si_get_key(m: HashMap<String, i32>, idx: i32) -> String {
+    __hm_si_get_key(m, idx)
+}
+
+fn __hm_si_set_key(m: HashMap<String, i32>, idx: i32, key: String) {
+    __hm_si_set_key(m, idx, key)
+}
+
+fn __hm_is_new() -> HashMap<i32, String> {
+    __hm_is_new()
+}
+
+fn __hm_is_new_with_cap(cap: i32) -> HashMap<i32, String> {
+    __hm_is_new_with_cap(cap)
+}
+
+fn __hm_is_adopt(dst: HashMap<i32, String>, src: HashMap<i32, String>) {
+    __hm_is_adopt(dst, src)
+}
+
+fn __hm_is_cap(m: HashMap<i32, String>) -> i32 {
+    __hm_is_cap(m)
+}
+
+fn __hm_is_size(m: HashMap<i32, String>) -> i32 {
+    __hm_is_size(m)
+}
+
+fn __hm_is_set_size(m: HashMap<i32, String>, size: i32) {
+    __hm_is_set_size(m, size)
+}
+
+fn __hm_is_get_flag(m: HashMap<i32, String>, idx: i32) -> i32 {
+    __hm_is_get_flag(m, idx)
+}
+
+fn __hm_is_get_val(m: HashMap<i32, String>, idx: i32) -> String {
+    __hm_is_get_val(m, idx)
+}
+
+fn __hm_is_set_flag(m: HashMap<i32, String>, idx: i32, flag: i32) {
+    __hm_is_set_flag(m, idx, flag)
+}
+
+fn __hm_is_set_val(m: HashMap<i32, String>, idx: i32, value: String) {
+    __hm_is_set_val(m, idx, value)
+}
+
+fn __hm_is_get_key(m: HashMap<i32, String>, idx: i32) -> i32 {
+    __hm_is_get_key(m, idx)
+}
+
+fn __hm_is_set_key(m: HashMap<i32, String>, idx: i32, key: i32) {
+    __hm_is_set_key(m, idx, key)
+}
+
+fn __hm_if_new() -> HashMap<i32, fn(i32) -> i32> {
+    __hm_if_new()
+}
+
+fn __hm_if_new_with_cap(cap: i32) -> HashMap<i32, fn(i32) -> i32> {
+    __hm_if_new_with_cap(cap)
+}
+
+fn __hm_if_adopt(dst: HashMap<i32, fn(i32) -> i32>, src: HashMap<i32, fn(i32) -> i32>) {
+    __hm_if_adopt(dst, src)
+}
+
+fn __hm_if_cap(m: HashMap<i32, fn(i32) -> i32>) -> i32 {
+    __hm_if_cap(m)
+}
+
+fn __hm_if_size(m: HashMap<i32, fn(i32) -> i32>) -> i32 {
+    __hm_if_size(m)
+}
+
+fn __hm_if_set_size(m: HashMap<i32, fn(i32) -> i32>, size: i32) {
+    __hm_if_set_size(m, size)
+}
+
+fn __hm_if_get_flag(m: HashMap<i32, fn(i32) -> i32>, idx: i32) -> i32 {
+    __hm_if_get_flag(m, idx)
+}
+
+fn __hm_if_get_val(m: HashMap<i32, fn(i32) -> i32>, idx: i32) -> fn(i32) -> i32 {
+    __hm_if_get_val(m, idx)
+}
+
+fn __hm_if_set_flag(m: HashMap<i32, fn(i32) -> i32>, idx: i32, flag: i32) {
+    __hm_if_set_flag(m, idx, flag)
+}
+
+fn __hm_if_set_val(m: HashMap<i32, fn(i32) -> i32>, idx: i32, value: fn(i32) -> i32) {
+    __hm_if_set_val(m, idx, value)
+}
+
+fn __hm_if_get_key(m: HashMap<i32, fn(i32) -> i32>, idx: i32) -> i32 {
+    __hm_if_get_key(m, idx)
+}
+
+fn __hm_if_set_key(m: HashMap<i32, fn(i32) -> i32>, idx: i32, key: i32) {
+    __hm_if_set_key(m, idx, key)
+}
+
+fn __hm_ss_new() -> HashMap<String, String> {
+    __hm_ss_new()
+}
+
+fn __hm_ss_new_with_cap(cap: i32) -> HashMap<String, String> {
+    __hm_ss_new_with_cap(cap)
+}
+
+fn __hm_ss_adopt(dst: HashMap<String, String>, src: HashMap<String, String>) {
+    __hm_ss_adopt(dst, src)
+}
+
+fn __hm_ss_cap(m: HashMap<String, String>) -> i32 {
+    __hm_ss_cap(m)
+}
+
+fn __hm_ss_size(m: HashMap<String, String>) -> i32 {
+    __hm_ss_size(m)
+}
+
+fn __hm_ss_set_size(m: HashMap<String, String>, size: i32) {
+    __hm_ss_set_size(m, size)
+}
+
+fn __hm_ss_get_flag(m: HashMap<String, String>, idx: i32) -> i32 {
+    __hm_ss_get_flag(m, idx)
+}
+
+fn __hm_ss_get_val(m: HashMap<String, String>, idx: i32) -> String {
+    __hm_ss_get_val(m, idx)
+}
+
+fn __hm_ss_set_flag(m: HashMap<String, String>, idx: i32, flag: i32) {
+    __hm_ss_set_flag(m, idx, flag)
+}
+
+fn __hm_ss_set_val(m: HashMap<String, String>, idx: i32, value: String) {
+    __hm_ss_set_val(m, idx, value)
+}
+
+fn __hm_ss_get_key(m: HashMap<String, String>, idx: i32) -> String {
+    __hm_ss_get_key(m, idx)
+}
+
+fn __hm_ss_set_key(m: HashMap<String, String>, idx: i32, key: String) {
+    __hm_ss_set_key(m, idx, key)
+}
+
+fn __hm_sf_new() -> HashMap<String, fn(i32) -> i32> {
+    __hm_sf_new()
+}
+
+fn __hm_sf_new_with_cap(cap: i32) -> HashMap<String, fn(i32) -> i32> {
+    __hm_sf_new_with_cap(cap)
+}
+
+fn __hm_sf_adopt(dst: HashMap<String, fn(i32) -> i32>, src: HashMap<String, fn(i32) -> i32>) {
+    __hm_sf_adopt(dst, src)
+}
+
+fn __hm_sf_cap(m: HashMap<String, fn(i32) -> i32>) -> i32 {
+    __hm_sf_cap(m)
+}
+
+fn __hm_sf_size(m: HashMap<String, fn(i32) -> i32>) -> i32 {
+    __hm_sf_size(m)
+}
+
+fn __hm_sf_set_size(m: HashMap<String, fn(i32) -> i32>, size: i32) {
+    __hm_sf_set_size(m, size)
+}
+
+fn __hm_sf_get_flag(m: HashMap<String, fn(i32) -> i32>, idx: i32) -> i32 {
+    __hm_sf_get_flag(m, idx)
+}
+
+fn __hm_sf_get_val(m: HashMap<String, fn(i32) -> i32>, idx: i32) -> fn(i32) -> i32 {
+    __hm_sf_get_val(m, idx)
+}
+
+fn __hm_sf_set_flag(m: HashMap<String, fn(i32) -> i32>, idx: i32, flag: i32) {
+    __hm_sf_set_flag(m, idx, flag)
+}
+
+fn __hm_sf_set_val(m: HashMap<String, fn(i32) -> i32>, idx: i32, value: fn(i32) -> i32) {
+    __hm_sf_set_val(m, idx, value)
+}
+
+fn __hm_sf_get_key(m: HashMap<String, fn(i32) -> i32>, idx: i32) -> String {
+    __hm_sf_get_key(m, idx)
+}
+
+fn __hm_sf_set_key(m: HashMap<String, fn(i32) -> i32>, idx: i32, key: String) {
+    __hm_sf_set_key(m, idx, key)
+}
+
+// The T3 boxing intrinsic returns the unboxed `i31.get_s` payload, so the
+// declaration's result is i32 on every target; the wasm handler owns the
+// ref.i31 round trip (see wasm/intrinsic_i31_box.ark).
+fn __intrinsic_i31_box(value: i32) -> i32 {
+    __intrinsic_i31_box(value)
+}
+
+fn i31_box(value: i32) -> i32 {
+    i31_box(value)
+}
+
+// SIMD lane intrinsic declarations, v128 memory / splat / extract_lane subset.
+//
+// Every spelling here has a `data/core-ops.toml` legacy binding, so MIR
+// lowering defers the shell body to the SIMD CoreOp handler; the declaration
+// supplies the lane-specific signature the checker unifies against instead of
+// the name-keyed `simd_builtin_call_return_type` derivation. The remaining
+// lane operations stay on that derivation until their signatures are
+// generated with the resolver registry (ADR-037). The self-call body is the
+// typechecking shell; the wasm handler owns the instruction sequence.
+fn __wasm_v128_load(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load(address, offset)
+}
+
+fn __wasm_v128_store(address: i32, offset: i32, value: v128) {
+    __wasm_v128_store(address, offset, value)
+}
+
+fn __wasm_v128_load_splat(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load_splat(address, offset)
+}
+
+fn __wasm_v128_load_lane(address: i32, offset: i32, value: v128, lane: i32) -> v128 {
+    __wasm_v128_load_lane(address, offset, value, lane)
+}
+
+fn __wasm_v128_store_lane(address: i32, offset: i32, value: v128, lane: i32) {
+    __wasm_v128_store_lane(address, offset, value, lane)
+}
+
+fn __wasm_v128_load8x8_s(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load8x8_s(address, offset)
+}
+
+fn __wasm_v128_load8x8_u(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load8x8_u(address, offset)
+}
+
+fn __wasm_v128_load16x4_s(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load16x4_s(address, offset)
+}
+
+fn __wasm_v128_load16x4_u(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load16x4_u(address, offset)
+}
+
+fn __wasm_v128_load32x2_s(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load32x2_s(address, offset)
+}
+
+fn __wasm_v128_load32x2_u(address: i32, offset: i32) -> v128 {
+    __wasm_v128_load32x2_u(address, offset)
+}
+
+fn __simd_i8x16_splat(x: i32) -> v128 {
+    __simd_i8x16_splat(x)
+}
+
+fn __simd_i16x8_splat(x: i32) -> v128 {
+    __simd_i16x8_splat(x)
+}
+
+fn __simd_i32x4_splat(x: i32) -> v128 {
+    __simd_i32x4_splat(x)
+}
+
+fn __simd_i64x2_splat(x: i64) -> v128 {
+    __simd_i64x2_splat(x)
+}
+
+fn __simd_f32x4_splat(x: f32) -> v128 {
+    __simd_f32x4_splat(x)
+}
+
+fn __simd_f64x2_splat(x: f64) -> v128 {
+    __simd_f64x2_splat(x)
+}
+
+fn __simd_u8x16_splat(x: i32) -> v128 {
+    __simd_u8x16_splat(x)
+}
+
+fn __simd_u16x8_splat(x: i32) -> v128 {
+    __simd_u16x8_splat(x)
+}
+
+fn __simd_u32x4_splat(x: i32) -> v128 {
+    __simd_u32x4_splat(x)
+}
+
+fn __simd_u64x2_splat(x: i64) -> v128 {
+    __simd_u64x2_splat(x)
+}
+
+fn __simd_i8x16_extract_lane_s(v: v128, lane: i32) -> i32 {
+    __simd_i8x16_extract_lane_s(v, lane)
+}
+
+fn __simd_i8x16_extract_lane_u(v: v128, lane: i32) -> i32 {
+    __simd_i8x16_extract_lane_u(v, lane)
+}
+
+fn __simd_i16x8_extract_lane_s(v: v128, lane: i32) -> i32 {
+    __simd_i16x8_extract_lane_s(v, lane)
+}
+
+fn __simd_i16x8_extract_lane_u(v: v128, lane: i32) -> i32 {
+    __simd_i16x8_extract_lane_u(v, lane)
+}
+
+fn __simd_i32x4_extract_lane(v: v128, lane: i32) -> i32 {
+    __simd_i32x4_extract_lane(v, lane)
+}
+
+fn __simd_i64x2_extract_lane(v: v128, lane: i32) -> i64 {
+    __simd_i64x2_extract_lane(v, lane)
+}
+
+fn __simd_f32x4_extract_lane(v: v128, lane: i32) -> f32 {
+    __simd_f32x4_extract_lane(v, lane)
+}
+
+fn __simd_f64x2_extract_lane(v: v128, lane: i32) -> f64 {
+    __simd_f64x2_extract_lane(v, lane)
+}
+
+fn __simd_u8x16_extract_lane_u(v: v128, lane: i32) -> i32 {
+    __simd_u8x16_extract_lane_u(v, lane)
+}
+
+fn __simd_u16x8_extract_lane_u(v: v128, lane: i32) -> i32 {
+    __simd_u16x8_extract_lane_u(v, lane)
+}
+
+fn __simd_u32x4_extract_lane(v: v128, lane: i32) -> i32 {
+    __simd_u32x4_extract_lane(v, lane)
+}
+
+fn __simd_u64x2_extract_lane(v: v128, lane: i32) -> i64 {
+    __simd_u64x2_extract_lane(v, lane)
+}
+
 // =============================================================================
 // Legacy compatibility bodies. The remaining private `__core_*` functions are
 // core-op fallbacks; their public prelude wrappers were deleted in the

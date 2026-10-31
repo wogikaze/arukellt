@@ -117,25 +117,36 @@ fn ctx_edge_record_callee(mut ctx: LowerCtx, payload: i32) {
     ctx.fn_indices.push(payload)
 }
 
+// Record one callee edge. The callee name and its hash-bridge alias are
+// separate dependencies: `__hm_*_new` is lowered inline by the wasm bridge,
+// so `hashmap_new` is never a MIR call target, but its body must survive the
+// prune. Returning after the fn_index hit would drop that alias edge once a
+// declaration makes `__hm_si_new` resolvable, pruning `hashmap_new` from a
+// linear-target module and leaving the emitted bridge call pointing at an
+// import.
 fn ctx_edge_record_name(mut ctx: LowerCtx, name: String) {
     if name.len() == 0 {
         return
     }
+    let mut recorded = false
     let ni = ctx_fn_index::ctx_fn_index_find(ctx, name.clone())
     if ni >= 0 {
         ctx_edge_record_callee(ctx, ctx_edge_name_tag(ni))
-        return
+        recorded = true
     }
     let alias = hash_aliases::hashmap_builtin_alias(name.clone())
     if !alias.clone().eq(name.clone()) {
         let alias_ni = ctx_fn_index::ctx_fn_index_find(ctx, alias.clone())
         if alias_ni >= 0 {
             ctx_edge_record_callee(ctx, ctx_edge_name_tag(alias_ni))
-            return
+        } else {
+            let overflow = ctx.edge_names.len()
+            ctx.edge_names.push(alias)
+            ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
         }
-        let overflow = ctx.edge_names.len()
-        ctx.edge_names.push(alias)
-        ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
+        recorded = true
+    }
+    if recorded {
         return
     }
     let overflow = ctx.edge_names.len()
