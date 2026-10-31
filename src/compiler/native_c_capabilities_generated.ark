@@ -2,6 +2,7 @@
 // Run scripts/check/check-native-cpp-capabilities.py --write-generated.
 // Compact table + index for CoreOp capabilities. Do not edit by hand.
 
+use std::prelude::{substring}
 use std::text
 use corehir::table_blob
 use mir::opcodes
@@ -598,7 +599,7 @@ fn native_c_core_capability_status_row_at(index: i32) -> String {
     if start_chunk == end_chunk {
         let piece = native_c_core_capability_status_row_data_chunk(start_chunk)
         let local = start - start_chunk * 144
-        return piece.slice(local, local + (end - start))
+        return substring(piece, local, local + (end - start))
     }
     let mut out = String_new()
     let mut i = start
@@ -612,7 +613,7 @@ fn native_c_core_capability_status_row_at(index: i32) -> String {
         if remain < avail {
             take = remain
         }
-        out = text::concat(out, piece.slice(local, local + take))
+        out = text::concat(out, substring(piece, local, local + take))
         i = i + take
     }
     return out
