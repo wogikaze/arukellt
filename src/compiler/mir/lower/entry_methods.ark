@@ -15,9 +15,11 @@ fn mir_emit_impl_methods(mut ctx: LowerCtx, mut body_source: MirLowerEntryBodySo
     let mut mi = 0
     let mut skipped = 0
     while mi < method_count {
-        // Impl bodies use the impl decl index plus their own call spans;
-        // no method ordinal, so checker and MIR agree on the identity (#933).
-        ctx_resolved_calls::ctx_set_body_identity(ctx, impl_decl_index, 0 - 1)
+        // The child index is the method's identity inside the impl. The
+        // checker records the same ordinal, and the signature/method-info
+        // enumeration walks the same children, so call records and mono span
+        // rewrites never alias a sibling method (#933 / #934).
+        ctx_resolved_calls::ctx_set_body_identity(ctx, impl_decl_index, mi)
         let method_info_index = entry_view_method::mir_entry_method_info_index(entry_view, impl_decl_index, mi)
         let mut mangled = struct_name.clone()
         let mut m_body_idx = 0 - 1

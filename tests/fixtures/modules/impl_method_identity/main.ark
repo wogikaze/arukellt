@@ -1,0 +1,16 @@
+//! Regression guard: two loaded modules declare `Counter::bump`, so the flat
+//! `Owner::method` key aliases their signatures and emitted bodies. Calls from
+//! each module body and from module-qualified receivers must reach the
+//! declaration that owns them.
+use std::host::stdio::Stdio
+use alpha
+use beta
+
+fn main() {
+    Stdio::println(alpha::probe().to_string())
+    Stdio::println(beta::probe().to_string())
+    let from_alpha = alpha::Counter { value: 5 }
+    Stdio::println(from_alpha.bump().to_string())
+    let from_beta = beta::Counter { value: 5 }
+    Stdio::println(from_beta.bump().to_string())
+}

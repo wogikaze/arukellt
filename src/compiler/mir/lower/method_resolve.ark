@@ -1,4 +1,5 @@
 use std::text
+use corehir::impl_method_identity
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
@@ -459,6 +460,21 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
 }
 
 fn mir_resolve_method_callee(mut ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
+    // A per-method identity from the checker names one exact impl declaration
+    // (`Counter::bump__impl_12_0`) when two modules declare the same flat
+    // owner spelling. It is a registered function, so bind it before the
+    // receiver-type and rewrite paths can collapse the call onto the first
+    // declaration (#934). Ordinary flat names skip this and keep their
+    // existing resolution order.
+    let recorded_function = ctx_resolved_calls::ctx_resolved_call_function_id(
+        ctx,
+        span_start,
+        mir_bare_method_name(callee_name.clone())
+    )
+    if impl_method_identity::impl_method_has_identity_suffix(recorded_function.clone()) &&
+    ctx_has_fn_name(ctx, recorded_function.clone()) {
+        return recorded_function
+    }
     // Prefer CoreOp rewrite names for Vec mutating/access methods. Generic
     // `impl Vec<T> { push/... }` shells must not win mono as
     // `__core_vec_push_i32_impl` before element-type rewrite (#845).

@@ -1,0 +1,18 @@
+//! Same-named owner type and method as `alpha`; the per-method identity has to
+//! distinguish this declaration from alpha's even though both spell
+//! `Counter::bump`.
+
+pub struct Counter {
+    value: i32,
+}
+
+impl Counter {
+    fn bump(self) -> i32 {
+        self.value + 10
+    }
+}
+
+pub fn probe() -> i32 {
+    let counter = Counter { value: 10 }
+    counter.bump()
+}

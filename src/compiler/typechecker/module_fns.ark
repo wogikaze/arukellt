@@ -1,3 +1,5 @@
+use collections::name_index
+use corehir::impl_method_identity
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::associated_types
@@ -11,6 +13,11 @@ use typechecker::types
 use corehir::decl_impl_target
 fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
     let mut fn_sigs = Vec::new<FnSig>()
+    // Flat impl method spellings are only unique per module boundary; the
+    // first claim keeps the spelling and later non-generic claims take their
+    // declaration identity (impl_method_identity). Walk order matches
+    // CoreHIR's method info collection and the signature index.
+    let mut seen = name_index::NameIndex_empty()
     let decl_count = decls.len()
     let mut i = 0
     while i < decl_count {
@@ -34,29 +41,70 @@ fn collect_fn_sigs(decls: Vec<AstNode>, mut env: TypeEnv) -> Vec<FnSig> {
             fn_sigs.push(contract_fn_sig::FnSig_with_decl_index(const_sig, i))
         }
         if ast_decl_predicates::node_is_impl_decl(node) {
-            collect_impl_method_sigs(fn_sigs, node, env, i)
+            collect_impl_method_sigs(fn_sigs, node, env, i, seen)
         }
         i = i + 1
     }
     fn_sigs
 }
 
-fn collect_impl_method_sigs(mut fn_sigs: Vec<FnSig>, node: AstNode, env: TypeEnv, decl_index: i32) {
+fn collect_impl_method_sigs(
+    mut fn_sigs: Vec<FnSig>,
+    node: AstNode,
+    env: TypeEnv,
+    decl_index: i32,
+    mut seen: NameIndex
+) {
     let impl_child_count = ast_access::node_child_count(node)
     let mut ic = 0
     while ic < impl_child_count {
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
-            fn_sigs.push(contract_fn_sig::FnSig_with_decl_index(
-                    impl_method_sig(env, node, meth),
-                    decl_index
+            let method_name = ast_access::node_text(meth)
+            let flat_name = decl_impl_target::impl_method_mangled_name(
+                node,
+                method_name,
+                env.declared_type_names.clone()
+            )
+            let emitted_name = impl_method_identity::impl_method_emitted_name(
+                seen,
+                flat_name,
+                decl_index,
+                ic,
+                impl_method_identity::impl_method_is_generic(
+                    node,
+                    meth,
+                    env.declared_type_names.clone()
+                )
+            )
+            fn_sigs.push(contract_fn_sig::FnSig_with_identity(
+                    impl_method_sig(env, node, meth, emitted_name),
+                    decl_index,
+                    ic
                 ))
         }
         ic = ic + 1
     }
 }
 
-fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> FnSig {
+// The signature the checker collected for one impl method. `check_impl_methods`
+// re-derives the declaration sig for body checking; using the collected entry
+// keeps the identity and emitted name it will hand to MIR.
+fn impl_method_sig_index_for(fn_sigs: Vec<FnSig>, decl_index: i32, body_child_index: i32) -> i32 {
+    let count = fn_sigs.len()
+    let mut i = 0
+    while i < count {
+        let sig = fn_sigs.get_unchecked(i)
+        if contract_fn_sig::FnSig_decl_index(sig) == decl_index &&
+        contract_fn_sig::FnSig_body_child_index(sig) == body_child_index {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode, emitted_name: String) -> FnSig {
     let impl_type_params = decl_impl_target::effective_impl_param_names(
         impl_decl,
         env.declared_type_names.clone()
@@ -72,12 +120,7 @@ fn impl_method_sig(env: TypeEnv, impl_decl: AstNode, method_decl: AstNode) -> Fn
         sigs::fn_sig_from_fn_decl(method_decl)
     }
     let typed_sig = impl_self_param_sig(impl_decl, method_decl, bare_sig, impl_type_params)
-    let mangled_name = decl_impl_target::impl_method_mangled_name(
-        impl_decl,
-        contract_fn_sig::FnSig_name(bare_sig),
-        env.declared_type_names.clone()
-    )
-    let named_sig = contract_fn_sig::FnSig_with_name(typed_sig, mangled_name)
+    let named_sig = contract_fn_sig::FnSig_with_name(typed_sig, emitted_name)
     let projected_sig = associated_types::resolve_impl_signature(env, impl_decl, named_sig)
     associated_types::resolve_impl_self_return(env, impl_decl, projected_sig)
 }

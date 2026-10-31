@@ -8,6 +8,7 @@ use corehir::frontend_ast_span
 use corehir::frontend_ast_type_ann
 use corehir::expr_node_access
 use corehir::frontend_expr_kind
+use corehir::impl_method_identity
 use corehir::mir_signature_method
 use corehir::mod
 use corehir::param
@@ -623,6 +624,18 @@ fn edge_resolve_method_site(
     if recv_ty.len() == 0 || method.len() == 0 {
         return
     }
+    // The checker's resolved-call table may name a per-method identity
+    // (impl_method_identity) that the receiver-type candidates below cannot
+    // derive: two same-named owner types in different modules resolve to
+    // different declarations. Keep that exact body alive before the generic
+    // candidate fan-out. Only identity-suffixed names are added: an ordinary
+    // function id can be a generic template whose emit names are its mono
+    // variants, and making the site "precise" with the template would drop
+    // the concrete instance the call actually targets.
+    let recorded_function = ctx_resolved_calls::ctx_resolved_call_function_id(ctx, span_start, method.clone())
+    if impl_method_identity::impl_method_has_identity_suffix(recorded_function.clone()) {
+        edge_push_resolved_once(out, recorded_function)
+    }
     let mut owner_ty = recv_ty.clone()
     if owner_ty.clone().starts_with(String_from("?")) {
         owner_ty = owner_ty.slice(1, owner_ty.len())
@@ -746,6 +759,13 @@ fn edge_infer_expr_type(
     }
     if kind == frontend_kind_map::nk_char_lit() {
         return String_from("char")
+    }
+    // A struct literal's path text is its nominal type spelling
+    // (`Counter` or `beta::Counter`). Without this a `let c = M::Counter { .. }`
+    // binding has no receiver type, so the method site cannot hand the
+    // checker's per-method identity to the worklist.
+    if frontend_expr_kind::corehir_kind_is_expr_struct_lit(kind) {
+        return frontend_ast_identity::corehir_node_text(node)
     }
     String_new()
 }
@@ -1528,6 +1548,10 @@ fn mir_ast_edge_table_build(mut ctx: LowerCtx, mut body_source: MirLowerEntryBod
             let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, di)
             let mut mi = 0
             while mi < method_count {
+                // Publish the same per-method body identity lowering and the
+                // checker use, so a call-site rewrite cannot be matched from a
+                // sibling method of the same impl (#933 / #934).
+                ctx_resolved_calls::ctx_set_body_identity(ctx, di, mi)
                 let method_info_index = entry_view_method::mir_entry_method_info_index(entry_view, di, mi)
                 let mut mangled = struct_name.clone()
                 let mut m_body_idx = 0 - 1
