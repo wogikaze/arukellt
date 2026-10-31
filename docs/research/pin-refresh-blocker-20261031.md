@@ -424,10 +424,12 @@ the `len` fix and is the next refresh blocker.
    source still calls the free `len`; the overlay still needs the declaration
    after a pin refresh.
 
-## Update 2026-10-31 — gc clone misresolution fixed; candidate pin adoptable
+## Update 2026-10-31 — gc clone misresolution fixed; pin refreshed
 
 Lane `.worktrees/wave-clone-instance-select` (`wave/clone-instance-select`),
-base `280fcd530`, `ARUKELLT_BUILD_DIR=$PWD/.build-lane`, same toolchain.
+base `280fcd530`, `ARUKELLT_BUILD_DIR=$PWD/.build-lane`, same toolchain. The
+fix is `09a9a2b7e` (resolved-instance selection) plus the owner-match guard in
+the same file; the refresh commit installs the pin.
 
 ### WAT-level root cause
 
@@ -457,10 +459,18 @@ second site take the first module's instance and fail gc validation at func
 resolved-call table (`ctx_resolved_call_mono_instance_id`) for the call site
 before falling back to the span pool. That key carries the declaration index,
 body child index, span and callee name (#933), so it is module-scoped. The
-recorded instance is used only when it is a concrete, emitted function:
+recorded instance is used only when it is a concrete, emitted function whose
+target matches the callee's owner spelling (`mono_target_matches_source`);
 template spellings (`?`) and unknown names fall through to the existing
 selection order. No bare `clone` resolution was added and the poly-clone
 prelude path is unchanged (#928).
+
+The owner guard matters for `Option<T>`: `Option::clone` records the bare
+polymorphic prelude shim (`clone__Option_String_`), which is not a method
+instance. Without the guard the shim was accepted and the emitter wrote the
+unresolved-call stub, so `clone_no_import/vec_clone_deep.ark` trapped at
+runtime on both the gc and wasm32 fixture paths; the guard keeps the identity
+fallback.
 
 ### Regression fixture
 
@@ -471,20 +481,19 @@ and a `--target wasm32` variant. Before the fix the gc entry fails
 `wasm-tools validate` at func 22; after the fix both targets compile and the
 wasm32 variant runs.
 
-### Evidence
+### Generation and pin contract
 
 | Gate | Result |
 |------|--------|
-| `selfhost build-compiler` (after fix) | PASS, s2_1 `0919062d…`, 11 301 969 B |
-| s2_1's own WAT | still `Vec__clone__TypeInfo` at site 2 — the official pin emitted that call |
-| pure p1 hop s2_1 → s2_2, 2 200.5 s | s2_2 `43a3c459…`, 11 312 896 B; all three `declared.clone()` sites call `Vec__clone__String` |
-| p1 hop s2_2 → s2_3, 2 201.0 s | s2_3 `43a3c459…` — fixed point |
-| gc self-build of s2_2 | core `22234b5a…`, 8 326 760 B; `wasm-tools validate` PASS (func 1372 gone); component `7730559a…`, 8 334 525 B |
-| candidate p1 identity | PASS — the component compiles the overlay to p1 `43a3c459…`, byte-identical to s2_2 |
-| candidate gc self-reproduction | PASS — the component compiles the overlay to gc core `22234b5a…` and repackages to `7730559a…` |
+| s2 fixed point | `d2224704…`, 11 313 129 B; a p1 hop s2 → s2 reproduced it byte-identically (2 421.2 s) |
+| gc self-build of the fixed-point s2 | core `439f0dcb…`, 8 326 872 B, `wasm-tools validate` PASS (func 1372 gone); component `bc81d60b…`, 8 334 637 B |
+| candidate p1 identity | PASS — the component compiles the overlay to p1 `d2224704…`, the fixed-point s2 |
+| candidate gc self-reproduction | PASS — the component compiles the overlay to core `439f0dcb…` and repackages to `bc81d60b…` |
 
 The gc core's `resolver_impl_target__impl_target_type_name` calls
-`Vec__clone__String` at all three `declared.clone()` sites.
+`Vec__clone__String` at all three `declared.clone()` sites. The new pin is
+installed in the refresh commit; `bootstrap/PROVENANCE.md` carries the same
+values.
 
 ### Residuals after this lane
 
@@ -493,9 +502,9 @@ The gc core's `resolver_impl_target__impl_target_type_name` calls
    any other callee whose instance is chosen through that pool (and whose
    target owner check passes) can alias across modules. The next step is to
    scope the marker pool by the declaration identity as well.
-2. **Pin**: the candidate is adopted (see `bootstrap/PROVENANCE.md`). The
-   overlay shims stay; deleting them was not part of this lane.
-3. **s2_1 residual**: a stage-2 emitted by the previous pin still contains the
-   wrong `Vec__clone__TypeInfo` call in its own dead branch (it validates on
-   p1 and is unreachable at runtime). Only the next generation removes it; the
-   candidate fixed point s2_2 does not contain it.
+2. **Pin**: refreshed to `bc81d60b…`. The overlay shims stay; deleting them was
+   not part of this lane.
+3. **Pin-emitted s2**: a stage-2 emitted by the previous pin can still contain
+   a wrong `Vec__clone__*` call in its own dead branch (it validates on p1 and
+   is unreachable at runtime). Only the next generation removes it; the
+   refreshed fixed point does not contain it.
